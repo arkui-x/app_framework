@@ -16,10 +16,10 @@ import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
 
 group("napi_packages") {
   deps = [
-    "${cross_platform_napi_path}/ability:uiability",
-    "${cross_platform_napi_path}/ability_context:application_abilitycontext_napi",
-    "${cross_platform_napi_path}/ability_stage_context:application_abilitystagecontext_napi",
-    "${cross_platform_napi_path}/ability_stage:abilitystage",
-    "${cross_platform_napi_path}/context:application_context_napi",
+    # "${cross_platform_napi_path}/ability:uiability",
+    # "${cross_platform_napi_path}/ability_context:application_abilitycontext_napi",
+    # "${cross_platform_napi_path}/ability_stage_context:application_abilitystagecontext_napi",
+    # "${cross_platform_napi_path}/ability_stage:abilitystage",
+    # "${cross_platform_napi_path}/context:application_context_napi",
   ]
 }
