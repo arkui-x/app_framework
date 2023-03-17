@@ -103,6 +103,11 @@ bool RSSystemProperties::GetColdStartThreadEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
+{
+    return {};
+}
+
 float RSSystemProperties::GetAnimationScale()
 {
     return {};
