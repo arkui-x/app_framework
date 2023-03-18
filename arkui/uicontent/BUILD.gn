@@ -19,12 +19,12 @@ config("uicontent_config") {
   include_dirs = [
     "${ace_napi}",
     "${ace_root}",
-    "${ace_root}/frameworks",
     "${ace_root}/interfaces/frameworks",
     "${ace_root}/interfaces/inner_api/ace",
     "//arkcompiler/ets_runtime",
     "//arkcompiler/runtime_core",
     "//third_party/libuv/include",
+    "$root_out_dir/arkui/framework",
   ]
 }
 
