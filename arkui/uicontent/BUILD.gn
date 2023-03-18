@@ -19,6 +19,7 @@ config("uicontent_config") {
   include_dirs = [
     "${ace_napi}",
     "${ace_root}",
+    "${ace_root}/frameworks",
     "${ace_root}/interfaces/frameworks",
     "${ace_root}/interfaces/inner_api/ace",
     "//arkcompiler/ets_runtime",
@@ -35,6 +36,8 @@ ohos_source_set("ace_uicontent_interface") {
     "//foundation/appframework/arkui/uicontent/declarative_module_preloader.cpp",
     "//foundation/appframework/arkui/uicontent/ui_content.cpp",
   ]
+
+  deps = [ "$ace_root/frameworks/core/components/theme:build_theme_code" ]
 
   if (target_os == "android") {
     defines = [ "ANDROID_PLATFORM" ]
