@@ -24,6 +24,7 @@ config("uicontent_config") {
     "//arkcompiler/ets_runtime",
     "//arkcompiler/runtime_core",
     "//third_party/libuv/include",
+    "$root_out_dir/arkui/framework",
   ]
 }
 
@@ -35,6 +36,8 @@ ohos_source_set("ace_uicontent_interface") {
     "//foundation/appframework/arkui/uicontent/declarative_module_preloader.cpp",
     "//foundation/appframework/arkui/uicontent/ui_content.cpp",
   ]
+
+  deps = [ "$ace_root/frameworks/core/components/theme:build_theme_code" ]
 
   if (target_os == "android") {
     defines = [ "ANDROID_PLATFORM" ]
