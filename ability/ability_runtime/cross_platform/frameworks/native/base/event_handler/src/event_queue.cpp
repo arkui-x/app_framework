@@ -23,8 +23,6 @@
 #include "hilog.h"
 #include "none_io_waiter.h"
 
-// DEFINE_HILOG_LABEL("EventQueue");
-
 namespace OHOS {
 namespace AppExecFwk {
 namespace {

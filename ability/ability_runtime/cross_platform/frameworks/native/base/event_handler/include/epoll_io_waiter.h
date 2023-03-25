@@ -20,7 +20,6 @@
 #include <mutex>
 
 #include "io_waiter.h"
-// #include "nocopyable.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -29,7 +28,6 @@ class EpollIoWaiter final : public IoWaiter {
 public:
     EpollIoWaiter() = default;
     ~EpollIoWaiter() final;
-    // DISALLOW_COPY_AND_MOVE(EpollIoWaiter);
 
     /**
      * Initialize epoll.

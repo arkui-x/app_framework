@@ -24,8 +24,6 @@
 #include "hilog.h"
 #include "thread_local_data.h"
 
-// DEFINE_HILOG_LABEL("EventHandler");
-
 using namespace OHOS::HiviewDFX;
 namespace OHOS {
 namespace AppExecFwk {
@@ -74,12 +72,6 @@ bool EventHandler::SendEvent(InnerEvent::Pointer& event, int64_t delayTime, Prio
     }
 
     event->SetOwner(shared_from_this());
-    // get traceId from event, if HiTraceChain::begin has been called, would get a valid trace id.
-    // auto traceId = event->GetOrCreateTraceId();
-    // if traceId is valid, out put trace information
-    // if (AllowHiTraceOutPut(traceId, event->HasWaiter())) {
-    //     HiTracePointerOutPut(traceId, event, "Send", HiTraceTracepointType::HITRACE_TP_CS);
-    // }
 
     eventRunner_->GetEventQueue()->Insert(event, priority);
     return true;
@@ -117,9 +109,6 @@ bool EventHandler::SendSyncEvent(InnerEvent::Pointer& event, Priority priority)
         return true;
     }
 
-    // get traceId from event, if HiTraceChain::begin has been called, would get a valid trace id.
-    // auto spanId = event->GetOrCreateTraceId();
-
     // Create waiter, used to block.
     auto waiter = event->CreateWaiter();
     // Send this event as normal one.
@@ -128,10 +117,6 @@ bool EventHandler::SendSyncEvent(InnerEvent::Pointer& event, Priority priority)
     }
     // Wait until event is processed(recycled).
     waiter->Wait();
-
-    // if ((spanId) && (spanId->IsValid())) {
-    //     HiTraceChain::Tracepoint(HiTraceTracepointType::HITRACE_TP_CR, *spanId, "event is processed");
-    // }
 
     return true;
 }
@@ -304,17 +289,6 @@ void EventHandler::DistributeEvent(const InnerEvent::Pointer& event)
 
     currentEventHandler = shared_from_this();
 
-    // auto spanId = event->GetTraceId();
-    // auto traceId = HiTraceChain::GetId();
-    // bool allowTraceOutPut = AllowHiTraceOutPut(spanId, event->HasWaiter());
-    // if (allowTraceOutPut) {
-    //     HiTraceChain::SetId(*spanId);
-    //     HiTracePointerOutPut(spanId, event, "Receive", HiTraceTracepointType::HITRACE_TP_SR);
-    // }
-
-    // InnerEvent::TimePoint nowStart = InnerEvent::Clock::now();
-    // DeliveryTimeAction(event, nowStart);
-
     if (event->HasTask()) {
         // Call task callback directly if contains a task.
         (event->GetTaskCallback())();
@@ -322,16 +296,6 @@ void EventHandler::DistributeEvent(const InnerEvent::Pointer& event)
         // Otherwise let developers to handle it.
         ProcessEvent(event);
     }
-
-    // DistributeTimeAction(event, nowStart);
-
-    // if (allowTraceOutPut) {
-    //     HiTraceChain::Tracepoint(HiTraceTracepointType::HITRACE_TP_SS, *spanId, "Event Distribute over");
-    //     HiTraceChain::ClearId();
-    //     if (traceId.IsValid()) {
-    //         HiTraceChain::SetId(traceId);
-    //     }
-    // }
 }
 
 void EventHandler::Dump(Dumper& dumper)

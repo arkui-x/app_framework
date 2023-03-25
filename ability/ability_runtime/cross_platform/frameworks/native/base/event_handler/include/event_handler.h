@@ -72,7 +72,6 @@ public:
      */
     explicit EventHandler(const std::shared_ptr<EventRunner>& runner = nullptr);
     virtual ~EventHandler();
-    // DISALLOW_COPY_AND_MOVE(EventHandler);
 
     /**
      * Get event handler that running on current thread.

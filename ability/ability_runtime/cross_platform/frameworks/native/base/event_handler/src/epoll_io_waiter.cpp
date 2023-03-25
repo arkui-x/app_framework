@@ -24,8 +24,6 @@
 #include "file_descriptor_listener.h"
 #include "hilog.h"
 
-// DEFINE_HILOG_LABEL("EpollIoWaiter");
-
 namespace OHOS {
 namespace AppExecFwk {
 namespace {

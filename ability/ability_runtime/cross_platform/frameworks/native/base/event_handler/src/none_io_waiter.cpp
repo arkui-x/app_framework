@@ -20,8 +20,6 @@
 #include "event_handler_utils.h"
 #include "hilog.h"
 
-// DEFINE_HILOG_LABEL("NoneIoWaiter");
-
 namespace OHOS {
 namespace AppExecFwk {
 namespace {

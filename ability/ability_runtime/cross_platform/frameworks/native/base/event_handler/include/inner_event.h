@@ -23,8 +23,6 @@
 #include <string>
 #include <typeinfo>
 
-// #include "nocopyable.h"
-
 namespace OHOS {
 namespace HiviewDFX {
 class HiTraceId;
@@ -48,13 +46,10 @@ public:
     public:
         Waiter() = default;
         virtual ~Waiter() = default;
-        // DISALLOW_COPY_AND_MOVE(Waiter);
 
         virtual void Wait() = 0;
         virtual void Notify() = 0;
     };
-
-    // DISALLOW_COPY_AND_MOVE(InnerEvent);
 
     /**
      * Get InnerEvent instance from pool.
@@ -430,14 +425,6 @@ private:
         smartPtrDtor_ = ReleaseSmartPtr<T>;
         smartPtrTypeId_ = CalculateSmartPtrTypeId(object);
     }
-
-    /**
-     * if event has trace id ,return trace id, else create span id,
-     * store it in event and return.
-     *
-     * @return return hiTrace Id.
-     */
-    // const std::shared_ptr<HiTraceId> GetOrCreateTraceId();
 
     /**
      * return trace id.

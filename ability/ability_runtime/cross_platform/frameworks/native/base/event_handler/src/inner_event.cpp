@@ -23,8 +23,6 @@
 #include "hilog.h"
 #include "singleton.h"
 
-// DEFINE_HILOG_LABEL("InnerEvent");
-
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
@@ -32,7 +30,6 @@ class WaiterImp final : public InnerEvent::Waiter {
 public:
     WaiterImp() {};
     ~WaiterImp() override {};
-    // DISALLOW_COPY_AND_MOVE(WaiterImp);
 
     void Wait() final
     {
@@ -66,8 +63,6 @@ class InnerEventPool : public DelayedRefSingleton<InnerEventPool> {
     DECLARE_DELAYED_REF_SINGLETON(InnerEventPool);
 
 public:
-    // DISALLOW_COPY_AND_MOVE(InnerEventPool);
-
     InnerEvent::Pointer Get()
     {
         size_t newPeakUsingCount = 0;
@@ -233,21 +228,6 @@ bool InnerEvent::HasWaiter() const
 {
     return (waiter_ != nullptr);
 }
-
-// const std::shared_ptr<HiTraceId> InnerEvent::GetOrCreateTraceId()
-// {
-// if (hiTraceId_) {
-//     return hiTraceId_;
-// }
-
-// auto traceId = HiTraceChain::GetId();
-// if (!traceId.IsValid()) {
-//     return nullptr;
-// }
-
-// hiTraceId_ = std::make_shared<HiTraceId>(HiTraceChain::CreateSpan());
-// return hiTraceId_;
-// }
 
 const std::shared_ptr<HiTraceId> InnerEvent::GetTraceId()
 {

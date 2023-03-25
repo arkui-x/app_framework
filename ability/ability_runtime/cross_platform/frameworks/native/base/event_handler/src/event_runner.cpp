@@ -59,8 +59,6 @@ class ThreadCollector : public DelayedRefSingleton<ThreadCollector> {
     DECLARE_DELAYED_REF_SINGLETON(ThreadCollector);
 
 public:
-    // DISALLOW_COPY_AND_MOVE(ThreadCollector);
-
     using ExitFunction = std::function<void()>;
 
     void ReclaimCurrentThread()
@@ -227,8 +225,6 @@ private:
     // Avatar of thread collector, used to stop collector at the specified opportunity.
     class Avatar {
     public:
-        // DISALLOW_COPY_AND_MOVE(Avatar);
-
         Avatar() = default;
         ~Avatar()
         {
@@ -275,7 +271,6 @@ public:
     }
 
     ~EventRunnerImpl() final = default;
-    // DISALLOW_COPY_AND_MOVE(EventRunnerImpl);
 
     static void ThreadMain(const std::weak_ptr<EventRunnerImpl>& wp)
     {

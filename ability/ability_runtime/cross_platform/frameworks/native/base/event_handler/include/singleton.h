@@ -16,7 +16,6 @@
 #ifndef UTILS_BASE_SINGLETON_H
 #define UTILS_BASE_SINGLETON_H
 
-// #include "nocopyable.h"
 #include <memory>
 #include <mutex>
 
@@ -112,9 +111,10 @@ public:
     static void DestroyInstance();
 
 private:
-    static std::shared_ptr<T> instance_; // Record the created DelayedSingleton instance.
-    static std::mutex
-        mutex_; // Mutex, which guarantees that only one thread is accessing a common resource at any time.
+    // Record the created DelayedSingleton instance.
+    static std::shared_ptr<T> instance_;
+    // Mutex, which guarantees that only one thread is accessing a common resource at any time.
+    static std::mutex mutex_;
 };
 
 template<typename T>
