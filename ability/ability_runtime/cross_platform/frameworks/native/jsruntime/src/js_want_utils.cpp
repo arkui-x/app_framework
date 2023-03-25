@@ -15,16 +15,61 @@
 
 #include "js_want_utils.h"
 
+#include "hilog.h"
+
 namespace OHOS {
 namespace AbilityRuntime {
 NativeValue* CreateJsWant(NativeEngine& engine, const AAFwk::Want& want)
 {
+    HILOG_INFO("CreateJsWant is called");
     NativeValue* objValue = engine.CreateObject();
     NativeObject* object = ConvertNativeValueTo<NativeObject>(objValue);
     object->SetProperty("moduleName", CreateJsValue(engine, want.GetModuleName()));
     object->SetProperty("bundleName", CreateJsValue(engine, want.GetBundleName()));
     object->SetProperty("abilityName", CreateJsValue(engine, want.GetAbilityName()));
     return objValue;
+}
+
+bool UnwrapJsWant(NativeEngine& engine, NativeValue* param, AAFwk::Want& want)
+{
+    HILOG_INFO("UnwrapWant is called");
+    if (param->TypeOf() != NativeValueType::NATIVE_OBJECT) {
+        HILOG_ERROR("param type mismatch!");
+        return false;
+    }
+
+    NativeObject* objectParam = ConvertNativeValueTo<NativeObject>(param);
+    std::string bundleName = "";
+    if (objectParam->HasProperty("bundleName")) {
+        NativeValue* jsBundleName = objectParam->GetProperty("bundleName");
+        if (!ConvertFromJsValue(engine, jsBundleName, bundleName)) {
+            HILOG_ERROR("UnwrapWant convert bundleName error!");
+            return false;
+        }
+    }
+
+    std::string moduleName = "";
+    if (objectParam->HasProperty("moduleName")) {
+        NativeValue* jsModuleName = objectParam->GetProperty("moduleName");
+        if (!ConvertFromJsValue(engine, jsModuleName, moduleName)) {
+            HILOG_ERROR("UnwrapWant convert moduleName error!");
+            return false;
+        }
+    }
+
+    std::string abilityName = "";
+    if (objectParam->HasProperty("abilityName")) {
+        NativeValue* jsAbilityName = objectParam->GetProperty("abilityName");
+        if (!ConvertFromJsValue(engine, jsAbilityName, abilityName)) {
+            HILOG_ERROR("UnwrapWant convert abilityName error!");
+            return false;
+        }
+    }
+
+    want.SetBundleName(bundleName);
+    want.SetModuleName(moduleName);
+    want.SetAbilityName(abilityName);
+    return true;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

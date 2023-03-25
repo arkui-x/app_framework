@@ -69,7 +69,7 @@ std::shared_ptr<AbilityStage> JsAbilityStage::Create(
     }
 
     std::string modulePath;
-    auto buffer = StageAssetManager::GetInstance().GetModuleBuffer(hapModuleInfo.moduleName, modulePath);
+    auto buffer = StageAssetManager::GetInstance()->GetModuleBuffer(hapModuleInfo.moduleName, modulePath);
 
     std::string moduleName(hapModuleInfo.moduleName);
     moduleName.append("::").append("AbilityStage");

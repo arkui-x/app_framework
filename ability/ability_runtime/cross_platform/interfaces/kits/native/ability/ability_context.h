@@ -36,8 +36,6 @@ public:
 
     virtual int32_t CloseAbility() = 0;
 
-    virtual void GetPlatformResourcePaths(const std::string& hapResPath, const std::string& sysResPath) = 0;
-
     using SelfType = AbilityContext;
     static const size_t CONTEXT_TYPE_ID;
 

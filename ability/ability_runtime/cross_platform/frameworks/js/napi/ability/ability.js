@@ -18,6 +18,8 @@ class Ability {
     onDestroy() { }
     onForeground(want) { }
     onBackground() { }
+    onWindowStageCreate(windowStage) { }
+    onWindowStageDestroy() { }
 }
 
 export default Ability

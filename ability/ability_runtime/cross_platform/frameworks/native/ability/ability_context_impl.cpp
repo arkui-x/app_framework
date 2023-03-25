@@ -15,6 +15,9 @@
 
 #include "ability_context_impl.h"
 
+#include "ability_context_adapter.h"
+#include "hilog.h"
+
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
@@ -51,6 +54,8 @@ std::string AbilityContextImpl::GetFilesDir()
 
 ErrCode AbilityContextImpl::StartAbility(const AAFwk::Want& want, int requestCode)
 {
+    HILOG_INFO("Start ability");
+    Platform::AbilityContextAdapter::GetInstance()->StartAbility(want);
     return 0;
 }
 
@@ -96,12 +101,28 @@ void AbilityContextImpl::SetAbilityStageContext(const std::shared_ptr<Context>& 
 
 ErrCode AbilityContextImpl::TerminateSelf()
 {
+    HILOG_INFO("Terminate self");
+    Platform::AbilityContextAdapter::GetInstance()->TerminateSelf();
     return 0;
 }
 
 ErrCode AbilityContextImpl::CloseAbility()
 {
     return 0;
+}
+
+std::shared_ptr<StageAssetManager> AbilityContextImpl::GetAssetManager()
+{
+    return stageContext_ ? stageContext_->GetAssetManager() : nullptr;
+}
+
+void AbilityContextImpl::GetResourcePaths(std::string& hapResPath, std::string& sysResPath)
+{
+    if (stageContext_ == nullptr) {
+        HILOG_INFO("stageContext_ is nullptr");
+        return;
+    }
+    stageContext_->GetResourcePaths(hapResPath, sysResPath);
 }
 } // namespace Platform
 } // namespace AbilityRuntime

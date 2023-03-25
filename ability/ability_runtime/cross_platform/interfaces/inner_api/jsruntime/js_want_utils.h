@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace AbilityRuntime {
 NativeValue* CreateJsWant(NativeEngine& engine, const AAFwk::Want& want);
+bool UnwrapJsWant(NativeEngine& engine, NativeValue* param, AAFwk::Want& want);
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_JS_WANT_UTILS_H

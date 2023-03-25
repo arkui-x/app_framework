@@ -22,6 +22,7 @@
 #include "ability_info.h"
 #include "application.h"
 #include "want.h"
+#include "window_stage.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -97,13 +98,27 @@ public:
      */
     virtual void OnBackground();
 
+    virtual void OnWindowStageCreated();
+    virtual void OnWindowStageDestroy();
     void SetWant(const AAFwk::Want& want);
-
     std::shared_ptr<AAFwk::Want> GetWant();
 
+    void SetInstanceName(const std::string& instanceName)
+    {
+        instanceName_ = instanceName;
+    }
+
+    std::string GetInstanceName() const
+    {
+        return instanceName_;
+    }
+
+public:
+    std::shared_ptr<Rosen::WindowStage> windowStage_ = nullptr;
 private:
     std::shared_ptr<AbilityContext> abilityContext_ = nullptr;
     std::shared_ptr<AAFwk::Want> want_ = nullptr;
+    std::string instanceName_ { "" };
 };
 } // namespace Platform
 } // namespace AbilityRuntime

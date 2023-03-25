@@ -21,6 +21,19 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
+std::shared_ptr<StageAssetManager> StageAssetManager::instance_ = nullptr;
+std::mutex StageAssetManager::mutex_;
+std::shared_ptr<StageAssetManager> StageAssetManager::GetInstance()
+{
+    if (instance_ == nullptr) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (instance_ == nullptr) {
+            instance_ = std::make_shared<StageAssetManager>();
+        }
+    }
+
+    return instance_;
+}
 std::list<std::vector<uint8_t>> StageAssetManager::GetModuleJsonBufferList()
 {
     return StageAssetProvider::GetInstance()->GetModuleJsonBufferList();
@@ -64,6 +77,17 @@ std::string StageAssetManager::GetDatabaseDir() const
 std::string StageAssetManager::GetPreferencesDir() const
 {
     return StageAssetProvider::GetInstance()->GetPreferencesDir();
+}
+
+void StageAssetManager::GetResIndexPath(const std::string& moduleName, 
+    std::string& appResIndexPath, std::string& sysResIndexPath)
+{
+    return StageAssetProvider::GetInstance()->GetResIndexPath(moduleName, appResIndexPath, sysResIndexPath);
+}
+
+jobject StageAssetManager::GetJavaAssetManager()
+{
+    return StageAssetProvider::GetInstance()->GetAssetManager();
 }
 } // namespace Platform
 } // namespace AbilityRuntime

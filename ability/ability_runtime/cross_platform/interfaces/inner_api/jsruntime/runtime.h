@@ -28,6 +28,9 @@ struct JsFrames {
 };
 
 namespace OHOS {
+namespace AppExecFwk {
+class EventRunner;
+} // namespace AppExecFwk
 namespace AbilityRuntime {
 class Runtime {
 public:
@@ -37,6 +40,7 @@ public:
 
     struct Options {
         Language lang = Language::JS;
+        std::shared_ptr<AppExecFwk::EventRunner> eventRunner;
         bool loadAce = true;
         bool preload = false;
         bool isBundle = true;

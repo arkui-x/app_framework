@@ -451,6 +451,18 @@ public:
     {
         baseApplicationInfo_->codePath = codePath;
     }
+    void SetPid(int32_t pid)
+    {
+        if (baseApplicationInfo_) {
+            baseApplicationInfo_->pid = pid;
+        }
+    }
+    void SetUid(int32_t uid)
+    {
+        if (baseApplicationInfo_) {
+            baseApplicationInfo_->uid = uid;
+        }
+    }
     /**
      * @brief Insert innerModuleInfos.
      * @param modulePackage Indicates the modulePackage object as key.
@@ -673,11 +685,6 @@ public:
     {
         baseApplicationInfo_->cacheDir = cacheDir;
     }
-    /**
-     * @brief Set application uid.
-     * @param uid Indicates the uid to be set.
-     */
-    void SetUid(int uid) {}
     /**
      * @brief Get application uid.
      * @param userId Indicates the user ID.

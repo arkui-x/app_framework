@@ -69,6 +69,16 @@ void Ability::OnDestory()
     HILOG_INFO("OnDestory begin.");
 }
 
+void Ability::OnWindowStageCreated()
+{
+    HILOG_INFO("OnWindowStageCreated begin.");
+}
+
+void Ability::OnWindowStageDestroy()
+{
+    HILOG_INFO("onWindowStageDestroy begin.");
+}
+
 void Ability::SetWant(const AAFwk::Want& want)
 {
     want_ = std::make_shared<AAFwk::Want>(want);

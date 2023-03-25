@@ -42,13 +42,8 @@ public:
     ErrCode CloseAbility() override;
     std::shared_ptr<AppExecFwk::AbilityInfo> GetAbilityInfo() const override;
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo() const override;
-
-    std::shared_ptr<StageAssetManager> GetAssetManager() override
-    {
-        return nullptr;
-    }
-
-    void GetPlatformResourcePaths(const std::string& hapResPath, const std::string& sysResPath) override {}
+    std::shared_ptr<StageAssetManager> GetAssetManager() override;
+    void GetResourcePaths(std::string& hapResPath, std::string& sysResPath) override;
 
     /**
      * @brief Set the Ability Info object

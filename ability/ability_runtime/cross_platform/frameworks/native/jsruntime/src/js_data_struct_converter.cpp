@@ -41,6 +41,7 @@ NativeValue* CreateJsAbilityInfo(NativeEngine& engine, const AbilityInfo& abilit
     object->SetProperty("icon", CreateJsValue(engine, abilityInfo.iconPath));
     object->SetProperty("iconId", CreateJsValue(engine, abilityInfo.iconId));
     object->SetProperty("type", CreateJsValue(engine, abilityInfo.type));
+    object->SetProperty("launchMode", CreateJsValue(engine, abilityInfo.launchMode));
     object->SetProperty("applicationInfo", CreateJsApplicationInfo(engine, abilityInfo.applicationInfo));
     return objValue;
 }

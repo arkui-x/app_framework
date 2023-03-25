@@ -23,12 +23,21 @@ config("appkit_native_config") {
         "//base/global/resource_management/interfaces/inner_api/include",
         "${ability_runtime_cross_platform_path}/interfaces/inner_api/want",
         "//base/global/resource_management/frameworks/resmgr/include",
-        "//foundation/arkui/ace_engine/adapter/android/stage/ability/java/jni",
-        "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni",
         "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/include",
         "//third_party/json/include",
         "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog",
+        "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/include",
+        "${ability_runtime_cross_platform_path}/interfaces/inner_api/error",
     ]
+
+    if (target_os == "android") {
+      include_dirs += [
+        "//foundation/arkui/ace_engine/adapter/android/stage/ability/java/jni",
+        "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni",
+      ]
+    } else if (target_os == "ios") {
+      # include_dirs += [ "//foundation/arkui/ace_engine/adapter/ios/stage/ability" ]
+    }
 }
 
 template("ability_runtime_appkit_native") {
@@ -48,12 +57,6 @@ template("ability_runtime_appkit_native") {
     defines = []
     if (target_cpu == "arm64") {
       defines += [ "_ARM64_" ]
-    }
-
-    if (target_os == "android") {
-      defines += [ "ANDROID_PLATFORM" ]
-    } else if (target_os == "ios") {
-      defines += [ "IOS_PLATFORM" ]
     }
 
     sources = [
@@ -76,7 +79,16 @@ template("ability_runtime_appkit_native") {
       "${ability_runtime_cross_platform_path}/frameworks/js/napi:napi_packages",
       "//foundation/arkui/ace_engine/adapter/android/dependence/resmgr:global_resmgr",
       "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability:cross_platform_abilitykit_native",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler:cross_platform_event_handler"
     ]
+
+    if (target_os == "android") {
+      defines += [ "ANDROID_PLATFORM" ]
+      deps += [ "//foundation/arkui/ace_engine/adapter/android/dependence/resmgr:global_resmgr" ]
+    } else if (target_os == "ios") {
+      defines += [ "IOS_PLATFORM" ]
+      deps += [ "//foundation/arkui/ace_engine/adapter/ios/dependence/resmgr:global_resmgr_source_set" ]
+    }
   }
 }
 

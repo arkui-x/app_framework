@@ -68,32 +68,32 @@ std::string ApplicationContext::GetBundleCodePath() const
 
 std::string ApplicationContext::GetBundleCodeDir()
 {
-    return StageAssetManager::GetInstance().GetBundleCodeDir();
+    return StageAssetManager::GetInstance()->GetBundleCodeDir();
 }
 
 std::string ApplicationContext::GetCacheDir()
 {
-    return StageAssetManager::GetInstance().GetCacheDir();
+    return StageAssetManager::GetInstance()->GetCacheDir();
 }
 
 std::string ApplicationContext::GetTempDir()
 {
-    return StageAssetManager::GetInstance().GetTempDir();
+    return StageAssetManager::GetInstance()->GetTempDir();
 }
 
 std::string ApplicationContext::GetFilesDir()
 {
-    return StageAssetManager::GetInstance().GetFilesDir();
+    return StageAssetManager::GetInstance()->GetFilesDir();
 }
 
 std::string ApplicationContext::GetDatabaseDir()
 {
-    return StageAssetManager::GetInstance().GetDatabaseDir();
+    return StageAssetManager::GetInstance()->GetDatabaseDir();
 }
 
 std::string ApplicationContext::GetPreferencesDir()
 {
-    return StageAssetManager::GetInstance().GetPreferencesDir();
+    return StageAssetManager::GetInstance()->GetPreferencesDir();
 }
 
 std::shared_ptr<AppExecFwk::HapModuleInfo> ApplicationContext::GetHapModuleInfo() const
@@ -103,7 +103,11 @@ std::shared_ptr<AppExecFwk::HapModuleInfo> ApplicationContext::GetHapModuleInfo(
 
 std::shared_ptr<StageAssetManager> ApplicationContext::GetAssetManager()
 {
-    return std::shared_ptr<StageAssetManager>(&StageAssetManager::GetInstance());
+    return StageAssetManager::GetInstance();
+}
+
+void ApplicationContext::GetResourcePaths(std::string& hapResPath, std::string& sysResPath)
+{
 }
 } // namespace Platform
 } // namespace AbilityRuntime

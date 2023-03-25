@@ -127,6 +127,8 @@ public:
 
     virtual std::shared_ptr<StageAssetManager> GetAssetManager() = 0;
 
+    virtual void GetResourcePaths(std::string& hapResPath, std::string& sysResPath) = 0;
+
     /**
      * @brief Getting derived class
      *

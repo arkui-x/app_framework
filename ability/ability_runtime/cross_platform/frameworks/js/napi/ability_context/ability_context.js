@@ -20,6 +20,19 @@ class AbilityContext extends Context {
         super(obj)
         this.abilityInfo = obj.abilityInfo
         this.currentHapModuleInfo = obj.currentHapModuleInfo
+        this.config = obj.config
+    }
+
+    onUpdateConfiguration(config) {
+        this.config = config
+    }
+
+    startAbility(want, options, callback) {
+        return this.__context_impl__.startAbility(want, options, callback)
+    }
+
+    terminateSelf(callback) {
+        return this.__context_impl__.terminateSelf(callback)
     }
 }
 

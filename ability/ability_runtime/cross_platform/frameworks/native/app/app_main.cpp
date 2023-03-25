@@ -18,7 +18,6 @@
 
 #include "ability.h"
 #include "application_context.h"
-#include "flutter/fml/message_loop.h"
 #include "hilog.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
@@ -33,8 +32,8 @@ std::shared_ptr<AppMain> AppMain::instance_ = nullptr;
 std::mutex AppMain::mutex_;
 AppMain::AppMain()
 {
-    fml::MessageLoop::EnsureInitializedForCurrentThread();
-    taskRunner_ = fml::MessageLoop::GetCurrent().GetTaskRunner();
+    runner_ = AppExecFwk::EventRunner::Create("AppMainThread");
+    eventHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
 }
 
 AppMain::~AppMain() {}
@@ -53,12 +52,12 @@ std::shared_ptr<AppMain> AppMain::GetInstance()
 
 void AppMain::LaunchApplication()
 {
-    if (!taskRunner_) {
-        HILOG_ERROR("taskRunner_ is nullptr");
+    if (!eventHandler_) {
+        HILOG_ERROR("eventHandler_ is nullptr");
     }
 
     auto task = []() { AppMain::GetInstance()->ScheduleLaunchApplication(); };
-    taskRunner_->PostTask(task);
+    eventHandler_->PostTask(task);
 }
 
 void AppMain::ScheduleLaunchApplication()
@@ -71,10 +70,11 @@ void AppMain::ScheduleLaunchApplication()
         return;
     }
 
-    auto moduleList = StageAssetManager::GetInstance().GetModuleJsonBufferList();
+    auto moduleList = StageAssetManager::GetInstance()->GetModuleJsonBufferList();
     HILOG_INFO("module list size: %{public}d", static_cast<int32_t>(moduleList.size()));
     bundleContainer_->LoadBundleInfos(moduleList);
-    bundleContainer_->SetAppCodePath(StageAssetManager::GetInstance().GetBundleCodeDir());
+    bundleContainer_->SetAppCodePath(StageAssetManager::GetInstance()->GetBundleCodeDir());
+    bundleContainer_->SetPidAndUid(pid_, uid_);
 
     application_ = std::make_shared<Application>();
     if (application_ == nullptr) {
@@ -105,6 +105,7 @@ bool AppMain::CreateRuntime()
     OHOS::AbilityRuntime::Runtime::Options options;
     options.loadAce = true;
     options.isBundle = true;
+    options.eventRunner = runner_;
     auto runtime = AbilityRuntime::Runtime::Create(options);
     if (runtime == nullptr) {
         return false;
@@ -117,56 +118,56 @@ bool AppMain::CreateRuntime()
 void AppMain::DispatchOnCreate(const std::string& instanceName)
 {
     HILOG_INFO("DispatchOnCreate called");
-    if (!taskRunner_) {
-        HILOG_ERROR("taskRunner_ is nullptr");
+    if (!eventHandler_) {
+        HILOG_ERROR("eventHandler_ is nullptr");
         return;
     }
     auto task = [instanceName]() { AppMain::GetInstance()->HandleDispatchOnCreate(instanceName); };
-    taskRunner_->PostTask(task);
+    eventHandler_->PostTask(task);
 }
 
 void AppMain::DispatchOnNewWant(const std::string& instanceName)
 {
     HILOG_INFO("DispatchOnNewWant called.");
-    if (!taskRunner_) {
-        HILOG_ERROR("taskRunner_ is nullptr");
+    if (!eventHandler_) {
+        HILOG_ERROR("eventHandler_ is nullptr");
         return;
     }
     auto task = [instanceName]() { AppMain::GetInstance()->HandleDispatchOnNewWant(instanceName); };
-    taskRunner_->PostTask(task);
+    eventHandler_->PostTask(task);
 }
 
 void AppMain::DispatchOnForeground(const std::string& instanceName)
 {
     HILOG_INFO("DispatchOnForeground called.");
-    if (!taskRunner_) {
-        HILOG_ERROR("taskRunner_ is nullptr");
+    if (!eventHandler_) {
+        HILOG_ERROR("eventHandler_ is nullptr");
         return;
     }
     auto task = [instanceName]() { AppMain::GetInstance()->HandleDispatchOnForeground(instanceName); };
-    taskRunner_->PostTask(task);
+    eventHandler_->PostTask(task);
 }
 
 void AppMain::DispatchOnBackground(const std::string& instanceName)
 {
     HILOG_INFO("DispatchOnBackground called.");
-    if (!taskRunner_) {
-        HILOG_ERROR("taskRunner_ is nullptr");
+    if (!eventHandler_) {
+        HILOG_ERROR("eventHandler_ is nullptr");
         return;
     }
     auto task = [instanceName]() { AppMain::GetInstance()->HandleDispatchOnBackground(instanceName); };
-    taskRunner_->PostTask(task);
+    eventHandler_->PostTask(task);
 }
 
 void AppMain::DispatchOnDestroy(const std::string& instanceName)
 {
     HILOG_INFO("DispatchOnDestroy called.");
-    if (!taskRunner_) {
-        HILOG_ERROR("taskRunner_ is nullptr");
+    if (!eventHandler_) {
+        HILOG_ERROR("eventHandler_ is nullptr");
         return;
     }
     auto task = [instanceName]() { AppMain::GetInstance()->HandleDispatchOnDestroy(instanceName); };
-    taskRunner_->PostTask(task);
+    eventHandler_->PostSyncTask(task);
 }
 
 void AppMain::HandleDispatchOnCreate(const std::string& instanceName)
@@ -238,8 +239,16 @@ Want AppMain::TransformToWant(const std::string& instanceName)
         want.SetModuleName(nameStrs[1]);
         want.SetAbilityName(nameStrs[2]);
         want.SetParam(Want::ABILITY_ID, nameStrs[3]);
+        want.SetParam(Want::INSTANCE_NAME, instanceName);
     }
     return want;
+}
+
+void AppMain::SetPidAndUid(int32_t pid, int32_t uid)
+{
+    HILOG_INFO("set pid: %{public}d, uid: %{public}d", pid, uid);
+    pid_ = pid;
+    uid_ = uid;
 }
 } // namespace Platform
 } // namespace AbilityRuntime

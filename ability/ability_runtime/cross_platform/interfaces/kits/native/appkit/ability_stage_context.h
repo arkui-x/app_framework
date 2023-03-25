@@ -40,10 +40,15 @@ public:
     std::shared_ptr<StageAssetManager> GetAssetManager() override;
     void SetHapModuleInfo(const std::shared_ptr<AppExecFwk::HapModuleInfo>& hapModuleInfo);
     void SetApplicationContext(const std::shared_ptr<Context>& applicationContext);
+    void InitResourceManeger();
+    void GetResourcePaths(std::string& appResourcePath, std::string& sysResourcePath) override;
 
 private:
     std::shared_ptr<Context> applicationContext_ = nullptr;
     std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfo_ = nullptr;
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager_ = nullptr;
+    std::string appResourcePath_ { "" };
+    std::string sysResourcePath_ { "" };
 };
 } // namespace Platform
 } // namespace AbilityRuntime
