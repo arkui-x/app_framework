@@ -32,7 +32,7 @@ std::shared_ptr<AppMain> AppMain::instance_ = nullptr;
 std::mutex AppMain::mutex_;
 AppMain::AppMain()
 {
-    runner_ = AppExecFwk::EventRunner::Create("AppMainThread");
+    runner_ = AppExecFwk::EventRunner::Current();
     eventHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
 }
 

@@ -46,6 +46,7 @@ template("ability_runtime_event_handler") {
       "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/src/inner_event.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/src/native_implement_eventhandler.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/src/none_io_waiter.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/src/platform/android/platform_event_runner.cpp",
     ]
   }
 }

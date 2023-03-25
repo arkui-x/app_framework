@@ -20,8 +20,8 @@
 #include <vector>
 
 #include "event_handler_utils.h"
-#include "singleton.h"
 #include "hilog.h"
+#include "singleton.h"
 
 // DEFINE_HILOG_LABEL("InnerEvent");
 

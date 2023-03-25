@@ -26,9 +26,10 @@
 #include "event_handler.h"
 #include "event_handler_utils.h"
 #include "event_inner_runner.h"
+#include "hilog.h"
+#include "platform_event_runner.h"
 #include "singleton.h"
 #include "thread_local_data.h"
-#include "hilog.h"
 
 // DEFINE_HILOG_LABEL("EventRunner");
 
@@ -95,7 +96,8 @@ public:
     {
         if ((!thread) || (!thread->joinable()) || (!threadExit)) {
             auto threadState = thread ? (thread->joinable() ? "active" : "finished") : "null";
-            HILOG_ERROR("Deposit(%{public}s, %{public}s): Invalid parameter", threadState, threadExit ? "valid" : "null");
+            HILOG_ERROR(
+                "Deposit(%{public}s, %{public}s): Invalid parameter", threadState, threadExit ? "valid" : "null");
             return false;
         }
 
@@ -429,10 +431,28 @@ std::shared_ptr<EventRunner> EventRunner::Create(const std::string& threadName)
 
 std::shared_ptr<EventRunner> EventRunner::Current()
 {
+    HILOG_INFO("Current.");
     auto runner = EventInnerRunner::GetCurrentEventRunner();
     if (runner) {
+        HILOG_INFO("EventInnerRunner::GetCurrentEventRunner()");
         return runner;
     }
+
+    if (PlatformEventRunner::CheckCurrent()) {
+        HILOG_INFO("Current: Create platform event runner on this thread.");
+
+        std::shared_ptr<EventRunner> sp(new EventRunner(true));
+        auto innerRunner = std::make_shared<PlatformEventRunner>(sp);
+        sp->innerRunner_ = innerRunner;
+        sp->queue_ = innerRunner->GetEventQueue();
+        if (innerRunner->Init()) {
+            return sp;
+        }
+
+        HILOG_ERROR("Current: Failed to start platform event runner.");
+    }
+
+    HILOG_ERROR("return nullptr");
     return nullptr;
 }
 

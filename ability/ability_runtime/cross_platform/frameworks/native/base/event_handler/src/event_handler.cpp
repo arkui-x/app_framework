@@ -21,8 +21,8 @@
 #ifdef HAS_HICHECKER_NATIVE_PART
 #include "hichecker.h"
 #endif // HAS_HICHECKER_NATIVE_PART
-#include "thread_local_data.h"
 #include "hilog.h"
+#include "thread_local_data.h"
 
 // DEFINE_HILOG_LABEL("EventHandler");
 
@@ -59,7 +59,7 @@ bool EventHandler::SendEvent(InnerEvent::Pointer& event, int64_t delayTime, Prio
         return false;
     }
 
-    if (!eventRunner_) {
+    if (eventRunner_ == nullptr) {
         HILOG_ERROR("SendEvent: MUST Set event runner before sending events");
         return false;
     }
@@ -180,8 +180,8 @@ ErrCode EventHandler::AddFileDescriptorListener(
     int32_t fileDescriptor, uint32_t events, const std::shared_ptr<FileDescriptorListener>& listener)
 {
     if ((fileDescriptor < 0) || ((events & FILE_DESCRIPTOR_EVENTS_MASK) == 0) || (!listener)) {
-        HILOG_ERROR("AddFileDescriptorListener(%{public}d, %{public}u, %{public}s): Invalid parameter", fileDescriptor, events,
-            listener ? "valid" : "null");
+        HILOG_ERROR("AddFileDescriptorListener(%{public}d, %{public}u, %{public}s): Invalid parameter", fileDescriptor,
+            events, listener ? "valid" : "null");
         return EVENT_HANDLER_ERR_INVALID_PARAM;
     }
 

@@ -20,8 +20,8 @@
 #include "epoll_io_waiter.h"
 #include "event_handler.h"
 #include "event_handler_utils.h"
-#include "none_io_waiter.h"
 #include "hilog.h"
+#include "none_io_waiter.h"
 
 // DEFINE_HILOG_LABEL("EventQueue");
 
@@ -357,10 +357,9 @@ InnerEvent::Pointer EventQueue::GetExpiredEvent(InnerEvent::TimePoint& nextExpir
 ErrCode EventQueue::AddFileDescriptorListener(
     int32_t fileDescriptor, uint32_t events, const std::shared_ptr<FileDescriptorListener>& listener)
 {
-    HILOG_ERROR("AddFileDescriptorListener");
     if ((fileDescriptor < 0) || ((events & FILE_DESCRIPTOR_EVENTS_MASK) == 0) || (!listener)) {
-        HILOG_ERROR("AddFileDescriptorListener(%{public}d, %{public}u, %{public}s): Invalid parameter", fileDescriptor, events,
-            listener ? "valid" : "null");
+        HILOG_ERROR("AddFileDescriptorListener(%{public}d, %{public}u, %{public}s): Invalid parameter", fileDescriptor,
+            events, listener ? "valid" : "null");
         return EVENT_HANDLER_ERR_INVALID_PARAM;
     }
 
@@ -384,7 +383,6 @@ ErrCode EventQueue::AddFileDescriptorListener(
     }
 
     listeners_.emplace(fileDescriptor, listener);
-    HILOG_ERROR("AddFileDescriptorListener end");
     return ERR_OK;
 }
 
@@ -517,7 +515,6 @@ void EventQueue::HandleFileDescriptorEvent(int32_t fileDescriptor, uint32_t even
 
 bool EventQueue::EnsureIoWaiterSupportListerningFileDescriptorLocked()
 {
-    HILOG_ERROR("EnsureIoWaiterSupportListerningFileDescriptorLocked");
     if (ioWaiter_->SupportListeningFileDescriptor()) {
         return true;
     }
