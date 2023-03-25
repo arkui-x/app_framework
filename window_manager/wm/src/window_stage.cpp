@@ -26,11 +26,7 @@ WindowStage::~WindowStage()
 void WindowStage::Init(const std::shared_ptr<AbilityRuntime::Platform::Context>& context,
     jobject windowStageView, JNIEnv* env)
 {
-    mainWindow_ = std::make_shared<Window>(context);
-    if (mainWindow_ == nullptr) {
-        return;
-    }
-    mainWindow_->SetWindowView(env, windowStageView);
+    mainWindow_ = Window::Create(context, env, windowStageView);
     context_ = context;
     return;
 }
