@@ -79,8 +79,8 @@ std::string StageAssetManager::GetPreferencesDir() const
     return StageAssetProvider::GetInstance()->GetPreferencesDir();
 }
 
-void StageAssetManager::GetResIndexPath(const std::string& moduleName, 
-    std::string& appResIndexPath, std::string& sysResIndexPath)
+void StageAssetManager::GetResIndexPath(
+    const std::string& moduleName, std::string& appResIndexPath, std::string& sysResIndexPath)
 {
     return StageAssetProvider::GetInstance()->GetResIndexPath(moduleName, appResIndexPath, sysResIndexPath);
 }

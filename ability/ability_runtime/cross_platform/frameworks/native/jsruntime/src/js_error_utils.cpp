@@ -27,11 +27,6 @@ void ThrowError(NativeEngine& engine, int32_t errCode, const std::string& errorM
     engine.Throw(CreateJsError(engine, errCode, errorMsg));
 }
 
-// void ThrowError(NativeEngine& engine, const AbilityErrorCode& err)
-// {
-//     engine.Throw(CreateJsError(engine, static_cast<int32_t>(err), GetErrorMsg(err)));
-// }
-
 void ThrowTooFewParametersError(NativeEngine& engine)
 {
     engine.Throw(
@@ -40,9 +35,6 @@ void ThrowTooFewParametersError(NativeEngine& engine)
 
 void ThrowNoPermissionError(NativeEngine& engine, const std::string& permission)
 {
-    // engine.Throw(CreateJsError(engine,
-    //     static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_PERMISSION_DENIED),
-    //     GetNoPermissionErrorMsg(permission)));
 }
 
 void ThrowErrorByNativeErr(NativeEngine& engine, int32_t err)
@@ -57,9 +49,6 @@ NativeValue* CreateJsError(NativeEngine& engine, const AbilityErrorCode& err)
 
 NativeValue* CreateNoPermissionError(NativeEngine& engine, const std::string& permission)
 {
-    // return CreateJsError(engine,
-    //     static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_PERMISSION_DENIED),
-    //     GetNoPermissionErrorMsg(permission));
     return nullptr;
 }
 

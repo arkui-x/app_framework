@@ -31,8 +31,6 @@
 #include "singleton.h"
 #include "thread_local_data.h"
 
-// DEFINE_HILOG_LABEL("EventRunner");
-
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
@@ -116,8 +114,6 @@ public:
     }
 
 private:
-    // DEFINE_HILOG_LABEL("ThreadCollector");
-
     struct ThreadExitInfo {
         std::unique_ptr<std::thread> thread;
         ExitFunction threadExit;
@@ -357,9 +353,6 @@ public:
             threadName_ = threadName;
         }
     }
-
-private:
-    // DEFINE_HILOG_LABEL("EventRunnerImpl");
 };
 } // unnamed namespace
 

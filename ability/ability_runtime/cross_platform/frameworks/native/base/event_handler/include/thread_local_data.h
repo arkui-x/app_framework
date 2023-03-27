@@ -20,8 +20,6 @@
 #include <thread>
 #include <unordered_map>
 
-// #include "nocopyable.h"
-
 namespace OHOS {
 namespace AppExecFwk {
 /*
@@ -32,7 +30,6 @@ class ThreadLocalData {
 public:
     ThreadLocalData() = default;
     ~ThreadLocalData() = default;
-    // DISALLOW_COPY_AND_MOVE(ThreadLocalData);
 
     /*
      * Override type conversion method.

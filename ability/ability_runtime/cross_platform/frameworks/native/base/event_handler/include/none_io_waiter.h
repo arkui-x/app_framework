@@ -20,7 +20,6 @@
 #include <mutex>
 
 #include "io_waiter.h"
-// #include "nocopyable.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -29,7 +28,6 @@ class NoneIoWaiter final : public IoWaiter {
 public:
     NoneIoWaiter() = default;
     ~NoneIoWaiter() final;
-    // DISALLOW_COPY_AND_MOVE(NoneIoWaiter);
 
     bool WaitFor(std::unique_lock<std::mutex>& lock, int64_t nanoseconds) final;
 

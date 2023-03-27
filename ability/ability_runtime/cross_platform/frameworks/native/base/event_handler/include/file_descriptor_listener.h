@@ -19,8 +19,6 @@
 #include <cstdint>
 #include <memory>
 
-// #include "nocopyable.h"
-
 namespace OHOS {
 namespace AppExecFwk {
 // Listen input or output events
@@ -35,8 +33,6 @@ class EventHandler;
 
 class FileDescriptorListener {
 public:
-    // DISALLOW_COPY_AND_MOVE(FileDescriptorListener);
-
     /**
      * Called while file descriptor is readable.
      *

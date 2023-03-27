@@ -19,7 +19,6 @@
 #include "event_handler_utils.h"
 #include "event_queue.h"
 #include "event_runner.h"
-// #include "nocopyable.h"
 #include "thread_local_data.h"
 
 namespace OHOS {
@@ -28,7 +27,6 @@ class EventInnerRunner {
 public:
     explicit EventInnerRunner(const std::shared_ptr<EventRunner>& runner);
     virtual ~EventInnerRunner() = default;
-    // DISALLOW_COPY_AND_MOVE(EventInnerRunner);
 
     static std::shared_ptr<EventRunner> GetCurrentEventRunner();
 

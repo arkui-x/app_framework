@@ -21,8 +21,6 @@
 #include <functional>
 #include <mutex>
 
-// #include "nocopyable.h"
-
 namespace OHOS {
 namespace AppExecFwk {
 // Interface of IO waiter
@@ -32,7 +30,6 @@ public:
 
     IoWaiter() = default;
     virtual ~IoWaiter() = default;
-    // DISALLOW_COPY_AND_MOVE(IoWaiter);
 
     /**
      * Wait until IO event coming or timed out.

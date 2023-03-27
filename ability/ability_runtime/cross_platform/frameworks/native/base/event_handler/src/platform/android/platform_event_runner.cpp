@@ -1,3 +1,17 @@
+/*
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include "platform_event_runner.h"
 
@@ -13,7 +27,6 @@
 #include "event_runner.h"
 #include "hilog.h"
 #include "io_waiter.h"
-// #inciude "event_config.h"
 
 #ifdef _cplusplus
 extern "C" {
@@ -69,7 +82,6 @@ const std::string LOOPER_REMOVE_FD = "ALooper_removeFd";
 
 class ALooperFun {
 public:
-    // DISALLOW_COPY_AND_MOVE(ALooperFun);
     ALooperFun();
     ~ALooperFun();
 
@@ -125,10 +137,6 @@ public:
 
     AndroidLooper CurrentAndroidLooper()
     {
-        // if (!EventConfig::Getlnstance().lsAttachAndroidEnabled()) {
-        //     return AndroidLooper(nullptr, nullptr);
-        // }
-
         InitAndroidLib();
         if (funInfo_.handle == nullptr) {
             return AndroidLooper(nullptr, nullptr);
@@ -145,10 +153,6 @@ public:
 
     bool CheckCurrent()
     {
-        // if (!EventConfig::Getlnstance0.lsAttachAndroidEnabled()) {
-        //     return false;
-        // }
-
         InitAndroidLib();
         if (funInfo_.aLooperForThreadFun != nullptr) {
             return funInfo_.aLooperForThreadFun() != nullptr;
@@ -237,7 +241,6 @@ ALooperFun::~ALooperFun()
 {
     UnInitAndroidLib();
 }
-
 } // unnamed namespace
 class PlatformIoWaiter final : public IoWaiter {
 public:
@@ -265,7 +268,7 @@ public:
         if (timerFd_ < 0) {
             int32_t fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
             if (fd < 0) {
-                // HILOG_ERROR("StartTimer Failed to create timer, %{public}s", GET_LAST_ERR());
+                HILOG_ERROR("StartTimer Failed to create timer");
                 return false;
             }
 
@@ -310,13 +313,13 @@ public:
             };
         } else if (nanoseconds == 0) {
             if (clock_gettime(CLOCK_MONOTONIC, &value.it_value) < 0) {
-                // HILOG_ERROR("SetTimer Failed to get current time, %{public}s", GET_LAST_ERR());
+                HILOG_ERROR("SetTimer Failed to get current time");
                 return;
             }
             flags = TFD_TIMER_ABSTIME;
         }
         if (timerfd_settime(timerFd_, flags, &value, nullptr) < 0) {
-            // HILOG_ERROR("SetTimer Failed to set timer, %{public}s", GET_LAST_ERR());
+            HILOG_ERROR("SetTimer Failed to set timer");
             return;
         }
     }
@@ -425,8 +428,7 @@ private:
         uint64_t value = 0;
         ssize_t retVal = read(timerFd_, &value, sizeof(value));
         if (retVal < 0) {
-            // HILOG_ERROR("ResetTimerFileDescriptor. Failed to read data from timer fd, %(public}s",
-            // GET_LAST_ERR());
+            HILOG_ERROR("ResetTimerFileDescriptor. Failed to read data from timer fd");
         }
     }
 
@@ -462,7 +464,6 @@ private:
         }
     }
 
-    // DEFINE_HILOG_LABEL("PlatformloWaiter");
     AndroidLooper looper_ { nullptr, nullptr };
     FileDescriptorEventCallback callback_;
     TimerCallback timerCallback_;

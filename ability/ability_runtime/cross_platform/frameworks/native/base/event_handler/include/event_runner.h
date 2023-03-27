@@ -30,7 +30,6 @@ class EventRunner final {
 public:
     EventRunner() = delete;
     ~EventRunner();
-    // DISALLOW_COPY_AND_MOVE(EventRunner);
 
     /**
      * Create new 'EventRunner'.

@@ -48,7 +48,6 @@ public:
     EventQueue();
     explicit EventQueue(const std::shared_ptr<IoWaiter>& ioWaiter);
     ~EventQueue();
-    // DISALLOW_COPY_AND_MOVE(EventQueue);
 
     /**
      * Insert an event into event queue with different priority.

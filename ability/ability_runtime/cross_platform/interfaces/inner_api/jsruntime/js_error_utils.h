@@ -20,9 +20,7 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-
 void ThrowError(NativeEngine& engine, int32_t errCode, const std::string& errorMsg = "");
-// void ThrowError(NativeEngine& engine, const AbilityErrorCode& err);
 void ThrowTooFewParametersError(NativeEngine& engine);
 void ThrowNoPermissionError(NativeEngine& engine, const std::string& permission);
 void ThrowErrorByNativeErr(NativeEngine& engine, int32_t err);
@@ -32,5 +30,4 @@ NativeValue* CreateNoPermissionError(NativeEngine& engine, const std::string& pe
 NativeValue* CreateJsErrorByNativeErr(NativeEngine& engine, int32_t err, const std::string& permission = "");
 }  // namespace AbilityRuntime
 }  // namespace OHOS
-
 #endif  // OHOS_ABILITY_RUNTIME_JS_ERROR_UTILS_H
