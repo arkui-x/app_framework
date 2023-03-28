@@ -24,7 +24,7 @@ extern "C" __attribute__((constructor)) void NAPI_application_AbilityContext_Aut
 {
     auto moduleManager = NativeModuleManager::GetInstance();
     NativeModule newModuleInfo = {
-        .name = "application.AbilityContext",
+        .name = "application_AbilityContext",
         .fileName = "application/libabilitycontext_napi.so/ability_context.js",
     };
 

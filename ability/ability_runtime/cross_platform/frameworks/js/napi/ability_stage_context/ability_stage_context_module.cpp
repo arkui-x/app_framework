@@ -24,7 +24,7 @@ extern "C" __attribute__((constructor)) void NAPI_application_AbilityStageContex
 {
     auto moduleManager = NativeModuleManager::GetInstance();
     NativeModule newModuleInfo = {
-        .name = "application.AbilityStageContext",
+        .name = "application_AbilityStageContext",
         .fileName = "application/libabilitystagecontext_napi.so/ability_stage_context.js",
     };
 

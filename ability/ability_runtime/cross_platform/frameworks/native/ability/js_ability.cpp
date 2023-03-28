@@ -180,6 +180,7 @@ void JsAbility::OnCreate(const Want& want)
         windowStage_ = std::make_shared<Rosen::WindowStage>();
         if (windowStage_ == nullptr) {
             HILOG_ERROR("windowStage_ is nullptr");
+            return;
         }
         windowStage_->Init(GetAbilityContext(), WindowViewAdapter::GetInstance()->GetWindowView(GetInstanceName()),
             WindowViewAdapter::GetInstance()->GetJniEnv().get());
