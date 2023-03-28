@@ -55,7 +55,7 @@ std::string AbilityContextImpl::GetFilesDir()
 ErrCode AbilityContextImpl::StartAbility(const AAFwk::Want& want, int requestCode)
 {
     HILOG_INFO("Start ability");
-    Platform::AbilityContextAdapter::GetInstance()->StartAbility(want);
+    Platform::AbilityContextAdapter::GetInstance()->StartAbility(instanceName_, want);
     return 0;
 }
 
@@ -102,7 +102,7 @@ void AbilityContextImpl::SetAbilityStageContext(const std::shared_ptr<Context>& 
 ErrCode AbilityContextImpl::TerminateSelf()
 {
     HILOG_INFO("Terminate self");
-    Platform::AbilityContextAdapter::GetInstance()->TerminateSelf();
+    Platform::AbilityContextAdapter::GetInstance()->TerminateSelf(instanceName_);
     return 0;
 }
 
@@ -123,6 +123,11 @@ void AbilityContextImpl::GetResourcePaths(std::string& hapResPath, std::string& 
         return;
     }
     stageContext_->GetResourcePaths(hapResPath, sysResPath);
+}
+
+void AbilityContextImpl::SetInstanceName(const std::string& instanceName)
+{
+    instanceName_ = instanceName;
 }
 } // namespace Platform
 } // namespace AbilityRuntime

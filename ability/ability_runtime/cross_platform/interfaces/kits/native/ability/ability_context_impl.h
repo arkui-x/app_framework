@@ -53,9 +53,11 @@ public:
     void SetAbilityInfo(const std::shared_ptr<AppExecFwk::AbilityInfo>& abilityInfo);
 
     void SetAbilityStageContext(const std::shared_ptr<Context>& abilityStageContext);
+    void SetInstanceName(const std::string& instanceName);
 private:
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo_ = nullptr;
     std::shared_ptr<Context> stageContext_ = nullptr;
+    std::string instanceName_;
 };
 } // namespace Platform
 } // namespace AbilityRuntime

@@ -97,6 +97,7 @@ void AbilityStage::LaunchAbility(const AAFwk::Want& want, const std::unique_ptr<
     }
     abilityContext->SetAbilityStageContext(stageContext_);
     abilityContext->SetAbilityInfo(abilityInfo);
+    abilityContext->SetInstanceName(want.GetStringParam(Want::INSTANCE_NAME));
 
     auto newAbility = Ability::Create(runtime);
     if (newAbility == nullptr) {

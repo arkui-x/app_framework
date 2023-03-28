@@ -16,6 +16,7 @@
 #include "ability_stage_context.h"
 
 #include "hilog.h"
+#include "stage_application_info_adapter.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -111,6 +112,19 @@ void AbilityStageContext::InitResourceManeger()
     if (!sysResRet) {
         HILOG_ERROR("Add system resource failed");
     }
+
+    std::unique_ptr<Global::Resource::ResConfig> resConfig(Global::Resource::CreateResConfig());
+    if (resConfig == nullptr) {
+        HILOG_ERROR("resConfig is nullptr");
+        return;
+    }
+    std::string language { "" };
+    std::string country { "" };
+    std::string script { "" };
+    StageApplicationInfoAdapter::GetInstance()->GetLocale(language, country, script);
+
+    resConfig->SetLocaleInfo(language.c_str(), script.c_str(), country.c_str());
+    resourceManager_->UpdateResConfig(*resConfig);
 }
 
 void AbilityStageContext::GetResourcePaths(std::string& appResourcePath, std::string& sysResourcePath)
