@@ -17,7 +17,10 @@
 #define FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_STAGE_ASSET_MANAGER_H
 
 #include <list>
+#include <mutex>
 #include <vector>
+
+#include "jni.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -27,12 +30,7 @@ public:
     StageAssetManager() = default;
     ~StageAssetManager() = default;
 
-    static StageAssetManager& GetInstance()
-    {
-        static StageAssetManager instance;
-        return instance;
-    }
-
+    static std::shared_ptr<StageAssetManager> GetInstance();
     std::list<std::vector<uint8_t>> GetModuleJsonBufferList();
     std::vector<uint8_t> GetModuleBuffer(const std::string& moduleName, std::string& modulePath);
     std::vector<uint8_t> GetModuleAbilityBuffer(
@@ -43,6 +41,12 @@ public:
     std::string GetFilesDir() const;
     std::string GetDatabaseDir() const;
     std::string GetPreferencesDir() const;
+    void GetResIndexPath(const std::string& moduleName, std::string& appResIndexPath, std::string& sysResIndexPath);
+    jobject GetJavaAssetManager();
+
+private:
+    static std::shared_ptr<StageAssetManager> instance_;
+    static std::mutex mutex_;
 };
 } // namespace Platform
 } // namespace AbilityRuntime

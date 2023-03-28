@@ -15,9 +15,11 @@
 
 #include "ability.h"
 
+#include "ability_context_adapter.h"
 #include "hilog.h"
 #include "js_ability.h"
 #include "runtime.h"
+#include "window_view_adapter.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -67,6 +69,18 @@ void Ability::OnBackground()
 void Ability::OnDestory()
 {
     HILOG_INFO("OnDestory begin.");
+    AbilityContextAdapter::GetInstance()->RemoveStageActivity(instanceName_);
+}
+
+void Ability::OnWindowStageCreated()
+{
+    HILOG_INFO("OnWindowStageCreated begin.");
+}
+
+void Ability::OnWindowStageDestroy()
+{
+    HILOG_INFO("onWindowStageDestroy begin.");
+    WindowViewAdapter::GetInstance()->RemoveWindowView(instanceName_);
 }
 
 void Ability::SetWant(const AAFwk::Want& want)

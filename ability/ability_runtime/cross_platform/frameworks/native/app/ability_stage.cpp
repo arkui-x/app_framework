@@ -86,6 +86,9 @@ void AbilityStage::LaunchAbility(const AAFwk::Want& want, const std::unique_ptr<
         HILOG_ERROR("abilityInfo is nullptr");
         return;
     }
+    abilityInfo->hapPath = "arkui-x/" + abilityInfo->moduleName + "/";
+    HILOG_INFO("LaunchAbility ability name: %{public}s, hapPath: %{public}s", abilityInfo->name.c_str(),
+        abilityInfo->hapPath.c_str());
 
     auto abilityContext = std::make_shared<AbilityContextImpl>();
     if (abilityContext == nullptr) {
@@ -94,14 +97,17 @@ void AbilityStage::LaunchAbility(const AAFwk::Want& want, const std::unique_ptr<
     }
     abilityContext->SetAbilityStageContext(stageContext_);
     abilityContext->SetAbilityInfo(abilityInfo);
+    abilityContext->SetInstanceName(want.GetStringParam(Want::INSTANCE_NAME));
 
     auto newAbility = Ability::Create(runtime);
     if (newAbility == nullptr) {
         HILOG_ERROR("ability is nullptr");
         return;
     }
+
     newAbility->SetAbilityContext(abilityContext);
     newAbility->Init(abilityInfo);
+    newAbility->SetInstanceName(want.GetStringParam(Want::INSTANCE_NAME));
     newAbility->OnCreate(want);
 
     abilities_.emplace(abilityName, newAbility);

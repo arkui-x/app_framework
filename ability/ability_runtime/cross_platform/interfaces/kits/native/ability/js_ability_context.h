@@ -18,6 +18,7 @@
 
 #include <native_engine/native_engine.h>
 
+#include "ability_business_error.h"
 #include "ability_context.h"
 
 class NativeObject;
@@ -29,11 +30,16 @@ namespace AbilityRuntime {
 namespace Platform {
 class JsAbilityContext final {
 public:
-   explicit JsAbilityContext(const std::shared_ptr<AbilityContext>& context) : context_(context) {}
+    explicit JsAbilityContext(const std::shared_ptr<AbilityContext>& context) : context_(context) {}
     ~JsAbilityContext() = default;
 
     static void Finalizer(NativeEngine* engine, void* data, void* hint);
+    static NativeValue* StartAbility(NativeEngine* engine, NativeCallbackInfo* info);
+    static NativeValue* TerminateSelf(NativeEngine* engine, NativeCallbackInfo* info);
+
 private:
+    NativeValue* OnStartAbility(NativeEngine& engine, NativeCallbackInfo& info);
+    NativeValue* OnTerminateSelf(NativeEngine& engine, NativeCallbackInfo& info);
     std::weak_ptr<AbilityContext> context_;
 };
 NativeValue* CreateJsAbilityContext(NativeEngine& engine, std::shared_ptr<AbilityContext> context);

@@ -394,6 +394,7 @@ public:
 
 public:
     static const std::string ABILITY_ID;
+    static const std::string INSTANCE_NAME;
 
 private:
     void CopyFromWant(const Want& want);

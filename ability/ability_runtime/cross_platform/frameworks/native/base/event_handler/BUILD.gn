@@ -1,0 +1,56 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
+
+config("event_handler_config") {
+    include_dirs = [
+        "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/include",
+        # "//commonlibrary/c_utils/base/include",
+        "${ability_runtime_cross_platform_path}/interfaces/inner_api/error",
+    ]
+}
+
+template("ability_runtime_event_handler") {
+  forward_variables_from(invoker, "*")
+  ohos_source_set(target_name) {
+
+    subsystem_name = ability_subsystem_name
+    part_name = ability_part_name
+    configs = [
+      ":event_handler_config",
+      "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
+    ]
+
+    if (target_cpu == "arm64") {
+      defines = [ "_ARM64_" ]
+    }
+
+    sources = [
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/src/epoll_io_waiter.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/src/event_handler.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/src/event_queue.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/src/event_runner.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/src/file_descriptor_listener.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/src/inner_event.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/src/native_implement_eventhandler.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/src/none_io_waiter.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/src/platform/android/platform_event_runner.cpp",
+    ]
+  }
+}
+
+ability_runtime_event_handler("cross_platform_event_handler") {
+
+}

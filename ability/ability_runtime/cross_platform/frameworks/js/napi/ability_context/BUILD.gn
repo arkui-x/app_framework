@@ -19,6 +19,7 @@ es2abc_gen_abc("gen_ability_context_abc") {
   dst_file = rebase_path(target_out_dir + "/ability_context.abc")
   in_puts = [ "ability_context.js" ]
   out_puts = [ target_out_dir + "/ability_context.abc" ]
+  extra_args = [ "--module" ]
 }
 
 gen_js_obj("ability_context_js") {

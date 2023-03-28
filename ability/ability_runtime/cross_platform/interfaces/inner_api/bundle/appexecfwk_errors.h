@@ -16,41 +16,9 @@
 #ifndef FOUNDATION_APPEXECFWK_INTERFACES_INNERKITS_APPEXECFWK_BASE_INCLUDE_APPEXECFWK_ERRORS_H
 #define FOUNDATION_APPEXECFWK_INTERFACES_INNERKITS_APPEXECFWK_BASE_INCLUDE_APPEXECFWK_ERRORS_H
 
-#include <cerrno>
+#include "errors.h"
 
 namespace OHOS {
-using ErrCode = int;
-
-enum {
-    SUBSYS_COMMON                = 0,
-    SUBSYS_APPEXECFWK            = 4,
-};
-
-constexpr ErrCode ErrCodeOffset(unsigned int subsystem, unsigned int module = 0)
-{
-    constexpr int SUBSYSTEM_BIT_NUM = 21;
-    constexpr int MODULE_BIT_NUM = 16;
-    return (subsystem << SUBSYSTEM_BIT_NUM) | (module << MODULE_BIT_NUM);
-}
-
-constexpr ErrCode BASE_ERR_OFFSET = ErrCodeOffset(SUBSYS_COMMON);
-
-enum {
-    ERR_OK                = 0,
-    ERR_NO_MEMORY         = BASE_ERR_OFFSET + ENOMEM,
-    ERR_INVALID_OPERATION = BASE_ERR_OFFSET + ENOSYS,
-    ERR_INVALID_VALUE     = BASE_ERR_OFFSET + EINVAL,
-    ERR_NAME_NOT_FOUND    = BASE_ERR_OFFSET + ENOENT,
-    ERR_PERMISSION_DENIED = BASE_ERR_OFFSET + EPERM,
-    ERR_NO_INIT           = BASE_ERR_OFFSET + ENODEV,
-    ERR_ALREADY_EXISTS    = BASE_ERR_OFFSET + EEXIST,
-    ERR_DEAD_OBJECT       = BASE_ERR_OFFSET + EPIPE,
-    ERR_OVERFLOW          = BASE_ERR_OFFSET + EOVERFLOW,
-    ERR_ENOUGH_DATA       = BASE_ERR_OFFSET + ENODATA,
-    ERR_WOULD_BLOCK       = BASE_ERR_OFFSET + EWOULDBLOCK,
-    ERR_TIMED_OUT         = BASE_ERR_OFFSET + ETIMEDOUT
-};
-
 enum {
     APPEXECFWK_MODULE_BUNDLEMGR = 0x02,
 };

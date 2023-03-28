@@ -22,6 +22,7 @@ es2abc_gen_abc("gen_ability_abc") {
 
   in_puts = [ "ability.js" ]
   out_puts = [ target_out_dir + "/ability.abc" ]
+  extra_args = [ "--module" ]
 }
 
 gen_js_obj("ability_js") {

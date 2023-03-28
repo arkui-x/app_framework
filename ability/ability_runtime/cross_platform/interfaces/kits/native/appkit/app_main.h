@@ -21,9 +21,8 @@
 
 #include "application.h"
 #include "bundle_container.h"
-#include "flutter/common/task_runners.h"
+#include "event_handler.h"
 
-class NativeReference;
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
@@ -39,6 +38,7 @@ public:
     void DispatchOnForeground(const std::string& instanceName);
     void DispatchOnBackground(const std::string& instanceName);
     void DispatchOnDestroy(const std::string& instanceName);
+    void SetPidAndUid(int32_t pid, int32_t uid);
 
 private:
     void ScheduleLaunchApplication();
@@ -53,7 +53,10 @@ private:
 private:
     std::shared_ptr<Application> application_ = nullptr;
     std::shared_ptr<AppExecFwk::BundleContainer> bundleContainer_ = nullptr;
-    fml::RefPtr<fml::TaskRunner> taskRunner_;
+    std::shared_ptr<AppExecFwk::EventHandler> eventHandler_ = nullptr;
+    std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner_ = nullptr;
+    int32_t pid_ { 0 };
+    int32_t uid_ { 0 };
     static std::shared_ptr<AppMain> instance_;
     static std::mutex mutex_;
 };

@@ -18,6 +18,7 @@
 namespace OHOS {
 namespace AAFwk {
 const std::string Want::ABILITY_ID("ability_id");
+const std::string Want::INSTANCE_NAME("instance_name");
 static constexpr int VALUE_TYPE_BOOLEAN = 1;
 static constexpr int VALUE_TYPE_BYTE = 2;
 static constexpr int VALUE_TYPE_CHAR = 3;
@@ -670,6 +671,10 @@ void Want::CopyFromWant(const Want& want)
             }
         }
     }
+
+    bundleName_ = want.GetBundleName();
+    moduleName_ = want.GetModuleName();
+    abilityName_ = want.GetAbilityName();
 }
 
 } // namespace AAFwk

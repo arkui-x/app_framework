@@ -18,8 +18,6 @@
 
 #include <string>
 
-#include "nlohmann/json_fwd.hpp"
-
 namespace OHOS {
 namespace AppExecFwk {
 namespace ProfileReader {

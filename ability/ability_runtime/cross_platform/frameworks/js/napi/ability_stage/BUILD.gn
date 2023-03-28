@@ -43,8 +43,6 @@ ohos_shared_library("abilitystage") {
     "//foundation/arkui/napi:ace_napi",
   ]
 
-  defines = [ "ENABLE_ERRCODE" ]
-
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

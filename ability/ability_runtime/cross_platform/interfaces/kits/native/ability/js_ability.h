@@ -44,6 +44,9 @@ public:
     void OnNewWant(const Want& want) override;
     void OnForeground(const Want& want) override;
     void OnBackground() override;
+    void OnWindowStageCreated() override;
+    void OnWindowStageDestroy() override;
+    std::unique_ptr<NativeReference> CreateJsWindowStage();
 
 private:
     void CallObjectMethod(const char* name, NativeValue* const* argv = nullptr, size_t argc = 0);

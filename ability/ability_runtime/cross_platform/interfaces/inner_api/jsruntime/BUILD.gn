@@ -22,6 +22,8 @@ config("jsruntime_config") {
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/include",
       "//third_party/libuv/include",
+      "${ability_runtime_cross_platform_path}/interfaces/inner_api/error",
+       "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/include",
     ]
 }
 
@@ -44,8 +46,10 @@ template("ability_runtime_jsruntime") {
     }
 
     sources = [
+      "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/ability_business_error.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_console_log.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_data_struct_converter.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_error_utils.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_runtime.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_runtime_utils.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_want_utils.cpp",

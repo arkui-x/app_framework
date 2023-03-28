@@ -42,7 +42,7 @@ public:
     std::vector<std::shared_ptr<AbilityInfo>> GetAbilityInfos() const;
     void dump(const std::string& pathName);
     void SetAppCodePath(const std::string& codePath);
-
+    void SetPidAndUid(int32_t pid, int32_t uid);
 private:
     std::shared_ptr<InnerBundleInfo> bundleInfo_ = nullptr;
 };
