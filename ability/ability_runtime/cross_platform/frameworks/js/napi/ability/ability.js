@@ -14,12 +14,14 @@
  */
 
 class Ability {
+    constructor() {}
     onCreate(want) { }
     onDestroy() { }
     onForeground(want) { }
     onBackground() { }
     onWindowStageCreate(windowStage) { }
     onWindowStageDestroy() { }
+    onNewWant(want) { }
 }
 
 export default Ability
