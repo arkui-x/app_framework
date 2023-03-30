@@ -15,27 +15,7 @@
 
 #include "foundation/appframework/arkui/uicontent/ui_content.h"
 
-#include <vector>
-
-#ifdef ANDROID_PLATFORM
-#include "adapter/android/stage/uicontent/ui_content_impl.h"
-#else
-#include "adapter/ios/stage/uicontent/ui_content_impl.h"
-#endif
-
 namespace OHOS::Ace::Platform {
-UIContent* CreateUIContent(OHOS::AbilityRuntime::Platform::Context* context, NativeEngine* runtime)
-{
-    return new UIContentImpl(context, runtime);
-}
-
-std::unique_ptr<UIContent> UIContent::Create(OHOS::AbilityRuntime::Platform::Context* context, NativeEngine* runtime)
-{
-    std::unique_ptr<UIContent> content;
-    content.reset(CreateUIContent(context, runtime));
-    return content;
-}
-
 void UIContent::ShowDumpHelp(std::vector<std::string>& info)
 {
     info.emplace_back(" -element                       |show element tree");

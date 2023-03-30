@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "interfaces/inner_api/ace/viewport_config.h"
 
