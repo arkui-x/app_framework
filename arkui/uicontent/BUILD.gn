@@ -38,10 +38,4 @@ ohos_source_set("ace_uicontent_interface") {
   ]
 
   deps = [ "$ace_root/frameworks/core/components/theme:build_theme_code" ]
-
-  if (target_os == "android") {
-    defines = [ "ANDROID_PLATFORM" ]
-  } else if (target_os == "ios") {
-    defines = [ "IOS_PLATFORM" ]
-  }
 }
