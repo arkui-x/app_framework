@@ -13,45 +13,59 @@
  * limitations under the License.
  */
 
-#ifndef FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_JS_CONTEXT_UTILS_H
-#define FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_JS_CONTEXT_UTILS_H
+#ifndef FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_JS_APPLICATION_CONTEXT_UTILS_H
+#define FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_JS_APPLICATION_CONTEXT_UTILS_H
 
-#include <native_engine/native_engine.h>
+#include <memory>
 
-#include "context.h"
+#include "ability_lifecycle_callback.h"
+#include "application_context.h"
+#include "native_engine/native_engine.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
-class JsBaseContext {
+class JsApplicationContextUtils {
 public:
-    explicit JsBaseContext(std::weak_ptr<Context>&& context) : context_(std::move(context)) {}
-    virtual ~JsBaseContext() = default;
-
+    explicit JsApplicationContextUtils(std::weak_ptr<ApplicationContext>&& applicationContext)
+        : applicationContext_(std::move(applicationContext))
+    {}
+    virtual ~JsApplicationContextUtils() = default;
     static void Finalizer(NativeEngine* engine, void* data, void* hint);
 
+    static NativeValue* On(NativeEngine* engine, NativeCallbackInfo* info);
+    static NativeValue* Off(NativeEngine* engine, NativeCallbackInfo* info);
+    static NativeValue* GetApplicationContext(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* GetCacheDir(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* GetTempDir(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* GetFilesDir(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* GetDatabaseDir(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* GetPreferencesDir(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* GetBundleCodeDir(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetApplicationContext(NativeEngine* engine, NativeCallbackInfo* info);
+
+    static NativeValue* CreateJsApplicationContext(NativeEngine& engine);
 
 protected:
+    std::weak_ptr<ApplicationContext> applicationContext_;
+
+private:
+    NativeValue* OnOn(NativeEngine& engine, NativeCallbackInfo& info);
+    NativeValue* OnOff(NativeEngine& engine, const NativeCallbackInfo& info);
+    NativeValue* OnOnAbilityLifecycle(NativeEngine& engine, NativeCallbackInfo& info);
+    NativeValue* OnOffAbilityLifecycle(NativeEngine& engine, const NativeCallbackInfo& info, int32_t callbackId);
+    NativeValue* OnGetApplicationContext(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnGetCacheDir(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnGetTempDir(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnGetFilesDir(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnGetDatabaseDir(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnGetPreferencesDir(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnGetBundleCodeDir(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetApplicationContext(NativeEngine& engine, NativeCallbackInfo& info);
-    std::weak_ptr<Context> context_;
-};
 
-NativeValue* CreateJsBaseContext(NativeEngine& engine, std::shared_ptr<Context> context, bool keepContext = false);
-NativeValue* AttachApplicationContext(NativeEngine* engine, void* value, void* hint);
+    static void BindNativeApplicationContext(NativeEngine& engine, NativeObject* object);
+
+    std::shared_ptr<JsAbilityLifecycleCallback> callback_;
+};
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS
-#endif // FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_JS_CONTEXT_UTILS_H
+#endif // FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_JS_APPLICATION_CONTEXT_UTILS_H

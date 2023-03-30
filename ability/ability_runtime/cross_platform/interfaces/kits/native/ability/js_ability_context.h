@@ -36,6 +36,8 @@ public:
     static void Finalizer(NativeEngine* engine, void* data, void* hint);
     static NativeValue* StartAbility(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* TerminateSelf(NativeEngine* engine, NativeCallbackInfo* info);
+    static void ConfigurationUpdated(NativeEngine* engine, std::shared_ptr<NativeReference>& jsContext,
+        const std::shared_ptr<Configuration>& config);
 
 private:
     NativeValue* OnStartAbility(NativeEngine& engine, NativeCallbackInfo& info);

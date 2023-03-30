@@ -16,6 +16,7 @@
 
 #include "hilog.h"
 #include "js_ability_context.h"
+#include "js_data_struct_converter.h"
 #include "js_runtime.h"
 #include "js_want_utils.h"
 #include "js_window_stage.h"
@@ -105,6 +106,7 @@ void JsAbility::Init(const std::shared_ptr<AppExecFwk::AbilityInfo>& abilityInfo
         HILOG_ERROR("abilityContext is nullptr");
         return;
     }
+    HandleScope handleScope(jsRuntime_);
     auto& engine = jsRuntime_.GetNativeEngine();
     NativeValue* contextObj = CreateJsAbilityContext(engine, abilityContext);
     if (contextObj == nullptr) {
@@ -191,6 +193,13 @@ void JsAbility::OnCreate(const Want& want)
         return;
     }
 
+    auto applicationContext = ApplicationContext::GetInstance();
+    if (applicationContext == nullptr) {
+        HILOG_ERROR("OnCreate applicationContext is nullptr");
+        return;
+    }
+    applicationContext->DispatchOnAbilityCreate(jsAbilityObj_);
+
     HandleScope handleScope(jsRuntime_);
     auto& nativeEngine = jsRuntime_.GetNativeEngine();
     NativeValue* value = jsAbilityObj_->Get();
@@ -218,6 +227,12 @@ void JsAbility::OnDestory()
     OnWindowStageDestroy();
     Ability::OnDestory();
     CallObjectMethod("onDestroy");
+    auto applicationContext = ApplicationContext::GetInstance();
+    if (applicationContext == nullptr) {
+        HILOG_ERROR("onDestroy applicationContext is nullptr");
+        return;
+    }
+    applicationContext->DispatchOnAbilityDestroy(jsAbilityObj_);
 }
 
 void JsAbility::OnNewWant(const Want& want)
@@ -271,6 +286,12 @@ void JsAbility::OnForeground(const Want& want)
         return;
     }
     CallObjectMethod("onForeground", &jsWant, 1);
+    auto applicationContext = ApplicationContext::GetInstance();
+    if (applicationContext == nullptr) {
+        HILOG_ERROR("onForeground applicationContext is nullptr");
+        return;
+    }
+    applicationContext->DispatchOnAbilityForeground(jsAbilityObj_);
 }
 
 void JsAbility::OnBackground()
@@ -278,6 +299,12 @@ void JsAbility::OnBackground()
     HILOG_INFO("OnBackground begin.");
     Ability::OnBackground();
     CallObjectMethod("onBackground");
+    auto applicationContext = ApplicationContext::GetInstance();
+    if (applicationContext == nullptr) {
+        HILOG_ERROR("OnBackground applicationContext is nullptr");
+        return;
+    }
+    applicationContext->DispatchOnAbilityBackground(jsAbilityObj_);
 }
 
 void JsAbility::OnWindowStageCreated()
@@ -292,6 +319,13 @@ void JsAbility::OnWindowStageCreated()
     }
     NativeValue* argv[] = { jsAppWindowStage->Get() };
     CallObjectMethod("onWindowStageCreate", argv, ArraySize(argv));
+    jsWindowStageObj_ = std::shared_ptr<NativeReference>(jsAppWindowStage.release());
+    auto applicationContext = ApplicationContext::GetInstance();
+    if (applicationContext == nullptr) {
+        HILOG_ERROR("onWindowStageCreate applicationContext is nullptr");
+        return;
+    }
+    applicationContext->DispatchOnWindowStageCreate(jsAbilityObj_, jsWindowStageObj_);
 }
 
 void JsAbility::OnWindowStageDestroy()
@@ -299,6 +333,12 @@ void JsAbility::OnWindowStageDestroy()
     HILOG_INFO("OnWindowStageDestroy begin");
     Ability::OnWindowStageDestroy();
     CallObjectMethod("onWindowStageDestroy");
+    auto applicationContext = ApplicationContext::GetInstance();
+    if (applicationContext == nullptr) {
+        HILOG_ERROR("OnWindowStageDestroy applicationContext is nullptr");
+        return;
+    }
+    applicationContext->DispatchOnWindowStageDestroy(jsAbilityObj_, jsWindowStageObj_);
 }
 
 std::unique_ptr<NativeReference> JsAbility::CreateJsWindowStage()
@@ -316,6 +356,30 @@ std::unique_ptr<NativeReference> JsAbility::CreateJsWindowStage()
         return nullptr;
     }
     return JsRuntime::LoadSystemModuleByEngine(&engine, "application.WindowStage", &jsWindowStage, 1);
+}
+
+void JsAbility::OnConfigurationUpdate(const Configuration& configuration)
+{
+    Ability::OnConfigurationUpdate(configuration);
+    HILOG_INFO("OnConfigurationUpdate called.");
+
+    HandleScope handleScope(jsRuntime_);
+    auto& nativeEngine = jsRuntime_.GetNativeEngine();
+    auto stageContext = GetAbilityContext();
+    if (stageContext == nullptr) {
+        HILOG_ERROR("Not found stageContext");
+        return;
+    }
+    auto config = stageContext->GetConfiguration();
+    if (!config) {
+        HILOG_ERROR("configuration is nullptr.");
+        return;
+    }
+    if (shellContextRef_ == nullptr) {
+        HILOG_ERROR("shellContextRef_ is nullptr");
+        return;
+    }
+    JsAbilityContext::ConfigurationUpdated(&nativeEngine, shellContextRef_, config);
 }
 } // namespace Platform
 } // namespace AbilityRuntime

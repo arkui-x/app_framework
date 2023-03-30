@@ -124,21 +124,74 @@ NativeValue* JsAbilityContext::OnTerminateSelf(NativeEngine& engine, NativeCallb
 
 NativeValue* CreateJsAbilityContext(NativeEngine& engine, std::shared_ptr<AbilityContext> context)
 {
+    if (context == nullptr) {
+        HILOG_ERROR("context is nullptr");
+        return nullptr;
+    }
+
     NativeValue* objValue = CreateJsBaseContext(engine, context);
+    if (objValue == nullptr) {
+        HILOG_ERROR("objValue is nullptr");
+        return objValue;
+    }
+
     NativeObject* object = ConvertNativeValueTo<NativeObject>(objValue);
+    if (object == nullptr) {
+        HILOG_ERROR("object is nullptr");
+        return objValue;
+    }
 
     std::unique_ptr<JsAbilityContext> jsContext = std::make_unique<JsAbilityContext>(context);
+    if (jsContext == nullptr) {
+        HILOG_ERROR("jsContext is nullptr");
+        return objValue;
+    }
     object->SetNativePointer(jsContext.release(), JsAbilityContext::Finalizer, nullptr);
 
     auto abilityInfo = context->GetAbilityInfo();
     if (abilityInfo != nullptr) {
         object->SetProperty("abilityInfo", CreateJsAbilityInfo(engine, *abilityInfo));
     }
+    auto config = context->GetConfiguration();
+    if (config != nullptr) {
+        object->SetProperty("config", CreateJsConfiguration(engine, *config));
+    }
 
     const char* moduleName = "JsAbilityContext";
     BindNativeFunction(engine, *object, "startAbility", moduleName, JsAbilityContext::StartAbility);
     BindNativeFunction(engine, *object, "terminateSelf", moduleName, JsAbilityContext::TerminateSelf);
     return objValue;
+}
+
+void JsAbilityContext::ConfigurationUpdated(
+    NativeEngine* engine, std::shared_ptr<NativeReference>& jsContext, const std::shared_ptr<Configuration>& config)
+{
+    HILOG_INFO("ConfigurationUpdated called.");
+    if ((jsContext == nullptr) || (config == nullptr)) {
+        HILOG_ERROR("jsContext or config is nullptr.");
+        return;
+    }
+
+    NativeValue* value = jsContext->Get();
+    if (value == nullptr) {
+        HILOG_ERROR("value is nullptr.");
+        return;
+    }
+    NativeObject* object = ConvertNativeValueTo<NativeObject>(value);
+    if (object == nullptr) {
+        HILOG_ERROR("object is nullptr.");
+        return;
+    }
+
+    NativeValue* method = object->GetProperty("onUpdateConfiguration");
+    if (method == nullptr) {
+        HILOG_ERROR("Failed to get onUpdateConfiguration from object");
+        return;
+    }
+
+    HILOG_INFO("JsAbilityContext call onUpdateConfiguration.");
+    NativeValue* argv[] = { CreateJsConfiguration(*engine, *config) };
+    engine->CallFunction(value, method, argv, 1);
 }
 } // namespace Platform
 } // namespace AbilityRuntime

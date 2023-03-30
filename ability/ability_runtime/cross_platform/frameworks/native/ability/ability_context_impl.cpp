@@ -125,6 +125,11 @@ void AbilityContextImpl::GetResourcePaths(std::string& hapResPath, std::string& 
     stageContext_->GetResourcePaths(hapResPath, sysResPath);
 }
 
+std::shared_ptr<Configuration> AbilityContextImpl::GetConfiguration()
+{
+    return stageContext_ ? stageContext_->GetConfiguration() : nullptr;
+}
+
 void AbilityContextImpl::SetInstanceName(const std::string& instanceName)
 {
     instanceName_ = instanceName;

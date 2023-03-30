@@ -21,8 +21,10 @@
 
 #include "application.h"
 #include "bundle_container.h"
+#include "configuration.h"
 #include "event_handler.h"
 
+class NativeReference;
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
@@ -39,6 +41,8 @@ public:
     void DispatchOnBackground(const std::string& instanceName);
     void DispatchOnDestroy(const std::string& instanceName);
     void SetPidAndUid(int32_t pid, int32_t uid);
+    void OnConfigurationUpdate(const std::string& jsonConfiguration);
+    void InitConfiguration(const std::string& jsonConfiguration);
 
 private:
     void ScheduleLaunchApplication();
@@ -48,6 +52,8 @@ private:
     void HandleDispatchOnForeground(const std::string& instanceName);
     void HandleDispatchOnBackground(const std::string& instanceName);
     void HandleDispatchOnDestroy(const std::string& instanceName);
+    void HandleOnConfigurationUpdate(const std::string& jsonConfiguration);
+    void HandleInitConfiguration(const std::string& jsonConfiguration);
     Want TransformToWant(const std::string& instanceName);
 
 private:

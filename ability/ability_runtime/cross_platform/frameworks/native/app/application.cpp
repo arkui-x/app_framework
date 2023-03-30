@@ -82,6 +82,7 @@ void Application::HandleAbilityStage(const AAFwk::Want& want)
         return;
     }
     abilityStageContext->SetHapModuleInfo(hapModuleInfo);
+    abilityStageContext->SetConfiguration(configuration_);
     abilityStageContext->InitResourceManeger();
 
     auto abilityStage = AbilityRuntime::Platform::AbilityStage::Create(runtime_, *hapModuleInfo);
@@ -144,6 +145,33 @@ void Application::DispatchOnDestroy(const AAFwk::Want& want)
         HILOG_INFO("ability stage is empty");
         abilityStages_.erase(moduleName);
     }
+}
+
+void Application::OnConfigurationUpdate(const Configuration& configuration)
+{
+    HILOG_INFO("Application::OnConfigurationUpdate");
+    if (configuration_ == nullptr) {
+        HILOG_ERROR("configuration_ is nullptr");
+        return;
+    }
+    configuration_->UpdateConfigurationInfo(configuration);
+
+    for (auto stage : abilityStages_) {
+        if (stage.second == nullptr) {
+            HILOG_ERROR("stage is nullptr");
+            continue;
+        }
+        stage.second->OnConfigurationUpdate(configuration);
+    }
+}
+
+void Application::InitConfiguration(const Configuration& configuration)
+{
+    if (configuration_ != nullptr) {
+        HILOG_INFO("configuration_ is exist");
+        return;
+    }
+    configuration_ = std::make_shared<Configuration>(configuration);
 }
 
 std::shared_ptr<AbilityStage> Application::FindAbilityStage(const std::string& moduleName)

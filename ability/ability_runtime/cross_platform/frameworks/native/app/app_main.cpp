@@ -170,6 +170,32 @@ void AppMain::DispatchOnDestroy(const std::string& instanceName)
     eventHandler_->PostSyncTask(task);
 }
 
+void AppMain::OnConfigurationUpdate(const std::string& jsonConfiguration)
+{
+    HILOG_INFO("OnConfigurationUpdate called.");
+    if (!eventHandler_) {
+        HILOG_ERROR("eventHandler_ is nullptr");
+        return;
+    }
+    auto task = [jsonConfiguration]() {
+        AppMain::GetInstance()->HandleOnConfigurationUpdate(jsonConfiguration);
+    };
+    eventHandler_->PostTask(task);
+}
+
+void AppMain::InitConfiguration(const std::string& jsonConfiguration)
+{
+    HILOG_INFO("InitConfiguration called.");
+    if (!eventHandler_) {
+        HILOG_ERROR("eventHandler_ is nullptr");
+        return;
+    }
+    auto task = [jsonConfiguration]() {
+        AppMain::GetInstance()->HandleInitConfiguration(jsonConfiguration);
+    };
+    eventHandler_->PostTask(task);
+}
+
 void AppMain::HandleDispatchOnCreate(const std::string& instanceName)
 {
     HILOG_INFO("HandleDispatchOnCreate called, instanceName: %{public}s", instanceName.c_str());
@@ -223,6 +249,30 @@ void AppMain::HandleDispatchOnDestroy(const std::string& instanceName)
     }
 
     application_->DispatchOnDestroy(TransformToWant(instanceName));
+}
+
+void AppMain::HandleOnConfigurationUpdate(const std::string& jsonConfiguration)
+{
+    HILOG_INFO("OnConfigurationUpdate called.");
+    if (application_ == nullptr) {
+        HILOG_ERROR("application_ is nullptr");
+        return;
+    }
+    Configuration configuration;
+    configuration.ReadFromJsonConfiguration(jsonConfiguration);
+    application_->OnConfigurationUpdate(configuration);
+}
+
+void AppMain::HandleInitConfiguration(const std::string& jsonConfiguration)
+{
+    HILOG_INFO("InitConfiguration called.");
+    if (application_ == nullptr) {
+        HILOG_ERROR("application_ is nullptr");
+        return;
+    }
+    Configuration configuration;
+    configuration.ReadFromJsonConfiguration(jsonConfiguration);
+    application_->InitConfiguration(configuration);
 }
 
 Want AppMain::TransformToWant(const std::string& instanceName)

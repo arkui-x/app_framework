@@ -24,7 +24,12 @@ using namespace OHOS::AppExecFwk;
 
 NativeValue* CreateJsAbilityInfo(NativeEngine& engine, const AbilityInfo& abilityInfo)
 {
+    HILOG_INFO("CreateJsAbilityInfo call.");
     NativeValue* objValue = engine.CreateObject();
+    if (objValue == nullptr) {
+        HILOG_ERROR("Native object value is nullptr.");
+        return nullptr;
+    }
     NativeObject* object = ConvertNativeValueTo<NativeObject>(objValue);
     if (object == nullptr) {
         HILOG_ERROR("Native object is nullptr.");
@@ -43,6 +48,34 @@ NativeValue* CreateJsAbilityInfo(NativeEngine& engine, const AbilityInfo& abilit
     object->SetProperty("type", CreateJsValue(engine, abilityInfo.type));
     object->SetProperty("launchMode", CreateJsValue(engine, abilityInfo.launchMode));
     object->SetProperty("applicationInfo", CreateJsApplicationInfo(engine, abilityInfo.applicationInfo));
+    NativeValue* metadataArrayValue = engine.CreateArray(abilityInfo.metadata.size());
+    if (metadataArrayValue != nullptr) {
+        NativeArray* metadataArray = ConvertNativeValueTo<NativeArray>(metadataArrayValue);
+        if (metadataArray != nullptr) {
+            uint32_t index = 0;
+            for (const auto& metadata : abilityInfo.metadata) {
+                NativeValue* objVal = engine.CreateObject();
+                if (objVal == nullptr) {
+                    HILOG_ERROR("Native object value is nullptr.");
+                    continue;
+                }
+                NativeObject* obj = ConvertNativeValueTo<NativeObject>(objVal);
+                if (obj == nullptr) {
+                    HILOG_ERROR("Native object is nullptr.");
+                } else {
+                    obj->SetProperty("name", CreateJsValue(engine, metadata.name));
+                    obj->SetProperty("value", CreateJsValue(engine, metadata.value));
+                    obj->SetProperty("resource", CreateJsValue(engine, metadata.resource));
+                }
+                metadataArray->SetElement(index++, objVal);
+            }
+        } else {
+            HILOG_ERROR("Native object metadataArray is nullptr.");
+        }
+    } else {
+        HILOG_ERROR("Native object value metadataArray is nullptr.");
+    }
+    object->SetProperty("metadata", metadataArrayValue);
     return objValue;
 }
 
@@ -68,9 +101,15 @@ NativeValue* CreateJsApplicationInfo(NativeEngine& engine, const ApplicationInfo
 
 NativeValue* CreateJsHapModuleInfo(NativeEngine& engine, const HapModuleInfo& hapModuleInfo)
 {
+    HILOG_INFO("CreateJsHapModuleInfo call.");
     NativeValue* objValue = engine.CreateObject();
+    if (objValue == nullptr) {
+        HILOG_ERROR("Native object value is nullptr.");
+        return objValue;
+    }
     NativeObject* object = ConvertNativeValueTo<NativeObject>(objValue);
     if (object == nullptr) {
+        HILOG_ERROR("Native object is nullptr.");
         return objValue;
     }
 
@@ -81,18 +120,71 @@ NativeValue* CreateJsHapModuleInfo(NativeEngine& engine, const HapModuleInfo& ha
     object->SetProperty("labelId", CreateJsValue(engine, hapModuleInfo.labelId));
     object->SetProperty("description", CreateJsValue(engine, hapModuleInfo.description));
     object->SetProperty("descriptionId", CreateJsValue(engine, hapModuleInfo.descriptionId));
-    object->SetProperty("mainElementName",CreateJsValue(engine,hapModuleInfo.mainElementName));
+    object->SetProperty("mainElementName", CreateJsValue(engine, hapModuleInfo.mainElementName));
 
-    NativeValue *abilityInfoArrayValue = engine.CreateArray(hapModuleInfo.abilityInfos.size());
-    NativeArray *abilityInfoArray = ConvertNativeValueTo<NativeArray>(abilityInfoArrayValue);
-    if (abilityInfoArray != nullptr) {
-        uint32_t index = 0;
-        for (const auto& abilityInfo : hapModuleInfo.abilityInfos) {
-            abilityInfoArray->SetElement(index++, CreateJsAbilityInfo(engine, abilityInfo));
+    NativeValue* abilityInfoArrayValue = engine.CreateArray(hapModuleInfo.abilityInfos.size());
+    if (abilityInfoArrayValue != nullptr) {
+        NativeArray* abilityInfoArray = ConvertNativeValueTo<NativeArray>(abilityInfoArrayValue);
+        if (abilityInfoArray != nullptr) {
+            uint32_t index = 0;
+            for (const auto& abilityInfo : hapModuleInfo.abilityInfos) {
+                abilityInfoArray->SetElement(index++, CreateJsAbilityInfo(engine, abilityInfo));
+            }
+        } else {
+            HILOG_ERROR("Native object abilityInfoArray is nullptr.");
         }
+    } else {
+        HILOG_ERROR("Native object value abilityInfoArray is nullptr.");
     }
-    object->SetProperty("abilitiesInfo",abilityInfoArrayValue);
-    
+    object->SetProperty("abilitiesInfo", abilityInfoArrayValue);
+
+    NativeValue* metadataArrayValue = engine.CreateArray(hapModuleInfo.metadata.size());
+    if (metadataArrayValue != nullptr) {
+        NativeArray* metadataArray = ConvertNativeValueTo<NativeArray>(metadataArrayValue);
+        if (metadataArray != nullptr) {
+            uint32_t index = 0;
+            for (const auto& metadata : hapModuleInfo.metadata) {
+                NativeValue* objVal = engine.CreateObject();
+                if (objVal == nullptr) {
+                    HILOG_ERROR("Native object value is nullptr.");
+                    continue;
+                }
+                NativeObject* obj = ConvertNativeValueTo<NativeObject>(objVal);
+                if (obj == nullptr) {
+                    HILOG_ERROR("Native object is nullptr.");
+                } else {
+                    obj->SetProperty("name", CreateJsValue(engine, metadata.name));
+                    obj->SetProperty("value", CreateJsValue(engine, metadata.value));
+                    obj->SetProperty("resource", CreateJsValue(engine, metadata.resource));
+                }
+                metadataArray->SetElement(index++, objVal);
+            }
+        } else {
+            HILOG_ERROR("Native object metadataArray is nullptr.");
+        }
+    } else {
+        HILOG_ERROR("Native object value metadataArray is nullptr.");
+    }
+    object->SetProperty("metadata", metadataArrayValue);
+    return objValue;
+}
+
+NativeValue* CreateJsConfiguration(NativeEngine& engine, const Platform::Configuration& configuration)
+{
+    NativeValue* objValue = engine.CreateObject();
+    if (objValue == nullptr) {
+        HILOG_ERROR("CreateJsConfiguration, Failed to engine.CreateObject");
+        return objValue;
+    }
+    NativeObject* object = ConvertNativeValueTo<NativeObject>(objValue);
+    if (object == nullptr) {
+        HILOG_ERROR("CreateJsConfiguration, Failed to ConvertNativeValueTo Object");
+        return objValue;
+    }
+    object->SetProperty("colorMode", CreateJsValue(engine, configuration.ConvertColorMode(configuration.GetItem(
+                                                               Platform::ConfigurationInner::SYSTEM_COLORMODE))));
+    object->SetProperty("direction", CreateJsValue(engine, configuration.ConvertDirection(configuration.GetItem(
+                                                               Platform::ConfigurationInner::APPLICATION_DIRECTION))));
     return objValue;
 }
 } // namespace AbilityRuntime

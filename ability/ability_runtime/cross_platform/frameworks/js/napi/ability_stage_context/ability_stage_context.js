@@ -20,6 +20,10 @@ class AbilityStageContext extends Context {
         super(obj)
         this.currentHapModuleInfo = obj.currentHapModuleInfo
     }
+
+    onUpdateConfiguration(config) {
+        this.config = config
+    }
 }
 
 export default AbilityStageContext

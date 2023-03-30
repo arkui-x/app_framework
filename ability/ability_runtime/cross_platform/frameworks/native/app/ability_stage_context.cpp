@@ -91,6 +91,16 @@ void AbilityStageContext::SetApplicationContext(const std::shared_ptr<Context>& 
     applicationContext_ = applicationContext;
 }
 
+void AbilityStageContext::SetConfiguration(const std::shared_ptr<Configuration>& configuration)
+{
+    configuration_ = configuration;
+}
+
+std::shared_ptr<Configuration> AbilityStageContext::GetConfiguration()
+{
+    return configuration_;
+}
+
 void AbilityStageContext::InitResourceManeger()
 {
     resourceManager_ = std::shared_ptr<Global::Resource::ResourceManager>(Global::Resource::CreateResourceManager());
@@ -125,6 +135,21 @@ void AbilityStageContext::InitResourceManeger()
 
     resConfig->SetLocaleInfo(language.c_str(), script.c_str(), country.c_str());
     resourceManager_->UpdateResConfig(*resConfig);
+
+    if (configuration_ == nullptr) {
+        HILOG_ERROR("configuration_ is nullptr");
+        return;
+    }
+    auto colorMode = configuration_->GetItem(ConfigurationInner::SYSTEM_COLORMODE);
+    Global::Resource::ColorMode mode;
+    if (colorMode == ConfigurationInner::COLOR_MODE_LIGHT) {
+        mode = Global::Resource::ColorMode::LIGHT;
+    } else if (colorMode == ConfigurationInner::COLOR_MODE_DARK) {
+        mode = Global::Resource::ColorMode::DARK;
+    } else {
+        mode = Global::Resource::ColorMode::COLOR_MODE_NOT_SET;
+    }
+    resConfig->SetColorMode(mode);
 }
 
 void AbilityStageContext::GetResourcePaths(std::string& appResourcePath, std::string& sysResourcePath)

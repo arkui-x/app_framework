@@ -21,6 +21,7 @@
 #include <string>
 
 #include "bundle_container.h"
+#include "configuration.h"
 #include "hap_module_info.h"
 #include "want.h"
 
@@ -40,6 +41,7 @@ public:
     virtual ~AbilityStage() = default;
     virtual void OnCreate() const;
     virtual void OnDestroy() const;
+    virtual void OnConfigurationUpdate(const Configuration& configuration);
     virtual void Init(const std::shared_ptr<Context>& context);
     std::shared_ptr<Context> GetContext() const;
     void LaunchAbility(const AAFwk::Want& want, const std::unique_ptr<Runtime>& runtime);
@@ -53,6 +55,7 @@ public:
     void DispatchOnBackground(const AAFwk::Want& want);
     void DispatchOnDestroy(const AAFwk::Want& want);
     bool IsEmpty();
+
 private:
     std::shared_ptr<Ability> FindAbility(const std::string& abilityName);
 

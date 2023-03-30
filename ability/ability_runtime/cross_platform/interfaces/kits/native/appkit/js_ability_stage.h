@@ -36,6 +36,7 @@ public:
 
     void Init(const std::shared_ptr<Context>& context) override;
     void OnCreate() const override;
+    void OnConfigurationUpdate(const Configuration& configuration) override;
 
 private:
     JsRuntime& jsRuntime_;

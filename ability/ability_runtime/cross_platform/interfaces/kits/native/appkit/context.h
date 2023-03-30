@@ -21,6 +21,7 @@
 
 #include "application_info.h"
 #include "bindable.h"
+#include "configuration.h"
 #include "hap_module_info.h"
 #include "resource_manager.h"
 #include "stage_asset_manager.h"
@@ -128,6 +129,8 @@ public:
     virtual std::shared_ptr<StageAssetManager> GetAssetManager() = 0;
 
     virtual void GetResourcePaths(std::string& hapResPath, std::string& sysResPath) = 0;
+
+    virtual std::shared_ptr<Configuration> GetConfiguration() = 0;
 
     /**
      * @brief Getting derived class

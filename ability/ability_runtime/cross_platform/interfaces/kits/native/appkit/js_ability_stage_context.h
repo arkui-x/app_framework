@@ -31,6 +31,8 @@ public:
     ~JsAbilityStageContext() = default;
 
     static void Finalizer(NativeEngine* engine, void* data, void* hint);
+    static void ConfigurationUpdated(NativeEngine* engine, std::shared_ptr<NativeReference>& jsContext,
+        const std::shared_ptr<Configuration>& config);
 
 private:
     std::weak_ptr<Context> context_;
