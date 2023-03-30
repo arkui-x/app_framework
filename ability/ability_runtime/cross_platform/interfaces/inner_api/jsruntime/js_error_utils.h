@@ -20,7 +20,6 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-
 enum {
     ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER = 401,
 };

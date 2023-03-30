@@ -380,11 +380,6 @@ NativeValue* JsApplicationContextUtils::CreateJsApplicationContext(NativeEngine&
     if (appInfo != nullptr) {
         object->SetProperty("applicationInfo", CreateJsApplicationInfo(engine, *appInfo));
     }
-    // auto resourceManager = applicationContext->GetResourceManager();
-    // std::shared_ptr<Context> context = std::dynamic_pointer_cast<Context>(applicationContext);
-    // if (resourceManager != nullptr) {
-    //     object->SetProperty("resourceManager", CreateJsResourceManager(engine, resourceManager, context));
-    // }
 
     BindNativeApplicationContext(engine, object);
 

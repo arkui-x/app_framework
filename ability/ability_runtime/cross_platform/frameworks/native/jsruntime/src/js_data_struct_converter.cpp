@@ -182,9 +182,9 @@ NativeValue* CreateJsConfiguration(NativeEngine& engine, const Platform::Configu
         return objValue;
     }
     object->SetProperty("colorMode", CreateJsValue(engine, configuration.ConvertColorMode(configuration.GetItem(
-                                                               Platform::ConfigurationInner::SYSTEM_COLORMODE))));
+        Platform::ConfigurationInner::SYSTEM_COLORMODE))));
     object->SetProperty("direction", CreateJsValue(engine, configuration.ConvertDirection(configuration.GetItem(
-                                                               Platform::ConfigurationInner::APPLICATION_DIRECTION))));
+        Platform::ConfigurationInner::APPLICATION_DIRECTION))));
     return objValue;
 }
 } // namespace AbilityRuntime

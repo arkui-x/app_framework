@@ -24,7 +24,6 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
-
 namespace ConfigurationInner {
 constexpr const char* EMPTY_STRING = "";
 constexpr const char* SYSTEM_COLORMODE = "ohos.system.colorMode";
