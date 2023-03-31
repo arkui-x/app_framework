@@ -553,10 +553,6 @@ uint64_t EventRunner::GetThreadId()
 
 bool EventRunner::IsCurrentRunnerThread()
 {
-   if (PlatformEventRunner::CheckCurrent()) {
-        return true;
-    }
-
     return std::this_thread::get_id() == innerRunner_->GetThreadId();
 }
 

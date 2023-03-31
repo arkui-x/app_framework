@@ -508,6 +508,7 @@ void PlatformEventRunner::Stop() {}
 
 bool PlatformEventRunner::Init()
 {
+    threadId_ = std::this_thread::get_id();
     return ioWaiter_->StartTimer(std::bind(&PlatformEventRunner::Run, this));
 }
 } // namespace AppExecFwk
