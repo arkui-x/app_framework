@@ -180,6 +180,9 @@ struct AbilityInfo {
     // for NAPI, save self query cache
     int32_t uid = -1;
 
+    // instanceId
+    int32_t instanceId = 0;
+
     // unused
     std::string originalBundleName;
     std::string appName;

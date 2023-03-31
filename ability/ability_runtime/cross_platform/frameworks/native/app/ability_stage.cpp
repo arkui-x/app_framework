@@ -101,6 +101,8 @@ void AbilityStage::LaunchAbility(const AAFwk::Want& want, const std::unique_ptr<
     abilityInfo->hapPath = "arkui-x/" + abilityInfo->moduleName + "/";
     HILOG_INFO("LaunchAbility ability name: %{public}s, hapPath: %{public}s", abilityInfo->name.c_str(),
         abilityInfo->hapPath.c_str());
+    abilityInfo->instanceId = std::stoi(want.GetStringParam(Want::ABILITY_ID));
+    HILOG_INFO("LaunchAbility ability instanceId: %{public}d", abilityInfo->instanceId);
 
     auto abilityContext = std::make_shared<AbilityContextImpl>();
     if (abilityContext == nullptr) {
