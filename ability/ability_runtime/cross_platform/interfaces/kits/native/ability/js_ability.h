@@ -47,12 +47,14 @@ public:
     void OnWindowStageCreated() override;
     void OnWindowStageDestroy() override;
     std::unique_ptr<NativeReference> CreateJsWindowStage();
+    void OnConfigurationUpdate(const Configuration& configuration) override;
 
 private:
     void CallObjectMethod(const char* name, NativeValue* const* argv = nullptr, size_t argc = 0);
     JsRuntime& jsRuntime_;
     std::shared_ptr<NativeReference> jsAbilityObj_;
     std::shared_ptr<NativeReference> shellContextRef_;
+    std::shared_ptr<NativeReference> jsWindowStageObj_;
 };
 } // namespace Platform
 } // namespace AbilityRuntime

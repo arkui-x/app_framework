@@ -56,6 +56,18 @@ void AbilityStage::OnDestroy() const
     HILOG_INFO("AbilityStage::OnDestroy come");
 }
 
+void AbilityStage::OnConfigurationUpdate(const Configuration& configuration)
+{
+    HILOG_INFO("AbilityStage::OnConfigurationUpdate called.");
+    for (auto ability : abilities_) {
+        if (ability.second == nullptr) {
+            HILOG_ERROR("stage is nullptr");
+            continue;
+        }
+        ability.second->OnConfigurationUpdate(configuration);
+    }
+}
+
 void AbilityStage::Init(const std::shared_ptr<Context>& context)
 {
     stageContext_ = context;

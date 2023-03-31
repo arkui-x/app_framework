@@ -16,8 +16,8 @@
 #ifndef FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_APPLICATION_CONTEXT_H
 #define FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_APPLICATION_CONTEXT_H
 
+#include "ability_lifecycle_callback.h"
 #include "context.h"
-
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
@@ -28,7 +28,7 @@ public:
 
     std::string GetBundleName() const override;
     std::shared_ptr<AppExecFwk::ApplicationInfo> GetApplicationInfo() const override;
-    void SetApplicationInfo(const std::shared_ptr<AppExecFwk::ApplicationInfo> &info);
+    void SetApplicationInfo(const std::shared_ptr<AppExecFwk::ApplicationInfo>& info);
     std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager() const override;
     std::string GetBundleCodePath() const override;
     std::string GetBundleCodeDir() override;
@@ -40,11 +40,24 @@ public:
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo() const override;
     std::shared_ptr<StageAssetManager> GetAssetManager() override;
     void GetResourcePaths(std::string& hapResPath, std::string& sysResPath) override;
-
+    std::shared_ptr<Configuration> GetConfiguration() override;
     static std::shared_ptr<ApplicationContext> GetInstance();
+    void RegisterAbilityLifecycleCallback(const std::shared_ptr<AbilityLifecycleCallback>& abilityLifecycleCallback);
+    void UnregisterAbilityLifecycleCallback(const std::shared_ptr<AbilityLifecycleCallback>& abilityLifecycleCallback);
+
+    void DispatchOnAbilityCreate(const std::shared_ptr<NativeReference>& ability);
+    void DispatchOnAbilityDestroy(const std::shared_ptr<NativeReference>& ability);
+    void DispatchOnWindowStageCreate(
+        const std::shared_ptr<NativeReference>& ability, const std::shared_ptr<NativeReference>& windowStage);
+    void DispatchOnWindowStageDestroy(
+        const std::shared_ptr<NativeReference>& ability, const std::shared_ptr<NativeReference>& windowStage);
+    void DispatchOnAbilityForeground(const std::shared_ptr<NativeReference>& ability);
+    void DispatchOnAbilityBackground(const std::shared_ptr<NativeReference>& ability);
 
 private:
     std::shared_ptr<AppExecFwk::ApplicationInfo> applicationInfo_ = nullptr;
+    static std::vector<std::shared_ptr<AbilityLifecycleCallback>> callbacks_;
+    std::mutex callbackLock_;
 };
 } // namespace Platform
 } // namespace AbilityRuntime

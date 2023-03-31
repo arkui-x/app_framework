@@ -22,6 +22,7 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
+std::vector<std::shared_ptr<AbilityLifecycleCallback>> ApplicationContext::callbacks_;
 std::shared_ptr<ApplicationContext> Context::applicationContext_ = nullptr;
 std::mutex Context::contextMutex_;
 const size_t Context::CONTEXT_TYPE_ID(std::hash<const char*> {}("Context"));
@@ -45,6 +46,12 @@ std::string ApplicationContext::GetBundleName() const
 std::shared_ptr<AppExecFwk::ApplicationInfo> ApplicationContext::GetApplicationInfo() const
 {
     return applicationInfo_;
+}
+
+std::shared_ptr<ApplicationContext> Context::GetApplicationContext()
+{
+    std::lock_guard<std::mutex> lock(contextMutex_);
+    return applicationContext_;
 }
 
 void ApplicationContext::SetApplicationInfo(const std::shared_ptr<AppExecFwk::ApplicationInfo>& info)
@@ -106,8 +113,119 @@ std::shared_ptr<StageAssetManager> ApplicationContext::GetAssetManager()
     return StageAssetManager::GetInstance();
 }
 
-void ApplicationContext::GetResourcePaths(std::string& hapResPath, std::string& sysResPath)
+void ApplicationContext::GetResourcePaths(std::string& hapResPath, std::string& sysResPath) {}
+
+std::shared_ptr<Configuration> ApplicationContext::GetConfiguration()
 {
+    return nullptr;
+}
+
+void ApplicationContext::RegisterAbilityLifecycleCallback(
+    const std::shared_ptr<AbilityLifecycleCallback>& abilityLifecycleCallback)
+{
+    HILOG_INFO("ApplicationContext RegisterAbilityLifecycleCallback");
+    if (abilityLifecycleCallback == nullptr) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(callbackLock_);
+    callbacks_.push_back(abilityLifecycleCallback);
+}
+
+void ApplicationContext::UnregisterAbilityLifecycleCallback(
+    const std::shared_ptr<AbilityLifecycleCallback>& abilityLifecycleCallback)
+{
+    HILOG_INFO("ApplicationContext UnregisterAbilityLifecycleCallback");
+    std::lock_guard<std::mutex> lock(callbackLock_);
+    auto it = std::find(callbacks_.begin(), callbacks_.end(), abilityLifecycleCallback);
+    if (it != callbacks_.end()) {
+        callbacks_.erase(it);
+    }
+}
+
+void ApplicationContext::DispatchOnAbilityCreate(const std::shared_ptr<NativeReference>& ability)
+{
+    if (!ability) {
+        HILOG_ERROR("ability is nullptr");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(callbackLock_);
+    for (auto callback : callbacks_) {
+        if (callback != nullptr) {
+            callback->OnAbilityCreate(ability);
+        }
+    }
+}
+
+void ApplicationContext::DispatchOnAbilityDestroy(const std::shared_ptr<NativeReference>& ability)
+{
+    if (!ability) {
+        HILOG_ERROR("ability is nullptr");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(callbackLock_);
+    for (auto callback : callbacks_) {
+        if (callback != nullptr) {
+            callback->OnAbilityDestroy(ability);
+        }
+    }
+}
+
+void ApplicationContext::DispatchOnWindowStageCreate(
+    const std::shared_ptr<NativeReference>& ability, const std::shared_ptr<NativeReference>& windowStage)
+{
+    if (!ability || !windowStage) {
+        HILOG_ERROR("ability or windowStage is nullptr");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(callbackLock_);
+    for (auto callback : callbacks_) {
+        if (callback != nullptr) {
+            callback->OnWindowStageCreate(ability, windowStage);
+        }
+    }
+}
+
+void ApplicationContext::DispatchOnWindowStageDestroy(
+    const std::shared_ptr<NativeReference>& ability, const std::shared_ptr<NativeReference>& windowStage)
+{
+    if (!ability || !windowStage) {
+        HILOG_ERROR("ability or windowStage is nullptr");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(callbackLock_);
+    for (auto callback : callbacks_) {
+        if (callback != nullptr) {
+            callback->OnWindowStageDestroy(ability, windowStage);
+        }
+    }
+}
+
+void ApplicationContext::DispatchOnAbilityForeground(const std::shared_ptr<NativeReference>& ability)
+{
+    if (!ability) {
+        HILOG_ERROR("ability is nullptr");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(callbackLock_);
+    for (auto callback : callbacks_) {
+        if (callback != nullptr) {
+            callback->OnAbilityForeground(ability);
+        }
+    }
+}
+
+void ApplicationContext::DispatchOnAbilityBackground(const std::shared_ptr<NativeReference>& ability)
+{
+    if (!ability) {
+        HILOG_ERROR("ability is nullptr");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(callbackLock_);
+    for (auto callback : callbacks_) {
+        if (callback != nullptr) {
+            callback->OnAbilityBackground(ability);
+        }
+    }
 }
 } // namespace Platform
 } // namespace AbilityRuntime

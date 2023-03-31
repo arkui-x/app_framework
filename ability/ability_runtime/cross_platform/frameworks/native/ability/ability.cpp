@@ -92,6 +92,11 @@ std::shared_ptr<AAFwk::Want> Ability::GetWant()
 {
     return want_;
 }
+
+void Ability::OnConfigurationUpdate(const Configuration& configuration)
+{
+    HILOG_INFO("OnConfigurationUpdate begin.");
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

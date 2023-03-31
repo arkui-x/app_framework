@@ -12,14 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-class Context {
+class ApplicationContext {
     constructor(obj) {
         this.__context_impl__ = obj
     }
 
-    get resourceManager() {
-        return this.__context_impl__.resourceManager
+    on(type, callback) {
+        return this.__context_impl__.on(type, callback);
+    }
+
+    off(type, callbackId, callback) {
+        return this.__context_impl__.off(type, callbackId, callback);
+    }
+
+    getApplicationContext() {
+        return this.__context_impl__.getApplicationContext()
     }
 
     get applicationInfo() {
@@ -53,10 +60,6 @@ class Context {
     get stageMode() {
         return true;
     }
-    
-    getApplicationContext() {
-        return this.__context_impl__.getApplicationContext()
-    }
 }
 
-export default Context
+export default ApplicationContext

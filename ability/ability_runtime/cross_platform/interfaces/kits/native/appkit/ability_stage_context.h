@@ -16,6 +16,7 @@
 #ifndef FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_ABILITY_STAGE_CONTEXT_H
 #define FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_ABILITY_STAGE_CONTEXT_H
 
+#include "configuration.h"
 #include "context.h"
 
 namespace OHOS {
@@ -38,14 +39,17 @@ public:
     std::string GetPreferencesDir() override;
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo() const override;
     std::shared_ptr<StageAssetManager> GetAssetManager() override;
+    std::shared_ptr<Configuration> GetConfiguration() override;
     void SetHapModuleInfo(const std::shared_ptr<AppExecFwk::HapModuleInfo>& hapModuleInfo);
     void SetApplicationContext(const std::shared_ptr<Context>& applicationContext);
+    void SetConfiguration(const std::shared_ptr<Configuration>& configuration);
     void InitResourceManeger();
     void GetResourcePaths(std::string& appResourcePath, std::string& sysResourcePath) override;
 
 private:
     std::shared_ptr<Context> applicationContext_ = nullptr;
     std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfo_ = nullptr;
+    std::shared_ptr<Configuration> configuration_ = nullptr;
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager_ = nullptr;
     std::string appResourcePath_ { "" };
     std::string sysResourcePath_ { "" };

@@ -26,6 +26,7 @@ config("appkit_native_config") {
         "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/include",
         "//third_party/json/include",
         "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog",
+        "${ability_runtime_cross_platform_path}/interfaces/inner_api/configuration",
         "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/include",
         "${ability_runtime_cross_platform_path}/interfaces/inner_api/error",
     ]
@@ -69,6 +70,9 @@ template("ability_runtime_appkit_native") {
       "${ability_runtime_cross_platform_path}/frameworks/native/app/js_ability_stage.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/app/js_context_utils.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/app/stage_asset_manager.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/app/ability_lifecycle_callback.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/app/application_context_manager.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/app/js_application_context_utils.cpp",
     ]
 
     deps = [
@@ -79,6 +83,7 @@ template("ability_runtime_appkit_native") {
       "${ability_runtime_cross_platform_path}/frameworks/js/napi:napi_packages",
       "//foundation/arkui/ace_engine/adapter/android/dependence/resmgr:global_resmgr",
       "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability:cross_platform_abilitykit_native",
+      "${ability_runtime_cross_platform_path}/interfaces/inner_api/configuration:cross_platform_configuration",
       "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler:cross_platform_event_handler"
     ]
 

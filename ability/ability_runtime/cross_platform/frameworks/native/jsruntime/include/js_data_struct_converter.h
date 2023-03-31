@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_JS_DATA_STRUCT_CONVERTER_H
 
 #include "ability_info.h"
+#include "configuration.h"
 #include "hap_module_info.h"
 
 class NativeEngine;
@@ -27,6 +28,7 @@ namespace AbilityRuntime {
 NativeValue* CreateJsAbilityInfo(NativeEngine& engine, const AppExecFwk::AbilityInfo& abilityInfo);
 NativeValue* CreateJsApplicationInfo(NativeEngine& engine, const AppExecFwk::ApplicationInfo& applicationInfo);
 NativeValue* CreateJsHapModuleInfo(NativeEngine& engine, const AppExecFwk::HapModuleInfo& hapModuleInfo);
+NativeValue* CreateJsConfiguration(NativeEngine& engine, const Platform::Configuration& configuration);
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_JS_DATA_STRUCT_CONVERTER_H

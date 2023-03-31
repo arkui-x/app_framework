@@ -21,6 +21,7 @@
 #include "ability_stage.h"
 #include "application_context.h"
 #include "bundle_container.h"
+#include "configuration.h"
 #include "runtime.h"
 #include "want.h"
 
@@ -46,6 +47,8 @@ public:
     void DispatchOnForeground(const AAFwk::Want& want);
     void DispatchOnBackground(const AAFwk::Want& want);
     void DispatchOnDestroy(const AAFwk::Want& want);
+    void OnConfigurationUpdate(const Configuration& configuration);
+    void InitConfiguration(const Configuration& configuration);
 
 private:
     std::shared_ptr<AbilityStage> FindAbilityStage(const std::string& moduleName);
@@ -55,6 +58,7 @@ private:
     std::shared_ptr<ApplicationContext> applicationContext_ = nullptr;
     std::unordered_map<std::string, std::shared_ptr<AbilityStage>> abilityStages_;
     std::shared_ptr<AppExecFwk::BundleContainer> bundleContainer_ = nullptr;
+    std::shared_ptr<Configuration> configuration_ = nullptr;
 };
 } // namespace Platform
 } // namespace AbilityRuntime

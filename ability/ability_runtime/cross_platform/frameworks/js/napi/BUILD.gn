@@ -21,5 +21,6 @@ group("napi_packages") {
     "${cross_platform_napi_path}/ability_stage_context:application_abilitystagecontext_napi",
     "${cross_platform_napi_path}/ability_stage:abilitystage",
     "${cross_platform_napi_path}/context:application_context_napi",
+    "${cross_platform_napi_path}/application_context:application_applicationcontext_napi",
   ]
 }

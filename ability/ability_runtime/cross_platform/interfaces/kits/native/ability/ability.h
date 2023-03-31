@@ -113,8 +113,11 @@ public:
         return instanceName_;
     }
 
+    virtual void OnConfigurationUpdate(const Configuration& configuration);
+
 public:
     std::shared_ptr<Rosen::WindowStage> windowStage_ = nullptr;
+
 private:
     std::shared_ptr<AbilityContext> abilityContext_ = nullptr;
     std::shared_ptr<AAFwk::Want> want_ = nullptr;

@@ -36,6 +36,8 @@ public:
 
     virtual int32_t CloseAbility() = 0;
 
+    virtual std::shared_ptr<Configuration> GetConfiguration() override;
+
     using SelfType = AbilityContext;
     static const size_t CONTEXT_TYPE_ID;
 
