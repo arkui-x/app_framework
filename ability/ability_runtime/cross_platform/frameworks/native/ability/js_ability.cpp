@@ -186,6 +186,7 @@ void JsAbility::OnCreate(const Want& want)
         }
         windowStage_->Init(GetAbilityContext(), WindowViewAdapter::GetInstance()->GetWindowView(GetInstanceName()),
             WindowViewAdapter::GetInstance()->GetJniEnv().get());
+        isDispatchOnWindowStageCreated_ = true;
     }
 
     if (!jsAbilityObj_) {
@@ -266,7 +267,11 @@ void JsAbility::OnNewWant(const Want& want)
 void JsAbility::OnForeground(const Want& want)
 {
     HILOG_INFO("OnForeground begin.");
-    OnWindowStageCreated();
+    if (isDispatchOnWindowStageCreated_) {
+        OnWindowStageCreated();
+        isDispatchOnWindowStageCreated_ = false;
+    }
+
     Ability::OnForeground(want);
     HandleScope handleScope(jsRuntime_);
     auto& nativeEngine = jsRuntime_.GetNativeEngine();
