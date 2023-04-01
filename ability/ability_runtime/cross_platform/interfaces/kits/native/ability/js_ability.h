@@ -55,6 +55,7 @@ private:
     std::shared_ptr<NativeReference> jsAbilityObj_;
     std::shared_ptr<NativeReference> shellContextRef_;
     std::shared_ptr<NativeReference> jsWindowStageObj_;
+    bool isDispatchOnWindowStageCreated_ = false;
 };
 } // namespace Platform
 } // namespace AbilityRuntime
