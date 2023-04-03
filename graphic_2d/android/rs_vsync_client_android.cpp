@@ -44,37 +44,51 @@ RSVsyncClientAndroid::~RSVsyncClientAndroid()
     }
 }
 
-void RSVsyncClientAndroid::OnVsync(int64_t frameTimeNanos, void* data)
+void RSVsyncClientAndroid::OnVsync(long frameTimeNanos, void* data)
 {
     auto client = static_cast<RSVsyncClientAndroid*>(data);
     if (client) {
         client->having_ = false;
-        client->vsyncCallback_(frameTimeNanos);
+        int64_t now = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+        std::unique_lock lock(client->mutex_);
+        client->vsyncCallback_(now);
     }
 }
 
 void RSVsyncClientAndroid::RequestNextVsync()
 {
+#if defined(__ANDROID_API__ ) && __ANDROID_API__ >= 24
     if (!having_ && grapher_) {
-        AChoreographer_postFrameCallbackDelayed64(grapher_, OnVsync, this, 0);
-        having_ = true;
+        AChoreographer_postFrameCallback(grapher_, OnVsync, this);
     }
+#endif
+    having_ = true;
 }
 
 void RSVsyncClientAndroid::SetVsyncCallback(VsyncCallback callback)
 {
+    std::unique_lock lock(mutex_);
     vsyncCallback_ = callback;
 }
 
 void RSVsyncClientAndroid::VsyncThreadMain()
 {
     prctl(PR_SET_NAME, "RSVsyncClientAndroid");
+#if defined(__ANDROID_API__ ) && __ANDROID_API__ >= 24
+    ROSEN_LOGD("VsyncThreadMain Aosp");
     looper_ = ALooper_prepare(0);
     grapher_ = AChoreographer_getInstance();
-    int id;
     while (running_ && looper_) {
         ALooper_pollOnce(-1, nullptr, nullptr, nullptr);
     }
+#else
+    ROSEN_LOGD("VsyncThreadMain Soft");
+    while (running_) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 16ms for 60 fps vsync rate
+        OnVsync(0, this);
+    }
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

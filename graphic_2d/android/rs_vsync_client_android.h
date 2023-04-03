@@ -35,7 +35,7 @@ public:
 
     void RequestNextVsync() override;
     void SetVsyncCallback(VsyncCallback callback) override;
-    static void OnVsync(int64_t frameTimeNanos, void* data);
+    static void OnVsync(long frameTimeNanos, void* data);
 
 private:
     void VsyncThreadMain();
@@ -46,6 +46,7 @@ private:
     std::atomic<bool> having_ {false};
     ALooper* looper_ = nullptr;
     AChoreographer* grapher_ = nullptr;
+    std::mutex mutex_;
 };
 } // namespace Rosen
 } // namespace OHOS
