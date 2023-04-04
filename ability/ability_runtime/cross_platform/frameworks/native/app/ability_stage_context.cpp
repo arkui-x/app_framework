@@ -134,22 +134,21 @@ void AbilityStageContext::InitResourceManeger()
     StageApplicationInfoAdapter::GetInstance()->GetLocale(language, country, script);
 
     resConfig->SetLocaleInfo(language.c_str(), script.c_str(), country.c_str());
-    resourceManager_->UpdateResConfig(*resConfig);
 
-    if (configuration_ == nullptr) {
-        HILOG_ERROR("configuration_ is nullptr");
-        return;
+    if (configuration_ != nullptr) {
+        auto colorMode = configuration_->GetItem(ConfigurationInner::SYSTEM_COLORMODE);
+        Global::Resource::ColorMode mode;
+        if (colorMode == ConfigurationInner::COLOR_MODE_LIGHT) {
+            mode = Global::Resource::ColorMode::LIGHT;
+        } else if (colorMode == ConfigurationInner::COLOR_MODE_DARK) {
+            mode = Global::Resource::ColorMode::DARK;
+        } else {
+            mode = Global::Resource::ColorMode::COLOR_MODE_NOT_SET;
+        }
+        resConfig->SetColorMode(mode);
     }
-    auto colorMode = configuration_->GetItem(ConfigurationInner::SYSTEM_COLORMODE);
-    Global::Resource::ColorMode mode;
-    if (colorMode == ConfigurationInner::COLOR_MODE_LIGHT) {
-        mode = Global::Resource::ColorMode::LIGHT;
-    } else if (colorMode == ConfigurationInner::COLOR_MODE_DARK) {
-        mode = Global::Resource::ColorMode::DARK;
-    } else {
-        mode = Global::Resource::ColorMode::COLOR_MODE_NOT_SET;
-    }
-    resConfig->SetColorMode(mode);
+    
+    resourceManager_->UpdateResConfig(*resConfig);
 }
 
 void AbilityStageContext::GetResourcePaths(std::string& appResourcePath, std::string& sysResourcePath)
@@ -158,7 +157,7 @@ void AbilityStageContext::GetResourcePaths(std::string& appResourcePath, std::st
     auto appFisrtPos = appResourcePath_.find_last_of('/');
     appResourcePath = appResourcePath_.substr(0, appFisrtPos);
 
-    auto sysFisrtPos = appResourcePath_.find_last_of('/');
+    auto sysFisrtPos = sysResourcePath_.find_last_of('/');
     sysResourcePath = sysResourcePath_.substr(0, sysFisrtPos);
     HILOG_INFO(
         "appResourcePath: %{public}s, sysResourcePath: %{public}s", appResourcePath.c_str(), sysResourcePath.c_str());
