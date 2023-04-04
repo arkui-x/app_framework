@@ -44,8 +44,8 @@ gen_js_obj("window_stage_abc") {
   dep = ":gen_window_stage_abc"
 }
 
-#libapplication_windowstage_napi
-ohos_shared_library("libapplication_windowstage_napi") {
+#libapplication_windowstage
+ohos_shared_library("libapplication_windowstage") {
   sources = [ "${window_manager_napi_path}/kits/napi/window_runtime/window_stage_napi/window_stage_module.cpp", ]
 
   configs = [

@@ -33,7 +33,7 @@ gen_js_obj("context_abc") {
   dep = ":gen_context_abc"
 }
 
-ohos_shared_library("application_context_napi") {
+ohos_shared_library("application_context") {
   sources = [ "context_module.cpp" ]
 
   deps = [

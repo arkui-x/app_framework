@@ -34,7 +34,7 @@ gen_js_obj("ability_stage_context_abc") {
   dep = ":gen_ability_stage_context_abc"
 }
 
-ohos_shared_library("application_abilitystagecontext_napi") {
+ohos_shared_library("application_abilitystagecontext") {
   sources = [ "ability_stage_context_module.cpp" ]
 
   deps = [
