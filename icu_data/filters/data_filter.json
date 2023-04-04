@@ -1,0 +1,63 @@
+{
+  "localeFilter": {
+    "filterType": "locale",
+    "whitelist": []
+  },
+  "featureFilters": {
+    "confusables": "exclude",
+    "coll_ucadata": "exclude",
+    "translit": "exclude",
+    "conversion_mappings": "exclude",
+    "normalization": {
+      "whitelist": [
+        "nfkc"
+      ]
+    },
+    "stringprep": "exclude",
+    "lang_tree": "exclude",
+    "region_tree": "exclude",
+    "unit_tree": "exclude",
+    "brkitr_rules": {
+      "whitelist": [
+        "char",
+        "line",
+        "line_loose",
+        "line_loose_cj",
+        "line_cj",
+        "line_normal",
+        "line_normal_cj",
+        "sent",
+        "title",
+        "word"
+      ]
+    },
+    "brkitr_dictionaries": {
+      "whitelist": [
+        "burmesedict",
+        "thaidict",
+        "laodict",
+        "khmerdict",
+        "cjdict"
+      ]
+    },
+    "brkitr_tree": {
+      "whitelist": [
+        "ja",
+        "root"
+      ]
+    },
+    "curr_supplemental": "exclude",
+    "cnvalias": "include",
+    "ulayout": "include",
+    "unames": "exclude",
+    "zone_supplemental": "exclude",
+    "rbnf_tree": "exclude",
+    "misc": {
+      "whitelist": [
+        "icustd",
+        "likelySubtags",
+        "icuver"
+      ]
+    }
+  }
+}

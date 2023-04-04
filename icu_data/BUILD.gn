@@ -1,0 +1,71 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/arkui/ace_engine/ace_config.gni")
+
+group("icu_data_shared") {
+  if (target_os == "android") {
+    deps = [ ":build_android_icudata_shared" ]
+  } else if (target_os == "ios") {
+    deps = [ ":build_ios_icudata_shared" ]
+  }
+}
+
+action("build_android_icudata_shared") {
+  script = "android/build_icu_data.sh"
+  sources = [ "//foundation/appframework/icu_data/android/build_icu_data.sh" ]
+  args = [
+    "-t",
+    "shared",
+  ]
+  outputs = [ "$root_out_dir/libicudata/android/libicudata.so" ]
+}
+
+action("build_ios_icudata_shared") {
+  script = "ios/build_icu_data.sh"
+  sources = [ "//foundation/appframework/icu_data/ios/build_icu_data.sh" ]
+  args = [
+    "-t",
+    "shared",
+  ]
+  outputs = [ "$root_out_dir/libicudata/ios/libicudata.dylib" ]
+}
+
+group("icu_data_static") {
+  if (target_os == "android") {
+    deps = [ ":build_android_icudata_static" ]
+  } else if (target_os == "ios") {
+    deps = [ ":build_ios_icudata_static" ]
+  }
+}
+
+action("build_android_icudata_static") {
+  script = "android/build_icu_data.sh"
+  sources = [ "//foundation/appframework/icu_data/android/build_icu_data.sh" ]
+  args = [
+    "-t",
+    "static",
+  ]
+  outputs = [ "$root_out_dir/libicudata/android/libicudata.a" ]
+}
+
+action("build_ios_icudata_static") {
+  script = "ios/build_icu_data.sh"
+  sources = [ "//foundation/appframework/icu_data/ios/build_icu_data.sh" ]
+  args = [
+    "-t",
+    "static",
+  ]
+  outputs = [ "$root_out_dir/libicudata/ios/libicudata.a" ]
+}
