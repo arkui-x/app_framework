@@ -187,5 +187,17 @@ NativeValue* CreateJsConfiguration(NativeEngine& engine, const Platform::Configu
         Platform::ConfigurationInner::APPLICATION_DIRECTION))));
     return objValue;
 }
+
+NativeValue* CreateJsResourceManager(
+    NativeEngine& engine, const std::shared_ptr<Global::Resource::ResourceManager>& resMgr)
+{
+    NativeValue* objValue = engine.CreateObject();
+    if (objValue == nullptr) {
+        HILOG_ERROR("CreateJsResourceManager, Failed to engine.CreateObject");
+        return objValue;
+    }
+    return objValue;
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS

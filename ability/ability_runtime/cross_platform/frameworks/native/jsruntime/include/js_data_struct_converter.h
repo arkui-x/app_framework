@@ -19,6 +19,7 @@
 #include "ability_info.h"
 #include "configuration.h"
 #include "hap_module_info.h"
+#include "resource_manager.h"
 
 class NativeEngine;
 class NativeValue;
@@ -29,6 +30,8 @@ NativeValue* CreateJsAbilityInfo(NativeEngine& engine, const AppExecFwk::Ability
 NativeValue* CreateJsApplicationInfo(NativeEngine& engine, const AppExecFwk::ApplicationInfo& applicationInfo);
 NativeValue* CreateJsHapModuleInfo(NativeEngine& engine, const AppExecFwk::HapModuleInfo& hapModuleInfo);
 NativeValue* CreateJsConfiguration(NativeEngine& engine, const Platform::Configuration& configuration);
+NativeValue* CreateJsResourceManager(
+    NativeEngine& engine, const std::shared_ptr<Global::Resource::ResourceManager>& resMgr);
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_JS_DATA_STRUCT_CONVERTER_H
