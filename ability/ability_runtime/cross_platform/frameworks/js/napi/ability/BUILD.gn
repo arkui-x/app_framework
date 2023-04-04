@@ -57,6 +57,6 @@ template("ability_runtime_ability_napi") {
   }
 }
 
-ability_runtime_ability_napi("uiability") {
+ability_runtime_ability_napi("app_ability_uiability") {
   relative_install_dir = "module/app/ability"
 }

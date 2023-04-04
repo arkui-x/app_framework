@@ -34,7 +34,7 @@ gen_js_obj("ability_context_abc") {
   dep = ":gen_ability_context_abc"
 }
 
-ohos_shared_library("application_abilitycontext_napi") {
+ohos_shared_library("application_abilitycontext") {
   sources = [ "ability_context_module.cpp" ]
 
   deps = [

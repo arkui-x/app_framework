@@ -24,7 +24,7 @@ extern "C" __attribute__((constructor)) void NAPI_application_Context_AutoRegist
 {
     auto moduleManager = NativeModuleManager::GetInstance();
     NativeModule newModuleInfo = {
-        .name = "application_Context",
+        .name = "application.Context",
         .fileName = "application/libcontext_napi.so/context.js",
     };
 
