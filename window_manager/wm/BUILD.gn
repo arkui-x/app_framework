@@ -12,15 +12,14 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import(
-    "//foundation/appframework/window_manager/window_manager.gni")
+import("//foundation/appframework/window_manager/window_manager.gni")
 
 config("window_manager_config") {
-    include_dirs = [
-        "${app_framework_window_manager_path}/wm/include",
-        "${window_manager_napi_path}/innerkits/wm",
-        "${window_manager_napi_path}/kits/kits/napi/window_runtime",
-    ]
+  include_dirs = [
+    "${app_framework_window_manager_path}/wm/include",
+    "${window_manager_napi_path}/innerkits/wm",
+    "${window_manager_napi_path}/kits/kits/napi/window_runtime",
+  ]
 }
 
 template("window_manager") {
@@ -30,13 +29,13 @@ template("window_manager") {
     subsystem_name = window_manager_subsystem_name
     part_name = window_manager_part_name
     configs = [
-        ":window_manager_config",
-        "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/ability:abilitykit_native_config",
-        "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
-        "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit:appkit_native_config",
-        "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/jsruntime:jsruntime_config",
-        "//foundation/appframework/arkui/uicontent:uicontent_config",
-        "$ace_root:ace_config",
+      ":window_manager_config",
+      "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/ability:abilitykit_native_config",
+      "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
+      "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit:appkit_native_config",
+      "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/jsruntime:jsruntime_config",
+      "//foundation/appframework/arkui/uicontent:uicontent_config",
+      "$ace_root:ace_config",
     ]
 
     if (target_cpu == "arm64") {
@@ -48,30 +47,27 @@ template("window_manager") {
       "${window_manager_napi_path}/innerkits/wm",
       "${window_manager_napi_path}/kits/kits/napi/window_runtime",
       "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni",
-      "//commonlibrary/c_utils/base/include"
+      "//commonlibrary/c_utils/base/include",
     ]
 
-    sources = [
-      "${app_framework_window_manager_path}/wm/src/window_stage.cpp",
+    sources = [ "${app_framework_window_manager_path}/wm/src/window_stage.cpp" ]
+
+    deps = [
+      "${window_manager_napi_path}/kits/napi/window_runtime:wm_napi",
+      "${window_manager_napi_path}/kits/napi/window_runtime/window_stage_napi:libapplication_windowstage",
     ]
 
-    deps = ["${window_manager_napi_path}/kits/napi/window_runtime:wm_napi",
-            "${window_manager_napi_path}/kits/napi/window_runtime/window_stage_napi:libapplication_windowstage"]
+    deps += [ "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni:ace_common_jni_android" ]
 
-    deps += [
-      "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni:ace_common_jni_android",
-    ]
-
-    deps += [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client" ]
+    deps += [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client_static" ]
 
     external_deps = [
       "c_utils:utils",
       "samgr:samgr_proxy",
       "//commonlibrary/c_utils/base:utils",
-  ]
+    ]
   }
 }
 
 window_manager("wm") {
-
 }
