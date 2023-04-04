@@ -198,6 +198,5 @@ NativeValue* CreateJsResourceManager(
     }
     return objValue;
 }
-
 } // namespace AbilityRuntime
 } // namespace OHOS
