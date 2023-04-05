@@ -40,7 +40,7 @@ ohos_shared_library("application_abilitystagecontext") {
   deps = [
     ":ability_stage_context_abc",
     ":ability_stage_context_js",
-    "//foundation/arkui/napi:ace_napi",
+    "//plugins/libs/napi:napi_${target_os}",
   ]
 
   relative_install_dir = "module/application"
