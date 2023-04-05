@@ -15,11 +15,11 @@ import("//build/ohos.gni")
 import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
 
 config("configuration_config") {
-    include_dirs = [
-        "${ability_runtime_cross_platform_path}/interfaces/inner_api/configuration",
-        "//third_party/json/include",
-        "//base/global/resource_management/interfaces/inner_api/include",
-    ]
+  include_dirs = [
+    "//base/global/resource_management/interfaces/inner_api/include",
+    "//third_party/json/include",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/configuration",
+  ]
 }
 
 template("ability_runtime_configuration") {
@@ -28,20 +28,17 @@ template("ability_runtime_configuration") {
     subsystem_name = ability_subsystem_name
     part_name = ability_part_name
     configs = [
-        ":configuration_config",
-        "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
+      ":configuration_config",
+      "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
     ]
 
     if (target_cpu == "arm64") {
       defines = [ "_ARM64_" ]
     }
 
-    sources = [
-      "${ability_runtime_cross_platform_path}/frameworks/native/base/configuration/configuration.cpp",
-    ]
+    sources = [ "${ability_runtime_cross_platform_path}/frameworks/native/base/configuration/configuration.cpp" ]
   }
 }
 
 ability_runtime_configuration("cross_platform_configuration") {
-
 }

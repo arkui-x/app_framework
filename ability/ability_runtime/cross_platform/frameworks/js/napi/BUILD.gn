@@ -18,9 +18,9 @@ group("napi_packages") {
   deps = [
     "${cross_platform_napi_path}/ability:app_ability_uiability",
     "${cross_platform_napi_path}/ability_context:application_abilitycontext",
-    "${cross_platform_napi_path}/ability_stage_context:application_abilitystagecontext",
     "${cross_platform_napi_path}/ability_stage:app_ability_abilitystage",
-    "${cross_platform_napi_path}/context:application_context",
+    "${cross_platform_napi_path}/ability_stage_context:application_abilitystagecontext",
     "${cross_platform_napi_path}/application_context:application_applicationcontext",
+    "${cross_platform_napi_path}/context:application_context",
   ]
 }

@@ -15,11 +15,11 @@ import("//build/ohos.gni")
 import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
 
 config("bundle_parser_config") {
-    include_dirs = [
-        "${ability_runtime_cross_platform_path}/interfaces/inner_api/want",
-        "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/include",
-        "//third_party/json/include",
-    ]
+  include_dirs = [
+    "//third_party/json/include",
+    "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/include",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/want",
+  ]
 }
 
 template("ability_runtime_want") {
@@ -28,20 +28,17 @@ template("ability_runtime_want") {
     subsystem_name = ability_subsystem_name
     part_name = ability_part_name
     configs = [
-        ":bundle_parser_config",
-        "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
+      ":bundle_parser_config",
+      "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
     ]
 
     if (target_cpu == "arm64") {
       defines = [ "_ARM64_" ]
     }
 
-    sources = [
-        "${ability_runtime_cross_platform_path}/frameworks/native/base/want/want.cpp",
-    ]
+    sources = [ "${ability_runtime_cross_platform_path}/frameworks/native/base/want/want.cpp" ]
   }
 }
 
 ability_runtime_want("cross_platform_want") {
-
 }
