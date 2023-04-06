@@ -16,8 +16,7 @@ import("//build/ohos.gni")
 
 es2abc_gen_abc("gen_ability_abc") {
   extra_visibility = [ ":*" ]  # Only targets in this file can depend on this.
-  src_js = rebase_path(
-          "ability.js")
+  src_js = rebase_path("ability.js")
   dst_file = rebase_path(target_out_dir + "/ability.abc")
 
   in_puts = [ "ability.js" ]

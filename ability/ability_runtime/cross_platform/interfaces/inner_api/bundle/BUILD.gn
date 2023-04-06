@@ -15,12 +15,12 @@ import("//build/ohos.gni")
 import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
 
 config("bundle_parser_config") {
-    include_dirs = [
-        "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle",
-        "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/include",
-        "//third_party/json/include",
-        "${ability_runtime_cross_platform_path}/interfaces/inner_api/error",
-    ]
+  include_dirs = [
+    "//third_party/json/include",
+    "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/include",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/error",
+  ]
 }
 
 template("ability_runtime_bundle_parser") {
@@ -31,8 +31,8 @@ template("ability_runtime_bundle_parser") {
     part_name = ability_part_name
     configs = [
       ":bundle_parser_config",
+      "//third_party/json:nlohmann_json_config",
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
-       "//third_party/json:nlohmann_json_config",
     ]
 
     if (target_cpu == "arm64") {
@@ -40,30 +40,29 @@ template("ability_runtime_bundle_parser") {
     }
 
     sources = [
-        "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/ability_info.cpp",
-        "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/application_info.cpp",
-        "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/bundle_info.cpp",
-        "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/bundle_parser.cpp",
-        "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/bundle_user_info.cpp",
-        "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/hap_module_info.cpp",
-        "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/inner_bundle_info.cpp",
-        "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/inner_bundle_user_info.cpp",
-        "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/module_info.cpp",
-        "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/module_profile.cpp",
-        "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/bundle_container.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/ability_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/application_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/bundle_container.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/bundle_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/bundle_parser.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/bundle_user_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/hap_module_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/inner_bundle_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/inner_bundle_user_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/module_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/module_profile.cpp",
     ]
 
     if (target_os == "android") {
       deps = [ "//third_party/jsoncpp:jsoncpp" ]
     } else if (target_os == "ios") {
       deps = [
-        "//third_party/jsoncpp:jsoncpp_static",
         "//third_party/json:nlohmann_json_static",
+        "//third_party/jsoncpp:jsoncpp_static",
       ]
     }
   }
 }
 
 ability_runtime_bundle_parser("cross_platform_bundle_parser") {
-
 }

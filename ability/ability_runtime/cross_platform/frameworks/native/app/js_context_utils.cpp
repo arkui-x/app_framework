@@ -250,6 +250,11 @@ NativeValue* CreateJsBaseContext(NativeEngine& engine, std::shared_ptr<Context> 
     if (hapModuleInfo != nullptr) {
         object->SetProperty("currentHapModuleInfo", CreateJsHapModuleInfo(engine, *hapModuleInfo));
     }
+    auto resMgr = context->GetResourceManager();
+    if (resMgr != nullptr) {
+        object->SetProperty("resourceManager", CreateJsResourceManager(engine, resMgr));
+        HILOG_INFO("CreateJsBaseContext SetProperty resourceManager");
+    }
 
     const char *moduleName = "JsBaseContext";
     BindNativeProperty(*object, "cacheDir", JsBaseContext::GetCacheDir);
