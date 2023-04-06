@@ -48,7 +48,7 @@ template("ability_runtime_ability_napi") {
     deps = [
       ":ability_abc",
       ":ability_js",
-      "//foundation/arkui/napi:ace_napi",
+      "//plugins/libs/napi:napi_${target_os}",
     ]
 
     subsystem_name = "ability"

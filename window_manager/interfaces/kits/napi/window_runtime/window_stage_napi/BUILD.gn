@@ -57,7 +57,7 @@ ohos_shared_library("libapplication_windowstage") {
     ":window_stage_js",
   ]
 
-  deps += [ "//foundation/arkui/napi:ace_napi" ]
+  deps += [ "//plugins/libs/napi:napi_${target_os}" ]
 
   relative_install_dir = "module/application"
 
