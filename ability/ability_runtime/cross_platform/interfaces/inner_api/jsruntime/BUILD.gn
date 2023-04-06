@@ -66,11 +66,10 @@ template("ability_runtime_jsruntime") {
 
     if (target_os == "android") {
       defines += [ "ANDROID_PLATFORM" ]
-      deps += [ "//arkcompiler/ets_runtime:libark_jsruntime" ]
     } else if (target_os == "ios") {
       defines += [ "IOS_PLATFORM" ]
-      deps += [ "//arkcompiler/ets_runtime:libark_jsruntime_static" ]
     }
+    deps += [ "//arkcompiler/ets_runtime:libark_jsruntime_static" ]
 
     deps +=
         [ "//foundation/appframework/arkui/uicontent:ace_uicontent_interface" ]
