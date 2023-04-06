@@ -17,6 +17,7 @@
 
 #include <algorithm>
 
+#include "application_context_adapter.h"
 #include "hilog.h"
 
 namespace OHOS {
@@ -226,6 +227,12 @@ void ApplicationContext::DispatchOnAbilityBackground(const std::shared_ptr<Nativ
             callback->OnAbilityBackground(ability);
         }
     }
+}
+
+int32_t ApplicationContext::GetProcessRunningInformation(std::vector<RunningProcessInfo>& processInfos)
+{
+    processInfos = ApplicationContextAdapter::GetInstance()->GetRunningProcessInformation();
+    return 0;
 }
 } // namespace Platform
 } // namespace AbilityRuntime

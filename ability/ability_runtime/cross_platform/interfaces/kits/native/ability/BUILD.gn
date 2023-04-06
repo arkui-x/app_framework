@@ -20,6 +20,7 @@ config("abilitykit_native_config") {
     "//foundation/appframework/window_manager/interfaces/innerkits/wm",
     "//foundation/appframework/window_manager/interfaces/kits/napi/window_runtime/window_stage_napi",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/wmclient",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/app_manager",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/configuration",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/want",
     "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability",
