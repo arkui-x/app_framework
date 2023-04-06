@@ -39,7 +39,7 @@ ohos_shared_library("application_context") {
   deps = [
     ":context_abc",
     ":context_js",
-    "//foundation/arkui/napi:ace_napi",
+    "//plugins/libs/napi:napi_${target_os}",
   ]
 
   subsystem_name = "ability"

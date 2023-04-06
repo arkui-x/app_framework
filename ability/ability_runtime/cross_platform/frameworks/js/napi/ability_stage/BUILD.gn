@@ -40,7 +40,7 @@ ohos_shared_library("app_ability_abilitystage") {
   deps = [
     ":ability_stage_abc",
     ":ability_stage_js",
-    "//foundation/arkui/napi:ace_napi",
+    "//plugins/libs/napi:napi_${target_os}",
   ]
 
   subsystem_name = "ability"

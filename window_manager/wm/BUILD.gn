@@ -54,7 +54,6 @@ template("window_manager") {
 
     deps = [
       "${window_manager_napi_path}/kits/napi/window_runtime:wm_napi",
-      "${window_manager_napi_path}/kits/napi/window_runtime/window_stage_napi:libapplication_windowstage",
     ]
 
     deps += [ "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni:ace_common_jni_android" ]
