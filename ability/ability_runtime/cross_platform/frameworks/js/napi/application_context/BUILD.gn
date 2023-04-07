@@ -23,45 +23,28 @@ es2abc_gen_abc("gen_application_context_abc") {
   extra_args = [ "--module" ]
 }
 
-gen_js_obj("application_context_js") {
-  input = "application_context.js"
-  output = target_out_dir + "/application_context.o"
-}
-
-gen_js_obj("application_context_abc") {
-  input = get_label_info(":gen_application_context_abc", "target_out_dir") +
-          "/application_context.abc"
-  output = target_out_dir + "/application_context_abc.o"
-  dep = ":gen_application_context_abc"
-}
-
-ohos_shared_library("application_applicationcontext") {
-  sources = [ "application_context_module.cpp" ]
-
-  deps = [
-    ":application_context_abc",
-    ":application_context_js",
-    "//plugins/libs/napi:napi_${target_os}",
-  ]
-
-  subsystem_name = "ability"
-  part_name = "ability_runtime"
-}
-
 gen_obj("application_context_js") {
   input = "application_context.js"
-  output = target_out_dir + "/application_context.c"
+  if (target_os == "ios") {
+    output = target_out_dir + "/application_context.c"
+  } else {
+    output = target_out_dir + "/application_context.o"
+  }
   snapshot_dep = []
 }
 
 gen_obj("application_context_abc") {
   input = get_label_info(":gen_application_context_abc", "target_out_dir") +
           "/application_context.abc"
-  output = target_out_dir + "/application_context_abc.c"
+  if (target_os == "ios") {
+    output = target_out_dir + "/application_context_abc.c"
+  } else {
+    output = target_out_dir + "/application_context_abc.o"
+  }
   snapshot_dep = [ ":gen_application_context_abc" ]
 }
 
-ohos_source_set("application_applicationcontext_ios") {
+ohos_source_set("application_applicationcontext_source_set") {
   sources = [ "application_context_module.cpp" ]
 
   deps = [
@@ -70,7 +53,16 @@ ohos_source_set("application_applicationcontext_ios") {
     "//plugins/libs/napi:napi_${target_os}",
   ]
 
-  defines = [ "IOS_PLATFORM" ]
+  if (target_os == "ios") {
+    defines = [ "IOS_PLATFORM" ]
+  }
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_shared_library("application_applicationcontext") {
+  deps = [ ":application_applicationcontext_source_set" ]
 
   subsystem_name = "ability"
   part_name = "ability_runtime"

@@ -17,12 +17,12 @@ import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
 group("napi_packages") {
   if (target_os == "ios") {
     deps = [
-      "${cross_platform_napi_path}/ability:app_ability_uiability_ios",
-      "${cross_platform_napi_path}/ability_context:application_abilitycontext_ios",
-      "${cross_platform_napi_path}/ability_stage:app_ability_abilitystage_ios",
-      "${cross_platform_napi_path}/ability_stage_context:application_abilitystagecontext_ios",
-      "${cross_platform_napi_path}/application_context:application_applicationcontext_ios",
-      "${cross_platform_napi_path}/context:application_context_ios",
+      "${cross_platform_napi_path}/ability:app_ability_uiability_source_set",
+      "${cross_platform_napi_path}/ability_context:application_abilitycontext_source_set",
+      "${cross_platform_napi_path}/ability_stage:app_ability_abilitystage_source_set",
+      "${cross_platform_napi_path}/ability_stage_context:application_abilitystagecontext_source_set",
+      "${cross_platform_napi_path}/application_context:application_applicationcontext_source_set",
+      "${cross_platform_napi_path}/context:application_context_source_set",
     ]
   } else {
     deps = [

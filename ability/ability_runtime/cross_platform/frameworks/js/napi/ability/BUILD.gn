@@ -25,77 +25,47 @@ es2abc_gen_abc("gen_ability_abc") {
   extra_args = [ "--module" ]
 }
 
-gen_js_obj("ability_js") {
-  input = "ability.js"
-  output = target_out_dir + "/ability.o"
-}
-
-gen_js_obj("ability_abc") {
-  input = get_label_info(":gen_ability_abc", "target_out_dir") + "/ability.abc"
-  output = target_out_dir + "/ability_abc.o"
-  dep = ":gen_ability_abc"
-}
-
-template("ability_runtime_ability_napi_android") {
-  ohos_shared_library(target_name) {
-    forward_variables_from(invoker, [ "relative_install_dir" ])
-
-    if (defined(invoker.defines)) {
-      defines = invoker.defines
-    }
-
-    sources = [ "ability_module.cpp" ]
-
-    deps = [
-      ":ability_abc",
-      ":ability_js",
-      "//plugins/libs/napi:napi_${target_os}",
-    ]
-
-    subsystem_name = "ability"
-    part_name = "ability_runtime"
-  }
-}
-
-ability_runtime_ability_napi_android("app_ability_uiability") {
-  relative_install_dir = "module/app/ability"
-}
-
 gen_obj("ability_js") {
   input = "ability.js"
-  output = target_out_dir + "/ability.c"
+  if (target_os == "ios") {
+    output = target_out_dir + "/ability.c"
+  } else {
+    output = target_out_dir + "/ability.o"
+  }
   snapshot_dep = []
 }
 
 gen_obj("ability_abc") {
   input = get_label_info(":gen_ability_abc", "target_out_dir") + "/ability.abc"
-  output = target_out_dir + "/ability_abc.c"
+  if (target_os == "ios") {
+    output = target_out_dir + "/ability_abc.c"
+  } else {
+    output = target_out_dir + "/ability_abc.o"
+  }
   snapshot_dep = [ ":gen_ability_abc" ]
 }
 
-template("ability_runtime_ability_napi_ios") {
-  ohos_source_set(target_name) {
-    forward_variables_from(invoker, [ "relative_install_dir" ])
+ohos_source_set("app_ability_uiability_source_set") {
+  sources = [ "ability_module.cpp" ]
 
-    defines = []
-    if (defined(invoker.defines)) {
-      defines = invoker.defines
-    }
+  deps = [
+    ":gen_obj_src_ability_abc",
+    ":gen_obj_src_ability_js",
+    "//plugins/libs/napi:napi_${target_os}",
+  ]
 
-    sources = [ "ability_module.cpp" ]
-
-    deps = [
-      ":gen_obj_src_ability_abc",
-      ":gen_obj_src_ability_js",
-      "//plugins/libs/napi:napi_${target_os}",
-    ]
-
-    defines += [ "IOS_PLATFORM" ]
-
-    subsystem_name = "ability"
-    part_name = "ability_runtime"
+  if (target_os == "ios") {
+    defines = [ "IOS_PLATFORM" ]
   }
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
 }
 
-ability_runtime_ability_napi_ios("app_ability_uiability_ios") {
+ohos_shared_library("app_ability_uiability") {
+  deps = [ ":app_ability_uiability_source_set" ]
+
+  relative_install_dir = "module/app/ability"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
 }
