@@ -31,7 +31,10 @@ namespace Platform {
 namespace {
 constexpr char APPLICATION_CONTEXT_NAME[] = "__application_context_ptr__";
 const char* MD_NAME = "JsApplicationContextUtils";
+constexpr size_t INDEX_ZERO = 0;
 constexpr size_t INDEX_ONE = 1;
+constexpr size_t ARGC_ZERO = 0;
+constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
 } // namespace
@@ -161,6 +164,13 @@ NativeValue* JsApplicationContextUtils::On(NativeEngine* engine, NativeCallbackI
     JsApplicationContextUtils* me =
         CheckParamsAndGetThis<JsApplicationContextUtils>(engine, info, APPLICATION_CONTEXT_NAME);
     return me != nullptr ? me->OnOn(*engine, *info) : nullptr;
+}
+
+NativeValue* JsApplicationContextUtils::GetRunningProcessInformation(NativeEngine* engine, NativeCallbackInfo* info)
+{
+    JsApplicationContextUtils* me =
+        CheckParamsAndGetThis<JsApplicationContextUtils>(engine, info, APPLICATION_CONTEXT_NAME);
+    return me != nullptr ? me->OnGetRunningProcessInformation(*engine, *info) : nullptr;
 }
 
 NativeValue* JsApplicationContextUtils::OnOn(NativeEngine& engine, NativeCallbackInfo& info)
@@ -389,6 +399,37 @@ NativeValue* JsApplicationContextUtils::CreateJsApplicationContext(NativeEngine&
     return objValue;
 }
 
+NativeValue* JsApplicationContextUtils::OnGetRunningProcessInformation(NativeEngine& engine, NativeCallbackInfo& info)
+{
+    // only support 0 or 1 params
+    if (info.argc != ARGC_ZERO && info.argc != ARGC_ONE) {
+        HILOG_ERROR("Not enough params");
+        return engine.CreateUndefined();
+    }
+    auto complete = [applicationContext = applicationContext_](NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto context = applicationContext.lock();
+        if (!context) {
+            task.Reject(engine, CreateJsError(engine, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST,
+                "applicationContext if already released."));
+            return;
+        }
+        std::vector<RunningProcessInfo> processInfos;
+        auto ret = context->GetProcessRunningInformation(processInfos);
+        if (ret == 0) {
+            task.Resolve(engine, CreateJsProcessRunningInfoArray(engine, processInfos));
+        } else {
+            task.Reject(engine,
+                CreateJsError(engine, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR, "Get process infos failed."));
+        }
+    };
+
+    NativeValue* lastParam = (info.argc == ARGC_ONE) ? info.argv[INDEX_ZERO] : nullptr;
+    NativeValue* result = nullptr;
+    AsyncTask::Schedule("JsApplicationContextUtils::OnGetRunningProcessInformation", engine,
+        CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+    return result;
+}
+
 void JsApplicationContextUtils::BindNativeApplicationContext(NativeEngine& engine, NativeObject* object)
 {
     BindNativeProperty(*object, "cacheDir", JsApplicationContextUtils::GetCacheDir);
@@ -399,8 +440,10 @@ void JsApplicationContextUtils::BindNativeApplicationContext(NativeEngine& engin
     BindNativeProperty(*object, "bundleCodeDir", JsApplicationContextUtils::GetBundleCodeDir);
     BindNativeFunction(engine, *object, "on", MD_NAME, JsApplicationContextUtils::On);
     BindNativeFunction(engine, *object, "off", MD_NAME, JsApplicationContextUtils::Off);
-    BindNativeFunction(engine, *object, "getApplicationContext", MD_NAME,
-        JsApplicationContextUtils::GetApplicationContext);
+    BindNativeFunction(
+        engine, *object, "getApplicationContext", MD_NAME, JsApplicationContextUtils::GetApplicationContext);
+    BindNativeFunction(engine, *object, "getRunningProcessInformation", MD_NAME,
+        JsApplicationContextUtils::GetRunningProcessInformation);
 }
 } // namespace Platform
 } // namespace AbilityRuntime

@@ -42,7 +42,7 @@ public:
     static NativeValue* GetDatabaseDir(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* GetPreferencesDir(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* GetBundleCodeDir(NativeEngine* engine, NativeCallbackInfo* info);
-
+    static NativeValue* GetRunningProcessInformation(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* CreateJsApplicationContext(NativeEngine& engine);
 
 protected:
@@ -60,6 +60,7 @@ private:
     NativeValue* OnGetDatabaseDir(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnGetPreferencesDir(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnGetBundleCodeDir(NativeEngine& engine, NativeCallbackInfo& info);
+    NativeValue* OnGetRunningProcessInformation(NativeEngine& engine, NativeCallbackInfo& info);
 
     static void BindNativeApplicationContext(NativeEngine& engine, NativeObject* object);
 

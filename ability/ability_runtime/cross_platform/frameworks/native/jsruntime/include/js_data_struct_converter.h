@@ -20,6 +20,7 @@
 #include "configuration.h"
 #include "hap_module_info.h"
 #include "resource_manager.h"
+#include "running_process_info.h"
 
 class NativeEngine;
 class NativeValue;
@@ -32,6 +33,9 @@ NativeValue* CreateJsHapModuleInfo(NativeEngine& engine, const AppExecFwk::HapMo
 NativeValue* CreateJsConfiguration(NativeEngine& engine, const Platform::Configuration& configuration);
 NativeValue* CreateJsResourceManager(
     NativeEngine& engine, const std::shared_ptr<Global::Resource::ResourceManager>& resMgr);
+NativeValue* CreateJsProcessRunningInfoArray(
+    NativeEngine& engine, const std::vector<Platform::RunningProcessInfo>& infos);
+NativeValue* CreateJsProcessRunningInfo(NativeEngine& engine, const Platform::RunningProcessInfo& info);
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_JS_DATA_STRUCT_CONVERTER_H

@@ -60,6 +60,10 @@ class ApplicationContext {
     get stageMode() {
         return true;
     }
+
+    getRunningProcessInformation(callback) {
+        return this.__context_impl__.getRunningProcessInformation(callback)
+    }
 }
 
 export default ApplicationContext

@@ -198,5 +198,39 @@ NativeValue* CreateJsResourceManager(
     }
     return objValue;
 }
+
+NativeValue* CreateJsProcessRunningInfoArray(
+    NativeEngine& engine, const std::vector<Platform::RunningProcessInfo>& infos)
+{
+    NativeValue* arrayValue = engine.CreateArray(infos.size());
+    if (arrayValue == nullptr) {
+        HILOG_ERROR("arrayValue is nullptr");
+        return arrayValue;
+    }
+    NativeArray* array = ConvertNativeValueTo<NativeArray>(arrayValue);
+    if (array != nullptr) {
+        uint32_t index = 0;
+        for (const auto& runningInfo : infos) {
+            array->SetElement(index++, CreateJsProcessRunningInfo(engine, runningInfo));
+        }
+    }
+    return arrayValue;
+}
+
+NativeValue* CreateJsProcessRunningInfo(NativeEngine& engine, const Platform::RunningProcessInfo& info)
+{
+    NativeValue* objValue = engine.CreateObject();
+    if (objValue == nullptr) {
+        HILOG_ERROR("objValue is nullptr");
+        return objValue;
+    }
+    NativeObject* object = ConvertNativeValueTo<NativeObject>(objValue);
+    if (object != nullptr) {
+        object->SetProperty("processName", CreateJsValue(engine, info.processName));
+        object->SetProperty("pid", CreateJsValue(engine, info.pid));
+        object->SetProperty("bundleNames", CreateNativeArray(engine, info.bundleNames));
+    }
+    return objValue;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

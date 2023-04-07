@@ -18,6 +18,8 @@
 
 #include "ability_lifecycle_callback.h"
 #include "context.h"
+#include "running_process_info.h"
+
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
@@ -53,6 +55,7 @@ public:
         const std::shared_ptr<NativeReference>& ability, const std::shared_ptr<NativeReference>& windowStage);
     void DispatchOnAbilityForeground(const std::shared_ptr<NativeReference>& ability);
     void DispatchOnAbilityBackground(const std::shared_ptr<NativeReference>& ability);
+    int32_t GetProcessRunningInformation(std::vector<RunningProcessInfo>& processInfos);
 
 private:
     std::shared_ptr<AppExecFwk::ApplicationInfo> applicationInfo_ = nullptr;

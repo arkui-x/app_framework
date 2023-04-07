@@ -20,6 +20,7 @@ config("appkit_native_config") {
     "//base/global/resource_management/frameworks/resmgr/include",
     "//third_party/flutter/engine",
     "//third_party/json/include",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/app_manager",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/configuration",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/error",
