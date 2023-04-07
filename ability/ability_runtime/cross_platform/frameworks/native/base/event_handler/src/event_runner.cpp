@@ -18,7 +18,9 @@
 #include <condition_variable>
 #include <mutex>
 #include <sstream>
+#ifndef IOS_PLATFORM
 #include <sys/prctl.h>
+#endif
 #include <thread>
 #include <unordered_map>
 #include <vector>
@@ -37,11 +39,13 @@ namespace {
 // Invoke system call to set name of current thread.
 inline void SystemCallSetThreadName(const std::string& name)
 {
+#ifndef IOS_PLATFORM
     if (prctl(PR_SET_NAME, name.c_str()) < 0) {
         char errmsg[MAX_ERRORMSG_LEN] = { 0 };
         GetLastErr(errmsg, MAX_ERRORMSG_LEN);
         HILOG_ERROR("SystemCallSetThreadName: Failed to set thread name, %{public}s", errmsg);
     }
+#endif
 }
 
 // Help to calculate hash code of object.

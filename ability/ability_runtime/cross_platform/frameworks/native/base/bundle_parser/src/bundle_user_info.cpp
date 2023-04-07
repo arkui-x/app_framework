@@ -30,6 +30,16 @@ const std::string BUNDLE_USER_INFO_USER_ID = "userId";
 const std::string BUNDLE_USER_INFO_ENABLE = "enabled";
 const std::string BUNDLE_USER_INFO_DISABLE_ABILITIES = "disabledAbilities";
 } // namespace
+#ifndef TEMP_FAILURE_RETRY
+#define TEMP_FAILURE_RETRY(exp)            \
+    ({                                     \
+    decltype(exp) _rc;                     \
+    do {                                   \
+        _rc = (exp);                       \
+    } while ((_rc == -1) && (errno == EINTR)); \
+    _rc;                                   \
+    })
+#endif
 
 void BundleUserInfo::Dump(const std::string& prefix, int fd)
 {

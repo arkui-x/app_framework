@@ -16,8 +16,10 @@
 #include "epoll_io_waiter.h"
 
 #include <chrono>
+#ifndef IOS_PLATFORM
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
+#endif
 #include <unistd.h>
 
 #include "event_handler_utils.h"

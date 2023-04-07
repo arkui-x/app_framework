@@ -13,6 +13,7 @@
 
 import("//arkcompiler/ets_frontend/es2panda/es2abc_config.gni")
 import("//build/ohos.gni")
+import("//foundation/arkui/ace_engine/build/ace_gen_obj.gni")
 
 es2abc_gen_abc("gen_ability_stage_abc") {
   src_js = rebase_path("ability_stage.js")
@@ -42,6 +43,34 @@ ohos_shared_library("app_ability_abilitystage") {
     ":ability_stage_js",
     "//plugins/libs/napi:napi_${target_os}",
   ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+gen_obj("ability_stage_js") {
+  input = "ability_stage.js"
+  output = target_out_dir + "/ability_stage.c"
+  snapshot_dep = []
+}
+
+gen_obj("ability_stage_abc") {
+  input = get_label_info(":gen_ability_stage_abc", "target_out_dir") +
+          "/ability_stage.abc"
+  output = target_out_dir + "/ability_stage_abc.c"
+  snapshot_dep = [ ":gen_ability_stage_abc" ]
+}
+
+ohos_source_set("app_ability_abilitystage_ios") {
+  sources = [ "ability_stage_module.cpp" ]
+
+  deps = [
+    ":gen_obj_src_ability_stage_abc",
+    ":gen_obj_src_ability_stage_js",
+    "//plugins/libs/napi:napi_${target_os}",
+  ]
+
+  defines = [ "IOS_PLATFORM" ]
 
   subsystem_name = "ability"
   part_name = "ability_runtime"

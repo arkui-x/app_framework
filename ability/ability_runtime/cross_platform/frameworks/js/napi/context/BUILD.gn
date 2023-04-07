@@ -13,6 +13,7 @@
 
 import("//arkcompiler/ets_frontend/es2panda/es2abc_config.gni")
 import("//build/ohos.gni")
+import("//foundation/arkui/ace_engine/build/ace_gen_obj.gni")
 
 es2abc_gen_abc("gen_context_abc") {
   src_js = rebase_path("context.js")
@@ -41,6 +42,33 @@ ohos_shared_library("application_context") {
     ":context_js",
     "//plugins/libs/napi:napi_${target_os}",
   ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+gen_obj("context_js") {
+  input = "context.js"
+  output = target_out_dir + "/context.c"
+  snapshot_dep = []
+}
+
+gen_obj("context_abc") {
+  input = get_label_info(":gen_context_abc", "target_out_dir") + "/context.abc"
+  output = target_out_dir + "/context_abc.c"
+  snapshot_dep = [ ":gen_context_abc" ]
+}
+
+ohos_source_set("application_context_ios") {
+  sources = [ "context_module.cpp" ]
+
+  deps = [
+    ":gen_obj_src_context_abc",
+    ":gen_obj_src_context_js",
+    "//plugins/libs/napi:napi_${target_os}",
+  ]
+
+  defines = [ "IOS_PLATFORM" ]
 
   subsystem_name = "ability"
   part_name = "ability_runtime"

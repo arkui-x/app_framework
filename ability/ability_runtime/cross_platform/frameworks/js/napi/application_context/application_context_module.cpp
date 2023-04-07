@@ -20,18 +20,6 @@ extern const char _binary_application_context_js_end[];
 extern const char _binary_application_context_abc_start[];
 extern const char _binary_application_context_abc_end[];
 
-extern "C" __attribute__((constructor))
-void NAPI_application_ApplicationContext_AutoRegister()
-{
-    auto moduleManager = NativeModuleManager::GetInstance();
-    NativeModule newModuleInfo = {
-        .name = "application.ApplicationContext",
-        .fileName = "application/libapplication_applicationcontext_napi.so/application_context.js",
-    };
-
-    moduleManager->Register(&newModuleInfo);
-}
-
 extern "C" __attribute__((visibility("default")))
 void NAPI_application_ApplicationContext_GetJSCode(const char **buf, int *bufLen)
 {
@@ -54,4 +42,20 @@ void NAPI_application_ApplicationContext_GetABCCode(const char **buf, int *bufle
     if (buflen != nullptr) {
         *buflen = _binary_application_context_abc_end - _binary_application_context_abc_start;
     }
+}
+
+extern "C" __attribute__((constructor))
+void NAPI_application_ApplicationContext_AutoRegister()
+{
+    auto moduleManager = NativeModuleManager::GetInstance();
+    NativeModule newModuleInfo = {
+        .name = "application.ApplicationContext",
+        .fileName = "application/libapplication_applicationcontext_napi.so/application_context.js",
+#ifdef IOS_PLATFORM
+        .getJSCode = (GetJSCodeCallback)NAPI_application_ApplicationContext_GetJSCode,
+        .getABCCode = (GetJSCodeCallback)NAPI_application_ApplicationContext_GetABCCode,
+#endif
+    };
+
+    moduleManager->Register(&newModuleInfo);
 }

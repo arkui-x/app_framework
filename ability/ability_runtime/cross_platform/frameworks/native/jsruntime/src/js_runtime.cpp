@@ -20,7 +20,11 @@
 #include <climits>
 #include <cstdlib>
 #include <regex>
+#ifndef IOS_PLATFORM
 #include <sys/epoll.h>
+#else
+#include <sys/event.h>
+#endif
 #include <unistd.h>
 
 #include "ecmascript/napi/include/jsnapi.h"
@@ -130,11 +134,14 @@ private:
         HILOG_INFO("UvLoopHandler::OnTriggered is triggered");
 
         auto fd = uv_backend_fd(uvLoop_);
+#ifndef IOS_PLATFORM
         struct epoll_event ev;
         do {
             uv_run(uvLoop_, UV_RUN_NOWAIT);
         } while (epoll_wait(fd, &ev, 1, 0) > 0);
-
+#else
+        uv_run(uvLoop_, UV_RUN_NOWAIT);
+#endif
         auto eventHandler = GetOwner();
         if (!eventHandler) {
             return;
