@@ -34,7 +34,8 @@ config("abilitykit_native_config") {
       "//foundation/arkui/ace_engine/adapter/android/stage/ability/java/jni",
     ]
   } else if (target_os == "ios") {
-    # include_dirs += [ "//foundation/arkui/ace_engine/adapter/ios/stage/ability" ]
+    include_dirs +=
+        [ "//foundation/arkui/ace_engine/adapter/ios/stage/ability" ]
   }
 }
 
@@ -81,6 +82,7 @@ template("ability_runtime_abilitykit_native") {
       deps += [ "//foundation/arkui/ace_engine/adapter/android/dependence/resmgr:global_resmgr" ]
     } else if (target_os == "ios") {
       defines += [ "IOS_PLATFORM" ]
+      deps += [ "//foundation/arkui/ace_engine/adapter/ios/dependence/resmgr:global_resmgr_source_set" ]
     }
   }
 }

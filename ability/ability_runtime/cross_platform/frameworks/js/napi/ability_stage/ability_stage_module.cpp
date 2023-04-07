@@ -20,17 +20,6 @@ extern const char _binary_ability_stage_js_end[];
 extern const char _binary_ability_stage_abc_start[];
 extern const char _binary_ability_stage_abc_end[];
 
-extern "C" __attribute__((constructor)) void NAPI_app_ability_AbilityStage_AutoRegister()
-{
-    auto moduleManager = NativeModuleManager::GetInstance();
-    NativeModule newModuleInfo = {
-        .name = "app.ability.AbilityStage",
-        .fileName = "app/ability/libabilitystage.so/ability_stage.js",
-    };
-
-    moduleManager->Register(&newModuleInfo);
-}
-
 extern "C" __attribute__((visibility("default"))) void NAPI_app_ability_AbilityStage_GetJSCode(
     const char** buf, int* bufLen)
 {
@@ -53,4 +42,19 @@ extern "C" __attribute__((visibility("default"))) void NAPI_app_ability_AbilityS
     if (buflen != nullptr) {
         *buflen = _binary_ability_stage_abc_end - _binary_ability_stage_abc_start;
     }
+}
+
+extern "C" __attribute__((constructor)) void NAPI_app_ability_AbilityStage_AutoRegister()
+{
+    auto moduleManager = NativeModuleManager::GetInstance();
+    NativeModule newModuleInfo = {
+        .name = "app.ability.AbilityStage",
+        .fileName = "app/ability/libabilitystage.so/ability_stage.js",
+#ifdef IOS_PLATFORM
+        .getJSCode = (GetJSCodeCallback)NAPI_app_ability_AbilityStage_GetJSCode,
+        .getABCCode = (GetJSCodeCallback)NAPI_app_ability_AbilityStage_GetABCCode,
+#endif
+    };
+
+    moduleManager->Register(&newModuleInfo);
 }

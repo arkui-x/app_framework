@@ -20,17 +20,6 @@ extern const char _binary_ability_js_end[];
 extern const char _binary_ability_abc_start[];
 extern const char _binary_ability_abc_end[];
 
-extern "C" __attribute__((constructor)) void NAPI_app_ability_UIAbility_AutoRegister()
-{
-    auto moduleManager = NativeModuleManager::GetInstance();
-    NativeModule newModuleInfo = {
-        .name = "app.ability.UIAbility",
-        .fileName = "app/ability/libability.so/ability.js",
-    };
-
-    moduleManager->Register(&newModuleInfo);
-}
-
 extern "C" __attribute__((visibility("default"))) void NAPI_app_ability_UIAbility_GetJSCode(
     const char** buf, int* bufLen)
 {
@@ -53,4 +42,19 @@ extern "C" __attribute__((visibility("default"))) void NAPI_app_ability_UIAbilit
     if (buflen != nullptr) {
         *buflen = _binary_ability_abc_end - _binary_ability_abc_start;
     }
+}
+
+extern "C" __attribute__((constructor)) void NAPI_app_ability_UIAbility_AutoRegister()
+{
+    auto moduleManager = NativeModuleManager::GetInstance();
+    NativeModule newModuleInfo = {
+        .name = "app.ability.UIAbility",
+        .fileName = "app/ability/libability.so/ability.js",
+#ifdef IOS_PLATFORM
+        .getJSCode = (GetJSCodeCallback)NAPI_app_ability_UIAbility_GetJSCode,
+        .getABCCode = (GetJSCodeCallback)NAPI_app_ability_UIAbility_GetABCCode,
+#endif
+    };
+
+    moduleManager->Register(&newModuleInfo);
 }

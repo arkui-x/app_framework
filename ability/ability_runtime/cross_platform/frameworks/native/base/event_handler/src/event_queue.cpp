@@ -513,6 +513,7 @@ void EventQueue::HandleFileDescriptorEvent(int32_t fileDescriptor, uint32_t even
 
 bool EventQueue::EnsureIoWaiterSupportListerningFileDescriptorLocked()
 {
+#ifndef IOS_PLATFORM
     if (ioWaiter_->SupportListeningFileDescriptor()) {
         return true;
     }
@@ -529,6 +530,7 @@ bool EventQueue::EnsureIoWaiterSupportListerningFileDescriptorLocked()
 
     ioWaiter_->NotifyAll();
     ioWaiter_ = newIoWaiter;
+#endif
     return true;
 }
 
