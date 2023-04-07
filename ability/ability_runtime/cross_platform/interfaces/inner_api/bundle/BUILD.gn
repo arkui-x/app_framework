@@ -53,14 +53,7 @@ template("ability_runtime_bundle_parser") {
       "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/module_profile.cpp",
     ]
 
-    if (target_os == "android") {
-      deps = [ "//third_party/jsoncpp:jsoncpp" ]
-    } else if (target_os == "ios") {
-      deps = [
-        "//third_party/json:nlohmann_json_static",
-        "//third_party/jsoncpp:jsoncpp_static",
-      ]
-    }
+    deps = [ "//third_party/jsoncpp:jsoncpp_static" ]
   }
 }
 
