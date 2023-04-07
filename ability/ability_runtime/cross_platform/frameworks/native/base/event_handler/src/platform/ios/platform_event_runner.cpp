@@ -128,10 +128,8 @@ public:
     void NotifyAll() final
     {
         if (waitingCount_ > 0) {
-            // Wake up while android looper is waiting
             messageLoop_->WakeUp(0);
         } else {
-            // Trigger timer at once, if android looper is not blocked by us.
             SetTimer(0);
         }
     }

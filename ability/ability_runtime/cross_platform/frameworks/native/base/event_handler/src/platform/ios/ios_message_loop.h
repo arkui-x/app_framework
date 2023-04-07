@@ -22,7 +22,6 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <functional>
 #include <memory>
-#include <stdio.h>
 #include <string>
 
 class IEventObserver {
