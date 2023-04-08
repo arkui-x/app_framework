@@ -23,45 +23,28 @@ es2abc_gen_abc("gen_ability_stage_abc") {
   extra_args = [ "--module" ]
 }
 
-gen_js_obj("ability_stage_js") {
-  input = "ability_stage.js"
-  output = target_out_dir + "/ability_stage.o"
-}
-
-gen_js_obj("ability_stage_abc") {
-  input = get_label_info(":gen_ability_stage_abc", "target_out_dir") +
-          "/ability_stage.abc"
-  output = target_out_dir + "/ability_stage_abc.o"
-  dep = ":gen_ability_stage_abc"
-}
-
-ohos_shared_library("app_ability_abilitystage") {
-  sources = [ "ability_stage_module.cpp" ]
-
-  deps = [
-    ":ability_stage_abc",
-    ":ability_stage_js",
-    "//plugins/libs/napi:napi_${target_os}",
-  ]
-
-  subsystem_name = "ability"
-  part_name = "ability_runtime"
-}
-
 gen_obj("ability_stage_js") {
   input = "ability_stage.js"
-  output = target_out_dir + "/ability_stage.c"
+  if (target_os == "ios") {
+    output = target_out_dir + "/ability_stage.c"
+  } else {
+    output = target_out_dir + "/ability_stage.o"
+  }
   snapshot_dep = []
 }
 
 gen_obj("ability_stage_abc") {
   input = get_label_info(":gen_ability_stage_abc", "target_out_dir") +
           "/ability_stage.abc"
-  output = target_out_dir + "/ability_stage_abc.c"
+  if (target_os == "ios") {
+    output = target_out_dir + "/ability_stage_abc.c"
+  } else {
+    output = target_out_dir + "/ability_stage_abc.o"
+  }
   snapshot_dep = [ ":gen_ability_stage_abc" ]
 }
 
-ohos_source_set("app_ability_abilitystage_ios") {
+ohos_source_set("app_ability_abilitystage_source_set") {
   sources = [ "ability_stage_module.cpp" ]
 
   deps = [
@@ -70,8 +53,18 @@ ohos_source_set("app_ability_abilitystage_ios") {
     "//plugins/libs/napi:napi_${target_os}",
   ]
 
-  defines = [ "IOS_PLATFORM" ]
+  if (target_os == "ios") {
+    defines = [ "IOS_PLATFORM" ]
+  }
 
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_shared_library("app_ability_abilitystage") {
+  deps = [ ":app_ability_abilitystage_source_set" ]
+
+  relative_install_dir = "module/application"
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
