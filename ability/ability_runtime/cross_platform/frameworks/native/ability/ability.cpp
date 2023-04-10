@@ -69,7 +69,9 @@ void Ability::OnBackground()
 void Ability::OnDestory()
 {
     HILOG_INFO("OnDestory begin.");
+#ifdef ANDROID_PLATFORM
     AbilityContextAdapter::GetInstance()->RemoveStageActivity(instanceName_);
+#endif
 }
 
 void Ability::OnWindowStageCreated()
