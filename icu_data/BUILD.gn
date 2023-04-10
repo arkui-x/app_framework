@@ -28,16 +28,27 @@ action("build_android_icudata_shared") {
   args = [
     "-t",
     "shared",
+    "-o",
+    "$root_out_dir",
   ]
   outputs = [ "$root_out_dir/libicudata/android/libicudata.so" ]
 }
 
 action("build_ios_icudata_shared") {
-  script = "ios/build_icu_data.sh"
-  sources = [ "//foundation/appframework/icu_data/ios/build_icu_data.sh" ]
+  if (defined(use_ios_simulator) && use_ios_simulator) {
+    script = "ios/build_icu_data_for_simulator.sh"
+    sources = [
+      "//foundation/appframework/icu_data/ios/build_icu_data_for_simulator.sh",
+    ]
+  } else {
+    script = "ios/build_icu_data.sh"
+    sources = [ "//foundation/appframework/icu_data/ios/build_icu_data.sh" ]
+  }
   args = [
     "-t",
     "shared",
+    "-o",
+    "$root_out_dir",
   ]
   outputs = [ "$root_out_dir/libicudata/ios/libicudata.dylib" ]
 }
@@ -56,16 +67,27 @@ action("build_android_icudata_static") {
   args = [
     "-t",
     "static",
+    "-o",
+    "$root_out_dir",
   ]
   outputs = [ "$root_out_dir/libicudata/android/libicudata.a" ]
 }
 
 action("build_ios_icudata_static") {
-  script = "ios/build_icu_data.sh"
-  sources = [ "//foundation/appframework/icu_data/ios/build_icu_data.sh" ]
+  if (defined(use_ios_simulator) && use_ios_simulator) {
+    script = "ios/build_icu_data_for_simulator.sh"
+    sources = [
+      "//foundation/appframework/icu_data/ios/build_icu_data_for_simulator.sh",
+    ]
+  } else {
+    script = "ios/build_icu_data.sh"
+    sources = [ "//foundation/appframework/icu_data/ios/build_icu_data.sh" ]
+  }
   args = [
     "-t",
     "static",
+    "-o",
+    "$root_out_dir",
   ]
   outputs = [ "$root_out_dir/libicudata/ios/libicudata.a" ]
 }

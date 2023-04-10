@@ -85,18 +85,18 @@ host_os_arch="linux-x86_64"
 host_os_build_type="MacOSX"
 host_build_dir="$icu_build_path/host"
 
-target_os_arch="arm64"
-target_type="aarch64-apple-darwin"
+target_os_arch="x86_64"
+target_type="x86_64-apple-darwin"
 
 DEVELOPER="$(xcode-select --print-path)"
-SDKROOT="$(xcodebuild -version -sdk iphoneos | grep -E '^Path' | sed 's/Path: //')"
+SDKROOT="$(xcodebuild -version -sdk iphonesimulator | grep -E '^Path' | sed 's/Path: //')"
 
 ios_build_dir="$icu_build_path/ios/$target_os_arch"
 icu_ios_source_patch_path="$ios_build_dir/patch"
 
 build_for_host() {
     echo "[ICUData] build host start."
-    mkdir -p -v "$host_build_dir"
+    mkdir -p "$host_build_dir"
     #mkdir -p "$icu_host_install_path"
 
     cd "$host_build_dir"
@@ -110,9 +110,9 @@ build_for_host() {
     export CFLAGS="-O3 -D__STDC_INT64__ -fno-exceptions -fno-short-wchar -fno-short-enums"
     export CXXFLAGS="${CFLAGS} -std=c++11"
     export CPPFLAGS=${CFLAGS}
-    $icu_source_path/source/runConfigureICU $host_os_build_type $icu_configure_args >/dev/null 2>&1
+    $icu_source_path/source/runConfigureICU $host_os_build_type $icu_configure_args
     
-    if ! make -j2 >/dev/null 2>&1; then
+    if ! make -j2; then
         return 1
     fi
     return 0
@@ -120,16 +120,13 @@ build_for_host() {
 
 build_for_ios() {
     echo "[ICUData] build ios start."
-    mkdir -p -v "$icu_ios_source_patch_path"
+    mkdir -p "$icu_ios_source_patch_path"
 
     cp -r "${icu_source_path}/" $icu_ios_source_patch_path
 
     echo "===== Patching icu/source/tools/pkgdata/pkgdata.cpp for iOS ====="
-    cp "${icu_ios_source_patch_path}/source/tools/pkgdata/pkgdata" "${icu_ios_source_patch_path}/source/tools/pkgdata/pkgdata.cpp"
-    cp "${icu_ios_source_patch_path}/source/tools/pkgdata/pkgdata.cpp" "${icu_ios_source_patch_path}/source/tools/pkgdata/pkgdata"
-
-    rm -f "${icu_ios_source_patch_path}/source/tools/pkgdata/pkgdata.tmp"
-    mktemp "${icu_ios_source_patch_path}/source/tools/pkgdata/pkgdata.tmp"
+    cp "${icu_ios_source_patch_path}/source/tools/pkgdata/pkgdata" "${icu_ios_source_patch_path}/source/tools/pkgdata/pkgdata.cpp" 2>/dev/null
+    cp "${icu_ios_source_patch_path}/source/tools/pkgdata/pkgdata.cpp" "${icu_ios_source_patch_path}/source/tools/pkgdata/pkgdata" 2>/dev/null
 
     sed "s/int result = system(cmd);/ \\
     #if defined(IOS_SYSTEM_PATCH) \\
@@ -170,9 +167,9 @@ build_for_ios() {
     export CXXFLAGS="${CXXFLAGS} -stdlib=libc++ -isysroot ${SDKROOT} -I${SDKROOT}/usr/include/ -I./include/ -arch ${target_os_arch} -miphoneos-version-min=9.0 ${ICU_FLAGS} ${ADDITION_FLAG}"
     export LDFLAGS="-stdlib=libc++ -L${SDKROOT}/usr/lib/ -isysroot ${SDKROOT} -Wl,-dead_strip -miphoneos-version-min=9.0 -lstdc++ ${ADDITION_FLAG}"
 
-    ${icu_ios_source_patch_path}/source/configure --with-cross-build=${host_build_dir} --host=${target_type} ${icu_configure_args} >/dev/null 2>&1
+    ${icu_ios_source_patch_path}/source/configure --with-cross-build=${host_build_dir} --host=${target_type} ${icu_configure_args}
         
-    if ! make -j2 >/dev/null 2>&1; then
+    if ! make -j2; then
         return 1
     fi
 
