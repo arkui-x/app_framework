@@ -21,9 +21,6 @@ script_path=$(cd $(dirname $0); pwd)
 arkui_root_path="$script_path/../../../.."
 icu_data_root_path="$script_path/.."
 icu_source_path="$arkui_root_path/third_party/icu/icu4c"
-icu_build_path="$arkui_root_path/out/arkui-cross_android_arm64/icu_data"
-icu_host_install_path="$arkui_root_path/out/arkui-cross_android_arm64/clang_x64/libicudata/android"
-icu_android_install_path="$arkui_root_path/out/arkui-cross_android_arm64/libicudata/android"
 icu_data_filter_file="$icu_data_root_path/filters/data_filter.json"
 icu_data_library_type="static"
 
@@ -50,11 +47,14 @@ program_exists() {
     return 0
 }
 
-while getopts "t:h" arg;
+while getopts "t:o:h" arg;
 do
     case "${arg}" in
         "t")
             icu_data_library_type=${OPTARG}
+        ;;
+        "o")
+            out_put_root_path=${OPTARG}
         ;;
         "h")
             echo "help"
@@ -66,6 +66,10 @@ do
         ;;
     esac
 done
+
+icu_build_path="$arkui_root_path/$out_put_root_path/icu_data"
+#icu_host_install_path="$arkui_root_path/$out_put_root_path/clang_x64/libicudata/android"
+icu_android_install_path="$arkui_root_path/$out_put_root_path/libicudata/android"
 
 if [ "$icu_data_library_type"X = "shared"X ]; then
     add_shared_conf_args
@@ -106,7 +110,7 @@ android_build_dir="$icu_build_path/android/$target_os_arch"
 build_for_host() {
     echo "[ICUData]build host start."
     mkdir -p "$host_build_dir"
-    mkdir -p "$icu_host_install_path"
+    #mkdir -p "$icu_host_install_path"
 
     cd "$host_build_dir"
 
@@ -118,19 +122,10 @@ build_for_host() {
         fi
     fi
 
-    $icu_source_path/source/runConfigureICU $host_os_build_type $icu_configure_args >/dev/null 2>&1
+    $icu_source_path/source/runConfigureICU $host_os_build_type $icu_configure_args
     
-    if ! make -j2 >/dev/null 2>&1; then
+    if ! make -j2; then
         return 1
-    fi
-
-    if [ $icu_data_library_type = "shared" ]; then
-        echo "[ICUData]install host library."
-        cp -r lib/libicudata.so.69.1 $icu_host_install_path/libicudata.so
-        patchelf --set-soname libicudata.so $icu_host_install_path/libicudata.so 
-    else
-        echo "[ICUData]install host library."
-        cp -r lib/libicudata.a $icu_host_install_path/libicudata.a
     fi
     return 0
 }
@@ -151,9 +146,9 @@ build_for_android() {
     export LDFLAGS="-lc -lstdc++ -Wl,--gc-sections,-rpath-link=$TOOLCHAIN/sysroot/usr/lib/"
     export PATH=$PATH:$TOOLCHAIN/bin
 
-    $icu_source_path/source/configure --with-cross-build="$host_build_dir" $icu_configure_args --host=$target_type >/dev/null 2>&1
+    $icu_source_path/source/configure --with-cross-build="$host_build_dir" $icu_configure_args --host=$target_type
         
-    if ! make -j2 >/dev/null 2>&1; then
+    if ! make -j2; then
         return 1
     fi
 
