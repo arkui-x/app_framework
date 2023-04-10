@@ -31,7 +31,7 @@ void JsAbilityStageContext::Finalizer(NativeEngine* engine, void* data, void* hi
 }
 
 NativeValue* CreateJsAbilityStageContext(
-    NativeEngine& engine, std::shared_ptr<Context> context, DetachCallback detach, AttachCallback attach)
+    NativeEngine& engine, const std::shared_ptr<Context>& context, DetachCallback detach, AttachCallback attach)
 {
     HILOG_INFO("CreateJsAbilityStageContext called.");
     NativeValue* objValue = nullptr;

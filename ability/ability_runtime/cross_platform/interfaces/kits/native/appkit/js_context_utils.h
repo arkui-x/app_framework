@@ -49,7 +49,8 @@ protected:
     std::weak_ptr<Context> context_;
 };
 
-NativeValue* CreateJsBaseContext(NativeEngine& engine, std::shared_ptr<Context> context, bool keepContext = false);
+NativeValue* CreateJsBaseContext(
+    NativeEngine& engine, const std::shared_ptr<Context>& context, bool keepContext = false);
 NativeValue* AttachApplicationContext(NativeEngine* engine, void* value, void* hint);
 } // namespace Platform
 } // namespace AbilityRuntime

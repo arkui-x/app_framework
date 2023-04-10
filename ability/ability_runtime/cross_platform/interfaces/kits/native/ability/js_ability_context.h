@@ -44,7 +44,7 @@ private:
     NativeValue* OnTerminateSelf(NativeEngine& engine, NativeCallbackInfo& info);
     std::weak_ptr<AbilityContext> context_;
 };
-NativeValue* CreateJsAbilityContext(NativeEngine& engine, std::shared_ptr<AbilityContext> context);
+NativeValue* CreateJsAbilityContext(NativeEngine& engine, const std::shared_ptr<AbilityContext>& context);
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

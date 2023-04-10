@@ -188,8 +188,8 @@ NativeValue* CreateJsConfiguration(NativeEngine& engine, const Platform::Configu
     return objValue;
 }
 
-NativeValue* CreateJsResourceManager(
-    NativeEngine& engine, const std::shared_ptr<Global::Resource::ResourceManager>& resMgr)
+NativeValue* CreateJsResourceManager(NativeEngine& engine,
+    const std::shared_ptr<Global::Resource::ResourceManager>& resMgr, const std::shared_ptr<Platform::Context>& context)
 {
     NativeValue* objValue = engine.CreateObject();
     if (objValue == nullptr) {

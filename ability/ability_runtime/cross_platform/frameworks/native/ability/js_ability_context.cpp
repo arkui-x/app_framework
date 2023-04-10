@@ -122,7 +122,7 @@ NativeValue* JsAbilityContext::OnTerminateSelf(NativeEngine& engine, NativeCallb
     return result;
 }
 
-NativeValue* CreateJsAbilityContext(NativeEngine& engine, std::shared_ptr<AbilityContext> context)
+NativeValue* CreateJsAbilityContext(NativeEngine& engine, const std::shared_ptr<AbilityContext>& context)
 {
     if (context == nullptr) {
         HILOG_ERROR("context is nullptr");

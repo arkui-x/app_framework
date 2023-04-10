@@ -18,6 +18,7 @@
 
 #include "ability_info.h"
 #include "configuration.h"
+#include "context.h"
 #include "hap_module_info.h"
 #include "resource_manager.h"
 #include "running_process_info.h"
@@ -31,8 +32,9 @@ NativeValue* CreateJsAbilityInfo(NativeEngine& engine, const AppExecFwk::Ability
 NativeValue* CreateJsApplicationInfo(NativeEngine& engine, const AppExecFwk::ApplicationInfo& applicationInfo);
 NativeValue* CreateJsHapModuleInfo(NativeEngine& engine, const AppExecFwk::HapModuleInfo& hapModuleInfo);
 NativeValue* CreateJsConfiguration(NativeEngine& engine, const Platform::Configuration& configuration);
-NativeValue* CreateJsResourceManager(
-    NativeEngine& engine, const std::shared_ptr<Global::Resource::ResourceManager>& resMgr);
+NativeValue* CreateJsResourceManager(NativeEngine& engine,
+    const std::shared_ptr<Global::Resource::ResourceManager>& resMgr,
+    const std::shared_ptr<Platform::Context>& context);
 NativeValue* CreateJsProcessRunningInfoArray(
     NativeEngine& engine, const std::vector<Platform::RunningProcessInfo>& infos);
 NativeValue* CreateJsProcessRunningInfo(NativeEngine& engine, const Platform::RunningProcessInfo& info);
