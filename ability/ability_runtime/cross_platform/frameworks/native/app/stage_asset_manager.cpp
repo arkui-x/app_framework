@@ -84,11 +84,6 @@ void StageAssetManager::GetResIndexPath(
 {
     return StageAssetProvider::GetInstance()->GetResIndexPath(moduleName, appResIndexPath, sysResIndexPath);
 }
-
-jobject StageAssetManager::GetJavaAssetManager()
-{
-    return StageAssetProvider::GetInstance()->GetAssetManager();
-}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

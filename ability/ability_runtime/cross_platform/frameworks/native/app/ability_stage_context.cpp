@@ -76,11 +76,6 @@ std::shared_ptr<AppExecFwk::HapModuleInfo> AbilityStageContext::GetHapModuleInfo
     return hapModuleInfo_;
 }
 
-std::shared_ptr<StageAssetManager> AbilityStageContext::GetAssetManager()
-{
-    return applicationContext_ ? applicationContext_->GetAssetManager() : nullptr;
-}
-
 void AbilityStageContext::SetHapModuleInfo(const std::shared_ptr<AppExecFwk::HapModuleInfo>& hapModuleInfo)
 {
     hapModuleInfo_ = hapModuleInfo;

@@ -40,7 +40,6 @@ public:
     std::string GetDatabaseDir() override;
     std::string GetPreferencesDir() override;
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo() const override;
-    std::shared_ptr<StageAssetManager> GetAssetManager() override;
     void GetResourcePaths(std::string& hapResPath, std::string& sysResPath) override;
     std::shared_ptr<Configuration> GetConfiguration() override;
     static std::shared_ptr<ApplicationContext> GetInstance();

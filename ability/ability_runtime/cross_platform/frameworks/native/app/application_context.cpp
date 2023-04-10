@@ -109,11 +109,6 @@ std::shared_ptr<AppExecFwk::HapModuleInfo> ApplicationContext::GetHapModuleInfo(
     return nullptr;
 }
 
-std::shared_ptr<StageAssetManager> ApplicationContext::GetAssetManager()
-{
-    return StageAssetManager::GetInstance();
-}
-
 void ApplicationContext::GetResourcePaths(std::string& hapResPath, std::string& sysResPath) {}
 
 std::shared_ptr<Configuration> ApplicationContext::GetConfiguration()
