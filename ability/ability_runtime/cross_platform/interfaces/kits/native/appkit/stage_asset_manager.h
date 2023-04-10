@@ -20,8 +20,6 @@
 #include <mutex>
 #include <vector>
 
-#include "jni.h"
-
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
@@ -42,7 +40,6 @@ public:
     std::string GetDatabaseDir() const;
     std::string GetPreferencesDir() const;
     void GetResIndexPath(const std::string& moduleName, std::string& appResIndexPath, std::string& sysResIndexPath);
-    jobject GetJavaAssetManager();
 
 private:
     static std::shared_ptr<StageAssetManager> instance_;

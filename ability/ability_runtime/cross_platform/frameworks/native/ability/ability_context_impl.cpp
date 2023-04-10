@@ -111,11 +111,6 @@ ErrCode AbilityContextImpl::CloseAbility()
     return 0;
 }
 
-std::shared_ptr<StageAssetManager> AbilityContextImpl::GetAssetManager()
-{
-    return stageContext_ ? stageContext_->GetAssetManager() : nullptr;
-}
-
 void AbilityContextImpl::GetResourcePaths(std::string& hapResPath, std::string& sysResPath)
 {
     if (stageContext_ == nullptr) {

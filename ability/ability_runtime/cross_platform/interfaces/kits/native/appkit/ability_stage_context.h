@@ -38,7 +38,6 @@ public:
     std::string GetDatabaseDir() override;
     std::string GetPreferencesDir() override;
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo() const override;
-    std::shared_ptr<StageAssetManager> GetAssetManager() override;
     std::shared_ptr<Configuration> GetConfiguration() override;
     void SetHapModuleInfo(const std::shared_ptr<AppExecFwk::HapModuleInfo>& hapModuleInfo);
     void SetApplicationContext(const std::shared_ptr<Context>& applicationContext);

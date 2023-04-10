@@ -126,8 +126,6 @@ public:
      */
     virtual std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo() const = 0;
 
-    virtual std::shared_ptr<StageAssetManager> GetAssetManager() = 0;
-
     virtual void GetResourcePaths(std::string& hapResPath, std::string& sysResPath) = 0;
 
     virtual std::shared_ptr<Configuration> GetConfiguration() = 0;
