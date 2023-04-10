@@ -54,7 +54,9 @@ private:
     template<class T>
     static void SimpleRelease(void* ptr)
     {
+    #ifndef IOS_PLATFORM
         delete static_cast<T*>(ptr);
+    #endif
     }
 
     Runtime& runtime_;
