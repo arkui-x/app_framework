@@ -39,7 +39,7 @@ private:
 };
 
 NativeValue* CreateJsAbilityStageContext(
-    NativeEngine& engine, std::shared_ptr<Context> context, DetachCallback detach, AttachCallback attach);
+    NativeEngine& engine, const std::shared_ptr<Context>& context, DetachCallback detach, AttachCallback attach);
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS
