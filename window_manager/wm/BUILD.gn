@@ -19,6 +19,7 @@ config("window_manager_config") {
     "${app_framework_window_manager_path}/wm/include",
     "${window_manager_napi_path}/innerkits/wm",
     "${window_manager_napi_path}/kits/kits/napi/window_runtime",
+    "//foundation/arkui/ace_engine/adapter/ios/entrance",
   ]
 }
 
@@ -37,26 +38,33 @@ template("window_manager") {
       "//foundation/appframework/arkui/uicontent:uicontent_config",
       "$ace_root:ace_config",
     ]
-
+    defines = []
     if (target_cpu == "arm64") {
-      defines = [ "_ARM64_" ]
+      defines += [ "_ARM64_" ]
     }
 
     include_dirs = [
       "${app_framework_window_manager_path}/wm/include",
       "${window_manager_napi_path}/innerkits/wm",
       "${window_manager_napi_path}/kits/kits/napi/window_runtime",
-      "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni",
       "//commonlibrary/c_utils/base/include",
     ]
 
     sources = [ "${app_framework_window_manager_path}/wm/src/window_stage.cpp" ]
 
-    deps = [
-      "${window_manager_napi_path}/kits/napi/window_runtime:wm_napi",
-    ]
+    deps = [ "${window_manager_napi_path}/kits/napi/window_runtime:wm_napi" ]
 
-    deps += [ "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni:ace_common_jni_android" ]
+    if (current_os == "android") {
+      include_dirs +=
+          [ "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni" ]
+      deps += [ "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni:ace_common_jni_android" ]
+    } else if (current_os == "ios") {
+      defines += [ "IOS_PLATFORM" ]
+      include_dirs += [ "//foundation/arkui/ace_engine/adapter/ios/entrance" ]
+      deps += [
+        "//foundation/arkui/ace_engine/adapter/ios/entrance:ace_ios_entrance",
+      ]
+    }
 
     deps += [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client_static" ]
 

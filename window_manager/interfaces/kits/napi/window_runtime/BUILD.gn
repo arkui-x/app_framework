@@ -37,18 +37,24 @@ template("window_manager_napi") {
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/jsruntime:jsruntime_config",
       "$ace_root:ace_config",
     ]
-
+    defines = []
     if (target_cpu == "arm64") {
-      defines = [ "_ARM64_" ]
+      defines += [ "_ARM64_" ]
     }
 
     include_dirs = [
       "${window_manager_napi_path}/wm/include",
       "${window_manager_napi_path}/innerkits/wm",
       "${window_manager_napi_path}/kits/napi/window_runtime/window_stage_napi",
-      "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni",
       "//commonlibrary/c_utils/base/include",
     ]
+    if (current_os == "android") {
+      include_dirs +=
+          [ "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni" ]
+    } else if (current_os == "ios") {
+      defines += [ "IOS_PLATFORM" ]
+      include_dirs += [ "//foundation/arkui/ace_engine/adapter/ios/entrance" ]
+    }
 
     sources = [ "${window_manager_napi_path}/kits/napi/window_runtime/window_stage_napi/js_window_stage.cpp" ]
 

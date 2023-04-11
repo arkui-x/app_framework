@@ -82,6 +82,7 @@ template("ability_runtime_abilitykit_native") {
       deps += [ "//foundation/arkui/ace_engine/adapter/android/dependence/resmgr:global_resmgr" ]
     } else if (target_os == "ios") {
       defines += [ "IOS_PLATFORM" ]
+      include_dirs += [ "//foundation/arkui/ace_engine/adapter/ios/entrance" ]
       deps += [ "//foundation/arkui/ace_engine/adapter/ios/dependence/resmgr:global_resmgr_source_set" ]
     }
   }

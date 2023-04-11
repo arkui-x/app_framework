@@ -184,11 +184,15 @@ void JsAbility::OnCreate(const Want& want)
             HILOG_ERROR("windowStage_ is nullptr");
             return;
         }
+#ifdef IOS_PLATFORM
+        windowStage_->Init(
+            GetAbilityContext(), WindowViewAdapter::GetInstance()->GetWindowView(GetInstanceName()).get());
+#else
         windowStage_->Init(GetAbilityContext(), WindowViewAdapter::GetInstance()->GetWindowView(GetInstanceName()),
             WindowViewAdapter::GetInstance()->GetJniEnv().get());
+#endif
         isDispatchOnWindowStageCreated_ = true;
     }
-
     if (!jsAbilityObj_) {
         HILOG_WARN("Not found Ability.js");
         return;
