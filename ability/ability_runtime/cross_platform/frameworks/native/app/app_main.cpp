@@ -54,6 +54,7 @@ void AppMain::LaunchApplication()
 {
     if (!eventHandler_) {
         HILOG_ERROR("eventHandler_ is nullptr");
+        return;
     }
 
     auto task = []() { AppMain::GetInstance()->ScheduleLaunchApplication(); };
@@ -86,6 +87,7 @@ void AppMain::ScheduleLaunchApplication()
     auto applicationContext = ApplicationContext::GetInstance();
     if (applicationContext == nullptr) {
         HILOG_ERROR("applicationContext is nullptr");
+        return;
     }
 
     auto applicationInfo = bundleContainer_->GetApplicationInfo();
@@ -156,7 +158,7 @@ void AppMain::DispatchOnBackground(const std::string& instanceName)
         return;
     }
     auto task = [instanceName]() { AppMain::GetInstance()->HandleDispatchOnBackground(instanceName); };
-    eventHandler_->PostTask(task);
+    eventHandler_->PostSyncTask(task);
 }
 
 void AppMain::DispatchOnDestroy(const std::string& instanceName)
