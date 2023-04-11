@@ -122,7 +122,7 @@ build_for_ios() {
     echo "[ICUData] build ios start."
     mkdir -p "$icu_ios_source_patch_path"
 
-    cp -r "${icu_source_path}/" $icu_ios_source_patch_path
+    cp -R ${icu_source_path}/* "$icu_ios_source_patch_path/"
 
     echo "===== Patching icu/source/tools/pkgdata/pkgdata.cpp for iOS ====="
     cp "${icu_ios_source_patch_path}/source/tools/pkgdata/pkgdata" "${icu_ios_source_patch_path}/source/tools/pkgdata/pkgdata.cpp" 2>/dev/null
