@@ -31,7 +31,9 @@ config("uicontent_config") {
 ohos_source_set("ace_uicontent_interface") {
   configs = [ "$ace_root:ace_config" ]
   public_configs = [ ":uicontent_config" ]
-
+  if (current_os == "ios") {
+    defines = [ "IOS_PLATFORM" ]
+  }
   sources = [
     "//foundation/appframework/arkui/uicontent/declarative_module_preloader.cpp",
     "//foundation/appframework/arkui/uicontent/ui_content.cpp",

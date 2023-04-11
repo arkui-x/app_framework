@@ -16,8 +16,9 @@
 #ifndef INTERFACES_INNERKITS_WINDOW_STAGE_H
 #define INTERFACES_INNERKITS_WINDOW_STAGE_H
 
+#ifndef IOS_PLATFORM
 #include "jni.h"
-
+#endif
 #include <memory>
 #include "ability_context.h"
 
@@ -37,6 +38,16 @@ public:
      */
     ~WindowStage();
 
+#ifdef IOS_PLATFORM
+    /**
+     * Init a WindowStage instance based on the parameters displayId, context, listener and option.
+     *
+     * @param context current ability context
+     * @param view the object of the WindowStageView
+     * @return void
+     */
+    void Init(const std::shared_ptr<AbilityRuntime::Platform::Context>& context, void* windowView);
+#else
     /**
      * Init a WindowStage instance based on the parameters displayId, context, listener and option.
      *
@@ -47,6 +58,7 @@ public:
      */
     void Init(const std::shared_ptr<AbilityRuntime::Platform::Context>& context,
         jobject windowStageView, JNIEnv* env);
+#endif
 
     /**
      * Get shared pointer of main window.

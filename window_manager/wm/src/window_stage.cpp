@@ -14,6 +14,8 @@
  */
 
 #include "window_stage.h"
+#include "hilog.h"
+#include "base/log/log.h"
 #include "virtual_rs_window.h"
 #include "foundation/appframework/arkui/uicontent/ui_content.h"
 
@@ -23,6 +25,14 @@ WindowStage::~WindowStage()
 {
 }
 
+#ifdef IOS_PLATFORM
+void WindowStage::Init(const std::shared_ptr<AbilityRuntime::Platform::Context>& context, void* windowView)
+{
+    mainWindow_ = Window::Create(context, windowView);
+    context_ = context;
+    return;
+}
+#else
 void WindowStage::Init(const std::shared_ptr<AbilityRuntime::Platform::Context>& context,
     jobject windowStageView, JNIEnv* env)
 {
@@ -30,6 +40,7 @@ void WindowStage::Init(const std::shared_ptr<AbilityRuntime::Platform::Context>&
     context_ = context;
     return;
 }
+#endif
 
 const std::shared_ptr<Window>& WindowStage::GetMainWindow() const
 {
