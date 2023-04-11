@@ -47,7 +47,9 @@ public:
     uint32_t GetQueueSize() const override;
     void ClearBuffer() override;
     void ClearAllBuffer() override;
-
+    RenderContext* GetRenderContext() override;
+    void SetRenderContext(RenderContext* context) override;
+    void ResetBufferAge() override;
 private:
     void YInvert(void *addr, int32_t width, int32_t height);
     bool SetupGrContext();

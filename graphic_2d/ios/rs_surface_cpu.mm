@@ -91,12 +91,11 @@ bool RSSurfaceCPU::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t u
 
 RenderContext* RSSurfaceCPU::GetRenderContext()
 {
-    return renderContext_;
+    return nullptr;
 }
 
 void RSSurfaceCPU::SetRenderContext(RenderContext* context)
 {
-    renderContext_ = context;
 }
 
 void RSSurfaceCPU::YInvert(void *addr, int32_t width, int32_t height)

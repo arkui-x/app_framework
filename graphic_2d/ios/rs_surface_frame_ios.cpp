@@ -53,7 +53,6 @@ sk_sp<SkSurface> RSSurfaceFrameIOS::GetSurface()
 
 void RSSurfaceFrameIOS::SetRenderContext(RenderContext* context)
 {
-    renderContext_ = context;
 }
 
 void RSSurfaceFrameIOS::CreateSurface()

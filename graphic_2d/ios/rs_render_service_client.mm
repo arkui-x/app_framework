@@ -19,7 +19,11 @@
 #include "platform/common/rs_log.h"
 #include "rs_surface_cpu.h"
 #include "rs_vsync_client_ios.h"
-
+#ifdef __OBJC__
+@class CALayer;
+#else
+typedef struct objc_object CALayer;
+#endif
 namespace OHOS {
 namespace Rosen {
 std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderServiceClient()

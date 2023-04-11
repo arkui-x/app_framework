@@ -226,7 +226,7 @@ void ApplicationContext::DispatchOnAbilityBackground(const std::shared_ptr<Nativ
 
 int32_t ApplicationContext::GetProcessRunningInformation(std::vector<RunningProcessInfo>& processInfos)
 {
-    processInfos = ApplicationContextAdapter::GetInstance()->GetRunningProcessInformation();
+    // processInfos = ApplicationContextAdapter::GetInstance()->GetRunningProcessInformation();
     return 0;
 }
 } // namespace Platform
