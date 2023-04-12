@@ -44,7 +44,7 @@ gen_js_obj("window_stage_abc") {
 }
 
 #libapplication_windowstage
-ohos_shared_library("libapplication_windowstage") {
+ohos_source_set("application_windowstage_source_set") {
   sources = [ "${window_manager_napi_path}/kits/napi/window_runtime/window_stage_napi/window_stage_module.cpp" ]
 
   configs = [ ":window_manager_napi_config" ]
@@ -56,8 +56,23 @@ ohos_shared_library("libapplication_windowstage") {
 
   deps += [ "//plugins/libs/napi:napi_${target_os}" ]
 
+  part_name = "window_manager"
+  subsystem_name = "window"
+}
+
+ohos_shared_library("libapplication_windowstage") {
+  deps = [ ":application_windowstage_source_set" ]
+
   relative_install_dir = "module/application"
 
   part_name = "window_manager"
   subsystem_name = "window"
+}
+
+group("windowstage") {
+  if (target_os == "ios") {
+    deps = [ ":application_windowstage_source_set" ]
+  } else {
+    deps = [ ":libapplication_windowstage" ]
+  }
 }
