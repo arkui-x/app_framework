@@ -116,17 +116,8 @@ bool IOSMessageLoop::AddFileDescriptor(int32_t fd, uint32_t events)
 
 void IOSMessageLoop::Invalidate(int32_t fd)
 {
-    HILOG_INFO("IOSMessageLoop::Invalidate Start");
-    if (kqref_ != NULL) {
-        CFFileDescriptorInvalidate(kqref_);
-        kqref_ = NULL;
-    }
-
-    if(fd != -1) {
-        close(fd);
-        fd = -1;
-    }
-
+    HILOG_INFO("IOSMessageLoop::Invalidate");
+    CFFileDescriptorInvalidate(kqref_);
     CFRunLoopRemoveSource(CFRunLoopGetCurrent(), rls_, kCFRunLoopDefaultMode);
     CFFileDescriptorDisableCallBacks(kqref_, kCFFileDescriptorReadCallBack);
 }
@@ -163,12 +154,10 @@ void IOSMessageLoop::WakeUp(int64_t time_point)
 
 void IOSMessageLoop::Terminate()
 {
-    running_ = false;
+    HILOG_INFO("IOSMessageLoop::Terminate");
     CFRunLoopStop(CFRunLoopGetCurrent());
-
     CFRunLoopTimerInvalidate(delayed_wake_timer_);
     CFRunLoopRemoveTimer(CFRunLoopGetCurrent(), delayed_wake_timer_, kCFRunLoopCommonModes);
-    delayed_wake_timer_ = NULL;
 }
 
 bool IOSMessageLoop::IsMainThread()
