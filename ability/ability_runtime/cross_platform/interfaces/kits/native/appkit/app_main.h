@@ -43,6 +43,7 @@ public:
     void SetPidAndUid(int32_t pid, int32_t uid);
     void OnConfigurationUpdate(const std::string& jsonConfiguration);
     void InitConfiguration(const std::string& jsonConfiguration);
+    bool IsSingleton(const std::string& moduleName, const std::string& abilityName);
 
 private:
     void ScheduleLaunchApplication();
