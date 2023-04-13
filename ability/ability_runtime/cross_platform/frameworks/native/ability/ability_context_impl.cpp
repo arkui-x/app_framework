@@ -55,8 +55,7 @@ std::string AbilityContextImpl::GetFilesDir()
 ErrCode AbilityContextImpl::StartAbility(const AAFwk::Want& want, int requestCode)
 {
     HILOG_INFO("Start ability");
-    Platform::AbilityContextAdapter::GetInstance()->StartAbility(instanceName_, want);
-    return 0;
+    return Platform::AbilityContextAdapter::GetInstance()->StartAbility(instanceName_, want);
 }
 
 std::string AbilityContextImpl::GetBundleName() const
