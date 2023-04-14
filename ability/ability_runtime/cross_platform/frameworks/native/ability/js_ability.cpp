@@ -186,7 +186,7 @@ void JsAbility::OnCreate(const Want& want)
         }
 #ifdef IOS_PLATFORM
         windowStage_->Init(
-            GetAbilityContext(), WindowViewAdapter::GetInstance()->GetWindowView(GetInstanceName()).get());
+            GetAbilityContext(), WindowViewAdapter::GetInstance()->GetWindowView(GetInstanceName()));
 #else
         windowStage_->Init(GetAbilityContext(), WindowViewAdapter::GetInstance()->GetWindowView(GetInstanceName()),
             WindowViewAdapter::GetInstance()->GetJniEnv().get());

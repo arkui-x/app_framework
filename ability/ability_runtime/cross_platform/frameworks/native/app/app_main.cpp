@@ -302,6 +302,20 @@ void AppMain::SetPidAndUid(int32_t pid, int32_t uid)
     pid_ = pid;
     uid_ = uid;
 }
+
+bool AppMain::IsSingleton(const std::string& moduleName, const std::string& abilityName)
+{
+    if (bundleContainer_ == nullptr) {
+        HILOG_ERROR("bundleContainer_ is nullptr");
+        return false;
+    }
+    auto abilityInfo = bundleContainer_->GetAbilityInfo(moduleName, abilityName);
+    if (abilityInfo == nullptr) {
+        HILOG_ERROR("abilityInfo is nullptr");
+        return false;
+    }
+    return (abilityInfo->launchMode == AppExecFwk::LaunchMode::SINGLETON);
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS
