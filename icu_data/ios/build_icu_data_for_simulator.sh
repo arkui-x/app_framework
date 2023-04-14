@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright (c) 2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -101,6 +102,8 @@ build_for_host() {
 
     cd "$host_build_dir"
 
+    rm -rf "$host_build_dir/data"
+
     if [ -n "$icu_data_filter_file" ]; then
         if ICU_DATA_FILTER_FILE=$(realpath "$icu_data_filter_file"); then
             export ICU_DATA_FILTER_FILE=$ICU_DATA_FILTER_FILE
@@ -152,6 +155,8 @@ build_for_ios() {
 
     cd "$ios_build_dir"
     
+    rm -rf "$ios_build_dir/data"
+        
     unset CXX
     unset CC
     unset CFLAGS

@@ -1,9 +1,15 @@
 {
+  "strategy": "additive",
   "localeFilter": {
     "filterType": "locale",
-    "whitelist": []
+    "includeChildren": true,
+    "includelist": [
+      "en",
+      "zh"
+    ]
   },
   "featureFilters": {
+    "locales_tree": "include",
     "confusables": "exclude",
     "coll_ucadata": "exclude",
     "translit": "exclude",
@@ -14,9 +20,21 @@
       ]
     },
     "stringprep": "exclude",
-    "lang_tree": "exclude",
+    "lang_tree": {
+      "whitelist": [
+        "root",
+        "en",
+        "zh"
+      ]
+    },
     "region_tree": "exclude",
-    "unit_tree": "exclude",
+    "unit_tree": {
+      "whitelist": [
+        "root",
+        "en",
+        "zh"
+      ]
+    },
     "brkitr_rules": {
       "whitelist": [
         "char",
@@ -50,13 +68,40 @@
     "cnvalias": "include",
     "ulayout": "include",
     "unames": "exclude",
-    "zone_supplemental": "exclude",
-    "rbnf_tree": "exclude",
+    "zone_supplemental": "include",
+    "rbnf_tree": {
+      "whitelist": [
+        "root",
+        "en",
+        "zh"
+      ]
+    },
     "misc": {
       "whitelist": [
         "icustd",
         "likelySubtags",
-        "icuver"
+        "icuver",
+        "metaZones",
+        "timezoneTypes",
+        "windowsZones",
+        "zoneinfo64",
+        "supplementalData",
+        "numberingSystems",
+        "keyTypeData"
+      ]
+    },
+    "zone_tree": {
+      "whitelist": [
+        "root",
+        "en",
+        "zh"
+      ]
+    },
+    "curr_tree": {
+      "whitelist": [
+        "root",
+        "en",
+        "zh"
       ]
     }
   }
