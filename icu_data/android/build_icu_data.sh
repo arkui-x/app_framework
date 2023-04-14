@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright (c) 2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -114,6 +115,8 @@ build_for_host() {
 
     cd "$host_build_dir"
 
+    rm -rf "$host_build_dir/data"
+
     export LDFLAGS="-std=gnu++17 -pthread -Wl,--gc-sections"
 
     if [ -n "$icu_data_filter_file" ]; then
@@ -135,6 +138,8 @@ build_for_android() {
     mkdir -p "$android_build_dir"
     mkdir -p "$icu_android_install_path"
     cd "$android_build_dir"
+
+    rm -rf "$android_build_dir/data"
 
     export TOOLCHAIN=$android_toolchain
     export API=$android_sdk_version
