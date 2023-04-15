@@ -218,10 +218,9 @@ void JsAbility::OnCreate(const Want& want)
         HILOG_ERROR("jsWant is nullptr");
         return;
     }
-    NativeValue* objValue = nativeEngine.CreateObject();
     NativeValue* argv[] = {
         jsWant,
-        objValue,
+        CreateJsLaunchParam(nativeEngine),
     };
     CallObjectMethod("onCreate", argv, ArraySize(argv));
 }
@@ -262,10 +261,14 @@ void JsAbility::OnNewWant(const Want& want)
     }
     NativeValue* jsWant = CreateJsWant(nativeEngine, want);
     if (jsWant == nullptr) {
-        HILOG_ERROR("Failed to create JsWant object");
+        HILOG_ERROR("jsWant is nullptr");
         return;
     }
-    CallObjectMethod("onNewWant", &jsWant, 1);
+    NativeValue* argv[] = {
+        jsWant,
+        CreateJsLaunchParam(nativeEngine),
+    };
+    CallObjectMethod("onNewWant", argv, ArraySize(argv));
 }
 
 void JsAbility::OnForeground(const Want& want)

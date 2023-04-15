@@ -232,5 +232,20 @@ NativeValue* CreateJsProcessRunningInfo(NativeEngine& engine, const Platform::Ru
     }
     return objValue;
 }
+
+NativeValue* CreateJsLaunchParam(NativeEngine& engine)
+{
+    NativeValue* objValue = engine.CreateObject();
+    NativeObject* object = ConvertNativeValueTo<NativeObject>(objValue);
+    if (object == nullptr) {
+        HILOG_ERROR("Native object is nullptr.");
+        return objValue;
+    }
+
+    object->SetProperty("launchReason", engine.CreateUndefined());
+    object->SetProperty("lastExitReason", engine.CreateUndefined());
+
+    return objValue;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

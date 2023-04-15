@@ -21,7 +21,7 @@ class Ability {
     onBackground() { }
     onWindowStageCreate(windowStage) { }
     onWindowStageDestroy() { }
-    onNewWant(want) { }
+    onNewWant(want, param) { }
 }
 
 export default Ability

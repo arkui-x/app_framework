@@ -38,6 +38,7 @@ NativeValue* CreateJsResourceManager(NativeEngine& engine,
 NativeValue* CreateJsProcessRunningInfoArray(
     NativeEngine& engine, const std::vector<Platform::RunningProcessInfo>& infos);
 NativeValue* CreateJsProcessRunningInfo(NativeEngine& engine, const Platform::RunningProcessInfo& info);
+NativeValue* CreateJsLaunchParam(NativeEngine& engine);
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_JS_DATA_STRUCT_CONVERTER_H
