@@ -26,8 +26,12 @@ extern "C" __attribute__((constructor)) void NAPI_application_WindowStage_AutoRe
     NativeModule newModuleInfo = {
         .name = "application.WindowStage",
         .fileName = "application/libwindowstage.so/window_stage.js",
+#ifdef IOS_PLATFORM
+        .getJSCode = (GetJSCodeCallback)NAPI_application_WindowStage_GetJSCode,
+        .getABCCode = (GetJSCodeCallback)NAPI_application_WindowStage_GetABCCode,
+#endif
     };
-
+    
     moduleManager->Register(&newModuleInfo);
 }
 
