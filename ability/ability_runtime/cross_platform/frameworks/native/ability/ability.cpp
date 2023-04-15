@@ -99,6 +99,11 @@ void Ability::OnConfigurationUpdate(const Configuration& configuration)
 {
     HILOG_INFO("OnConfigurationUpdate begin.");
 }
+
+const LaunchParam& Ability::GetLaunchParam() const
+{
+    return launchParam_;
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS
