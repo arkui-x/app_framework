@@ -15,7 +15,11 @@ import("//build/ohos.gni")
 
 config("napi_context_base_public_config") {
   visibility = [ ":*" ]
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "include",
+    "//foundation/arkui/napi/interfaces/kits",
+    "///third_party/node/src",
+  ]
 }
 
 ohos_source_set("napi_base_context") {
@@ -25,8 +29,7 @@ ohos_source_set("napi_base_context") {
 
   public_configs = [ ":napi_context_base_public_config" ]
 
-  deps = [ "//foundation/arkui/napi:ace_napi" ]
-
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
+
