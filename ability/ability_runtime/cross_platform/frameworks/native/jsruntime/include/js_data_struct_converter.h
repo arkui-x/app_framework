@@ -20,6 +20,7 @@
 #include "configuration.h"
 #include "context.h"
 #include "hap_module_info.h"
+#include "launch_param.h"
 #include "resource_manager.h"
 #include "running_process_info.h"
 
@@ -38,7 +39,7 @@ NativeValue* CreateJsResourceManager(NativeEngine& engine,
 NativeValue* CreateJsProcessRunningInfoArray(
     NativeEngine& engine, const std::vector<Platform::RunningProcessInfo>& infos);
 NativeValue* CreateJsProcessRunningInfo(NativeEngine& engine, const Platform::RunningProcessInfo& info);
-NativeValue* CreateJsLaunchParam(NativeEngine& engine);
+NativeValue* CreateJsLaunchParam(NativeEngine& engine, const Platform::LaunchParam& launchParam);
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_JS_DATA_STRUCT_CONVERTER_H

@@ -21,6 +21,7 @@
 #include "ability_context.h"
 #include "ability_info.h"
 #include "application.h"
+#include "launch_param.h"
 #include "want.h"
 #include "window_stage.h"
 
@@ -115,6 +116,8 @@ public:
 
     virtual void OnConfigurationUpdate(const Configuration& configuration);
 
+    const LaunchParam& GetLaunchParam() const;
+
 public:
     std::shared_ptr<Rosen::WindowStage> windowStage_ = nullptr;
 
@@ -122,6 +125,7 @@ private:
     std::shared_ptr<AbilityContext> abilityContext_ = nullptr;
     std::shared_ptr<AAFwk::Want> want_ = nullptr;
     std::string instanceName_ { "" };
+    LaunchParam launchParam_;
 };
 } // namespace Platform
 } // namespace AbilityRuntime

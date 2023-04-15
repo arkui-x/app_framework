@@ -218,9 +218,12 @@ void JsAbility::OnCreate(const Want& want)
         HILOG_ERROR("jsWant is nullptr");
         return;
     }
+    auto launchParam = GetLaunchParam();
+    launchParam.launchReason = LaunchReason::LAUNCHREASON_UNKNOWN;
+    launchParam.lastExitReason = LastExitReason::LASTEXITREASON_UNKNOWN;
     NativeValue* argv[] = {
         jsWant,
-        CreateJsLaunchParam(nativeEngine),
+        CreateJsLaunchParam(nativeEngine, launchParam),
     };
     CallObjectMethod("onCreate", argv, ArraySize(argv));
 }
@@ -264,9 +267,12 @@ void JsAbility::OnNewWant(const Want& want)
         HILOG_ERROR("jsWant is nullptr");
         return;
     }
+    auto launchParam = GetLaunchParam();
+    launchParam.launchReason = LaunchReason::LAUNCHREASON_UNKNOWN;
+    launchParam.lastExitReason = LastExitReason::LASTEXITREASON_UNKNOWN;
     NativeValue* argv[] = {
         jsWant,
-        CreateJsLaunchParam(nativeEngine),
+        CreateJsLaunchParam(nativeEngine, launchParam),
     };
     CallObjectMethod("onNewWant", argv, ArraySize(argv));
 }

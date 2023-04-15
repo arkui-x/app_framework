@@ -233,7 +233,7 @@ NativeValue* CreateJsProcessRunningInfo(NativeEngine& engine, const Platform::Ru
     return objValue;
 }
 
-NativeValue* CreateJsLaunchParam(NativeEngine& engine)
+NativeValue* CreateJsLaunchParam(NativeEngine& engine, const Platform::LaunchParam& launchParam)
 {
     NativeValue* objValue = engine.CreateObject();
     NativeObject* object = ConvertNativeValueTo<NativeObject>(objValue);
@@ -242,8 +242,8 @@ NativeValue* CreateJsLaunchParam(NativeEngine& engine)
         return objValue;
     }
 
-    object->SetProperty("launchReason", engine.CreateUndefined());
-    object->SetProperty("lastExitReason", engine.CreateUndefined());
+    object->SetProperty("launchReason", CreateJsValue(engine, launchParam.launchReason));
+    object->SetProperty("lastExitReason", CreateJsValue(engine, launchParam.lastExitReason));
 
     return objValue;
 }
