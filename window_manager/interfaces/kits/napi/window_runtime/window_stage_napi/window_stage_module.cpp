@@ -20,17 +20,6 @@ extern const char _binary_window_stage_js_end[];
 extern const char _binary_window_stage_abc_start[];
 extern const char _binary_window_stage_abc_end[];
 
-extern "C" __attribute__((constructor)) void NAPI_application_WindowStage_AutoRegister()
-{
-    auto moduleManager = NativeModuleManager::GetInstance();
-    NativeModule newModuleInfo = {
-        .name = "application.WindowStage",
-        .fileName = "application/libwindowstage.so/window_stage.js",
-    };
-
-    moduleManager->Register(&newModuleInfo);
-}
-
 extern "C" __attribute__((visibility("default")))
 void NAPI_application_WindowStage_GetJSCode(const char **buf, int *bufLen)
 {
@@ -53,5 +42,20 @@ void NAPI_application_WindowStage_GetABCCode(const char **buf, int *buflen)
     if (buflen != nullptr) {
         *buflen = _binary_window_stage_abc_end - _binary_window_stage_abc_start;
     }
+}
+
+extern "C" __attribute__((constructor)) void NAPI_application_WindowStage_AutoRegister()
+{
+    auto moduleManager = NativeModuleManager::GetInstance();
+    NativeModule newModuleInfo = {
+        .name = "application.WindowStage",
+        .fileName = "application/libwindowstage.so/window_stage.js",
+#ifdef IOS_PLATFORM
+        .getJSCode = (GetJSCodeCallback)NAPI_application_WindowStage_GetJSCode,
+        .getABCCode = (GetJSCodeCallback)NAPI_application_WindowStage_GetABCCode,
+#endif
+    };
+    
+    moduleManager->Register(&newModuleInfo);
 }
 
