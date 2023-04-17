@@ -15,7 +15,6 @@
 
 #include "ability.h"
 
-#include "ability_context_adapter.h"
 #include "hilog.h"
 #include "js_ability.h"
 #include "runtime.h"
@@ -69,9 +68,6 @@ void Ability::OnBackground()
 void Ability::OnDestory()
 {
     HILOG_INFO("OnDestory begin.");
-#ifdef ANDROID_PLATFORM
-    AbilityContextAdapter::GetInstance()->RemoveStageActivity(instanceName_);
-#endif
 }
 
 void Ability::OnWindowStageCreated()
