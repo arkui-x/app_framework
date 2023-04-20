@@ -16,9 +16,11 @@
 #define RENDER_SERVICE_BASE_ADAPTER_RS_VSYNC_CLIENT_IOS_H
 
 #include "platform/drawing/rs_vsync_client.h"
+
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
+
 #ifdef __OBJC__
 @class RSVsyncIOS;
 #else
