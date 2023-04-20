@@ -38,8 +38,12 @@ std::unique_ptr<RSVsyncClient> RSVsyncClient::Create()
 {
     return std::make_unique<RSVsyncClientIOS>();
 }
-RSVsyncClientIOS::RSVsyncClientIOS():vsyncIOS_([[RSVsyncIOS alloc]init]){}
-RSVsyncClientIOS::~RSVsyncClientIOS(){
+RSVsyncClientIOS::RSVsyncClientIOS()
+    : vsyncIOS_([[RSVsyncIOS alloc]init])
+{
+}
+RSVsyncClientIOS::~RSVsyncClientIOS()
+{
     NSLog(@"RSVsyncClientIOS::dealloc");
     [vsyncIOS_ invalidate];
     [vsyncIOS_ release];
