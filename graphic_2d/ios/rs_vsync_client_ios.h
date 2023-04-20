@@ -12,38 +12,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#ifndef RENDER_SERVICE_BASE_ADAPTER_RS_VSYNC_CLIENT_DARWIN_H
-#define RENDER_SERVICE_BASE_ADAPTER_RS_VSYNC_CLIENT_DARWIN_H
+#ifndef RENDER_SERVICE_BASE_ADAPTER_RS_VSYNC_CLIENT_IOS_H
+#define RENDER_SERVICE_BASE_ADAPTER_RS_VSYNC_CLIENT_IOS_H
 
 #include "platform/drawing/rs_vsync_client.h"
-
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
-#include <queue>
-#include <thread>
-
+#ifdef __OBJC__
+@class RSVsyncIOS;
+#else
+typedef struct objc_object RSVsyncIOS;
+#endif
 namespace OHOS {
 namespace Rosen {
 class RSVsyncClientIOS : public RSVsyncClient {
 public:
-    RSVsyncClientIOS() = default;
+    RSVsyncClientIOS();
     ~RSVsyncClientIOS() override;
 
     void RequestNextVsync() override;
     void SetVsyncCallback(VsyncCallback callback) override;
 
 private:
-    void VsyncThreadMain();
-
-    VsyncCallback vsyncCallback_ = nullptr;
-    std::unique_ptr<std::thread> vsyncThread_ = nullptr;
-    std::atomic<bool> running_ {false};
-    std::atomic<bool> having_ {false};
+    RSVsyncIOS* vsyncIOS_ = nullptr;
     std::mutex mutex_;
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_BASE_ADAPTER_RS_VSYNC_CLIENT_DARWIN_H
+#endif // RENDER_SERVICE_BASE_ADAPTER_RS_VSYNC_CLIENT_IOS_H
