@@ -48,7 +48,7 @@ program_exists() {
     return 0
 }
 
-while getopts "t:o:h" arg;
+while getopts "t:o:a:h" arg;
 do
     case "${arg}" in
         "t")
@@ -56,6 +56,9 @@ do
         ;;
         "o")
             out_put_root_path=${OPTARG}
+        ;;
+        "a")
+            arch=${OPTARG}
         ;;
         "h")
             echo "help"
@@ -100,8 +103,12 @@ host_os_arch="linux-x86_64"
 host_os_build_type="Linux/gcc"
 host_build_dir="$icu_build_path/host"
 
-target_os_arch="arm64"
-target_type="aarch64-linux-android"
+target_os_arch=$arch
+if [ "$target_os_arch"X = "arm64"X ]; then
+    target_type="aarch64-linux-android"
+else
+    target_type="armv7a-linux-androideabi"
+fi
 
 android_sdk_version=29
 android_ndk_root="${ANDROID_HOME}/ndk/21.3.6528147"
