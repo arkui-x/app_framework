@@ -17,6 +17,7 @@
 #define FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_APPLICATION_CONTEXT_H
 
 #include "ability_lifecycle_callback.h"
+#include "bundle_container.h"
 #include "context.h"
 #include "running_process_info.h"
 
@@ -31,6 +32,8 @@ public:
     std::string GetBundleName() const override;
     std::shared_ptr<AppExecFwk::ApplicationInfo> GetApplicationInfo() const override;
     void SetApplicationInfo(const std::shared_ptr<AppExecFwk::ApplicationInfo>& info);
+    void SetConfiguration(const std::shared_ptr<Configuration>& configuration);
+    void SetBundleContainer(const std::shared_ptr<AppExecFwk::BundleContainer>& bundleContainer);
     std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager() const override;
     std::string GetBundleCodePath() const override;
     std::string GetBundleCodeDir() override;
@@ -41,6 +44,7 @@ public:
     std::string GetPreferencesDir() override;
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo() const override;
     void GetResourcePaths(std::string& hapResPath, std::string& sysResPath) override;
+    std::shared_ptr<Context> CreateModuleContext(const std::string &moduleName) override;
     std::shared_ptr<Configuration> GetConfiguration() override;
     static std::shared_ptr<ApplicationContext> GetInstance();
     void RegisterAbilityLifecycleCallback(const std::shared_ptr<AbilityLifecycleCallback>& abilityLifecycleCallback);
@@ -58,6 +62,8 @@ public:
 
 private:
     std::shared_ptr<AppExecFwk::ApplicationInfo> applicationInfo_ = nullptr;
+    std::shared_ptr<Configuration> configuration_ = nullptr;
+    std::shared_ptr<AppExecFwk::BundleContainer> bundleContainer_ = nullptr;
     static std::vector<std::shared_ptr<AbilityLifecycleCallback>> callbacks_;
     std::mutex callbackLock_;
 };

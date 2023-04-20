@@ -172,6 +172,8 @@ void Application::InitConfiguration(const Configuration& configuration)
         return;
     }
     configuration_ = std::make_shared<Configuration>(configuration);
+    auto applicationContext = ApplicationContext::GetInstance();
+    applicationContext->SetConfiguration(configuration_);
 }
 
 std::shared_ptr<AbilityStage> Application::FindAbilityStage(const std::string& moduleName)

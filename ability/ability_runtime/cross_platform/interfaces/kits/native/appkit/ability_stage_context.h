@@ -39,6 +39,7 @@ public:
     std::string GetPreferencesDir() override;
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo() const override;
     std::shared_ptr<Configuration> GetConfiguration() override;
+    std::shared_ptr<Context> CreateModuleContext(const std::string &moduleName) override;
     void SetHapModuleInfo(const std::shared_ptr<AppExecFwk::HapModuleInfo>& hapModuleInfo);
     void SetApplicationContext(const std::shared_ptr<Context>& applicationContext);
     void SetConfiguration(const std::shared_ptr<Configuration>& configuration);

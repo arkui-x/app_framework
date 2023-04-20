@@ -44,6 +44,7 @@ public:
     static NativeValue* GetBundleCodeDir(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* GetRunningProcessInformation(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* CreateJsApplicationContext(NativeEngine& engine);
+    static NativeValue* CreateModuleContext(NativeEngine* engine, NativeCallbackInfo* info);
 
 protected:
     std::weak_ptr<ApplicationContext> applicationContext_;
@@ -61,6 +62,7 @@ private:
     NativeValue* OnGetPreferencesDir(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnGetBundleCodeDir(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnGetRunningProcessInformation(NativeEngine& engine, NativeCallbackInfo& info);
+    NativeValue* OnCreateModuleContext(NativeEngine& engine, NativeCallbackInfo& info);
 
     static void BindNativeApplicationContext(NativeEngine& engine, NativeObject* object);
 

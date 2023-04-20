@@ -57,6 +57,10 @@ class Context {
     getApplicationContext() {
         return this.__context_impl__.getApplicationContext()
     }
+
+    CreateModuleContext(moduleName) {
+        return this.__context_impl__.createModuleContext(moduleName)
+    }
 }
 
 export default Context

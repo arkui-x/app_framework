@@ -89,7 +89,7 @@ void AppMain::ScheduleLaunchApplication()
         HILOG_ERROR("applicationContext is nullptr");
         return;
     }
-
+    applicationContext->SetBundleContainer(bundleContainer_);
     auto applicationInfo = bundleContainer_->GetApplicationInfo();
     applicationContext->SetApplicationInfo(applicationInfo);
     application_->SetApplicationContext(applicationContext);

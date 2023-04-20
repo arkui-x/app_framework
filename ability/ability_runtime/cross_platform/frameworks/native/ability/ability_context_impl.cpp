@@ -98,6 +98,11 @@ void AbilityContextImpl::SetAbilityStageContext(const std::shared_ptr<Context>& 
     stageContext_ = abilityStageContext;
 }
 
+std::shared_ptr<Context> AbilityContextImpl::CreateModuleContext(const std::string& moduleName)
+{
+    return stageContext_ ? stageContext_->CreateModuleContext(moduleName) : nullptr;
+}
+
 ErrCode AbilityContextImpl::TerminateSelf()
 {
     HILOG_INFO("Terminate self");

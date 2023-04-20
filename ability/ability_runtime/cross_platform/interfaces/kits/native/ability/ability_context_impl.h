@@ -44,6 +44,7 @@ public:
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo() const override;
     std::shared_ptr<Configuration> GetConfiguration() override;
     void GetResourcePaths(std::string& hapResPath, std::string& sysResPath) override;
+    std::shared_ptr<Context> CreateModuleContext(const std::string &moduleName) override;
 
     /**
      * @brief Set the Ability Info object

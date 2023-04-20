@@ -131,6 +131,15 @@ public:
     virtual std::shared_ptr<Configuration> GetConfiguration() = 0;
 
     /**
+     * @brief Creates a Context object for a hap with the given module name.
+     *
+     * @param moduleName Indicates the module name of the hap.
+     *
+     * @return Returns a Context object created for the specified hap and app.
+     */
+    virtual std::shared_ptr<Context> CreateModuleContext(const std::string &moduleName) = 0;
+
+    /**
      * @brief Getting derived class
      *
      * @tparam T template
