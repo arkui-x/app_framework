@@ -16,9 +16,22 @@
 #include "rs_vsync_client_ios.h"
 
 #include <chrono>
+#include <Foundation/Foundation.h>
+#include <QuartzCore/CADisplayLink.h>
+#include <UIKit/UIKit.h>
 
+#include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
 
+
+@interface RSVsyncIOS : NSObject
+
+- (instancetype)init;
+- (void)requestNextVsync;
+- (void)setVsyncCallback:(OHOS::Rosen::RSVsyncClient::VsyncCallback) callback;
+- (void)invalidate;
+
+@end
 namespace OHOS {
 namespace Rosen {
 std::unique_ptr<RSVsyncClient> RSVsyncClient::Create()
@@ -26,50 +39,68 @@ std::unique_ptr<RSVsyncClient> RSVsyncClient::Create()
     return std::make_unique<RSVsyncClientIOS>();
 }
 
+RSVsyncClientIOS::RSVsyncClientIOS()
+    : vsyncIOS_([[RSVsyncIOS alloc]init])
+{
+}
+
 RSVsyncClientIOS::~RSVsyncClientIOS()
 {
-    running_ = false;
-    if (vsyncThread_) {
-        vsyncThread_->join();
-    }
+    NSLog(@"RSVsyncClientIOS::dealloc");
+    [vsyncIOS_ invalidate];
+    [vsyncIOS_ release];
 }
 
 void RSVsyncClientIOS::RequestNextVsync()
 {
-    if (vsyncThread_ == nullptr) {
-        running_ = true;
-        auto func = std::bind(&RSVsyncClientIOS::VsyncThreadMain, this);
-        vsyncThread_ = std::make_unique<std::thread>(func);
-    }
-
-    having_ = true;
+    [vsyncIOS_ requestNextVsync];
 }
 
 void RSVsyncClientIOS::SetVsyncCallback(VsyncCallback callback)
 {
     std::unique_lock lock(mutex_);
-    vsyncCallback_ = callback;
-}
-
-void RSVsyncClientIOS::VsyncThreadMain()
-{
-    ROSEN_LOGI("RSVsyncClientIOS");
-    while (running_) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(16)); // wait for 16 ms
-        int64_t now = std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count();
-        if (having_.load()) {
-            having_ = false;
-            VsyncCallback vsyncCallbackTmp = nullptr;
-            {
-                std::unique_lock lock(mutex_);
-                vsyncCallbackTmp = vsyncCallback_;
-            }
-            if (vsyncCallbackTmp) {
-                vsyncCallbackTmp(now);
-            }
-        }
-    }
+    [vsyncIOS_ setVsyncCallback:callback];
 }
 } // namespace Rosen
 } // namespace OHOS
+
+@implementation RSVsyncIOS {
+    OHOS::Rosen::RSVsyncClient::VsyncCallback callback_;
+    CADisplayLink* displayLink_;
+}
+
+- (instancetype)init {
+    if (self = [super init]) {
+        /* not from alloc init, need retain, or displayLink will release */
+        displayLink_ = [[CADisplayLink displayLinkWithTarget:self selector:@selector(onDisplayLink:)] retain];
+        displayLink_.paused = YES;
+        [displayLink_ addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+    }
+    return self;
+}
+
+- (void)requestNextVsync {
+    displayLink_.paused = NO;
+}
+
+- (void)setVsyncCallback:(OHOS::Rosen::RSVsyncClient::VsyncCallback) callback {
+    callback_ = callback;
+}
+
+- (void)onDisplayLink:(CADisplayLink*)link {
+    displayLink_.paused = YES;
+    int64_t now = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    callback_(now); 
+}
+
+- (void)invalidate {
+    [displayLink_ invalidate];
+}
+
+- (void)dealloc {
+    NSLog(@"RSVsyncIOS::dealloc");
+    [displayLink_ release];
+    [super dealloc];
+}
+@end
