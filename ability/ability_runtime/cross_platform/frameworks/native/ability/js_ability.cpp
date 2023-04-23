@@ -398,6 +398,16 @@ void JsAbility::OnConfigurationUpdate(const Configuration& configuration)
         return;
     }
     JsAbilityContext::ConfigurationUpdated(&nativeEngine, shellContextRef_, config);
+
+    if (windowStage_ != nullptr) {
+        auto diffConfiguration = std::make_shared<Configuration>(configuration);
+        if (diffConfiguration == nullptr) {
+            HILOG_ERROR("diffConfiguration is nullptr.");
+            return;
+        }
+        diffConfiguration->UpdateConfigurationInfo(configuration);
+        windowStage_->UpdateConfigurationForAll(diffConfiguration);
+    }
 }
 } // namespace Platform
 } // namespace AbilityRuntime

@@ -23,6 +23,9 @@
 #include "ability_context.h"
 
 namespace OHOS {
+namespace AbilityRuntime::Platform {
+class Configuration;
+}
 namespace Rosen {
 class Window;
 class WindowStage {
@@ -66,6 +69,8 @@ public:
      * @return the shared pointer of window
      */
     const std::shared_ptr<Window>& GetMainWindow() const;
+
+    void UpdateConfigurationForAll(const std::shared_ptr<OHOS::AbilityRuntime::Platform::Configuration>& config);
 
 private:
     std::shared_ptr<Window> mainWindow_;
