@@ -31,7 +31,7 @@ action("build_android_icudata_shared") {
     "-o",
     "$root_out_dir",
     "-a",
-    "$target_cpu",
+    "$current_cpu",
   ]
   outputs = [ "$root_out_dir/libicudata/android/libicudata.so" ]
 }
@@ -72,7 +72,7 @@ action("build_android_icudata_static") {
     "-o",
     "$root_out_dir",
     "-a",
-    "$target_cpu",
+    "$current_cpu",
   ]
   outputs = [ "$root_out_dir/libicudata/android/libicudata.a" ]
 }
