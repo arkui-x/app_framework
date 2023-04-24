@@ -110,7 +110,7 @@ public:
 
     /**
      * @brief Get error message By error code
-     * 
+     *
      * @param errCode internal errorcode.
      * @return error message.
      */
