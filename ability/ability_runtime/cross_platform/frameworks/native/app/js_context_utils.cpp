@@ -15,6 +15,7 @@
 
 #include "js_context_utils.h"
 
+#include "ability_runtime_error_util.h"
 #include "hilog.h"
 #include "js_application_context_utils.h"
 #include "js_data_struct_converter.h"
@@ -224,12 +225,14 @@ NativeValue* JsBaseContext::OnGetApplicationContext(NativeEngine& engine, Native
     auto context = context_.lock();
     if (!context) {
         HILOG_ERROR("context is already released");
+        AbilityRuntimeErrorUtil::Throw(engine, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
         return engine.CreateUndefined();
     }
 
     auto applicationContext = Context::GetApplicationContext();
     if (applicationContext == nullptr) {
         HILOG_ERROR("applicationContext is nullptr");
+        AbilityRuntimeErrorUtil::Throw(engine, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
         return engine.CreateUndefined();
     }
 
@@ -237,12 +240,14 @@ NativeValue* JsBaseContext::OnGetApplicationContext(NativeEngine& engine, Native
     auto systemModule = JsRuntime::LoadSystemModuleByEngine(&engine, "application.ApplicationContext", &value, 1);
     if (systemModule == nullptr) {
         HILOG_ERROR("OnGetApplicationContext, invalid systemModule.");
+        AbilityRuntimeErrorUtil::Throw(engine, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
         return engine.CreateUndefined();
     }
     auto contextObj = systemModule->Get();
     NativeObject* nativeObj = ConvertNativeValueTo<NativeObject>(contextObj);
     if (nativeObj == nullptr) {
         HILOG_ERROR("OnGetApplicationContext, Failed to get context native object");
+        AbilityRuntimeErrorUtil::Throw(engine, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
         return engine.CreateUndefined();
     }
     auto workContext = new (std::nothrow) std::weak_ptr<ApplicationContext>(applicationContext);

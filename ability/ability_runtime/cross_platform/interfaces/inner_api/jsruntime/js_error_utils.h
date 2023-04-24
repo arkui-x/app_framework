@@ -20,12 +20,6 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-enum {
-    ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST = 16000011,
-    ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR = 16000050,
-    ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER = 401,
-};
-
 void ThrowError(NativeEngine& engine, int32_t errCode, const std::string& errorMsg = "");
 void ThrowTooFewParametersError(NativeEngine& engine);
 void ThrowNoPermissionError(NativeEngine& engine, const std::string& permission);
