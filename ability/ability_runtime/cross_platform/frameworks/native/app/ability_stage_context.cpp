@@ -71,6 +71,11 @@ std::string AbilityStageContext::GetPreferencesDir()
     return applicationContext_ ? applicationContext_->GetPreferencesDir() : "";
 }
 
+std::shared_ptr<Context> AbilityStageContext::CreateModuleContext(const std::string &moduleName)
+{
+    return applicationContext_ ? applicationContext_->CreateModuleContext(moduleName) : nullptr;
+}
+
 std::shared_ptr<AppExecFwk::HapModuleInfo> AbilityStageContext::GetHapModuleInfo() const
 {
     return hapModuleInfo_;

@@ -37,6 +37,7 @@ public:
     static NativeValue* GetPreferencesDir(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* GetBundleCodeDir(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* GetApplicationContext(NativeEngine* engine, NativeCallbackInfo* info);
+    static NativeValue* CreateModuleContext(NativeEngine* engine, NativeCallbackInfo* info);
 
 protected:
     NativeValue* OnGetCacheDir(NativeEngine& engine, NativeCallbackInfo& info);
@@ -46,12 +47,14 @@ protected:
     NativeValue* OnGetPreferencesDir(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnGetBundleCodeDir(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnGetApplicationContext(NativeEngine& engine, NativeCallbackInfo& info);
+    NativeValue* OnCreateModuleContext(NativeEngine& engine, NativeCallbackInfo& info);
     std::weak_ptr<Context> context_;
 };
 
 NativeValue* CreateJsBaseContext(
     NativeEngine& engine, const std::shared_ptr<Context>& context, bool keepContext = false);
 NativeValue* AttachApplicationContext(NativeEngine* engine, void* value, void* hint);
+NativeValue* AttachBaseContext(NativeEngine* engine, void* value, void* hint);
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -14,6 +14,7 @@
  */
 
 #include "application_context.h"
+#include "ability_stage_context.h"
 
 #include <algorithm>
 
@@ -113,7 +114,42 @@ void ApplicationContext::GetResourcePaths(std::string& hapResPath, std::string& 
 
 std::shared_ptr<Configuration> ApplicationContext::GetConfiguration()
 {
-    return nullptr;
+    return configuration_;
+}
+
+void ApplicationContext::SetConfiguration(const std::shared_ptr<Configuration>& configuration)
+{
+    configuration_ = configuration;
+}
+
+void ApplicationContext::SetBundleContainer(const std::shared_ptr<AppExecFwk::BundleContainer>& bundleContainer)
+{
+    bundleContainer_ = bundleContainer;
+}
+
+std::shared_ptr<Context> ApplicationContext::CreateModuleContext(const std::string &moduleName)
+{
+    auto abilityStageContext = std::make_shared<AbilityStageContext>();
+    if (abilityStageContext == nullptr) {
+        HILOG_ERROR("abilityStageContext is nullptr");
+        return nullptr;
+    }
+    abilityStageContext->SetApplicationContext(applicationContext_);
+
+    if (bundleContainer_ == nullptr) {
+        HILOG_ERROR("bundleContainer_ is nullptr");
+        return nullptr;
+    }
+    auto hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
+    if (hapModuleInfo == nullptr) {
+        HILOG_ERROR("hapModuleInfo is nullptr, moduleName: %{public}s", moduleName.c_str());
+        return nullptr;
+    }
+
+    abilityStageContext->SetHapModuleInfo(hapModuleInfo);
+    abilityStageContext->SetConfiguration(GetConfiguration());
+    abilityStageContext->InitResourceManeger();
+    return abilityStageContext;
 }
 
 void ApplicationContext::RegisterAbilityLifecycleCallback(
