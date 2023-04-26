@@ -149,6 +149,12 @@ void AbilityStageContext::InitResourceManeger()
         } else if (direction == ConfigurationInner::DIRECTION_HORIZONTAL) {
             resConfig->SetDirection(Global::Resource::Direction::DIRECTION_HORIZONTAL);
         }
+        auto densityDpi = configuration_->GetItem(
+            OHOS::AbilityRuntime::Platform::ConfigurationInner::APPLICATION_DENSITYDPI);
+        if (!densityDpi.empty()) {
+            double density = std::stoi(densityDpi) / 160.0f;
+            resConfig->SetScreenDensity(density);
+        }
     }
     resourceManager_->UpdateResConfig(*resConfig);
 }
