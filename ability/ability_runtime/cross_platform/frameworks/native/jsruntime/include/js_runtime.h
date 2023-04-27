@@ -67,6 +67,9 @@ public:
     void PostTask(const std::function<void()>& task, const std::string& name, int64_t delayTime);
     void RemoveTask(const std::string& name);
     virtual bool RunScript(const std::string& path, const std::string& hapPath, bool useCommonChunk = false) = 0;
+    void StartDebugMode(bool needBreakPoint);
+    bool StartDebugMode(const std::string& bundleName, bool needBreakPoint, uint32_t instanceId,
+        const DebuggerPostTask& debuggerPostTask = {});
 
 protected:
     JsRuntime() = default;
@@ -79,6 +82,7 @@ protected:
 
     bool isArkEngine_ = false;
     bool preloaded_ = false;
+    bool debugMode_ = false;
     bool isBundle_ = true;
     std::unique_ptr<NativeEngine> nativeEngine_;
     std::string codePath_;
@@ -86,6 +90,10 @@ protected:
     std::unique_ptr<NativeReference> methodRequireNapiRef_;
     std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
     std::unordered_map<std::string, NativeReference*> modules_;
+    static std::atomic<bool> hasInstance;
+
+    std::string bundleName_;
+    uint32_t instanceId_ = 0;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

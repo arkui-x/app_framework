@@ -30,8 +30,10 @@
 #include "ecmascript/napi/include/jsnapi.h"
 #include "event_handler.h"
 #include "hilog.h"
+#include "connect_server_manager.h"
 #include "js_console_log.h"
 #include "js_runtime_utils.h"
+#include "js_timer.h"
 #include "js_worker.h"
 #include "native_engine/impl/ark/ark_native_engine.h"
 
@@ -263,9 +265,11 @@ bool JsRuntime::Initialize(const Options& options)
     }
 
     uv_run(uvLoop, UV_RUN_NOWAIT);
-
+    codePath_ = options.codePath;
     uint32_t events = AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT | AppExecFwk::FILE_DESCRIPTOR_OUTPUT_EVENT;
     eventHandler_->AddFileDescriptorListener(fd, events, std::make_shared<UvLoopHandler>(uvLoop));
+    InitTimerModule(*nativeEngine_, *globalObj);
+    InitWorkerModule(*nativeEngine_, codePath_, options.isDebugVersion);
     return true;
 }
 
@@ -373,6 +377,43 @@ void JsRuntime::RemoveTask(const std::string& name)
     if (eventHandler_ != nullptr) {
         eventHandler_->RemoveTask(name);
     }
+}
+
+std::atomic<bool> JsRuntime::hasInstance(false);
+
+void JsRuntime::StartDebugMode(bool needBreakPoint)
+{
+    if (debugMode_) {
+        HILOG_INFO("Already in debug mode");
+        return;
+    }
+
+    // Set instance id to tid after the first instance.
+    if (JsRuntime::hasInstance.exchange(true, std::memory_order_relaxed)) {
+        uint64_t tid;
+#if !defined(IOS_PLATFORM)
+            tid = gettid();
+#else
+            pthread_threadid_np(0, &tid);
+#endif
+        instanceId_ = static_cast<uint32_t>(tid);
+    }
+
+    HILOG_INFO("Ark VM is starting debug mode [%{public}s]", needBreakPoint ? "break" : "normal");
+    auto debuggerPostTask = [eventHandler = eventHandler_](std::function<void()>&& task) {
+        eventHandler->PostTask(task);
+    };
+
+    debugMode_ = StartDebugMode(bundleName_, needBreakPoint, instanceId_, debuggerPostTask);
+}
+
+bool JsRuntime::StartDebugMode(const std::string& bundleName, bool needBreakPoint, uint32_t instanceId,
+    const DebuggerPostTask& debuggerPostTask)
+{
+    ConnectServerManager::Get().StartConnectServer(bundleName);
+    ConnectServerManager::Get().AddInstance(instanceId);
+    StartDebuggerInWorkerModule();
+    return true;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
