@@ -20,10 +20,14 @@ action("pkg_icudata") {
   script = "scripts/pkgdata.sh"
   sources = [ "//foundation/appframework/icu_data/scripts/pkgdata.sh" ]
 
-  host_tool_name = get_label_info("${host_toolchain}", "name")
+  icu_bin_root_out_dir =
+      get_label_info(
+          "//third_party/icu/icu4c/source:bin_host(${host_toolchain})",
+          "root_out_dir")
+
   args = [
     "-n",
-    "$host_tool_name",
+    "$icu_bin_root_out_dir",
     "-o",
     "$root_out_dir",
     "-b",
@@ -32,8 +36,6 @@ action("pkg_icudata") {
     "$icu_lib_host_subsystem_name/$icu_lib_host_subsystem_name",
     "-i",
     "$icu_subsystem_name/$icu_part_name",
-    "-t",
-    target_os,
     "-c",
     host_os,
   ]
