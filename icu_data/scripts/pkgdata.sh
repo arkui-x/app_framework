@@ -44,7 +44,7 @@ icu_data_root_path="$script_path/.."
 icu_source_path="$arkui_root_path/third_party/icu/icu4c"
 icu_data_filter_file="$icu_data_root_path/filters/data_filter.json"
 out_put_root_path="out/arkui-cross_android_arm64"
-host_tool_name="clang_x64"
+icu_bin_root_out_dir="out/arkui-cross_android_arm64/clang_x64"
 tool_lib_dir="global/global"
 i18n_lib_dir="thirdparty/icu"
 tool_bin_dir="global/global"
@@ -58,7 +58,7 @@ do
             out_put_root_path=${OPTARG}
         ;;
         "n")
-            host_tool_name=${OPTARG}
+            icu_bin_root_out_dir=${OPTARG}
         ;;
         "b")
             tool_bin_dir=${OPTARG}
@@ -92,9 +92,15 @@ if ! out_put_root_path=$(realpath "$out_put_root_path"); then
     exit 1
 fi
 
-tool_bin_dir="$out_put_root_path/$host_tool_name/$tool_bin_dir"
-tool_lib_dir="$out_put_root_path/$host_tool_name/$tool_lib_dir"
-i18n_lib_dir="$out_put_root_path/$host_tool_name/$i18n_lib_dir"
+icu_bin_root_out_dir="$arkui_root_path/$icu_bin_root_out_dir"
+if ! icu_bin_root_out_dir=$(realpath "$icu_bin_root_out_dir"); then
+    echo "Cannot find real path for icu_bin_root_out_dir '$icu_bin_root_out_dir'."
+    exit 1
+fi
+
+tool_bin_dir="$icu_bin_root_out_dir/$tool_bin_dir"
+tool_lib_dir="$icu_bin_root_out_dir/$tool_lib_dir"
+i18n_lib_dir="$icu_bin_root_out_dir/$i18n_lib_dir"
 res_out_root_dir="$out_put_root_path/icu_data"
 host_build_dir="$res_out_root_dir/host"
 pkg_inc_path=$res_out_root_dir/icu_pkgdata.inc
@@ -251,9 +257,10 @@ gen_pkgdata_inc() {
 }
 
 gen_icu_data_res() {
-    if [ "$target_os"X = "android"X ]; then
+    cd $out_put_root_path
+    if [ "$host_os"X = "android"X ]; then
         export LD_LIBRARY_PATH=$tool_lib_dir:$i18n_lib_dir:$LD_LIBRARY_PATH
-    elif [ "$target_os"X = "ios"X ]; then
+    elif [ "$host_os"X = "ios"X ]; then
         export DYLD_LIBRARY_PATH=$tool_lib_dir:$i18n_lib_dir:$DYLD_LIBRARY_PATH
     else
         export LD_LIBRARY_PATH=$tool_lib_dir:$i18n_lib_dir:$LD_LIBRARY_PATH
