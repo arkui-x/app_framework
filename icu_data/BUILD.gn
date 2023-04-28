@@ -13,85 +13,71 @@
 
 import("//build/ohos.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//third_party/icu/icu4c/icu4c_config.gni")
 
-group("icu_data_shared") {
-  if (target_os == "android") {
-    deps = [ ":build_android_icudata_shared" ]
-  } else if (target_os == "ios") {
-    deps = [ ":build_ios_icudata_shared" ]
-  }
-}
+action("pkg_icudata") {
+  deps = [ "//third_party/icu/icu4c/source:bin_host" ]
+  script = "scripts/pkgdata.sh"
+  sources = [ "//foundation/appframework/icu_data/scripts/pkgdata.sh" ]
 
-action("build_android_icudata_shared") {
-  script = "android/build_icu_data.sh"
-  sources = [ "//foundation/appframework/icu_data/android/build_icu_data.sh" ]
+  host_tool_name = get_label_info("${host_toolchain}", "name")
   args = [
-    "-t",
-    "shared",
+    "-n",
+    "$host_tool_name",
     "-o",
     "$root_out_dir",
-    "-a",
-    "$current_cpu",
-  ]
-  outputs = [ "$root_out_dir/libicudata/android/libicudata.so" ]
-}
-
-action("build_ios_icudata_shared") {
-  if (defined(use_ios_simulator) && use_ios_simulator) {
-    script = "ios/build_icu_data_for_simulator.sh"
-    sources = [
-      "//foundation/appframework/icu_data/ios/build_icu_data_for_simulator.sh",
-    ]
-  } else {
-    script = "ios/build_icu_data.sh"
-    sources = [ "//foundation/appframework/icu_data/ios/build_icu_data.sh" ]
-  }
-  args = [
+    "-b",
+    "$icu_bin_host_subsystem_name/$icu_bin_host_subsystem_name",
+    "-l",
+    "$icu_lib_host_subsystem_name/$icu_lib_host_subsystem_name",
+    "-i",
+    "$icu_subsystem_name/$icu_part_name",
     "-t",
-    "shared",
-    "-o",
-    "$root_out_dir",
+    target_os,
+    "-c",
+    host_os,
   ]
-  outputs = [ "$root_out_dir/libicudata/ios/libicudata.dylib" ]
+  outputs = [ "$root_out_dir/icu_data/res/icudt69l_dat.S" ]
 }
 
-group("icu_data_static") {
-  if (target_os == "android") {
-    deps = [ ":build_android_icudata_static" ]
-  } else if (target_os == "ios") {
-    deps = [ ":build_ios_icudata_static" ]
-  }
+ohos_shared_library("shared_icudata") {
+  deps = [ ":pkg_icudata" ]
+  sources = [ "$root_out_dir/icu_data/res/icudt69l_dat.S" ]
+  cflags = [
+    "-O3",
+    "-std=c11",
+    "-W",
+    "-Wall",
+    "-pedantic",
+    "-Wshadow",
+    "-Wpointer-arith",
+    "-Wwrite-strings",
+    "-Wmissing-prototypes",
+  ]
+  ldflags = [ "-shared" ]
+
+  part_name = "icudata"
+  subsystem_name = "arkui"
+  output_name = "icudata"
 }
 
-action("build_android_icudata_static") {
-  script = "android/build_icu_data.sh"
-  sources = [ "//foundation/appframework/icu_data/android/build_icu_data.sh" ]
-  args = [
-    "-t",
-    "static",
-    "-o",
-    "$root_out_dir",
-    "-a",
-    "$current_cpu",
+ohos_static_library("static_icudata") {
+  deps = [ ":pkg_icudata" ]
+  sources = [ "$root_out_dir/icu_data/res/icudt69l_dat.S" ]
+  cflags = [
+    "-O3",
+    "-std=c11",
+    "-W",
+    "-Wall",
+    "-pedantic",
+    "-Wshadow",
+    "-Wpointer-arith",
+    "-Wwrite-strings",
+    "-Wmissing-prototypes",
   ]
-  outputs = [ "$root_out_dir/libicudata/android/libicudata.a" ]
-}
 
-action("build_ios_icudata_static") {
-  if (defined(use_ios_simulator) && use_ios_simulator) {
-    script = "ios/build_icu_data_for_simulator.sh"
-    sources = [
-      "//foundation/appframework/icu_data/ios/build_icu_data_for_simulator.sh",
-    ]
-  } else {
-    script = "ios/build_icu_data.sh"
-    sources = [ "//foundation/appframework/icu_data/ios/build_icu_data.sh" ]
-  }
-  args = [
-    "-t",
-    "static",
-    "-o",
-    "$root_out_dir",
-  ]
-  outputs = [ "$root_out_dir/libicudata/ios/libicudata.a" ]
+  ldflags = [ "-static" ]
+
+  output_dir = "${root_out_dir}/arkui/icudata"
+  output_name = "icudata"
 }
