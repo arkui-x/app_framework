@@ -50,10 +50,8 @@ extern "C" __attribute__((constructor)) void NAPI_app_ability_UIAbility_AutoRegi
     NativeModule newModuleInfo = {
         .name = "app.ability.UIAbility",
         .fileName = "app/ability/libability.so/ability.js",
-#ifdef IOS_PLATFORM
         .getJSCode = (GetJSCodeCallback)NAPI_app_ability_UIAbility_GetJSCode,
         .getABCCode = (GetJSCodeCallback)NAPI_app_ability_UIAbility_GetABCCode,
-#endif
     };
 
     moduleManager->Register(&newModuleInfo);

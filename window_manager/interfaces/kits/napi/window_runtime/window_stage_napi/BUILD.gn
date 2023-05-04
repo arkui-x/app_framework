@@ -13,9 +13,9 @@
 
 import("//arkcompiler/ets_frontend/es2panda/es2abc_config.gni")
 import("//build/ohos.gni")
-import("//foundation/arkui/ace_engine/build/ace_gen_obj.gni")
-
+import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
 import("//foundation/appframework/window_manager/window_manager.gni")
+import("//foundation/arkui/ace_engine/build/ace_gen_obj.gni")
 
 config("window_manager_napi_config") {
   include_dirs = [
@@ -44,12 +44,13 @@ gen_obj("window_stage_js") {
 }
 
 gen_obj("window_stage_abc") {
-  input = get_label_info(":gen_window_stage_abc", "target_out_dir") + "/window_stage.abc"
+  input = get_label_info(":gen_window_stage_abc", "target_out_dir") +
+          "/window_stage.abc"
   if (target_os == "ios") {
     output = target_out_dir + "/window_stage_abc.c"
   } else {
     output = target_out_dir + "/window_stage_abc.o"
-  }        
+  }
   snapshot_dep = [ ":gen_window_stage_abc" ]
 }
 
@@ -64,7 +65,11 @@ ohos_source_set("application_windowstage_source_set") {
     ":gen_obj_src_window_stage_js",
   ]
 
-  deps += [ "//plugins/libs/napi:napi_${target_os}" ]
+  if (use_static_napi_libs) {
+    deps += [ "//foundation/arkui/napi:ace_napi" ]
+  } else {
+    deps += ["//plugins/libs/napi:napi_${target_os}"]
+  }
 
   if (target_os == "android") {
     defines = [ "ANDROID_PLATFORM" ]
@@ -86,7 +91,7 @@ ohos_shared_library("libapplication_windowstage") {
 }
 
 group("windowstage") {
-  if (target_os == "ios") {
+  if (use_static_napi_libs) {
     deps = [ ":application_windowstage_source_set" ]
   } else {
     deps = [ ":libapplication_windowstage" ]
