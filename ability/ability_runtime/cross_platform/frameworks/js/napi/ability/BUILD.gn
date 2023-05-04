@@ -59,6 +59,10 @@ ohos_source_set("app_ability_uiability_source_set") {
     deps += ["//plugins/libs/napi:napi_${target_os}"]
   }
 
+  if (target_os == "ios") {
+    defines = [ "IOS_PLATFORM" ]
+  }
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
