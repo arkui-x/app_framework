@@ -14,6 +14,7 @@
 import("//arkcompiler/ets_frontend/es2panda/es2abc_config.gni")
 import("//build/ohos.gni")
 import("//foundation/arkui/ace_engine/build/ace_gen_obj.gni")
+import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
 
 es2abc_gen_abc("gen_application_context_abc") {
   src_js = rebase_path("application_context.js")
@@ -50,11 +51,12 @@ ohos_source_set("application_applicationcontext_source_set") {
   deps = [
     ":gen_obj_src_application_context_abc",
     ":gen_obj_src_application_context_js",
-    "//plugins/libs/napi:napi_${target_os}",
   ]
 
-  if (target_os == "ios") {
-    defines = [ "IOS_PLATFORM" ]
+  if (use_static_napi_libs) {
+    deps += [ "//foundation/arkui/napi:ace_napi" ]
+  } else {
+    deps += ["//plugins/libs/napi:napi_${target_os}"]
   }
 
   subsystem_name = "ability"

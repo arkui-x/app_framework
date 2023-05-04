@@ -49,10 +49,8 @@ extern "C" __attribute__((constructor)) void NAPI_application_Context_AutoRegist
     NativeModule newModuleInfo = {
         .name = "application.Context",
         .fileName = "application/libcontext_napi.so/context.js",
-#ifdef IOS_PLATFORM
         .getJSCode = (GetJSCodeCallback)NAPI_application_Context_GetJSCode,
         .getABCCode = (GetJSCodeCallback)NAPI_application_Context_GetABCCode,
-#endif
     };
 
     moduleManager->Register(&newModuleInfo);
