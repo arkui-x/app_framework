@@ -38,6 +38,8 @@ action("pkg_icudata") {
     "$icu_subsystem_name/$icu_part_name",
     "-c",
     host_os,
+    "-t",
+    target_os,
   ]
   outputs = [ "$root_out_dir/icu_data/res/icudt69l_dat.S" ]
 }

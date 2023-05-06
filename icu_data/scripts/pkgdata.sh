@@ -305,6 +305,11 @@ echo "[ICUData] gen icudata res success."
 cd $out_put_root_path
 PKGDATA="$tool_bin_dir/pkgdata -O $pkg_inc_path -s $res_out_root_dir/out/build/icudt69l -d $res_out_root_dir/out/lib"
 $PKGDATA -e icudt69 -T $res_out_root_dir/out/tmp -p icudt69l -m dll -L icudata $res_out_root_dir/out/tmp/icudata.lst
+if [[ "$host_os" == "mac" && "$target_os" == "android" ]]; then
+    sed -i "" "6d" $res_out_root_dir/out/tmp/icudt69l_dat.S
+    sed -i "" "s/_icudt69_dat/icudt69_dat/g" $res_out_root_dir/out/tmp/icudt69l_dat.S
+fi
 cp -r $res_out_root_dir/out/tmp/icudt69l_dat.S $res_out_root_dir/res/
+
 
 exit 0
