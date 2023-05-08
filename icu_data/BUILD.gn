@@ -12,7 +12,6 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/arkui/ace_engine/ace_config.gni")
 import("//third_party/icu/icu4c/icu4c_config.gni")
 
 action("pkg_icudata") {
@@ -25,6 +24,7 @@ action("pkg_icudata") {
           "//third_party/icu/icu4c/source:bin_host(${host_toolchain})",
           "root_out_dir")
 
+  is_use_ios_simulator = defined(use_ios_simulator) && use_ios_simulator
   args = [
     "-n",
     "$icu_bin_root_out_dir",
@@ -40,6 +40,12 @@ action("pkg_icudata") {
     host_os,
     "-t",
     target_os,
+    "-u",
+    current_cpu,
+    "-s",
+    host_platform_dir,
+    "-m",
+    "$is_use_ios_simulator",
   ]
   outputs = [ "$root_out_dir/icu_data/res/icudt69l_dat.S" ]
 }

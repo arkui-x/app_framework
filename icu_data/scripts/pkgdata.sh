@@ -50,8 +50,25 @@ i18n_lib_dir="thirdparty/icu"
 tool_bin_dir="global/global"
 target_os="android"
 host_os="linux"
+is_use_ios_simulator="false"
 
-while getopts "o:b:l:i:n:t:c:h" arg;
+usage()
+{
+    echo "Options:"
+    echo "  -h: Print this message and exit."
+    echo "  -o: Arkui root out dir."
+    echo "  -n: ICU tool bin root dir."
+    echo "  -b: ICU tool bin dir."
+    echo "  -l: ICU tool lib dir."
+    echo "  -i: ICU i18n lib dir."
+    echo "  -t: Target os."
+    echo "  -c: Host os."
+    echo "  -u: Current cpu."
+    echo "  -s: Host platform."
+    echo "  -o: Is use ios simulator"
+}
+
+while getopts "o:b:l:i:n:t:c:u:s:m:h" arg;
 do
     case "${arg}" in
         "o")
@@ -75,8 +92,17 @@ do
         "c")
             host_os=${OPTARG}
         ;;
+        "u")
+            current_cpu=${OPTARG}
+        ;;
+        "s")
+            host_platform_dir=${OPTARG}
+        ;;
+        "m")
+            is_use_ios_simulator=${OPTARG}
+        ;;
         "h")
-            echo "help"
+            usage
             exit 0
         ;;
     ?)
@@ -112,34 +138,34 @@ rm -rf "$out_put_root_path/icu_data"
 mkdir -p "$res_out_root_dir/out/lib"
 mkdir -p "$res_out_root_dir/res"
 
-config_for_host() {
-    echo "[ICUData] config host start."
-    mkdir -p "$host_build_dir"
-    cd "$host_build_dir"
-    if [ "$host_os"X = "linux"X ]; then
-        host_os_build_type="Linux"
-    elif [ "$host_os"X = "mac"X ]; then
-        host_os_build_type="MacOSX"
+gen_pkgdata_inc_for_android() {
+    echo "gen_pkgdata_inc_for_android start."
+
+    top_srcdir=$icu_source_path/source
+    top_builddir=$host_build_dir
+    #linux-x86_64 darwin-x86_64 darwin-arm64
+    host_os_arch=$host_platform_dir
+    target_os_arch=$current_cpu
+
+    android_sdk_version=29
+    android_ndk_root="${ANDROID_HOME}/ndk/21.3.6528147"
+    android_toolchain="$android_ndk_root/toolchains/llvm/prebuilt/$host_os_arch"
+
+    TOOLCHAIN=$android_toolchain
+    API=$android_sdk_version
+    if [ "$target_os_arch"X = "arm64"X ]; then
+        target_type="aarch64-linux-android"
+        RANLIB=aarch64-linux-android-ranlib
+    elif [ "$target_os_arch"X = "arm"X ]; then
+        target_type="armv7a-linux-androideabi"
+        RANLIB=ranlib
     else
-        echo "Unsupported this system: $host_os"
+        # unknown
+        echo "Unsupported this target_os_arch: $target_os_arch"
         return 1
     fi
 
-    if [ -n "$icu_data_filter_file" ]; then
-        if ICU_DATA_FILTER_FILE=$(realpath "$icu_data_filter_file"); then
-            export ICU_DATA_FILTER_FILE=$ICU_DATA_FILTER_FILE
-        fi
-    fi
-
-    $icu_source_path/source/runConfigureICU $host_os_build_type -q
-    return 0
-}
-
-gen_pkgdata_inc_for_linux_host() {
-    top_srcdir=$icu_source_path/source
-    top_builddir=$host_build_dir
-
-    GENCCODE_ASSEMBLY=`grep -Po '(?<=GENCCODE_ASSEMBLY = ).*' $icudefs_mk_path`   
+    GENCCODE_ASSEMBLY="-a gcc"
     SO="so"
     SOBJ="so"
     A="a"
@@ -147,9 +173,8 @@ gen_pkgdata_inc_for_linux_host() {
     FINAL_SO_TARGET="."
     RPATH_FLAGS=""
     BIR_LDFLAGS="-Wl,-Bsymbolic"
-    AR=`grep "\<AR \= " $icudefs_mk_path | awk -F " " '{print $3'}`
-    ARFLAGS=`grep -Po '(?<=ARFLAGS = ).*' $icudefs_mk_path`
-    RANLIB=`grep -Po '(?<=RANLIB = ).*' $icudefs_mk_path`
+    AR=$TOOLCHAIN/bin/llvm-ar
+    ARFLAGS=r
     LDFLAGSICUDT=""
     LD_SONAME=""
     INSTALL=""
@@ -161,19 +186,14 @@ gen_pkgdata_inc_for_linux_host() {
         THREADSCFLAGS=""
         LD_SOOPTIONS="-Wl,-Bsymbolic"
 
-        CC=`grep -Po '(?<=CC = ).*' $icudefs_mk_path`
-        CPPFLAGS=`grep -Po '(?<=CPPFLAGS = ).*' $icudefs_mk_path`
-        DEFS=`grep -Po '(?<=DEFS = ).*' $icudefs_mk_path`
-        CFLAGS=`grep -Po '(?<=CFLAGS = ).*' $icudefs_mk_path`
-        #LDFLAGS=`grep -Po '(?<=LDFLAGS = ).*' $icudefs_mk_path`
+        CC=$TOOLCHAIN/bin/$target_type$API-clang
+        CPPFLAGS="-ffunction-sections -fdata-sections $THREADSCPPFLAGS  -DU_HAVE_ELF_H=1 -DU_HAVE_STRTOD_L=1 -DU_HAVE_XLOCALE_H=1 -DU_HAVE_STRING_VIEW=1 "
+        DEFS=-DU_ATTRIBUTE_DEPRECATED=
+        CFLAGS=-O2 $THREADSCFLAGS
         LDFLAGS=""
 
     COMPILE="$CC $CPPFLAGS $DEFS $CFLAGS -c"
-        COMPILE=${COMPILE/\$\(THREADSCPPFLAGS\)/$THREADSCPPFLAGS}
-        COMPILE=${COMPILE/\$\(THREADSCFLAGS\)/$THREADSCFLAGS}
-
     SHLIB="$CC $CFLAGS $LDFLAGS -shared $LD_SOOPTIONS"
-        SHLIB=${SHLIB/\$\(THREADSCFLAGS\)/$THREADSCFLAGS}
 
     echo "GENCCODE_ASSEMBLY_TYPE=$GENCCODE_ASSEMBLY" >> $pkg_inc_path
     echo "SO=$SO" >> $pkg_inc_path
@@ -194,9 +214,21 @@ gen_pkgdata_inc_for_linux_host() {
     echo "INSTALL_CMD=$INSTALL" >> $pkg_inc_path
 }
 
-gen_pkgdata_inc_for_mac_host() {
+gen_pkgdata_inc_for_ios() {
     top_srcdir=$icu_source_path/source
     top_builddir=$host_build_dir
+
+    DEVELOPER="$(xcode-select --print-path)"
+    target_os_arch=$current_cpu
+    if [ "$target_os_arch"X = "x64"X ]; then
+        target_os_arch="x86_64"
+    fi
+
+    if [ "$is_use_ios_simulator"X = "true"X ]; then
+        SDKROOT="$(xcodebuild -version -sdk iphonesimulator | grep -E '^Path' | sed 's/Path: //')"
+    else
+        SDKROOT="$(xcodebuild -version -sdk iphoneos | grep -E '^Path' | sed 's/Path: //')"
+    fi
 
     GENCCODE_ASSEMBLY="-a gcc-darwin"
     SO="dylib"
@@ -217,10 +249,13 @@ gen_pkgdata_inc_for_mac_host() {
     SHAREDLIBCPPFLAGS="-dynamic"
     SHAREDLIBCFLAGS=""
 
-        CC=`grep "\<CC \= " $icudefs_mk_path | awk -F "=" '{print $2'}`
+        CC="${DEVELOPER}/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang"
+        DEFS=-DU_ATTRIBUTE_DEPRECATED=
+        CPPFLAGS="-O3 -D__STDC_INT64__ -fno-exceptions -fno-short-wchar -fno-short-enums $THREADSCPPFLAGS  -DU_HAVE_STRTOD_L=1 -DU_HAVE_XLOCALE_H=1 -DU_HAVE_STRING_VIEW=1"
+        CFLAGS="-isysroot ${SDKROOT} -I${SDKROOT}/usr/include/ -arch ${target_os_arch} -miphoneos-version-min=10.0 "
 
-    COMPILE="$CC -DU_ATTRIBUTE_DEPRECATED=   -DU_HAVE_STRTOD_L=1 -DU_HAVE_XLOCALE_H=1 -DU_HAVE_STRING_VIEW=1  -O2  -std=c11 -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wwrite-strings  -Qunused-arguments -Wno-parentheses-equality -fno-common -c"
-    SHLIB="$CC -dynamiclib -dynamic -O2  -std=c11 -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wwrite-strings  -Qunused-arguments -Wno-parentheses-equality "
+    COMPILE="$CC $CPPFLAGS $DEFS $CFLAGS -c"
+    SHLIB="$CC $CFLAGS $LDFLAGS -shared $LD_SOOPTIONS"
     
     echo "GENCCODE_ASSEMBLY_TYPE=$GENCCODE_ASSEMBLY" >> $pkg_inc_path
     echo "SO=$SO" >> $pkg_inc_path
@@ -241,26 +276,25 @@ gen_pkgdata_inc_for_mac_host() {
     echo "INSTALL_CMD=$INSTALL" >> $pkg_inc_path
 }
 
-gen_pkgdata_inc() {   
-    if [ "$host_os"X = "linux"X ]; then
-        # mh-linux
-        gen_pkgdata_inc_for_linux_host
-    elif [ "$host_os"X = "mac"X ]; then
-        # mh-darwin
-        gen_pkgdata_inc_for_mac_host
+gen_pkgdata_inc() {
+    if [ "$target_os"X = "ios"X ]; then
+        # mh-darwin && ios
+        gen_pkgdata_inc_for_ios
+    elif [ "$target_os"X = "android"X ]; then
+        # mh-darwin && android
+        gen_pkgdata_inc_for_android
     else
         # unknown
-        cd "$host_build_dir/data"
-        make -f pkgdataMakefile
-        cp -r icupkg.inc $pkg_inc_path
+        echo "Unsupported this target_os: $target_os"
+        return 1
     fi
 }
 
 gen_icu_data_res() {
-    cd $out_put_root_path
-    if [ "$host_os"X = "android"X ]; then
+    cd "$icu_bin_root_out_dir/.."
+    if [ "$host_os"X = "linux"X ]; then
         export LD_LIBRARY_PATH=$tool_lib_dir:$i18n_lib_dir:$LD_LIBRARY_PATH
-    elif [ "$host_os"X = "ios"X ]; then
+    elif [ "$host_os"X = "mac"X ]; then
         export DYLD_LIBRARY_PATH=$tool_lib_dir:$i18n_lib_dir:$DYLD_LIBRARY_PATH
     else
         export LD_LIBRARY_PATH=$tool_lib_dir:$i18n_lib_dir:$LD_LIBRARY_PATH
@@ -275,15 +309,8 @@ gen_icu_data_res() {
     --tool_dir $tool_bin_dir \
     --out_dir $res_out_root_dir/out/build/icudt69l \
     --tmp_dir $res_out_root_dir/out/tmp \
-    #--verbose \
+    # --verbose
 }
-
-
-if ! config_for_host; then
-    echo "[ICUData] config host failed."
-    exit 1
-fi
-echo "[ICUData] config host success."
 
 if ! gen_pkgdata_inc; then
     echo "[ICUData] gen pkgdata.inc failed."
@@ -302,14 +329,9 @@ echo "[ICUData] gen icudata res success."
 # -q Quiet mode.
 # -c Use the standard ICU copyright.
 # -d Specify the destination directory for files
-cd $out_put_root_path
-PKGDATA="$tool_bin_dir/pkgdata -O $pkg_inc_path -s $res_out_root_dir/out/build/icudt69l -d $res_out_root_dir/out/lib"
-$PKGDATA -e icudt69 -T $res_out_root_dir/out/tmp -p icudt69l -m dll -L icudata $res_out_root_dir/out/tmp/icudata.lst
-if [[ "$host_os" == "mac" && "$target_os" == "android" ]]; then
-    sed -i "" "6d" $res_out_root_dir/out/tmp/icudt69l_dat.S
-    sed -i "" "s/_icudt69_dat/icudt69_dat/g" $res_out_root_dir/out/tmp/icudt69l_dat.S
-fi
+cd "$icu_bin_root_out_dir/.."
+PKGDATA="$tool_bin_dir/pkgdata -O $pkg_inc_path -v -s $res_out_root_dir/out/build/icudt69l -d $res_out_root_dir/out/lib"
+echo `$PKGDATA -e icudt69 -T $res_out_root_dir/out/tmp -p icudt69l -m dll -L icudata $res_out_root_dir/out/tmp/icudata.lst`
 cp -r $res_out_root_dir/out/tmp/icudt69l_dat.S $res_out_root_dir/res/
-
 
 exit 0
