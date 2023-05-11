@@ -153,9 +153,6 @@ void IOSMessageLoop::WakeUp(int64_t time_point)
     // Rearm the timer. The time bases used by CoreFoundation and FXL are
     // different and must be accounted for.
     int64_t milliseconds = time_point / NANOSECONDS_PER_ONE_MILLISECOND;
-    if ((time_point % NANOSECONDS_PER_ONE_MILLISECOND) > 0) {
-        milliseconds += 1;
-    }
     CFRunLoopTimerSetNextFireDate(delayed_wake_timer_,
         time_point==0 ? (CFAbsoluteTimeGetCurrent() + milliseconds) : milliseconds);
 }
