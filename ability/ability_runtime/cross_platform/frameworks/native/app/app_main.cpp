@@ -117,14 +117,14 @@ bool AppMain::CreateRuntime()
     return true;
 }
 
-void AppMain::DispatchOnCreate(const std::string& instanceName)
+void AppMain::DispatchOnCreate(const std::string& instanceName, const std::string& params)
 {
     HILOG_INFO("DispatchOnCreate called");
     if (!eventHandler_) {
         HILOG_ERROR("eventHandler_ is nullptr");
         return;
     }
-    auto task = [instanceName]() { AppMain::GetInstance()->HandleDispatchOnCreate(instanceName); };
+    auto task = [instanceName, params]() { AppMain::GetInstance()->HandleDispatchOnCreate(instanceName, params); };
     eventHandler_->PostTask(task);
 }
 
@@ -198,7 +198,7 @@ void AppMain::InitConfiguration(const std::string& jsonConfiguration)
     eventHandler_->PostTask(task);
 }
 
-void AppMain::HandleDispatchOnCreate(const std::string& instanceName)
+void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std::string& params)
 {
     HILOG_INFO("HandleDispatchOnCreate called, instanceName: %{public}s", instanceName.c_str());
     if (application_ == nullptr) {
@@ -206,7 +206,7 @@ void AppMain::HandleDispatchOnCreate(const std::string& instanceName)
         return;
     }
 
-    application_->HandleAbilityStage(TransformToWant(instanceName));
+    application_->HandleAbilityStage(TransformToWant(instanceName, params));
 }
 
 void AppMain::HandleDispatchOnNewWant(const std::string& instanceName)
@@ -277,12 +277,12 @@ void AppMain::HandleInitConfiguration(const std::string& jsonConfiguration)
     application_->InitConfiguration(configuration);
 }
 
-Want AppMain::TransformToWant(const std::string& instanceName)
+Want AppMain::TransformToWant(const std::string& instanceName, const std::string& params)
 {
     std::vector<std::string> nameStrs;
     Ace::StringUtils::StringSplitter(instanceName, ':', nameStrs);
     for (auto str : nameStrs) {
-        LOGI("TransformToWant::str : %{public}s", str.c_str());
+        HILOG_INFO("TransformToWant::str : %{public}s", str.c_str());
     }
 
     Want want;
@@ -293,6 +293,7 @@ Want AppMain::TransformToWant(const std::string& instanceName)
         want.SetParam(Want::ABILITY_ID, nameStrs[3]);
         want.SetParam(Want::INSTANCE_NAME, instanceName);
     }
+    want.ParseJson(params);
     return want;
 }
 

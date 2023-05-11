@@ -18,8 +18,8 @@
 #include "js_ability_context.h"
 #include "js_data_struct_converter.h"
 #include "js_runtime.h"
-#include "js_want_utils.h"
 #include "js_window_stage.h"
+#include "napi_common_want.h"
 #include "window_view_adapter.h"
 
 namespace OHOS {
@@ -213,7 +213,7 @@ void JsAbility::OnCreate(const Want& want)
         HILOG_ERROR("Failed to get Ability object");
         return;
     }
-    NativeValue* jsWant = CreateJsWant(nativeEngine, want);
+    NativeValue* jsWant = AppExecFwk::CreateJsWant(nativeEngine, want);
     if (jsWant == nullptr) {
         HILOG_ERROR("jsWant is nullptr");
         return;
@@ -262,7 +262,7 @@ void JsAbility::OnNewWant(const Want& want)
         HILOG_ERROR("Failed to convert Ability object");
         return;
     }
-    NativeValue* jsWant = CreateJsWant(nativeEngine, want);
+    NativeValue* jsWant = AppExecFwk::CreateJsWant(nativeEngine, want);
     if (jsWant == nullptr) {
         HILOG_ERROR("jsWant is nullptr");
         return;
@@ -298,7 +298,7 @@ void JsAbility::OnForeground(const Want& want)
         HILOG_ERROR("Failed to convert Ability object");
         return;
     }
-    NativeValue* jsWant = CreateJsWant(nativeEngine, want);
+    NativeValue* jsWant = AppExecFwk::CreateJsWant(nativeEngine, want);
     if (jsWant == nullptr) {
         HILOG_ERROR("jsWant is nullptr");
         return;
