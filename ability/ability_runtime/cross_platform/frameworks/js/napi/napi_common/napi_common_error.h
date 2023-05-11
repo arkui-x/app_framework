@@ -17,7 +17,6 @@
 #define OHOS_ABILITY_RUNTIME_NAPI_COMMON_ERROR_H
 
 #include <string>
-#include <unordered_map>
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -30,7 +29,6 @@ namespace AppExecFwk {
 #define NAPI_ERR_PARAM_INVALID (-104)        // Parameter is invalid
 #define NAPI_ERR_ABILITY_TYPE_INVALID (-105) // Type of ability is invalid
 #define NAPI_ERR_ABILITY_CALL_INVALID (-106) // Call the ability interface, the return value is wrong
-
 } // namespace AppExecFwk
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_NAPI_COMMON_ERROR_H
