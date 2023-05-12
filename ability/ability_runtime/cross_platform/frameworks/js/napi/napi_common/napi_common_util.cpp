@@ -37,7 +37,7 @@ bool IsTypeForNapiValue(napi_env env, napi_value param, napi_valuetype expectTyp
     return valueType == expectType;
 }
 
-bool UnwrapStringFromJS2(napi_env env, napi_value param, std::string& value)
+bool UnwrapString(napi_env env, napi_value param, std::string& value)
 {
     value = "";
     size_t size = 0;
@@ -53,7 +53,12 @@ bool UnwrapStringFromJS2(napi_env env, napi_value param, std::string& value)
     if (buf == nullptr) {
         return false;
     }
-    (void)memset_s(buf, (size + 1), 0, (size + 1));
+
+    auto ret = memset_s(buf, (size + 1), 0, (size + 1));
+    if (ret != EOK) {
+        HILOG_ERROR("memset_s failed, ret: %{public}d", ret);
+        return false;
+    }
 
     bool rev = napi_get_value_string_utf8(env, param, buf, size + 1, &size) == napi_ok;
     if (rev) {
@@ -80,7 +85,12 @@ std::string UnwrapStringFromJS(napi_env env, napi_value param, const std::string
     if (buf == nullptr) {
         return value;
     }
-    (void)memset_s(buf, size + 1, 0, size + 1);
+
+    auto ret = memset_s(buf, size + 1, 0, size + 1);
+    if (ret != EOK) {
+        HILOG_ERROR("memset_s failed, ret: %{public}d", ret);
+        return value;
+    }
 
     bool rev = napi_get_value_string_utf8(env, param, buf, size + 1, &size) == napi_ok;
     if (rev) {
@@ -108,7 +118,7 @@ bool UnwrapStringByPropertyName(napi_env env, napi_value jsObject, const char* p
 {
     napi_value jsValue = GetPropertyValueByPropertyName(env, jsObject, propertyName, napi_string);
     if (jsValue != nullptr) {
-        return UnwrapStringFromJS2(env, jsValue, value);
+        return UnwrapString(env, jsValue, value);
     } else {
         return false;
     }

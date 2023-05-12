@@ -25,6 +25,10 @@ NativeValue* CreateJsWant(NativeEngine& engine, const Want& want)
 {
     NativeValue* objValue = engine.CreateObject();
     NativeObject* object = AbilityRuntime::ConvertNativeValueTo<NativeObject>(objValue);
+    if (object == nullptr) {
+        HILOG_ERROR("object is nullptr");
+        return objValue;
+    }
 
     object->SetProperty("bundleName", AbilityRuntime::CreateJsValue(engine, want.GetBundleName()));
     object->SetProperty("abilityName", AbilityRuntime::CreateJsValue(engine, want.GetAbilityName()));
@@ -37,6 +41,11 @@ NativeValue* CreateJsWantParams(NativeEngine& engine, const Want& want)
 {
     NativeValue* objValue = engine.CreateObject();
     NativeObject* object = AbilityRuntime::ConvertNativeValueTo<NativeObject>(objValue);
+    if (object == nullptr) {
+        HILOG_ERROR("object is nullptr");
+        return objValue;
+    }
+
     std::map<std::string, int> types = want.GetTypes();
     for (auto iter = types.begin(); iter != types.end(); iter++) {
         if (iter->second == AAFwk::VALUE_TYPE_BOOLEAN) {
@@ -58,7 +67,6 @@ NativeValue* CreateJsWantParams(NativeEngine& engine, const Want& want)
 
 bool UnwrapWant(napi_env env, napi_value param, Want& want)
 {
-    HILOG_INFO("UnwrapWant");
     if (!IsTypeForNapiValue(env, param, napi_object)) {
         HILOG_INFO("%{public}s called. Params is invalid.", __func__);
         return false;
@@ -105,7 +113,7 @@ bool UnwrapWantParams(napi_env env, napi_value param, Want& want)
         NAPI_CALL_BASE(env, napi_get_element(env, jsProNameList, index, &jsProName), false);
 
         std::string strProName = UnwrapStringFromJS(env, jsProName);
-        HILOG_INFO("%{public}s called. Property name=%{public}s.", __func__, strProName.c_str());
+        HILOG_DEBUG("%{public}s called. Property name=%{public}s.", __func__, strProName.c_str());
         NAPI_CALL_BASE(env, napi_get_named_property(env, param, strProName.c_str(), &jsProValue), false);
         NAPI_CALL_BASE(env, napi_typeof(env, jsProValue, &jsValueType), false);
 

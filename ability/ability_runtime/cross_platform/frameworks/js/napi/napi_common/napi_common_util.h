@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 bool IsTypeForNapiValue(napi_env env, napi_value param, napi_valuetype expectType);
-bool UnwrapStringFromJS2(napi_env env, napi_value param, std::string& value);
+bool UnwrapString(napi_env env, napi_value param, std::string& value);
 
 /**
  * @brief Get the native string from the JSObject of the given property name.
