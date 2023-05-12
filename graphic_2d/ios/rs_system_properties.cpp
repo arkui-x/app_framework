@@ -16,6 +16,7 @@
 #include "platform/common/rs_system_properties.h"
 
 #include "transaction/rs_render_service_client.h"
+
 namespace OHOS {
 namespace Rosen {
 bool RSSystemProperties::GetUniRenderEnabled()
@@ -102,6 +103,11 @@ bool RSSystemProperties::GetColdStartThreadEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
+{
+    return {};
+}
+
 float RSSystemProperties::GetAnimationScale()
 {
     return 1.f;
@@ -113,6 +119,11 @@ bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultVal
 }
 
 int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
+{
+    return {};
+}
+
+bool RSSystemProperties::GetDrawOpTraceEnabled()
 {
     return {};
 }
