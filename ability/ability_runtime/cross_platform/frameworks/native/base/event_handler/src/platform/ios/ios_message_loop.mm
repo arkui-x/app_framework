@@ -22,7 +22,7 @@
 
 namespace {
 constexpr int64_t NANOSECONDS_PER_ONE_MILLISECOND = 1000000;
-constexpr CFTimeInterval kDistantFuture = 1.0e10;
+constexpr CFTimeInterval TIME_INTERVAL = 1.0e10;
 }
 
 void IOSMessageLoop::KQCallback(CFFileDescriptorRef kqRef, CFOptionFlags flags, void *info)
@@ -133,7 +133,7 @@ bool IOSMessageLoop::AddTimer()
     };
 
     delayed_wake_timer_ = CFRunLoopTimerCreate(kCFAllocatorDefault,
-                                               kDistantFuture,
+                                               TIME_INTERVAL,
                                                HUGE_VAL,
                                                0,
                                                0,
@@ -154,7 +154,7 @@ void IOSMessageLoop::WakeUp(int64_t time_point)
     // different and must be accounted for.
     int64_t milliseconds = time_point / NANOSECONDS_PER_ONE_MILLISECOND;
     CFRunLoopTimerSetNextFireDate(delayed_wake_timer_,
-        time_point==0 ? (CFAbsoluteTimeGetCurrent() + milliseconds) : milliseconds);
+        (time_point == 0) ? (CFAbsoluteTimeGetCurrent() + milliseconds) : milliseconds);
 }
 
 void IOSMessageLoop::Terminate()
