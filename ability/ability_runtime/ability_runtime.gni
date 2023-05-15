@@ -15,4 +15,5 @@ ability_runtime_cross_platform_path = "//foundation/appframework/ability/ability
 cross_platform_napi_path = "${ability_runtime_cross_platform_path}/frameworks/js/napi"
 ability_subsystem_name = "ability"
 ability_part_name = "ability_runtime"
+ark_toolchain_path = "//arkcompiler/toolchain"
 use_static_napi_libs = true
