@@ -108,6 +108,7 @@ bool AppMain::CreateRuntime()
     options.loadAce = true;
     options.isBundle = true;
     options.eventRunner = runner_;
+    options.codePath = StageAssetManager::GetInstance()->GetBundleCodeDir();
     auto runtime = AbilityRuntime::Runtime::Create(options);
     if (runtime == nullptr) {
         return false;

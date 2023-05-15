@@ -59,6 +59,7 @@
 
 namespace OHOS {
 namespace Rosen {
+
 #define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                      \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const TYPE& val) \
     {                                                                      \
@@ -422,7 +423,8 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderAnimatableProperty)
 
@@ -446,6 +448,16 @@ const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size)
 }
 
 bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RRectT<float>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
 {
     return {};
 }

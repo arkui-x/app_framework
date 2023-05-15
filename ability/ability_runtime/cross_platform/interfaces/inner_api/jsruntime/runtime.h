@@ -45,6 +45,7 @@ public:
         bool preload = false;
         bool isBundle = true;
         bool isDebugVersion = false;
+        std::string codePath = "";
     };
 
     static std::unique_ptr<Runtime> Create(const Options& options);
