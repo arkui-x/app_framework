@@ -341,13 +341,16 @@ NativeValue* JsApplicationContextUtils::OnGetApplicationContext(NativeEngine& en
         HILOG_ERROR("value is nullptr.");
         return engine.CreateUndefined();
     }
-    auto systemModule = JsRuntime::LoadSystemModuleByEngine(&engine, "application.ApplicationContext", &value, 1);
-    if (systemModule == nullptr) {
+    if (systemModule_ != nullptr) {
+        return systemModule_->Get();
+    }
+    systemModule_ = JsRuntime::LoadSystemModuleByEngine(&engine, "application.ApplicationContext", &value, 1);
+    if (systemModule_ == nullptr) {
         HILOG_ERROR("OnGetApplicationContext, invalid systemModule.");
         AbilityRuntimeErrorUtil::Throw(engine, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
         return engine.CreateUndefined();
     }
-    auto contextObj = systemModule->Get();
+    auto contextObj = systemModule_->Get();
     if (contextObj == nullptr) {
         HILOG_ERROR("OnGetApplicationContext, contextObj is nullptr");
         return engine.CreateUndefined();
