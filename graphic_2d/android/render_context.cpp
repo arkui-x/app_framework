@@ -169,7 +169,7 @@ void RenderContext::InitializeEglContext()
     ROSEN_LOGD("RenderContext Create EGL context successfully, version %d.%d", major, minor);
 }
 
-void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context) const
+void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context)
 {
     if (surface == EGL_NO_SURFACE) {
         if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, context)) {

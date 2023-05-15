@@ -50,10 +50,8 @@ extern "C" __attribute__((constructor)) void NAPI_app_ability_AbilityStage_AutoR
     NativeModule newModuleInfo = {
         .name = "app.ability.AbilityStage",
         .fileName = "app/ability/libabilitystage.so/ability_stage.js",
-#ifdef IOS_PLATFORM
         .getJSCode = (GetJSCodeCallback)NAPI_app_ability_AbilityStage_GetJSCode,
         .getABCCode = (GetJSCodeCallback)NAPI_app_ability_AbilityStage_GetABCCode,
-#endif
     };
 
     moduleManager->Register(&newModuleInfo);

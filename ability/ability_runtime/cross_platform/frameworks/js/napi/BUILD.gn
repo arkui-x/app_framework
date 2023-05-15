@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
 
 group("napi_packages") {
-  if (target_os == "ios") {
+  if (use_static_napi_libs) {
     deps = [
       "${cross_platform_napi_path}/ability:app_ability_uiability_source_set",
       "${cross_platform_napi_path}/ability_context:application_abilitycontext_source_set",

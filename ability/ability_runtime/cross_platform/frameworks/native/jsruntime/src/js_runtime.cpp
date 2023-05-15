@@ -61,12 +61,11 @@ public:
     ~ArkJsRuntime() override
     {
         HILOG_INFO("ArkJsRuntime::ArkJsRuntime call destructor.");
-        Deinitialize();
-
         if (vm_ != nullptr) {
             panda::JSNApi::DestroyJSVM(vm_);
             vm_ = nullptr;
         }
+        Deinitialize();
     }
 
     bool RunScript(const std::string& srcPath, const std::string& hapPath, bool useCommonChunk) override

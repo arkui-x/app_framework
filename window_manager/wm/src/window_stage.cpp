@@ -46,5 +46,13 @@ const std::shared_ptr<Window>& WindowStage::GetMainWindow() const
 {
     return mainWindow_;
 }
+
+void WindowStage::UpdateConfigurationForAll(
+    const std::shared_ptr<OHOS::AbilityRuntime::Platform::Configuration>& config)
+{
+    if (mainWindow_ != nullptr) {
+        mainWindow_->UpdateConfiguration(config);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

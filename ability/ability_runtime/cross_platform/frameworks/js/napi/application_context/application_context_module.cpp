@@ -51,10 +51,8 @@ void NAPI_application_ApplicationContext_AutoRegister()
     NativeModule newModuleInfo = {
         .name = "application.ApplicationContext",
         .fileName = "application/libapplication_applicationcontext_napi.so/application_context.js",
-#ifdef IOS_PLATFORM
         .getJSCode = (GetJSCodeCallback)NAPI_application_ApplicationContext_GetJSCode,
         .getABCCode = (GetJSCodeCallback)NAPI_application_ApplicationContext_GetABCCode,
-#endif
     };
 
     moduleManager->Register(&newModuleInfo);
