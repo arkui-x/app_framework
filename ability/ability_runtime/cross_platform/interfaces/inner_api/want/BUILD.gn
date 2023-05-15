@@ -36,7 +36,16 @@ template("ability_runtime_want") {
       defines = [ "_ARM64_" ]
     }
 
-    sources = [ "${ability_runtime_cross_platform_path}/frameworks/native/base/want/want.cpp" ]
+    if (target_os == "android") {
+      defines += [ "ANDROID_PLATFORM" ]
+    } else if (target_os == "ios") {
+      defines += [ "IOS_PLATFORM" ]
+    }
+
+    sources = [
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/want/json_want.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/want/want.cpp",
+    ]
   }
 }
 

@@ -26,6 +26,28 @@ typedef char zchar;
 
 namespace OHOS {
 namespace AAFwk {
+enum {
+    VALUE_TYPE_BOOLEAN = 1,
+    VALUE_TYPE_BYTE = 2,
+    VALUE_TYPE_CHAR = 3,
+    VALUE_TYPE_SHORT = 4,
+    VALUE_TYPE_INT = 5,
+    VALUE_TYPE_LONG = 6,
+    VALUE_TYPE_LONGLONG = 7,
+    VALUE_TYPE_FLOAT = 8,
+    VALUE_TYPE_DOUBLE = 9,
+    VALUE_TYPE_STRING = 10,
+    VALUE_TYPE_BOOLEANARRAY = 11,
+    VALUE_TYPE_BYTEARRAY = 12,
+    VALUE_TYPE_CHARARRAY = 13,
+    VALUE_TYPE_SHORTARRAY = 14,
+    VALUE_TYPE_INTARRAY = 15,
+    VALUE_TYPE_LONGARRAY = 16,
+    VALUE_TYPE_FLOATARRAY = 17,
+    VALUE_TYPE_DOUBLEARRAY = 18,
+    VALUE_TYPE_STRINGARRAY = 19,
+};
+
 class Want final {
 public:
     /**
@@ -391,6 +413,14 @@ public:
 
     bool HasParameter(const std::string& key) const;
     void RemoveParam(const std::string& key);
+
+    std::map<std::string, int> GetTypes() const
+    {
+        return types_;
+    }
+
+    std::string ToJson() const;
+    void ParseJson(const std::string& jsonParams);
 
 public:
     static const std::string ABILITY_ID;

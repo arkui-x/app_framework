@@ -35,7 +35,7 @@ public:
     ~AppMain();
     static std::shared_ptr<AppMain> GetInstance();
     void LaunchApplication();
-    void DispatchOnCreate(const std::string& instanceName);
+    void DispatchOnCreate(const std::string& instanceName, const std::string& params);
     void DispatchOnNewWant(const std::string& instanceName);
     void DispatchOnForeground(const std::string& instanceName);
     void DispatchOnBackground(const std::string& instanceName);
@@ -48,14 +48,14 @@ public:
 private:
     void ScheduleLaunchApplication();
     bool CreateRuntime();
-    void HandleDispatchOnCreate(const std::string& instanceName);
+    void HandleDispatchOnCreate(const std::string& instanceName, const std::string& params);
     void HandleDispatchOnNewWant(const std::string& instanceName);
     void HandleDispatchOnForeground(const std::string& instanceName);
     void HandleDispatchOnBackground(const std::string& instanceName);
     void HandleDispatchOnDestroy(const std::string& instanceName);
     void HandleOnConfigurationUpdate(const std::string& jsonConfiguration);
     void HandleInitConfiguration(const std::string& jsonConfiguration);
-    Want TransformToWant(const std::string& instanceName);
+    Want TransformToWant(const std::string& instanceName, const std::string& params = "");
 
 private:
     std::shared_ptr<Application> application_ = nullptr;

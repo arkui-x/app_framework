@@ -13,17 +13,31 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_JS_WANT_UTILS_H
-#define OHOS_ABILITY_RUNTIME_JS_WANT_UTILS_H
+#ifndef OHOS_ABILITY_BASE_JSON_WANT_H
+#define OHOS_ABILITY_BASE_JSON_WANT_H
 
-#include "js_runtime_utils.h"
-#include "native_engine/native_engine.h"
-#include "want.h"
+#include <string>
+#include <vector>
+
+#include "nlohmann/json.hpp"
 
 namespace OHOS {
-namespace AbilityRuntime {
-NativeValue* CreateJsWant(NativeEngine& engine, const AAFwk::Want& want);
-bool UnwrapJsWant(NativeEngine& engine, NativeValue* param, AAFwk::Want& want);
-} // namespace AbilityRuntime
+namespace AAFwk {
+struct WantParams {
+    std::string key;
+    std::string value;
+    int32_t type;
+};
+
+struct JsonWant {
+    std::vector<WantParams> params;
+};
+
+void to_json(nlohmann::json& jsonObject, const JsonWant& jsonWant);
+void from_json(const nlohmann::json& jsonObject, JsonWant& jsonWant);
+
+void to_json(nlohmann::json& jsonObject, const WantParams& wantParams);
+void from_json(const nlohmann::json& jsonObject, WantParams& wantParams);
+} // namespace AAFwk
 } // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_JS_WANT_UTILS_H
+#endif // OHOS_ABILITY_BASE_WANT_H
