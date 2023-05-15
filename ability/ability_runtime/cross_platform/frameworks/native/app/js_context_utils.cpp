@@ -234,12 +234,15 @@ NativeValue* JsBaseContext::OnGetApplicationContext(NativeEngine& engine, Native
     }
 
     NativeValue* value = JsApplicationContextUtils::CreateJsApplicationContext(engine);
-    auto systemModule = JsRuntime::LoadSystemModuleByEngine(&engine, "application.ApplicationContext", &value, 1);
-    if (systemModule == nullptr) {
+    if (systemModule_ != nullptr) {
+        return systemModule_->Get();
+    }
+    auto systemModule_ = JsRuntime::LoadSystemModuleByEngine(&engine, "application.ApplicationContext", &value, 1);
+    if (systemModule_ == nullptr) {
         HILOG_ERROR("OnGetApplicationContext, invalid systemModule.");
         return engine.CreateUndefined();
     }
-    auto contextObj = systemModule->Get();
+    auto contextObj = systemModule_->Get();
     NativeObject* nativeObj = ConvertNativeValueTo<NativeObject>(contextObj);
     if (nativeObj == nullptr) {
         HILOG_ERROR("OnGetApplicationContext, Failed to get context native object");

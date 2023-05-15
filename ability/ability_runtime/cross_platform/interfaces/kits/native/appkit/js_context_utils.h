@@ -49,6 +49,7 @@ protected:
     NativeValue* OnGetApplicationContext(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnCreateModuleContext(NativeEngine& engine, NativeCallbackInfo& info);
     std::weak_ptr<Context> context_;
+    std::unique_ptr<NativeReference> systemModule_;
 };
 
 NativeValue* CreateJsBaseContext(

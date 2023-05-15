@@ -67,6 +67,7 @@ private:
     static void BindNativeApplicationContext(NativeEngine& engine, NativeObject* object);
 
     std::shared_ptr<JsAbilityLifecycleCallback> callback_;
+    std::unique_ptr<NativeReference> systemModule_;
 };
 } // namespace Platform
 } // namespace AbilityRuntime
