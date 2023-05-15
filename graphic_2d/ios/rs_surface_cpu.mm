@@ -29,8 +29,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSSurfaceCPU::RSSurfaceCPU(CALayer* layer)
-    : layer_(layer)
+RSSurfaceCPU::RSSurfaceCPU(void* layer)
+    : layer_(static_cast<CALayer*>(layer))
 {
 }
 

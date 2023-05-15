@@ -33,7 +33,7 @@ namespace Rosen {
 class RenderContext;
 class RSSurfaceCPU : public RSSurface {
 public:
-    RSSurfaceCPU(CALayer* layer);
+    RSSurfaceCPU(void* layer);
     ~RSSurfaceCPU() override = default;
 
     bool IsValid() const override;
