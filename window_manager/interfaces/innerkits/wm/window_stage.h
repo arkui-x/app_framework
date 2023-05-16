@@ -69,6 +69,8 @@ public:
      * @return the shared pointer of window
      */
     const std::shared_ptr<Window>& GetMainWindow() const;
+    const std::shared_ptr<Window>& CreateSubWindow(const std::string& windowName);
+    const std::vector<std::shared_ptr<Window>>& GetSubWindow();
 
     void UpdateConfigurationForAll(const std::shared_ptr<OHOS::AbilityRuntime::Platform::Configuration>& config);
 

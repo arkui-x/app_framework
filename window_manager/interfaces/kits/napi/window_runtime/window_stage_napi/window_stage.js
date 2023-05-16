@@ -15,12 +15,52 @@
 
 class WindowStage {
     constructor(obj) {
-        this.__window_stage__ = obj
+      this.__window_stage__ = obj;
+    }
+  
+    setUIContent(context, url, storage) {
+      return this.__window_stage__.setUIContent(context, url, storage);
+    }
+  
+    loadContent(url, storage, asyncCallback) {
+      return this.__window_stage__.loadContent(url, storage, asyncCallback);
     }
 
-    loadContent (url, storage, asyncCallback) {
-        return this.__window_stage__.loadContent(url, storage, asyncCallback)
+    getWindowMode(asyncCallback) {
+      return this.__window_stage__.getWindowMode(asyncCallback);
+    }
+  
+    getMainWindow(asyncCallback) {
+      return this.__window_stage__.getMainWindow(asyncCallback);
+    }
+  
+    getMainWindowSync() {
+      return this.__window_stage__.getMainWindowSync();
+    }
+  
+    createSubWindow(windowName, asyncCallback) {
+      return this.__window_stage__.createSubWindow(windowName, asyncCallback);
+    }
+  
+    getSubWindow(asyncCallback) {
+      return this.__window_stage__.getSubWindow(asyncCallback);
+    }
+  
+    on(type, callback) {
+      return this.__window_stage__.on(type, callback);
+    }
+  
+    off(type, callback) {
+      return this.__window_stage__.off(type, callback);
+    }
+  
+    setShowOnLockScreen(showOnLockScreen) {
+      return this.__window_stage__.setShowOnLockScreen(showOnLockScreen);
+    }
+  
+    disableWindowDecor() {
+      return this.__window_stage__.disableWindowDecor();
     }
 }
-
-export default WindowStage
+  
+export default WindowStage;

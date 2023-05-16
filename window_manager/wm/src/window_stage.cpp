@@ -19,6 +19,7 @@
 #include "virtual_rs_window.h"
 #include "foundation/appframework/arkui/uicontent/ui_content.h"
 
+#include "window_option.h"
 namespace OHOS {
 namespace Rosen {
 WindowStage::~WindowStage()
@@ -45,6 +46,29 @@ void WindowStage::Init(const std::shared_ptr<AbilityRuntime::Platform::Context>&
 const std::shared_ptr<Window>& WindowStage::GetMainWindow() const
 {
     return mainWindow_;
+}
+
+const std::shared_ptr<Window>& WindowStage::CreateSubWindow(const std::string& windowName)
+{
+    if (windowName.empty() || mainWindow_ == nullptr ) {
+        return nullptr;
+    }
+    std::shared_ptr<WindowOption> option = std::make_shared<WindowOption>();
+    option->SetParentId(mainWindow_->GetWindowId());
+    option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_SUB_WINDOW);
+    option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
+    option->SetWindowName(windowName);
+    std::shared_ptr<Window> subWindow = Window::CreateSubWindow(context_,option);
+    return subWindow;
+}
+
+const std::vector<std::shared_ptr<Window>>& WindowStage::GetSubWindow()
+{
+   if (mainWindow_ == nullptr) {
+        LOGE("Get sub window failed, because main window is null");
+        return std::vector<std::shared_ptr<Window>>();
+    }
+    return Window::GetSubWindow(mainWindow_->GetWindowId());
 }
 
 void WindowStage::UpdateConfigurationForAll(

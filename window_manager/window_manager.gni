@@ -35,6 +35,11 @@ if (wm_is_ios) {
 }
 
 app_framework_window_manager_path = "//foundation/appframework/window_manager"
+
 window_manager_napi_path = "${app_framework_window_manager_path}/interfaces"
 window_manager_subsystem_name = "window"
 window_manager_part_name = "window_manager"
+
+display_manager_napi_path = "${app_framework_window_manager_path}/interfaces"
+display_manager_subsystem_name = "display"
+display_manager_part_name = "display_manager"
