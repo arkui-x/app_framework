@@ -89,8 +89,6 @@ template("ability_runtime_jsruntime") {
     }
     deps += [ "//arkcompiler/ets_runtime:libark_jsruntime_static" ]
 
-    deps += [ "//arkcompiler/toolchain:ark_toolchain_packages" ]
-
     deps +=
         [ "//foundation/appframework/arkui/uicontent:ace_uicontent_interface" ]
   }
