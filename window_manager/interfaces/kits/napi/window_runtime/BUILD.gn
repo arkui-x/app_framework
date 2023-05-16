@@ -53,12 +53,9 @@ template("window_manager_napi") {
     if (current_os == "android") {
       include_dirs +=
           [ "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni" ]
-      #deps += [ "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni:ace_common_jni_android" ]
     } else if (current_os == "ios") {
       defines += [ "IOS_PLATFORM" ]
       include_dirs += [ "//foundation/arkui/ace_engine/adapter/ios/entrance" ]
-
-      #deps += [ "//foundation/arkui/ace_engine/adapter/ios/entrance:ace_ios_entrance" ]
     }
 
     sources = [

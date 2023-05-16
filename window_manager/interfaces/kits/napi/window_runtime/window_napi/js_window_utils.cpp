@@ -14,6 +14,8 @@
  */
 
 #include "js_window_utils.h"
+
+#include <iomanip>
 #include "hilog.h"
 
 namespace OHOS {
