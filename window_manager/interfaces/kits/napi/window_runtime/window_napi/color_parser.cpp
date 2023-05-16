@@ -14,7 +14,6 @@
  */
 
 #include "color_parser.h"
-#include <cstdlib>
 
 namespace OHOS {
 namespace Rosen {

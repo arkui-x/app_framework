@@ -13,15 +13,10 @@
  * limitations under the License.
  */
 
-#include "js_display.h"
-
 #include <cinttypes>
 #include <map>
-
-// #include "cutout_info.h"
+#include "js_display.h"
 #include "display.h"
-// #include "display_info.h"
-//#include "window_manager_hilog.h"
 #include "hilog.h"
 
 namespace OHOS {

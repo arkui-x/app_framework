@@ -223,7 +223,6 @@ static void GetTopWindowTask(void* contextPtr, NativeEngine& engine, AsyncTask& 
     HILOG_INFO("WindowManager:GetTopWindowTask : Start...");
     std::string windowName;
     std::shared_ptr<Rosen::Window> window = nullptr;
-    // WMErrorCode errCode = WMError::WM_OK;
     auto context = static_cast<std::weak_ptr<AbilityRuntime::Platform::Context>*>(contextPtr);
     if (contextPtr == nullptr || context == nullptr) {
         HILOG_ERROR("WindowManager:GetTopWindowTask: Stage mode without context");

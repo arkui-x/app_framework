@@ -25,8 +25,6 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr int32_t RGB_LENGTH = 6;
-constexpr int32_t RGBA_LENGTH = 8;
 enum class ApiWindowType : uint32_t {
     TYPE_BASE,
     TYPE_APP = TYPE_BASE,
@@ -154,47 +152,46 @@ const std::map<ApiOrientation, Orientation> JS_TO_NATIVE_ORIENTATION_MAP {
     {ApiOrientation::LOCKED,                                Orientation::LOCKED                             },
 };
 
-    // NativeValue* GetRectAndConvertToJsValue(NativeEngine& engine, const Rect& rect);
-    NativeValue* CreateJsWindowPropertiesObject(NativeEngine& engine, std::shared_ptr<Window>& window);
-    bool SetSystemBarPropertiesFromJs(NativeEngine& engine, NativeObject* jsObject,
-        std::map<WindowType, SystemBarProperty>& properties, std::shared_ptr<Window>& window);
-    bool GetSystemBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProperties,
-        NativeEngine& engine, NativeCallbackInfo& info, std::shared_ptr<Window>& window);
-    NativeValue* WindowTypeInit(NativeEngine* engine);
-    NativeValue* WindowModeInit(NativeEngine* engine);
-    NativeValue* OrientationInit(NativeEngine* engine);
-    NativeValue* WindowStageEventTypeInit(NativeEngine* engine);
-    NativeValue* WindowErrorCodeInit(NativeEngine* engine);
-    NativeValue* WindowErrorInit(NativeEngine* engine);
-    template<class T>
-    bool ParseJsValue(NativeObject* jsObject, NativeEngine& engine, const std::string& name, T& data)
-    {
-        NativeValue* value = jsObject->GetProperty(name.c_str());
-        if (value->TypeOf() != NATIVE_UNDEFINED) {
-            if (!AbilityRuntime::ConvertFromJsValue(engine, value, data)) {
-                return false;
-            }
-        } else {
+NativeValue* CreateJsWindowPropertiesObject(NativeEngine& engine, std::shared_ptr<Window>& window);
+bool SetSystemBarPropertiesFromJs(NativeEngine& engine, NativeObject* jsObject,
+    std::map<WindowType, SystemBarProperty>& properties, std::shared_ptr<Window>& window);
+bool GetSystemBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProperties,
+    NativeEngine& engine, NativeCallbackInfo& info, std::shared_ptr<Window>& window);
+NativeValue* WindowTypeInit(NativeEngine* engine);
+NativeValue* WindowModeInit(NativeEngine* engine);
+NativeValue* OrientationInit(NativeEngine* engine);
+NativeValue* WindowStageEventTypeInit(NativeEngine* engine);
+NativeValue* WindowErrorCodeInit(NativeEngine* engine);
+NativeValue* WindowErrorInit(NativeEngine* engine);
+template<class T>
+bool ParseJsValue(NativeObject* jsObject, NativeEngine& engine, const std::string& name, T& data)
+{
+    NativeValue* value = jsObject->GetProperty(name.c_str());
+    if (value->TypeOf() != NATIVE_UNDEFINED) {
+        if (!AbilityRuntime::ConvertFromJsValue(engine, value, data)) {
             return false;
         }
-        return true;
+    } else {
+        return false;
     }
-    template<class T>
-    inline bool ConvertNativeValueToVector(NativeEngine& engine, NativeValue* nativeValue, std::vector<T>& out)
-    {
-        NativeArray* nativeArray = AbilityRuntime::ConvertNativeValueTo<NativeArray>(nativeValue);
-        if (nativeArray == nullptr) {
+    return true;
+}
+template<class T>
+inline bool ConvertNativeValueToVector(NativeEngine& engine, NativeValue* nativeValue, std::vector<T>& out)
+{
+    NativeArray* nativeArray = AbilityRuntime::ConvertNativeValueTo<NativeArray>(nativeValue);
+    if (nativeArray == nullptr) {
+        return false;
+    }
+    T value;
+    for (uint32_t i = 0; i < nativeArray->GetLength(); i++) {
+        if (!AbilityRuntime::ConvertFromJsValue(engine, nativeArray->GetElement(i), value)) {
             return false;
         }
-        T value;
-        for (uint32_t i = 0; i < nativeArray->GetLength(); i++) {
-            if (!AbilityRuntime::ConvertFromJsValue(engine, nativeArray->GetElement(i), value)) {
-                return false;
-            }
-            out.emplace_back(value);
-        }
-        return true;
+        out.emplace_back(value);
     }
+    return true;
+}
 }
 }
 #endif

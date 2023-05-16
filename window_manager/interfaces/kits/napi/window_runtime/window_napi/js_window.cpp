@@ -294,7 +294,7 @@ NativeValue* JsWindow::OnResize(NativeEngine& engine, NativeCallbackInfo& info)
         engine.Throw(CreateJsError(engine, static_cast<int32_t>(errCode)));
         return engine.CreateUndefined();
     }
-    HILOG_ERROR("OnResize %p",windowToken_.get());
+    HILOG_ERROR("OnResize %p", windowToken_.get());
     std::weak_ptr<Window> weakToken(windowToken_);
     AsyncTask::CompleteCallback complete =
         [weakToken, width, height](NativeEngine& engine, AsyncTask& task, int32_t status) {
@@ -417,7 +417,7 @@ NativeValue* JsWindow::OnSetPreferredOrientation(NativeEngine& engine, NativeCal
             requestedOrientation = JS_TO_NATIVE_ORIENTATION_MAP.at(
                 static_cast<ApiOrientation>(static_cast<uint32_t>(*nativeType)));
             if (requestedOrientation < Orientation::BEGIN || requestedOrientation > Orientation::END) {
-                HILOG_ERROR("JsWindow::OnSetPreferredOrientation : Orientation %{public}u invalid!", 
+                HILOG_ERROR("JsWindow::OnSetPreferredOrientation : Orientation %{public}u invalid!",
                     static_cast<uint32_t>(requestedOrientation));
                 errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
             }
@@ -441,7 +441,8 @@ NativeValue* JsWindow::OnSetPreferredOrientation(NativeEngine& engine, NativeCal
             }
             weakWindow->SetRequestedOrientation(requestedOrientation);
             task.Resolve(engine, engine.CreateUndefined());
-            HILOG_INFO("JsWindow::OnSetPreferredOrientation : Window [%{public}u, %{public}s] OnSetPreferredOrientation end, orientation = %{public}u",
+            HILOG_INFO("JsWindow::OnSetPreferredOrientation : Window [%{public}u, %{public}s] " \
+                "OnSetPreferredOrientation end, orientation = %{public}u",
                 weakWindow->GetWindowId(),
                 weakWindow->GetWindowName().c_str(),
                 static_cast<uint32_t>(requestedOrientation));
@@ -468,7 +469,8 @@ NativeValue* JsWindow::OnLoadContent(NativeEngine& engine, NativeCallbackInfo& i
         if (info.argv[1]->TypeOf() == NATIVE_OBJECT) {
             storage = info.argv[1];
         } else {
-            HILOG_INFO("JsWindow::OnLoadContent : info.argv[1] TypeOf %{public}d errorCode = -1", info.argv[1]->TypeOf());
+            HILOG_INFO("JsWindow::OnLoadContent : info.argv[1] TypeOf %{public}d errorCode = -1",
+                info.argv[1]->TypeOf());
             errCode = WMError::WM_ERROR_INVALID_PARAM;
         }
     } else if (info.argc == 3) {
@@ -581,7 +583,7 @@ NativeValue* JsWindow::OnIsWindowShowingSync(NativeEngine& engine, NativeCallbac
     }
     std::weak_ptr<Rosen::Window> weakToken(windowToken_);
     auto weakWindow = weakToken.lock();
-     if (weakWindow == nullptr) {
+    if (weakWindow == nullptr) {
         HILOG_ERROR("JsWindow::OnIsWindowShowingSync : window is nullptr");
         engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
         return engine.CreateUndefined();
@@ -625,11 +627,13 @@ NativeValue* JsWindow::OnSetWindowBackgroundColorSync(NativeEngine& engine, Nati
         engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
         return engine.CreateUndefined();
     }
-    HILOG_INFO("JsWindow::OnSetWindowBackgroundColorSync : set color %{public}s, %{public}u", color.c_str(), colorValue);
+    HILOG_INFO("JsWindow::OnSetWindowBackgroundColorSync : set color %{public}s, %{public}u",
+        color.c_str(), colorValue);
     WMError err = window->SetBackgroundColor(colorValue);
     WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(err);
     if (ret == WmErrorCode::WM_OK) {
-        HILOG_INFO("JsWindow::OnSetWindowBackgroundColorSync : Window [%{public}u, %{public}s] set background color end",
+        HILOG_INFO("JsWindow::OnSetWindowBackgroundColorSync : Window [%{public}u, %{public}s] " \
+            "set background color end",
             window->GetWindowId(), window->GetWindowName().c_str());
         return engine.CreateUndefined();
     } else {

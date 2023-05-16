@@ -15,7 +15,6 @@
 
 #include <string>
 #include "js_runtime_utils.h"
-//#include "js_window_utils.h"
 #include "virtual_rs_window.h"
 #include "js_window.h"
 #include "js_window_register_manager.h"
@@ -148,7 +147,8 @@ NativeValue* JsWindowStage::OnGetMainWindow(NativeEngine& engine, NativeCallback
             auto window = weakStage->GetMainWindow();
             if (window != nullptr) {
                 task.Resolve(engine, OHOS::Rosen::CreateJsWindowObject(engine, window));
-                HILOG_ERROR("JsWindowStage::OnGetMainWindow : Get main window windowId=%{public}u", window->GetWindowId());
+                HILOG_ERROR("JsWindowStage::OnGetMainWindow : Get main window windowId=%{public}u", 
+                    window->GetWindowId());
             } else {
                 task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(-1), "Get main window failed."));
             }
@@ -173,7 +173,6 @@ NativeValue* JsWindowStage::OnGetMainWindowSync(NativeEngine& engine, NativeCall
     HILOG_INFO("JsWindowStage::OnGetMainWindowSync : Start...");
     auto weakWindowStage = windowStage_.lock();
     auto win = weakWindowStage->GetMainWindow();
-    //return (win != nullptr) ? CreateJsValue(engine, win) : nullptr;
     return (win != nullptr) ? CreateJsWindowObject(engine, win) : nullptr;
 }
 

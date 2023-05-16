@@ -12,15 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "js_window_utils.h"
-#include <iomanip>
-#include <regex>
-#include <sstream>
 #include "hilog.h"
 
 namespace OHOS {
 namespace Rosen {
 using namespace AbilityRuntime;
+constexpr int32_t RGB_LENGTH = 6;
+constexpr int32_t RGBA_LENGTH = 8;
 
 NativeValue* WindowTypeInit(NativeEngine* engine)
 {
@@ -38,24 +38,42 @@ NativeValue* WindowTypeInit(NativeEngine* engine)
         return nullptr;
     }
 
-    object->SetProperty("TYPE_APP", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_APP)));
-    object->SetProperty("TYPE_SYSTEM_ALERT", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_SYSTEM_ALERT)));
-    object->SetProperty("TYPE_INPUT_METHOD", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_INPUT_METHOD)));
-    object->SetProperty("TYPE_STATUS_BAR", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_STATUS_BAR)));
-    object->SetProperty("TYPE_PANEL", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_PANEL)));
-    object->SetProperty("TYPE_KEYGUARD", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_KEYGUARD)));
-    object->SetProperty("TYPE_VOLUME_OVERLAY", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_VOLUME_OVERLAY)));
-    object->SetProperty("TYPE_NAVIGATION_BAR", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_NAVIGATION_BAR)));
-    object->SetProperty("TYPE_FLOAT", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_FLOAT)));
-    object->SetProperty("TYPE_FLOAT_CAMERA", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_FLOAT_CAMERA)));
-    object->SetProperty("TYPE_WALLPAPER", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_WALLPAPER)));
-    object->SetProperty("TYPE_DESKTOP", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_DESKTOP)));
-    object->SetProperty("TYPE_LAUNCHER_RECENT", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_LAUNCHER_RECENT)));
-    object->SetProperty("TYPE_LAUNCHER_DOCK", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_LAUNCHER_DOCK)));
-    object->SetProperty("TYPE_VOICE_INTERACTION", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_VOICE_INTERACTION)));
-    object->SetProperty("TYPE_DIALOG", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_DIALOG)));
-    object->SetProperty("TYPE_POINTER", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_POINTER)));
-    object->SetProperty("TYPE_SCREENSHOT", CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_SCREENSHOT)));
+    object->SetProperty("TYPE_APP",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_APP)));
+    object->SetProperty("TYPE_SYSTEM_ALERT",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_SYSTEM_ALERT)));
+    object->SetProperty("TYPE_INPUT_METHOD",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_INPUT_METHOD)));
+    object->SetProperty("TYPE_STATUS_BAR",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_STATUS_BAR)));
+    object->SetProperty("TYPE_PANEL",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_PANEL)));
+    object->SetProperty("TYPE_KEYGUARD",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_KEYGUARD)));
+    object->SetProperty("TYPE_VOLUME_OVERLAY",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_VOLUME_OVERLAY)));
+    object->SetProperty("TYPE_NAVIGATION_BAR",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_NAVIGATION_BAR)));
+    object->SetProperty("TYPE_FLOAT",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_FLOAT)));
+    object->SetProperty("TYPE_FLOAT_CAMERA",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_FLOAT_CAMERA)));
+    object->SetProperty("TYPE_WALLPAPER",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_WALLPAPER)));
+    object->SetProperty("TYPE_DESKTOP",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_DESKTOP)));
+    object->SetProperty("TYPE_LAUNCHER_RECENT",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_LAUNCHER_RECENT)));
+    object->SetProperty("TYPE_LAUNCHER_DOCK",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_LAUNCHER_DOCK)));
+    object->SetProperty("TYPE_VOICE_INTERACTION",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_VOICE_INTERACTION)));
+    object->SetProperty("TYPE_DIALOG",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_DIALOG)));
+    object->SetProperty("TYPE_POINTER",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_POINTER)));
+    object->SetProperty("TYPE_SCREENSHOT",
+        CreateJsValue(*engine, static_cast<int32_t>(ApiWindowType::TYPE_SCREENSHOT)));
 
     return objValue;
 }

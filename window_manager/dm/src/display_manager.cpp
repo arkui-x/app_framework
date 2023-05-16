@@ -126,5 +126,4 @@ bool DisplayManager::Impl::UpdateDisplayInfoLocked(sptr<DisplayInfo> displayInfo
     displayMap_[displayId] = display;
     return true;
 }
-
 } // namespace OHOS::Rosen
