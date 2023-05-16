@@ -11,26 +11,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//arkcompiler/ets_frontend/ts2panda/ts2abc_config.gni")
+#import("//arkcompiler/ets_frontend/ts2panda/ts2abc_config.gni")
 import("//build/ohos.gni")
 import("//foundation/appframework/window_manager/window_manager.gni")
-
-config("window_manager_napi_config") {
+config("display_manager_napi_config") {
   include_dirs = [
-    "${window_manager_napi_path}/wm/include",
-    "${window_manager_napi_path}/innerkits/wm",
-    "${window_manager_napi_path}/kits/kits/napi/window_runtime/window_stage_napi",
+    "${app_framework_window_manager_path}/dm/include",
+    "${display_manager_napi_path}/innerkits/dm",
   ]
 }
 
-template("window_manager_napi") {
+template("display_manager_napi") {
   forward_variables_from(invoker, "*")
 
   ohos_source_set(target_name) {
-    subsystem_name = window_manager_subsystem_name
-    part_name = window_manager_part_name
+    subsystem_name = display_manager_subsystem_name
+    part_name = display_manager_part_name
     configs = [
-      ":window_manager_napi_config",
+      ":display_manager_napi_config",
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/ability:abilitykit_native_config",
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit:appkit_native_config",
@@ -43,12 +41,11 @@ template("window_manager_napi") {
     }
 
     include_dirs = [
-      "${window_manager_napi_path}/wm/include",
-      "${window_manager_napi_path}/innerkits/wm",
-      "${window_manager_napi_path}/kits/napi/window_runtime/window_manager_napi",
-      "${window_manager_napi_path}/kits/napi/window_runtime/window_napi",
-      "${window_manager_napi_path}/kits/napi/window_runtime/window_stage_napi",
+      "${display_manager_napi_path}/dm/include",
+      "${display_manager_napi_path}/innerkits/dm",
+      "${display_manager_napi_path}/kits/napi/display_runtime",
       "//commonlibrary/c_utils/base/include",
+      "//foundation/appframework/window_manager/utils/include",
     ]
     if (current_os == "android") {
       include_dirs +=
@@ -59,20 +56,17 @@ template("window_manager_napi") {
     }
 
     sources = [
-      "${window_manager_napi_path}/kits/napi/window_runtime/window_manager_napi/js_window_manager.cpp",
-      "${window_manager_napi_path}/kits/napi/window_runtime/window_napi/color_parser.cpp",
-      "${window_manager_napi_path}/kits/napi/window_runtime/window_napi/js_window.cpp",
-      "${window_manager_napi_path}/kits/napi/window_runtime/window_napi/js_window_listener.cpp",
-      "${window_manager_napi_path}/kits/napi/window_runtime/window_napi/js_window_register_manager.cpp",
-      "${window_manager_napi_path}/kits/napi/window_runtime/window_napi/js_window_utils.cpp",
-      "${window_manager_napi_path}/kits/napi/window_runtime/window_stage_napi/js_window_stage.cpp",
+      "${display_manager_napi_path}/kits/napi/display_runtime/display_manager_module.cpp",
+      "${display_manager_napi_path}/kits/napi/display_runtime/js_display.cpp",
+      "${display_manager_napi_path}/kits/napi/display_runtime/js_display_manager.cpp",
     ]
 
-    deps = [ "//foundation/arkui/napi:ace_napi" ]
-
-    deps += [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client_static" ]
+    deps = [
+      "//foundation/appframework/window_manager/utils:wm_utils",
+      "//foundation/arkui/napi:ace_napi",
+    ]
   }
 }
 
-window_manager_napi("wm_napi") {
+display_manager_napi("dm_napi") {
 }

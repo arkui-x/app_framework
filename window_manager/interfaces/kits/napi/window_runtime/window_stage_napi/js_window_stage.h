@@ -20,6 +20,7 @@
 #include "native_engine/native_reference.h"
 #include "native_engine/native_value.h"
 #include "window_stage.h"
+
 namespace OHOS {
 namespace Rosen {
 NativeValue* CreateJsWindowStage(NativeEngine& engine, std::shared_ptr<Rosen::WindowStage> WindowStage);
@@ -27,12 +28,23 @@ class JsWindowStage {
 public:
     explicit JsWindowStage(const std::shared_ptr<Rosen::WindowStage>& WindowStage);
     ~JsWindowStage();
+    static NativeValue* GetMainWindow(NativeEngine* engine, NativeCallbackInfo* info);
+    static NativeValue* GetMainWindowSync(NativeEngine* engine, NativeCallbackInfo* info);
+    static NativeValue* On(NativeEngine* engine, NativeCallbackInfo* info);
+    static NativeValue* Off(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* LoadContent(NativeEngine* engine, NativeCallbackInfo* info);
+    static NativeValue* CreateSubWindow(NativeEngine* engine, NativeCallbackInfo* info);
+    static NativeValue* GetSubWindow(NativeEngine* engine, NativeCallbackInfo* info);
     static void Finalizer(NativeEngine* engine, void* data, void* hint);
 
 private:
+    NativeValue* OnGetMainWindow(NativeEngine& engine, NativeCallbackInfo& info);
+    NativeValue* OnGetMainWindowSync(NativeEngine& engine, NativeCallbackInfo& info);
+    NativeValue* OnEvent(NativeEngine& engine, NativeCallbackInfo& info);
+    NativeValue* OffEvent(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnLoadContent(NativeEngine& engine, NativeCallbackInfo& info);
-
+    NativeValue* OnCreateSubWindow(NativeEngine& engine, NativeCallbackInfo& info);
+    NativeValue* OnGetSubWindow(NativeEngine& engine, NativeCallbackInfo& info);
     std::weak_ptr<Rosen::WindowStage> windowStage_;
 };
 }  // namespace Rosen
