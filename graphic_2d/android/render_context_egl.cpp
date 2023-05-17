@@ -106,8 +106,8 @@ void RenderContextEGL::CreatePbufferSurface()
     const char* extensions = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
 
     if ((extensions != nullptr) &&
-       (!CheckEglExtension(extensions, EGL_KHR_SURFACELESS_CONTEXT)) &&
-       (pbufferSurface_ == EGL_NO_SURFACE)) {
+        (!CheckEglExtension(extensions, EGL_KHR_SURFACELESS_CONTEXT)) &&
+        (pbufferSurface_ == EGL_NO_SURFACE)) {
         EGLint attribs[] = {EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
         pbufferSurface_ = eglCreatePbufferSurface(eglDisplay_, config_, attribs);
         if (pbufferSurface_ == EGL_NO_SURFACE) {
@@ -161,7 +161,7 @@ void RenderContextEGL::InitializeEglContext()
     }
     CreatePbufferSurface();
     if (!eglMakeCurrent(eglDisplay_, pbufferSurface_, pbufferSurface_, eglContext_)) {
-        ROSEN_LOGE("RenderContextEGL Failed to make current on surface %p, error is %x", pbufferSurface_, eglGetError());
+        ROSEN_LOGE("RenderContextEGL Failed to make current on %p, error is %x", pbufferSurface_, eglGetError());
         return;
     }
 

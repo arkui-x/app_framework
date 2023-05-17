@@ -53,13 +53,9 @@ ohos_source_set("ios") {
   defines += [ "MODULE_RSB" ]
   if (rs_enable_gpu) {
     defines += [ "USE_GPU" ]
-    sources += [ 
-      "rs_surface_gpu.mm",
-    ]
+    sources += [ "rs_surface_gpu.mm" ]
   } else {
-    sources += [ 
-      "rs_surface_cpu.mm",
-    ]
+    sources += [ "rs_surface_cpu.mm" ]
   }
 
   cflags = [ "-std=c++17" ]
