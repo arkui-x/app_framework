@@ -17,11 +17,7 @@
 
 #include <event_handler.h>
 #include "platform/common/rs_log.h"
-#ifdef USE_GPU
-#include "rs_surface_gpu.h"
-#else
 #include "rs_surface_cpu.h"
-#endif
 #include "rs_vsync_client_ios.h"
 #ifdef __OBJC__
 @class CALayer;
@@ -62,13 +58,7 @@ bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
 {
-#ifdef USE_GPU
-    ROSEN_LOGE("RSRenderServiceClient::CreateNodeAndSurface -- GPU");
-    return std::make_shared<RSSurfaceGPU>(static_cast<void*>(config.additionalData));
-#else
-    ROSEN_LOGE("RSRenderServiceClient::CreateNodeAndSurface -- CPU");
-    return std::make_shared<RSSurfaceCPU>(static_cast<void*>(config.additionalData));
-#endif
+    return std::make_shared<RSSurfaceCPU>(static_cast<CALayer*>(config.additionalData));
 }
 
 class VSyncReceiverIOS : public VSyncReceiver {
@@ -129,7 +119,7 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
 }
 
 int32_t RSRenderServiceClient::SetFocusAppInfo(
-    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
+    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName)
 {
     return false;
 }
@@ -262,6 +252,11 @@ int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t 
 }
 
 int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
     return {};
 }

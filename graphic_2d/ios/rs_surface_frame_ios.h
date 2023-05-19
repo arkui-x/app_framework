@@ -34,17 +34,14 @@ public:
     void SetRenderContext(RenderContext* context) override;
 
 private:
-#ifdef USE_GPU
-    friend class RSSurfaceGPU;
-#else
     friend class RSSurfaceCPU;
-#endif
+
     void CreateSurface();
+
     int32_t width_ = 0;
     int32_t height_ = 0;
     int32_t bpp_ = 0;
     sk_sp<SkSurface> surface_ = nullptr;
-    RenderContext* context_ = nullptr;
 };
 
 } // namespace Rosen

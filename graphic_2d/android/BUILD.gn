@@ -25,7 +25,6 @@ config("composer_public_config") {
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/composer",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
   ]
 }
 
@@ -54,7 +53,7 @@ ohos_source_set("android") {
 
   defines += [ "MODULE_RSB" ]
   if (rs_enable_gpu) {
-    sources += [ "render_context_egl.cpp" ]
+    sources += [ "render_context.cpp" ]
   }
 
   cflags = [ "-std=c++17" ]
