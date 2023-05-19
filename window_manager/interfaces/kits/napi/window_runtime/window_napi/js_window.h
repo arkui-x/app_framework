@@ -25,6 +25,7 @@ namespace OHOS {
 namespace Rosen {
 NativeValue* CreateJsWindowObject(NativeEngine& engine, std::shared_ptr<Rosen::Window> Window);
 std::shared_ptr<NativeReference> FindJsWindowObject(std::string windowName);
+void RemoveJsWindowObject(std::string windowName);
 class JsWindow {
 public:
     explicit JsWindow(std::shared_ptr<Rosen::Window>& Window);
@@ -58,6 +59,9 @@ private:
     NativeValue* OnSetWindowBackgroundColorSync(NativeEngine& engine, NativeCallbackInfo&info);
     NativeValue* OnSetWindowBrightness(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnSetWindowKeepScreenOn(NativeEngine& engine, NativeCallbackInfo& info);
+
+    std::string GetWindowName();
+
     std::shared_ptr<Rosen::Window> windowToken_;
 };
 }  // namespace Rosen

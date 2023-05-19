@@ -146,9 +146,9 @@ NativeValue* JsWindowStage::OnGetMainWindow(NativeEngine& engine, NativeCallback
             }
             auto window = weakStage->GetMainWindow();
             if (window != nullptr) {
+                HILOG_ERROR("JsWindowStage::OnGetMainWindow : Get main window windowId=%{public}u, " \
+                    "windowName=%{public}s", window->GetWindowId(), window->GetWindowName().c_str());
                 task.Resolve(engine, OHOS::Rosen::CreateJsWindowObject(engine, window));
-                HILOG_ERROR("JsWindowStage::OnGetMainWindow : Get main window windowId=%{public}u", 
-                    window->GetWindowId());
             } else {
                 task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(-1), "Get main window failed."));
             }

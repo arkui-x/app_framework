@@ -30,6 +30,7 @@ using namespace AbilityRuntime;
 
 static thread_local std::map<std::string, std::shared_ptr<NativeReference>> g_jsWindowMap;
 std::recursive_mutex g_jsWindowMutex;
+static int finalizerCnt = 0;
 
 
 JsWindow::JsWindow(std::shared_ptr<Rosen::Window>& window)
@@ -189,7 +190,8 @@ NativeValue* JsWindow::OnDestroyWindow(NativeEngine& engine, NativeCallbackInfo&
                     CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
                 return;
             }
-            WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->DestroyWindow());
+            RemoveJsWindowObject(weakWindow->GetWindowName());
+            WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->Destroy());
             HILOG_INFO("JsWindow::OnDestroyWindow : Window [%{public}u, %{public}s] destroy end, ret = %{public}d",
                 weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), ret);
             if (ret != WmErrorCode::WM_OK) {
@@ -760,9 +762,34 @@ std::shared_ptr<NativeReference> FindJsWindowObject(std::string windowName)
     return g_jsWindowMap[windowName];
 }
 
+void RemoveJsWindowObject(std::string windowName)
+{
+    std::lock_guard<std::recursive_mutex> lock(g_jsWindowMutex);
+    auto iter = g_jsWindowMap.find(windowName);
+    if (iter != g_jsWindowMap.end()) {
+        g_jsWindowMap.erase(iter);
+    }
+}
+
+std::string JsWindow::GetWindowName()
+{
+    std::weak_ptr<Window> weakToken(windowToken_);
+    auto weakWindow = weakToken.lock();
+    return (weakWindow == nullptr) ? "" : weakWindow->GetWindowName();
+}
+
 void JsWindow::Finalizer(NativeEngine* engine, void* data, void* hint)
 {
-    std::unique_ptr<JsWindow>(static_cast<JsWindow*>(data));
+    HILOG_INFO("finalizerCnt:%{public}d", ++finalizerCnt);
+    auto jsWin = std::unique_ptr<JsWindow>(static_cast<JsWindow*>(data));
+    if (jsWin == nullptr) {
+        HILOG_ERROR("jsWin is nullptr");
+        return;
+    }
+    std::string windowName = jsWin->GetWindowName();
+    std::lock_guard<std::recursive_mutex> lock(g_jsWindowMutex);
+    g_jsWindowMap.erase(windowName);
+    HILOG_INFO("Remove window %{public}s from g_jsWindowMap", windowName.c_str());
 }
 
 NativeValue* CreateJsWindowObject(NativeEngine& engine, std::shared_ptr<Rosen::Window> window)

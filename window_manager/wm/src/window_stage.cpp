@@ -58,7 +58,7 @@ const std::shared_ptr<Window>& WindowStage::CreateSubWindow(const std::string& w
     option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_SUB_WINDOW);
     option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
     option->SetWindowName(windowName);
-    std::shared_ptr<Window> subWindow = Window::CreateSubWindow(context_,option);
+    std::shared_ptr<Window> subWindow = Window::CreateSubWindow(context_, option);
     return subWindow;
 }
 

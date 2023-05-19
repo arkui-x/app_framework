@@ -116,8 +116,9 @@ NativeValue* JsWindowManager::OnCreateWindow(NativeEngine& engine, NativeCallbac
         engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
         return engine.CreateUndefined();
     }
-    if (option.GetWindowType() == WindowType::WINDOW_TYPE_APP_SUB_WINDOW) {
-        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
+    if (option.GetWindowType() != WindowType::WINDOW_TYPE_APP_SUB_WINDOW) {
+        HILOG_ERROR("JsWindowManager::OnCreateWindow : Invalid Window Type!");
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_NOT_SYSTEM_APP)));
         return engine.CreateUndefined();
     }
     NativeValue* callback = nullptr;
