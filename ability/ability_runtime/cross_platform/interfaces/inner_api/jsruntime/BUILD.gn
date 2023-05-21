@@ -32,8 +32,11 @@ config("jsruntime_config") {
     "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/include",
     "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/include",
   ]
-  include_dirs += [ "$ark_toolchain_path/inspector" ]
-  include_dirs += [ "$ark_toolchain_path/websocket" ]
+  include_dirs += [
+    "$ark_toolchain_path",
+    "$ark_toolchain_path/inspector",
+    "$ark_toolchain_path/websocket",
+  ]
   if (target_os == "android") {
     include_dirs += [
       "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni",
