@@ -14,17 +14,16 @@
  */
 
 #include "window_stage.h"
-#include "hilog.h"
-#include "base/log/log.h"
-#include "virtual_rs_window.h"
-#include "foundation/appframework/arkui/uicontent/ui_content.h"
 
+#include "foundation/appframework/arkui/uicontent/ui_content.h"
+#include "hilog.h"
+#include "virtual_rs_window.h"
 #include "window_option.h"
+
+#include "base/log/log.h"
 namespace OHOS {
 namespace Rosen {
-WindowStage::~WindowStage()
-{
-}
+WindowStage::~WindowStage() {}
 
 #ifdef IOS_PLATFORM
 void WindowStage::Init(const std::shared_ptr<AbilityRuntime::Platform::Context>& context, void* windowView)
@@ -34,8 +33,8 @@ void WindowStage::Init(const std::shared_ptr<AbilityRuntime::Platform::Context>&
     return;
 }
 #else
-void WindowStage::Init(const std::shared_ptr<AbilityRuntime::Platform::Context>& context,
-    jobject windowStageView, JNIEnv* env)
+void WindowStage::Init(
+    const std::shared_ptr<AbilityRuntime::Platform::Context>& context, jobject windowStageView, JNIEnv* env)
 {
     mainWindow_ = Window::Create(context, env, windowStageView);
     context_ = context;
@@ -50,7 +49,7 @@ const std::shared_ptr<Window>& WindowStage::GetMainWindow() const
 
 const std::shared_ptr<Window>& WindowStage::CreateSubWindow(const std::string& windowName)
 {
-    if (windowName.empty() || mainWindow_ == nullptr ) {
+    if (windowName.empty() || mainWindow_ == nullptr) {
         return nullptr;
     }
     std::shared_ptr<WindowOption> option = std::make_shared<WindowOption>();
@@ -64,7 +63,7 @@ const std::shared_ptr<Window>& WindowStage::CreateSubWindow(const std::string& w
 
 const std::vector<std::shared_ptr<Window>>& WindowStage::GetSubWindow()
 {
-   if (mainWindow_ == nullptr) {
+    if (mainWindow_ == nullptr) {
         LOGE("Get sub window failed, because main window is null");
         return std::vector<std::shared_ptr<Window>>();
     }

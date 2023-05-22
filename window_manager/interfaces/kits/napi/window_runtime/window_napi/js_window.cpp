@@ -13,16 +13,17 @@
  * limitations under the License.
  */
 
+#include "js_window.h"
+
 #include <memory>
 #include <string>
 
-#include "js_window_utils.h"
-#include "js_runtime_utils.h"
-#include "virtual_rs_window.h"
-#include "js_window.h"
-#include "hilog.h"
-#include "wm_common.h"
 #include "color_parser.h"
+#include "hilog.h"
+#include "js_runtime_utils.h"
+#include "js_window_utils.h"
+#include "virtual_rs_window.h"
+#include "wm_common.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -32,20 +33,14 @@ static thread_local std::map<std::string, std::shared_ptr<NativeReference>> g_js
 std::recursive_mutex g_jsWindowMutex;
 static int finalizerCnt = 0;
 
+JsWindow::JsWindow(std::shared_ptr<Rosen::Window>& window) : windowToken_(window) {}
 
-JsWindow::JsWindow(std::shared_ptr<Rosen::Window>& window)
-    : windowToken_(window)
-{
-}
-
-JsWindow::~JsWindow()
-{
-}
+JsWindow::~JsWindow() {}
 
 static void LoadContentTask(std::shared_ptr<NativeReference> contentStorage, std::string contextUrl,
     std::shared_ptr<Window> weakWindow, NativeEngine& engine, AsyncTask& task)
 {
-    NativeValue* nativeStorage =  (contentStorage == nullptr) ? nullptr : contentStorage->Get();
+    NativeValue* nativeStorage = (contentStorage == nullptr) ? nullptr : contentStorage->Get();
     int ret = weakWindow->SetUIContent(contextUrl, &engine, nativeStorage, false, nullptr);
     if (ret == 0) {
         task.Resolve(engine, engine.CreateUndefined());
@@ -149,31 +144,30 @@ NativeValue* JsWindow::OnShowWindow(NativeEngine& engine, NativeCallbackInfo& in
 {
     HILOG_INFO("JsWindow::OnShowWindow : Start...");
     std::weak_ptr<Window> weakToken(windowToken_);
-    AsyncTask::CompleteCallback complete =
-        [weakToken](NativeEngine& engine, AsyncTask& task, int32_t status) {
-            auto weakWindow = weakToken.lock();
-            if (weakWindow == nullptr) {
-                task.Reject(engine, CreateJsError(engine,
-                    static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
-                HILOG_ERROR("JsWindow::OnShowWindow : window is nullptr or get invalid param");
-                return;
-            }
-            WMError ret = weakWindow->ShowWindow();
-            if (ret == WMError::WM_OK) {
-                task.Resolve(engine, engine.CreateUndefined());
-            } else {
-                task.Reject(engine, CreateJsError(engine,
-                    static_cast<int32_t>(WM_JS_TO_ERROR_CODE_MAP.at(ret)), "Window show failed"));
-            }
-            HILOG_INFO("JsWindow::OnShowWindow : Window [%{public}u, %{public}s] show end, ret = %{public}d",
-                weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), ret);
-        };
+    AsyncTask::CompleteCallback complete = [weakToken](NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto weakWindow = weakToken.lock();
+        if (weakWindow == nullptr) {
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
+            HILOG_ERROR("JsWindow::OnShowWindow : window is nullptr or get invalid param");
+            return;
+        }
+        WMError ret = weakWindow->ShowWindow();
+        if (ret == WMError::WM_OK) {
+            task.Resolve(engine, engine.CreateUndefined());
+        } else {
+            task.Reject(engine,
+                CreateJsError(engine, static_cast<int32_t>(WM_JS_TO_ERROR_CODE_MAP.at(ret)), "Window show failed"));
+        }
+        HILOG_INFO("JsWindow::OnShowWindow : Window [%{public}u, %{public}s] show end, ret = %{public}d",
+            weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), ret);
+    };
     NativeValue* result = nullptr;
-    NativeValue* lastParam = (info.argc == 0) ? nullptr :
-        ((info.argv[0] != nullptr && info.argv[0]->TypeOf() == NATIVE_FUNCTION) ?
-        info.argv[0] : nullptr);
-    AsyncTask::Schedule("JsWindow::OnShowWindow",
-        engine, CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+    NativeValue* lastParam =
+        (info.argc == 0)
+            ? nullptr
+            : ((info.argv[0] != nullptr && info.argv[0]->TypeOf() == NATIVE_FUNCTION) ? info.argv[0] : nullptr);
+    AsyncTask::Schedule("JsWindow::OnShowWindow", engine,
+        CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
     return result;
 }
 
@@ -181,35 +175,32 @@ NativeValue* JsWindow::OnDestroyWindow(NativeEngine& engine, NativeCallbackInfo&
 {
     HILOG_INFO("JsWindow::OnDestroyWindow : Start...");
     std::weak_ptr<Window> weakToken(windowToken_);
-    AsyncTask::CompleteCallback complete =
-        [this, weakToken](NativeEngine& engine, AsyncTask& task, int32_t status) {
-            auto weakWindow = weakToken.lock();
-            if (weakWindow == nullptr) {
-                HILOG_ERROR("window is nullptr or get invalid param");
-                task.Reject(engine,
-                    CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
-                return;
-            }
-            RemoveJsWindowObject(weakWindow->GetWindowName());
-            WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->Destroy());
-            HILOG_INFO("JsWindow::OnDestroyWindow : Window [%{public}u, %{public}s] destroy end, ret = %{public}d",
-                weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), ret);
-            if (ret != WmErrorCode::WM_OK) {
-                task.Reject(engine,
-                    CreateJsError(engine, static_cast<int32_t>(ret),
-                    "Window destroy failed"));
-                return;
-            }
-            windowToken_ = nullptr; // ensure window dtor when finalizer invalid
-            task.Resolve(engine, engine.CreateUndefined());
-        };
+    AsyncTask::CompleteCallback complete = [this, weakToken](NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto weakWindow = weakToken.lock();
+        if (weakWindow == nullptr) {
+            HILOG_ERROR("window is nullptr or get invalid param");
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
+            return;
+        }
+        RemoveJsWindowObject(weakWindow->GetWindowName());
+        WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->Destroy());
+        HILOG_INFO("JsWindow::OnDestroyWindow : Window [%{public}u, %{public}s] destroy end, ret = %{public}d",
+            weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), ret);
+        if (ret != WmErrorCode::WM_OK) {
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(ret), "Window destroy failed"));
+            return;
+        }
+        windowToken_ = nullptr; // ensure window dtor when finalizer invalid
+        task.Resolve(engine, engine.CreateUndefined());
+    };
 
-    NativeValue* lastParam = (info.argc == 0) ? nullptr :
-        ((info.argv[0] != nullptr && info.argv[0]->TypeOf() == NATIVE_FUNCTION) ?
-        info.argv[0] : nullptr);
+    NativeValue* lastParam =
+        (info.argc == 0)
+            ? nullptr
+            : ((info.argv[0] != nullptr && info.argv[0]->TypeOf() == NATIVE_FUNCTION) ? info.argv[0] : nullptr);
     NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsWindow::OnDestroyWindow",
-        engine, CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+    AsyncTask::Schedule("JsWindow::OnDestroyWindow", engine,
+        CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
     return result;
 }
 
@@ -238,34 +229,31 @@ NativeValue* JsWindow::OnMoveWindowTo(NativeEngine& engine, NativeCallbackInfo& 
     }
 
     std::weak_ptr<Window> weakToken(windowToken_);
-    AsyncTask::CompleteCallback complete =
-        [weakToken, x, y](NativeEngine& engine, AsyncTask& task, int32_t status) {
-            auto weakWindow = weakToken.lock();
-            if (weakWindow == nullptr) {
-                HILOG_ERROR("JsWindow::OnMoveWindowTo : window is nullptr");
-                task.Reject(engine, CreateJsError(engine,
-                    static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
-                return;
-            }
-            WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->MoveWindowTo(x, y));
-            if (ret == WmErrorCode::WM_OK) {
-                task.Resolve(engine, engine.CreateUndefined());
-            } else {
-                task.Reject(engine,
-                    CreateJsError(engine, static_cast<int32_t>(ret),
-                    "Window move failed"));
-            }
-            HILOG_INFO("JsWindow::OnMoveWindowTo : Window [%{public}u, %{public}s] move end, ret = %{public}d",
-                weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), ret);
-        };
+    AsyncTask::CompleteCallback complete = [weakToken, x, y](NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto weakWindow = weakToken.lock();
+        if (weakWindow == nullptr) {
+            HILOG_ERROR("JsWindow::OnMoveWindowTo : window is nullptr");
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
+            return;
+        }
+        WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->MoveWindowTo(x, y));
+        if (ret == WmErrorCode::WM_OK) {
+            task.Resolve(engine, engine.CreateUndefined());
+        } else {
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(ret), "Window move failed"));
+        }
+        HILOG_INFO("JsWindow::OnMoveWindowTo : Window [%{public}u, %{public}s] move end, ret = %{public}d",
+            weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), ret);
+    };
 
     // 2: params num; 2: index of callback
-    NativeValue* lastParam = (info.argc <= 2) ? nullptr :
-        ((info.argv[2] != nullptr && info.argv[2]->TypeOf() == NATIVE_FUNCTION) ?
-        info.argv[2] : nullptr);
+    NativeValue* lastParam =
+        (info.argc <= 2)
+            ? nullptr
+            : ((info.argv[2] != nullptr && info.argv[2]->TypeOf() == NATIVE_FUNCTION) ? info.argv[2] : nullptr);
     NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsWindow::OnMoveWindowTo",
-        engine, CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+    AsyncTask::Schedule("JsWindow::OnMoveWindowTo", engine,
+        CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
     return result;
 }
 
@@ -298,33 +286,33 @@ NativeValue* JsWindow::OnResize(NativeEngine& engine, NativeCallbackInfo& info)
     }
     HILOG_ERROR("OnResize %p", windowToken_.get());
     std::weak_ptr<Window> weakToken(windowToken_);
-    AsyncTask::CompleteCallback complete =
-        [weakToken, width, height](NativeEngine& engine, AsyncTask& task, int32_t status) {
-            auto weakWindow = weakToken.lock();
-            if (weakWindow == nullptr) {
-                task.Reject(engine, 
-                    CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
-                HILOG_ERROR("JsWindow::OnResize : window is nullptr");
-                return;
-            }
-            WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(
-                weakWindow->ResizeWindowTo(static_cast<uint32_t>(width), static_cast<uint32_t>(height)));
-            if (ret == WmErrorCode::WM_OK) {
-                task.Resolve(engine, engine.CreateUndefined());
-            } else {
-                task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(ret), "Window resize failed"));
-            }
-            HILOG_INFO("JsWindow::OnResize : Window [%{public}u, %{public}s] resize end, ret = %{public}d",
-                weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), ret);
-        };
+    AsyncTask::CompleteCallback complete = [weakToken, width, height](
+                                               NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto weakWindow = weakToken.lock();
+        if (weakWindow == nullptr) {
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
+            HILOG_ERROR("JsWindow::OnResize : window is nullptr");
+            return;
+        }
+        WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(
+            weakWindow->ResizeWindowTo(static_cast<uint32_t>(width), static_cast<uint32_t>(height)));
+        if (ret == WmErrorCode::WM_OK) {
+            task.Resolve(engine, engine.CreateUndefined());
+        } else {
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(ret), "Window resize failed"));
+        }
+        HILOG_INFO("JsWindow::OnResize : Window [%{public}u, %{public}s] resize end, ret = %{public}d",
+            weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), ret);
+    };
 
     // 2: params num; 2: index of callback
-    NativeValue* lastParam = (info.argc <= 2) ? nullptr :
-        ((info.argv[2] != nullptr && info.argv[2]->TypeOf() == NATIVE_FUNCTION) ?
-        info.argv[2] : nullptr);
+    NativeValue* lastParam =
+        (info.argc <= 2)
+            ? nullptr
+            : ((info.argv[2] != nullptr && info.argv[2]->TypeOf() == NATIVE_FUNCTION) ? info.argv[2] : nullptr);
     NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsWindow::OnResize",
-        engine, CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+    AsyncTask::Schedule("JsWindow::OnResize", engine,
+        CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
     return result;
 }
 
@@ -364,41 +352,38 @@ NativeValue* JsWindow::OnSetWindowSystemBarEnable(NativeEngine& engine, NativeCa
         return engine.CreateUndefined();
     }
     std::weak_ptr<Window> weakToken(windowToken_);
-    AsyncTask::CompleteCallback complete =
-        [weakToken, systemBarProperties](NativeEngine& engine, AsyncTask& task, int32_t status) {
-            auto weakWindow = weakToken.lock();
-            if (weakWindow == nullptr) {
-                task.Reject(engine,
-                    CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
-                return;
-            }
-            WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(
-                weakWindow->SetSystemBarProperty(WindowType::WINDOW_TYPE_STATUS_BAR,
-                systemBarProperties.at(WindowType::WINDOW_TYPE_STATUS_BAR)));
-            if (ret != WmErrorCode::WM_OK) {
-                task.Reject(engine, CreateJsError(engine,
-                    static_cast<int32_t>(ret), "JsWindow::OnSetWindowSystemBarEnable failed"));
-            }
-            ret = WM_JS_TO_ERROR_CODE_MAP.at(
-                weakWindow->SetSystemBarProperty(WindowType::WINDOW_TYPE_NAVIGATION_BAR,
-                systemBarProperties.at(WindowType::WINDOW_TYPE_NAVIGATION_BAR)));
-            if (ret == WmErrorCode::WM_OK) {
-                task.Resolve(engine, engine.CreateUndefined());
-            } else {
-                task.Reject(engine, CreateJsError(engine,
-                    static_cast<int32_t>(ret), "JsWindow::OnSetWindowSystemBarEnable failed"));
-            }
-        };
+    AsyncTask::CompleteCallback complete = [weakToken, systemBarProperties](
+                                               NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto weakWindow = weakToken.lock();
+        if (weakWindow == nullptr) {
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
+            return;
+        }
+        WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->SetSystemBarProperty(
+            WindowType::WINDOW_TYPE_STATUS_BAR, systemBarProperties.at(WindowType::WINDOW_TYPE_STATUS_BAR)));
+        if (ret != WmErrorCode::WM_OK) {
+            task.Reject(engine,
+                CreateJsError(engine, static_cast<int32_t>(ret), "JsWindow::OnSetWindowSystemBarEnable failed"));
+        }
+        ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->SetSystemBarProperty(
+            WindowType::WINDOW_TYPE_NAVIGATION_BAR, systemBarProperties.at(WindowType::WINDOW_TYPE_NAVIGATION_BAR)));
+        if (ret == WmErrorCode::WM_OK) {
+            task.Resolve(engine, engine.CreateUndefined());
+        } else {
+            task.Reject(engine,
+                CreateJsError(engine, static_cast<int32_t>(ret), "JsWindow::OnSetWindowSystemBarEnable failed"));
+        }
+    };
     NativeValue* lastParam = nullptr;
     if (info.argc >= 1 && info.argv[0] != nullptr && info.argv[0]->TypeOf() == NATIVE_FUNCTION) {
         lastParam = info.argv[0];
     } else if (info.argc >= 2 && // 2 arg count
-        info.argv[1] != nullptr && info.argv[1]->TypeOf() == NATIVE_FUNCTION) {
+               info.argv[1] != nullptr && info.argv[1]->TypeOf() == NATIVE_FUNCTION) {
         lastParam = info.argv[1];
     }
     NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsWindow::OnSetWindowSystemBarEnable",
-        engine, CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+    AsyncTask::Schedule("JsWindow::OnSetWindowSystemBarEnable", engine,
+        CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
     return result;
 }
 
@@ -416,8 +401,8 @@ NativeValue* JsWindow::OnSetPreferredOrientation(NativeEngine& engine, NativeCal
             errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
             HILOG_ERROR("JsWindow::OnSetPreferredOrientation : Failed to convert parameter to Orientation");
         } else {
-            requestedOrientation = JS_TO_NATIVE_ORIENTATION_MAP.at(
-                static_cast<ApiOrientation>(static_cast<uint32_t>(*nativeType)));
+            requestedOrientation =
+                JS_TO_NATIVE_ORIENTATION_MAP.at(static_cast<ApiOrientation>(static_cast<uint32_t>(*nativeType)));
             if (requestedOrientation < Orientation::BEGIN || requestedOrientation > Orientation::END) {
                 HILOG_ERROR("JsWindow::OnSetPreferredOrientation : Orientation %{public}u invalid!",
                     static_cast<uint32_t>(requestedOrientation));
@@ -432,30 +417,30 @@ NativeValue* JsWindow::OnSetPreferredOrientation(NativeEngine& engine, NativeCal
     }
 
     std::weak_ptr<Window> weakToken(windowToken_);
-    AsyncTask::CompleteCallback complete =
-        [weakToken, requestedOrientation](NativeEngine& engine, AsyncTask& task, int32_t status) {
-            auto weakWindow = weakToken.lock();
-            if (weakWindow == nullptr) {
-                HILOG_ERROR("JsWindow::OnSetPreferredOrientation : Window is nullptr");
-                task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY),
-                    "OnSetPreferredOrientation failed"));
-                return;
-            }
-            weakWindow->SetRequestedOrientation(requestedOrientation);
-            task.Resolve(engine, engine.CreateUndefined());
-            HILOG_INFO("JsWindow::OnSetPreferredOrientation : Window [%{public}u, %{public}s] " \
-                "OnSetPreferredOrientation end, orientation = %{public}u",
-                weakWindow->GetWindowId(),
-                weakWindow->GetWindowName().c_str(),
-                static_cast<uint32_t>(requestedOrientation));
-        };
+    AsyncTask::CompleteCallback complete = [weakToken, requestedOrientation](
+                                               NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto weakWindow = weakToken.lock();
+        if (weakWindow == nullptr) {
+            HILOG_ERROR("JsWindow::OnSetPreferredOrientation : Window is nullptr");
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY),
+                                    "OnSetPreferredOrientation failed"));
+            return;
+        }
+        weakWindow->SetRequestedOrientation(requestedOrientation);
+        task.Resolve(engine, engine.CreateUndefined());
+        HILOG_INFO("JsWindow::OnSetPreferredOrientation : Window [%{public}u, %{public}s] "
+                   "OnSetPreferredOrientation end, orientation = %{public}u",
+            weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(),
+            static_cast<uint32_t>(requestedOrientation));
+    };
 
-    NativeValue* lastParam = (info.argc <= 1) ? nullptr :
-        ((info.argv[1] != nullptr && info.argv[1]->TypeOf() == NATIVE_FUNCTION) ?
-        info.argv[1] : nullptr);
+    NativeValue* lastParam =
+        (info.argc <= 1)
+            ? nullptr
+            : ((info.argv[1] != nullptr && info.argv[1]->TypeOf() == NATIVE_FUNCTION) ? info.argv[1] : nullptr);
     NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsWindow::OnSetPreferredOrientation",
-        engine, CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+    AsyncTask::Schedule("JsWindow::OnSetPreferredOrientation", engine,
+        CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
     return result;
 }
 
@@ -471,8 +456,8 @@ NativeValue* JsWindow::OnLoadContent(NativeEngine& engine, NativeCallbackInfo& i
         if (info.argv[1]->TypeOf() == NATIVE_OBJECT) {
             storage = info.argv[1];
         } else {
-            HILOG_INFO("JsWindow::OnLoadContent : info.argv[1] TypeOf %{public}d errorCode = -1",
-                info.argv[1]->TypeOf());
+            HILOG_INFO(
+                "JsWindow::OnLoadContent : info.argv[1] TypeOf %{public}d errorCode = -1", info.argv[1]->TypeOf());
             errCode = WMError::WM_ERROR_INVALID_PARAM;
         }
     } else if (info.argc == 3) {
@@ -502,23 +487,22 @@ NativeValue* JsWindow::OnLoadContent(NativeEngine& engine, NativeCallbackInfo& i
     }
 
     HILOG_INFO("JsWindow::OnLoadContent : Processing...");
-    std::shared_ptr<NativeReference> contentStorage = (storage == nullptr) ? nullptr :
-        std::shared_ptr<NativeReference>(engine.CreateReference(storage, 1));
+    std::shared_ptr<NativeReference> contentStorage =
+        (storage == nullptr) ? nullptr : std::shared_ptr<NativeReference>(engine.CreateReference(storage, 1));
     std::weak_ptr<Rosen::Window> weakToken(windowToken_);
-    AsyncTask::CompleteCallback complete =
-        [weakToken, contentStorage, contextUrl](
-            NativeEngine& engine, AsyncTask& task, int32_t status) {
-            auto weakWindow = weakToken.lock();
-            if (weakWindow == nullptr) {
-                HILOG_ERROR("JsWindow::OnLoadContent : Window is nullptr or get invalid param");
-                task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(-1)));
-                return;
-            }
-            LoadContentTask(contentStorage, contextUrl, weakWindow, engine, task);
-        };
+    AsyncTask::CompleteCallback complete = [weakToken, contentStorage, contextUrl](
+                                               NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto weakWindow = weakToken.lock();
+        if (weakWindow == nullptr) {
+            HILOG_ERROR("JsWindow::OnLoadContent : Window is nullptr or get invalid param");
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(-1)));
+            return;
+        }
+        LoadContentTask(contentStorage, contextUrl, weakWindow, engine, task);
+    };
     NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsWindow::OnLoadContent",
-        engine, CreateAsyncTaskWithLastParam(engine, callback, nullptr, std::move(complete), &result));
+    AsyncTask::Schedule("JsWindow::OnLoadContent", engine,
+        CreateAsyncTaskWithLastParam(engine, callback, nullptr, std::move(complete), &result));
     return result;
 }
 
@@ -545,8 +529,8 @@ NativeValue* JsWindow::OnSetUIContent(NativeEngine& engine, NativeCallbackInfo& 
     if (info.argc >= 2) { // 2 param num
         callBack = info.argv[1];
     }
-    std::shared_ptr<NativeReference> contentStorage = (storage == nullptr) ? nullptr :
-        std::shared_ptr<NativeReference>(engine.CreateReference(storage, 1));
+    std::shared_ptr<NativeReference> contentStorage =
+        (storage == nullptr) ? nullptr : std::shared_ptr<NativeReference>(engine.CreateReference(storage, 1));
     if (errCode != WMError::WM_OK) {
         HILOG_ERROR("JsWindow::OnSetUIContent : errCode = %{public}d", errCode);
         engine.Throw(CreateJsError(engine, static_cast<int32_t>(errCode)));
@@ -554,20 +538,19 @@ NativeValue* JsWindow::OnSetUIContent(NativeEngine& engine, NativeCallbackInfo& 
     }
 
     std::weak_ptr<Window> weakToken(windowToken_);
-    AsyncTask::CompleteCallback complete =
-        [weakToken, contentStorage, contextUrl](NativeEngine& engine, AsyncTask& task, int32_t status) {
-            auto weakWindow = weakToken.lock();
-            if (weakWindow == nullptr) {
-                HILOG_ERROR("JsWindow::OnSetUIContent : Window is nullptr");
-                task.Reject(engine,
-                    CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
-                return;
-            }
-            LoadContentTask(contentStorage, contextUrl, weakWindow, engine, task);
-        };
+    AsyncTask::CompleteCallback complete = [weakToken, contentStorage, contextUrl](
+                                               NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto weakWindow = weakToken.lock();
+        if (weakWindow == nullptr) {
+            HILOG_ERROR("JsWindow::OnSetUIContent : Window is nullptr");
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
+            return;
+        }
+        LoadContentTask(contentStorage, contextUrl, weakWindow, engine, task);
+    };
     NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsWindow::OnSetUIContent",
-        engine, CreateAsyncTaskWithLastParam(engine, callBack, nullptr, std::move(complete), &result));
+    AsyncTask::Schedule("JsWindow::OnSetUIContent", engine,
+        CreateAsyncTaskWithLastParam(engine, callBack, nullptr, std::move(complete), &result));
     return result;
 }
 
@@ -629,13 +612,13 @@ NativeValue* JsWindow::OnSetWindowBackgroundColorSync(NativeEngine& engine, Nati
         engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
         return engine.CreateUndefined();
     }
-    HILOG_INFO("JsWindow::OnSetWindowBackgroundColorSync : set color %{public}s, %{public}u",
-        color.c_str(), colorValue);
+    HILOG_INFO(
+        "JsWindow::OnSetWindowBackgroundColorSync : set color %{public}s, %{public}u", color.c_str(), colorValue);
     WMError err = window->SetBackgroundColor(colorValue);
     WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(err);
     if (ret == WmErrorCode::WM_OK) {
-        HILOG_INFO("JsWindow::OnSetWindowBackgroundColorSync : Window [%{public}u, %{public}s] " \
-            "set background color end",
+        HILOG_INFO("JsWindow::OnSetWindowBackgroundColorSync : Window [%{public}u, %{public}s] "
+                   "set background color end",
             window->GetWindowId(), window->GetWindowName().c_str());
         return engine.CreateUndefined();
     } else {
@@ -669,31 +652,31 @@ NativeValue* JsWindow::OnSetWindowBrightness(NativeEngine& engine, NativeCallbac
     }
 
     std::weak_ptr<Window> weakToken(windowToken_);
-    AsyncTask::CompleteCallback complete =
-        [weakToken, brightness](NativeEngine& engine, AsyncTask& task, int32_t status) {
-            auto weakWindow = weakToken.lock();
-            if (weakWindow == nullptr) {
-                task.Reject(engine,
-                    CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY),
-                    "Invalidate params."));
-                return;
-            }
-            WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->SetBrightness(brightness));
-            if (ret == WmErrorCode::WM_OK) {
-                task.Resolve(engine, engine.CreateUndefined());
-            } else {
-                task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(ret), "Window set brightness failed"));
-            }
-            HILOG_INFO("JsWindow::OnSetWindowBrightness : Window [%{public}u, %{public}s] set brightness end",
-                weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str());
-        };
+    AsyncTask::CompleteCallback complete = [weakToken, brightness](
+                                               NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto weakWindow = weakToken.lock();
+        if (weakWindow == nullptr) {
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY),
+                                    "Invalidate params."));
+            return;
+        }
+        WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->SetBrightness(brightness));
+        if (ret == WmErrorCode::WM_OK) {
+            task.Resolve(engine, engine.CreateUndefined());
+        } else {
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(ret), "Window set brightness failed"));
+        }
+        HILOG_INFO("JsWindow::OnSetWindowBrightness : Window [%{public}u, %{public}s] set brightness end",
+            weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str());
+    };
 
-    NativeValue* lastParam = (info.argc <= 1) ? nullptr :
-        ((info.argv[1] != nullptr && info.argv[1]->TypeOf() == NATIVE_FUNCTION) ?
-        info.argv[1] : nullptr);
+    NativeValue* lastParam =
+        (info.argc <= 1)
+            ? nullptr
+            : ((info.argv[1] != nullptr && info.argv[1]->TypeOf() == NATIVE_FUNCTION) ? info.argv[1] : nullptr);
     NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsWindow::OnSetWindowBrightness",
-        engine, CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+    AsyncTask::Schedule("JsWindow::OnSetWindowBrightness", engine,
+        CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
     return result;
 }
 
@@ -722,32 +705,31 @@ NativeValue* JsWindow::OnSetWindowKeepScreenOn(NativeEngine& engine, NativeCallb
     }
 
     std::weak_ptr<Window> weakToken(windowToken_);
-    AsyncTask::CompleteCallback complete =
-        [weakToken, keepScreenOn](NativeEngine& engine, AsyncTask& task, int32_t status) {
-            auto weakWindow = weakToken.lock();
-            if (weakWindow == nullptr) {
-                task.Reject(engine,
-                    CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY),
-                    "Invalidate params."));
-                return;
-            }
-            WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->SetKeepScreenOn(keepScreenOn));
-            if (ret == WmErrorCode::WM_OK) {
-                task.Resolve(engine, engine.CreateUndefined());
-            } else {
-                task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(ret),
-                    "Window set keep screen on failed"));
-            }
-            HILOG_INFO("JsWindow::OnSetWindowKeepScreenOn : Window [%{public}u, %{public}s] set keep screen on end",
-                weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str());
-        };
+    AsyncTask::CompleteCallback complete = [weakToken, keepScreenOn](
+                                               NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto weakWindow = weakToken.lock();
+        if (weakWindow == nullptr) {
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY),
+                                    "Invalidate params."));
+            return;
+        }
+        WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->SetKeepScreenOn(keepScreenOn));
+        if (ret == WmErrorCode::WM_OK) {
+            task.Resolve(engine, engine.CreateUndefined());
+        } else {
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(ret), "Window set keep screen on failed"));
+        }
+        HILOG_INFO("JsWindow::OnSetWindowKeepScreenOn : Window [%{public}u, %{public}s] set keep screen on end",
+            weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str());
+    };
 
-    NativeValue* lastParam = (info.argc <= 1) ? nullptr :
-        ((info.argv[1] != nullptr && info.argv[1]->TypeOf() == NATIVE_FUNCTION) ?
-        info.argv[1] : nullptr);
+    NativeValue* lastParam =
+        (info.argc <= 1)
+            ? nullptr
+            : ((info.argv[1] != nullptr && info.argv[1]->TypeOf() == NATIVE_FUNCTION) ? info.argv[1] : nullptr);
     NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsWindow::OnSetWindowKeepScreenOn",
-        engine, CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+    AsyncTask::Schedule("JsWindow::OnSetWindowKeepScreenOn", engine,
+        CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
     return result;
 }
 
@@ -808,8 +790,8 @@ NativeValue* CreateJsWindowObject(NativeEngine& engine, std::shared_ptr<Rosen::W
     std::unique_ptr<JsWindow> jsWindow = std::make_unique<JsWindow>(window);
     object->SetNativePointer(jsWindow.release(), JsWindow::Finalizer, nullptr);
 
-    const char *moduleName = "JsWindow";
-    
+    const char* moduleName = "JsWindow";
+
     BindNativeFunction(engine, *object, "showWindow", moduleName, JsWindow::ShowWindow);
     BindNativeFunction(engine, *object, "destroyWindow", moduleName, JsWindow::DestroyWindow);
     BindNativeFunction(engine, *object, "moveWindowTo", moduleName, JsWindow::MoveWindowTo);
@@ -830,5 +812,5 @@ NativeValue* CreateJsWindowObject(NativeEngine& engine, std::shared_ptr<Rosen::W
     g_jsWindowMap[windowName] = jsWindowRef;
     return objValue;
 }
-}  // namespace Rosen
-}  // namespace OHOS
+} // namespace Rosen
+} // namespace OHOS

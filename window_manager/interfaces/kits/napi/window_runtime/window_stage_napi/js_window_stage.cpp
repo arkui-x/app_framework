@@ -13,13 +13,15 @@
  * limitations under the License.
  */
 
+#include "js_window_stage.h"
+
 #include <string>
+
+#include "hilog.h"
 #include "js_runtime_utils.h"
-#include "virtual_rs_window.h"
 #include "js_window.h"
 #include "js_window_register_manager.h"
-#include "js_window_stage.h"
-#include "hilog.h"
+#include "virtual_rs_window.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -30,7 +32,7 @@ std::unique_ptr<JsWindowRegisterManager> g_listenerManager = std::make_unique<Js
 static void LoadContentTask(std::shared_ptr<NativeReference> contentStorage, std::string contextUrl,
     std::shared_ptr<Window> weakWindow, NativeEngine& engine, AsyncTask& task)
 {
-    NativeValue* nativeStorage =  (contentStorage == nullptr) ? nullptr : contentStorage->Get();
+    NativeValue* nativeStorage = (contentStorage == nullptr) ? nullptr : contentStorage->Get();
     int ret = weakWindow->SetUIContent(contextUrl, &engine, nativeStorage, false, nullptr);
     if (ret == 0) {
         task.Resolve(engine, engine.CreateUndefined());
@@ -39,14 +41,9 @@ static void LoadContentTask(std::shared_ptr<NativeReference> contentStorage, std
     }
 }
 
-JsWindowStage::JsWindowStage(const std::shared_ptr<Rosen::WindowStage>& windowStage)
-    : windowStage_(windowStage)
-{
-}
+JsWindowStage::JsWindowStage(const std::shared_ptr<Rosen::WindowStage>& windowStage) : windowStage_(windowStage) {}
 
-JsWindowStage::~JsWindowStage()
-{
-}
+JsWindowStage::~JsWindowStage() {}
 
 NativeValue* JsWindowStage::LoadContent(NativeEngine* engine, NativeCallbackInfo* info)
 {
@@ -68,7 +65,7 @@ NativeValue* JsWindowStage::OnLoadContent(NativeEngine& engine, NativeCallbackIn
         HILOG_ERROR("JsWindowStage::OnLoadContent : ConvertFromJsValue error!");
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
-    
+
     NativeValue* storage = nullptr;
     NativeValue* callback = nullptr;
     NativeValue* value1 = info.argv[1];
@@ -87,26 +84,25 @@ NativeValue* JsWindowStage::OnLoadContent(NativeEngine& engine, NativeCallbackIn
         return engine.CreateUndefined();
     }
 
-    std::shared_ptr<NativeReference> contentStorage = (storage == nullptr) ? nullptr :
-        std::shared_ptr<NativeReference>(engine.CreateReference(storage, 1));
-    AsyncTask::CompleteCallback complete =
-        [weak = windowStage_, contentStorage, contextUrl](
-            NativeEngine& engine, AsyncTask& task, int32_t status) {
-            auto weakStage = weak.lock();
-            if (weakStage == nullptr) {
-                task.Reject(engine, CreateJsError(engine, -1));
-                return;
-            }
-            auto win = weakStage->GetMainWindow();
-            if (win == nullptr) {
-                task.Reject(engine, CreateJsError(engine, -1));
-                return;
-            }
-            LoadContentTask(contentStorage, contextUrl, win, engine, task);
-        };
+    std::shared_ptr<NativeReference> contentStorage =
+        (storage == nullptr) ? nullptr : std::shared_ptr<NativeReference>(engine.CreateReference(storage, 1));
+    AsyncTask::CompleteCallback complete = [weak = windowStage_, contentStorage, contextUrl](
+                                               NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto weakStage = weak.lock();
+        if (weakStage == nullptr) {
+            task.Reject(engine, CreateJsError(engine, -1));
+            return;
+        }
+        auto win = weakStage->GetMainWindow();
+        if (win == nullptr) {
+            task.Reject(engine, CreateJsError(engine, -1));
+            return;
+        }
+        LoadContentTask(contentStorage, contextUrl, win, engine, task);
+    };
     NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsWindowStage::OnLoadContent",
-        engine, CreateAsyncTaskWithLastParam(engine, callback, nullptr, std::move(complete), &result));
+    AsyncTask::Schedule("JsWindowStage::OnLoadContent", engine,
+        CreateAsyncTaskWithLastParam(engine, callback, nullptr, std::move(complete), &result));
     return result;
 }
 
@@ -136,34 +132,35 @@ NativeValue* JsWindowStage::OnGetMainWindow(NativeEngine& engine, NativeCallback
         return engine.CreateUndefined();
     }
     HILOG_INFO("JsWindowStage::OnGetMainWindow : processing...");
-    AsyncTask::CompleteCallback complete =
-        [weak = windowStage_](NativeEngine& engine, AsyncTask& task, int32_t status) {
-            auto weakStage = weak.lock();
-            if (weakStage == nullptr) {
-                task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(-1)));
-                HILOG_ERROR("JsWindowStage::OnGetMainWindow : windowStage_ is nullptr!");
-                return;
-            }
-            auto window = weakStage->GetMainWindow();
-            if (window != nullptr) {
-                HILOG_ERROR("JsWindowStage::OnGetMainWindow : Get main window windowId=%{public}u, " \
-                    "windowName=%{public}s", window->GetWindowId(), window->GetWindowName().c_str());
-                task.Resolve(engine, OHOS::Rosen::CreateJsWindowObject(engine, window));
-            } else {
-                task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(-1), "Get main window failed."));
-            }
-        };
+    AsyncTask::CompleteCallback complete = [weak = windowStage_](
+                                               NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto weakStage = weak.lock();
+        if (weakStage == nullptr) {
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(-1)));
+            HILOG_ERROR("JsWindowStage::OnGetMainWindow : windowStage_ is nullptr!");
+            return;
+        }
+        auto window = weakStage->GetMainWindow();
+        if (window != nullptr) {
+            HILOG_ERROR("JsWindowStage::OnGetMainWindow : Get main window windowId=%{public}u, "
+                        "windowName=%{public}s",
+                window->GetWindowId(), window->GetWindowName().c_str());
+            task.Resolve(engine, OHOS::Rosen::CreateJsWindowObject(engine, window));
+        } else {
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(-1), "Get main window failed."));
+        }
+    };
 
     NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsWindowStage::OnGetMainWindow",
-        engine, CreateAsyncTaskWithLastParam(engine, callback, nullptr, std::move(complete), &result));
+    AsyncTask::Schedule("JsWindowStage::OnGetMainWindow", engine,
+        CreateAsyncTaskWithLastParam(engine, callback, nullptr, std::move(complete), &result));
     return result;
 }
 
 NativeValue* JsWindowStage::GetMainWindowSync(NativeEngine* engine, NativeCallbackInfo* info)
 {
     HILOG_INFO("JsWindowStage::GetMainWindowSync");
-   
+
     JsWindowStage* me = CheckParamsAndGetThis<JsWindowStage>(engine, info);
     return (me != nullptr) ? me->OnGetMainWindowSync(*engine, *info) : nullptr;
 }
@@ -312,35 +309,33 @@ NativeValue* JsWindowStage::OnCreateSubWindow(NativeEngine& engine, NativeCallba
         engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
         return engine.CreateUndefined();
     }
-    AsyncTask::CompleteCallback complete =
-        [weak = windowStage_, windowName](NativeEngine& engine, AsyncTask& task, int32_t status) {
-            auto weakWindowStage = weak.lock();
-            if (weakWindowStage == nullptr) {
-                HILOG_ERROR("JsWindowStage::OnCreateSubWindow : Window scene is null");
-                task.Reject(engine, CreateJsError(engine,
-                    static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
-                return;
-            }
-            auto window = weakWindowStage->CreateSubWindow(windowName);
-            if (window == nullptr) {
-                HILOG_ERROR("JsWindowStage::OnCreateSubWindow : Get window failed");
-                task.Reject(engine, CreateJsError(engine,
-                    static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY), "Get window failed"));
-                return;
-            }
-            task.Resolve(engine, CreateJsWindowObject(engine, window));
-            HILOG_INFO("JsWindowStage::OnCreateSubWindow : Create sub widdow %{public}s end", windowName.c_str());
-        };
-    NativeValue* callback = (info.argv[1] != nullptr && info.argv[1]->TypeOf() == NATIVE_FUNCTION) ?
-        info.argv[1] : nullptr;
+    AsyncTask::CompleteCallback complete = [weak = windowStage_, windowName](
+                                               NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto weakWindowStage = weak.lock();
+        if (weakWindowStage == nullptr) {
+            HILOG_ERROR("JsWindowStage::OnCreateSubWindow : Window scene is null");
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
+            return;
+        }
+        auto window = weakWindowStage->CreateSubWindow(windowName);
+        if (window == nullptr) {
+            HILOG_ERROR("JsWindowStage::OnCreateSubWindow : Get window failed");
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY),
+                                    "Get window failed"));
+            return;
+        }
+        task.Resolve(engine, CreateJsWindowObject(engine, window));
+        HILOG_INFO("JsWindowStage::OnCreateSubWindow : Create sub widdow %{public}s end", windowName.c_str());
+    };
+    NativeValue* callback =
+        (info.argv[1] != nullptr && info.argv[1]->TypeOf() == NATIVE_FUNCTION) ? info.argv[1] : nullptr;
     NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsWindowStage::OnCreateSubWindow",
-        engine, CreateAsyncTaskWithLastParam(engine, callback, nullptr, std::move(complete), &result));
+    AsyncTask::Schedule("JsWindowStage::OnCreateSubWindow", engine,
+        CreateAsyncTaskWithLastParam(engine, callback, nullptr, std::move(complete), &result));
     return result;
 }
 
-static NativeValue* CreateJsSubWindowArrayObject(NativeEngine& engine,
-    std::vector<std::shared_ptr<Window>> subWinVec)
+static NativeValue* CreateJsSubWindowArrayObject(NativeEngine& engine, std::vector<std::shared_ptr<Window>> subWinVec)
 {
     NativeValue* objValue = engine.CreateArray(subWinVec.size());
     NativeArray* array = ConvertNativeValueTo<NativeArray>(objValue);
@@ -358,24 +353,23 @@ static NativeValue* CreateJsSubWindowArrayObject(NativeEngine& engine,
 NativeValue* JsWindowStage::OnGetSubWindow(NativeEngine& engine, NativeCallbackInfo& info)
 {
     HILOG_INFO("JsWindowStage::OnGetSubWindow : Start...");
-    AsyncTask::CompleteCallback complete =
-        [weak = windowStage_](NativeEngine& engine, AsyncTask& task, int32_t status) {
-            auto weakWindowStage = weak.lock();
-            if (weakWindowStage == nullptr) {
-                HILOG_ERROR("JsWindowStage::OnGetSubWindow : Window scene is nullptr");
-                task.Reject(engine, CreateJsError(engine,
-                    static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
-                return;
-            }
-            std::vector<std::shared_ptr<Window>> subWindowVec = weakWindowStage->GetSubWindow();
-            task.Resolve(engine, CreateJsSubWindowArrayObject(engine, subWindowVec));
-            HILOG_INFO("JsWindowStage::OnGetSubWindow : Get sub windows, size = %{public}zu", subWindowVec.size());
-        };
-    NativeValue* callback = (info.argv[0] != nullptr && info.argv[0]->TypeOf() == NATIVE_FUNCTION) ?
-        info.argv[0] : nullptr;
+    AsyncTask::CompleteCallback complete = [weak = windowStage_](
+                                               NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto weakWindowStage = weak.lock();
+        if (weakWindowStage == nullptr) {
+            HILOG_ERROR("JsWindowStage::OnGetSubWindow : Window scene is nullptr");
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
+            return;
+        }
+        std::vector<std::shared_ptr<Window>> subWindowVec = weakWindowStage->GetSubWindow();
+        task.Resolve(engine, CreateJsSubWindowArrayObject(engine, subWindowVec));
+        HILOG_INFO("JsWindowStage::OnGetSubWindow : Get sub windows, size = %{public}zu", subWindowVec.size());
+    };
+    NativeValue* callback =
+        (info.argv[0] != nullptr && info.argv[0]->TypeOf() == NATIVE_FUNCTION) ? info.argv[0] : nullptr;
     NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsWindowStage::OnGetSubWindow",
-        engine, CreateAsyncTaskWithLastParam(engine, callback, nullptr, std::move(complete), &result));
+    AsyncTask::Schedule("JsWindowStage::OnGetSubWindow", engine,
+        CreateAsyncTaskWithLastParam(engine, callback, nullptr, std::move(complete), &result));
     return result;
 }
 
@@ -383,7 +377,6 @@ void JsWindowStage::Finalizer(NativeEngine* engine, void* data, void* hint)
 {
     std::unique_ptr<JsWindowStage>(static_cast<JsWindowStage*>(data));
 }
-
 
 NativeValue* CreateJsWindowStage(NativeEngine& engine, std::shared_ptr<Rosen::WindowStage> WindowStage)
 {
@@ -393,21 +386,16 @@ NativeValue* CreateJsWindowStage(NativeEngine& engine, std::shared_ptr<Rosen::Wi
     std::unique_ptr<JsWindowStage> jsWindowStage = std::make_unique<JsWindowStage>(WindowStage);
     object->SetNativePointer(jsWindowStage.release(), JsWindowStage::Finalizer, nullptr);
 
-    const char *moduleName = "JsWindowStage";
-    BindNativeFunction(engine,
-        *object, "loadContent", moduleName, JsWindowStage::LoadContent);
-    BindNativeFunction(engine,
-        *object, "getMainWindow", moduleName, JsWindowStage::GetMainWindow);
-    BindNativeFunction(engine,
-        *object, "getMainWindowSync", moduleName, JsWindowStage::GetMainWindowSync);
-    BindNativeFunction(engine,
-        *object, "createSubWindow", moduleName, JsWindowStage::CreateSubWindow);
-    BindNativeFunction(engine,
-        *object, "getSubWindow", moduleName, JsWindowStage::GetSubWindow);
+    const char* moduleName = "JsWindowStage";
+    BindNativeFunction(engine, *object, "loadContent", moduleName, JsWindowStage::LoadContent);
+    BindNativeFunction(engine, *object, "getMainWindow", moduleName, JsWindowStage::GetMainWindow);
+    BindNativeFunction(engine, *object, "getMainWindowSync", moduleName, JsWindowStage::GetMainWindowSync);
+    BindNativeFunction(engine, *object, "createSubWindow", moduleName, JsWindowStage::CreateSubWindow);
+    BindNativeFunction(engine, *object, "getSubWindow", moduleName, JsWindowStage::GetSubWindow);
     BindNativeFunction(engine, *object, "on", moduleName, JsWindowStage::On);
     BindNativeFunction(engine, *object, "off", moduleName, JsWindowStage::Off);
 
     return objValue;
 }
-}  // namespace Rosen
-}  // namespace OHOS
+} // namespace Rosen
+} // namespace OHOS
