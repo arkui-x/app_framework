@@ -31,7 +31,6 @@ using namespace AbilityRuntime;
 
 static thread_local std::map<std::string, std::shared_ptr<NativeReference>> g_jsWindowMap;
 std::recursive_mutex g_jsWindowMutex;
-static int finalizerCnt = 0;
 
 JsWindow::JsWindow(std::shared_ptr<Rosen::Window>& window) : windowToken_(window) {}
 
@@ -762,7 +761,6 @@ std::string JsWindow::GetWindowName()
 
 void JsWindow::Finalizer(NativeEngine* engine, void* data, void* hint)
 {
-    HILOG_INFO("finalizerCnt:%{public}d", ++finalizerCnt);
     auto jsWin = std::unique_ptr<JsWindow>(static_cast<JsWindow*>(data));
     if (jsWin == nullptr) {
         HILOG_ERROR("jsWin is nullptr");
