@@ -50,9 +50,7 @@ static bool CheckEglExtension(const char* extensions, const char* extension)
             extensions++;
             continue;
         }
-
         n = strcspn(extensions, CHARACTER_STRING_WHITESPACE);
-
         /* Compare strings */
         if (n == extlen && strncmp(extension, extensions, n) == 0) {
             return true; /* Found */
@@ -107,8 +105,8 @@ void RenderContext::CreatePbufferSurface()
     const char* extensions = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
 
     if ((extensions != nullptr) &&
-       (!CheckEglExtension(extensions, EGL_KHR_SURFACELESS_CONTEXT)) &&
-       (pbufferSurface_ == EGL_NO_SURFACE)) {
+        (!CheckEglExtension(extensions, EGL_KHR_SURFACELESS_CONTEXT)) &&
+        (pbufferSurface_ == EGL_NO_SURFACE)) {
         EGLint attribs[] = {EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
         pbufferSurface_ = eglCreatePbufferSurface(eglDisplay_, config_, attribs);
         if (pbufferSurface_ == EGL_NO_SURFACE) {
@@ -284,8 +282,9 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
     framebufferInfo.fFormat = GL_RGBA8;
 
     SkColorType colorType = kRGBA_8888_SkColorType;
-
-    GrBackendRenderTarget backendRenderTarget(width, height, 0, 8, framebufferInfo);
+    /* sampleCnt and stencilBits for GrBackendRenderTarget */
+    const int stencilBufferSize = 8;
+    GrBackendRenderTarget backendRenderTarget(width, height, 0, stencilBufferSize, framebufferInfo);
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
     sk_sp<SkColorSpace> skColorSpace = nullptr;
 

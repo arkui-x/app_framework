@@ -25,6 +25,7 @@ config("composer_public_config") {
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/composer",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
   ]
 }
 
@@ -38,10 +39,10 @@ ohos_source_set("ios") {
     "rs_frame_report.cpp",
     "rs_marshalling_helper.cpp",
     "rs_render_service_client.mm",
-    "rs_surface_cpu.mm",
     "rs_surface_frame_ios.cpp",
     "rs_system_properties.cpp",
     "rs_vsync_client_ios.mm",
+    "render_context.mm",
   ]
 
   include_dirs = [
@@ -52,7 +53,14 @@ ohos_source_set("ios") {
 
   defines += [ "MODULE_RSB" ]
   if (rs_enable_gpu) {
-    sources += [ "render_context.cpp" ]
+    defines += [ "USE_GPU" ]
+    sources += [ 
+      "rs_surface_gpu.mm",
+    ]
+  } else {
+    sources += [ 
+      "rs_surface_cpu.mm",
+    ]
   }
 
   cflags = [ "-std=c++17" ]
