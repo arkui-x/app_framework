@@ -34,6 +34,7 @@ ohos_source_set("ios") {
 
   sources = [
     "$rosen_root/modules/render_service_base/src/platform/ohos/rs_log.cpp",
+    "render_context.mm",
     "rs_accessibility.cpp",
     "rs_ashmem_helper.cpp",
     "rs_frame_report.cpp",
@@ -42,7 +43,6 @@ ohos_source_set("ios") {
     "rs_surface_frame_ios.cpp",
     "rs_system_properties.cpp",
     "rs_vsync_client_ios.mm",
-    "render_context.mm",
   ]
 
   include_dirs = [
@@ -54,13 +54,9 @@ ohos_source_set("ios") {
   defines += [ "MODULE_RSB" ]
   if (rs_enable_gpu) {
     defines += [ "USE_GPU" ]
-    sources += [ 
-      "rs_surface_gpu.mm",
-    ]
+    sources += [ "rs_surface_gpu.mm" ]
   } else {
-    sources += [ 
-      "rs_surface_cpu.mm",
-    ]
+    sources += [ "rs_surface_cpu.mm" ]
   }
 
   cflags = [ "-std=c++17" ]
