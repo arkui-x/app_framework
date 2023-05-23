@@ -64,9 +64,7 @@ void RSSurfaceFrameIOS::CreateSurface()
         ROSEN_LOGE("RSSurfaceFrameIOS::CreateSurface, context_ is null!");
         return;
     }
-    // if (!surface_ || (width_ != surface_->width() || height_ != surface_->height())) {
-        surface_ = context_->AcquireSurface(width_,height_);
-    // }
+    surface_ = context_->AcquireSurface(width_,height_);
 #else
     if (!surface_) {
         SkImageInfo info = SkImageInfo::MakeN32(width_, height_, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());

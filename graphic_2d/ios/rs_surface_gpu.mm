@@ -15,13 +15,12 @@
 
 #include "rs_surface_gpu.h"
 
+#include <memory>
+#include <__nullptr>
 #include <QuartzCore/CALayer.h>
 #include <UIKit/UIKit.h>
-#include <__nullptr>
-
 #include <include/core/SkColorSpace.h>
 #include <include/gpu/gl/GrGLInterface.h>
-#include <memory>
 
 #include "platform/common/rs_log.h"
 #include "rs_surface_frame_ios.h"
@@ -39,10 +38,6 @@ bool RSSurfaceGPU::IsValid() const
     return layer_ != nullptr && renderContext_ != nullptr;
 }
 
-void RSSurfaceGPU::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
-{
-}
-
 std::unique_ptr<RSSurfaceFrame> RSSurfaceGPU::RequestFrame(
     int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC)
 {
@@ -50,9 +45,11 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceGPU::RequestFrame(
         ROSEN_LOGE("RSSurfaceGPU::RequestFrame, layer_ is nullptr");
         return nullptr;
     }
-    
+    if (!SetupGrContext()) {
+        return nullptr;
+    }
     renderContext_->CreateEGLSurface(layer_);
-    renderContext_->MakeCurrent();
+    renderContext_->MakeCurrent(nullptr, nullptr);
     auto frame = std::make_unique<RSSurfaceFrameIOS>(width, height);
     frame->SetRenderContext(renderContext_);
     frame->CreateSurface();
@@ -62,19 +59,18 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceGPU::RequestFrame(
 bool RSSurfaceGPU::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
     if (frame == nullptr) {
-        ROSEN_LOGE("RSSurfaceFrame::FlushFrame frame is nullptr");
+        ROSEN_LOGE("RSSurfaceGPU::FlushFrame frame is nullptr");
+        return false;
+    }
+    if (!IsValid()) {
+        ROSEN_LOGE("RSSurfaceGPU::FlushFrame, layer_ or renderContent_ is nullptr");
         return false;
     }
 
-    if (renderContext_ == nullptr) {
-        ROSEN_LOGE("RSSurfaceAndroid::FlushFrame, GetRenderContext failed!");
-        return false;
-    }
-
-    // gpu render flush
-    renderContext_->MakeCurrent();
+    /* gpu render flush */
+    renderContext_->MakeCurrent(nullptr, nullptr);
     renderContext_->RenderFrame();
-    renderContext_->SwapBuffers();
+    renderContext_->SwapBuffers(nullptr);
 
     return true;
 }
@@ -89,53 +85,19 @@ void RSSurfaceGPU::SetRenderContext(RenderContext* context)
     renderContext_ = context;
 }
 
-void RSSurfaceGPU::YInvert(void *addr, int32_t width, int32_t height)
-{
-    const auto &pixels = reinterpret_cast<uint32_t *>(addr);
-    const auto &halfHeight = height / 0x2;
-    const auto &tmpPixels = std::make_unique<uint32_t[]>(width * halfHeight);
-    for (int32_t i = 0; i < halfHeight; i++) {
-        for (int32_t j = 0; j < width; j++) {
-            tmpPixels[i * width + j] = pixels[i * width + j];
-        }
-    }
-
-    for (int32_t i = 0; i < halfHeight; i++) {
-        const auto &r = height - 1 - i;
-        for (int32_t j = 0; j < width; j++) {
-            pixels[i * width + j] = pixels[r * width + j];
-        }
-    }
-
-    for (int32_t i = 0; i < halfHeight; i++) {
-        const auto &r = height - 1 - i;
-        for (int32_t j = 0; j < width; j++) {
-            pixels[r * width + j] = tmpPixels[i * width + j];
-        }
-    }
-}
-
 bool RSSurfaceGPU::SetupGrContext()
 {
-    return false;
+    if (renderContext_) {
+        renderContext_->InitializeEglContext();
+        renderContext_->SetUpGrContext();
+    }
+    return true;
 }
 
 uint32_t RSSurfaceGPU::GetQueueSize() const
 {
+    /* cache buffer count */
     return 0x3;
-}
-
-void RSSurfaceGPU::ClearBuffer()
-{
-}
-
-void RSSurfaceGPU::ClearAllBuffer()
-{
-}
-
-void RSSurfaceGPU::ResetBufferAge()
-{
-    ROSEN_LOGD("RSSurfaceGPU: Reset Buffer Age!");
 }
 } // namespace Rosen
 } // namespace OHOS

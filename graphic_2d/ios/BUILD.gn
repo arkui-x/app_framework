@@ -34,6 +34,7 @@ ohos_source_set("ios") {
 
   sources = [
     "$rosen_root/modules/render_service_base/src/platform/ohos/rs_log.cpp",
+    "render_context.mm",
     "rs_accessibility.cpp",
     "rs_ashmem_helper.cpp",
     "rs_frame_report.cpp",
