@@ -13,24 +13,22 @@
  * limitations under the License.
  */
 #include "js_window_manager.h"
+
 #include <ability.h>
-#include "wm_common.h"
+
+#include "hilog.h"
 #include "js_window.h"
 #include "js_window_utils.h"
 #include "window_option.h"
-#include "hilog.h"
+#include "wm_common.h"
 
 namespace OHOS {
 namespace Rosen {
 using namespace AbilityRuntime;
 
-JsWindowManager::JsWindowManager()
-{
-}
+JsWindowManager::JsWindowManager() {}
 
-JsWindowManager::~JsWindowManager()
-{
-}
+JsWindowManager::~JsWindowManager() {}
 
 static void GetNativeContext(NativeEngine& engine, NativeValue* nativeContext, void*& contextPtr, WMError& errCode)
 {
@@ -45,7 +43,8 @@ static void GetNativeContext(NativeEngine& engine, NativeValue* nativeContext, v
     }
 }
 
-static void CreateSubWindowTask(void* contextPtr, std::shared_ptr<WindowOption> windowOption, NativeEngine& engine, AsyncTask& task)
+static void CreateSubWindowTask(
+    void* contextPtr, std::shared_ptr<WindowOption> windowOption, NativeEngine& engine, AsyncTask& task)
 {
     if (windowOption == nullptr) {
         int32_t err = static_cast<int32_t>(WmErrorCode::WM_ERROR_SYSTEM_ABNORMALLY);
@@ -116,19 +115,19 @@ NativeValue* JsWindowManager::OnCreateWindow(NativeEngine& engine, NativeCallbac
         engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
         return engine.CreateUndefined();
     }
-    if (option.GetWindowType() == WindowType::WINDOW_TYPE_APP_SUB_WINDOW) {
-        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
+    if (option.GetWindowType() != WindowType::WINDOW_TYPE_APP_SUB_WINDOW) {
+        HILOG_ERROR("JsWindowManager::OnCreateWindow : Invalid Window Type!");
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_NOT_SYSTEM_APP)));
         return engine.CreateUndefined();
     }
     NativeValue* callback = nullptr;
     if (info.argc > 1) {
         callback = info.argv[1]->TypeOf() == NATIVE_FUNCTION ? info.argv[1] : nullptr; // 1: index of callback
     }
-    AsyncTask::CompleteCallback complete =
-        [=](NativeEngine& engine, AsyncTask& task, int32_t status) {
-            std::shared_ptr<WindowOption> windowOption = std::make_shared<WindowOption>(option);
-             return CreateSubWindowTask(contextPtr,windowOption, engine, task);
-        };
+    AsyncTask::CompleteCallback complete = [=](NativeEngine& engine, AsyncTask& task, int32_t status) {
+        std::shared_ptr<WindowOption> windowOption = std::make_shared<WindowOption>(option);
+        return CreateSubWindowTask(contextPtr, windowOption, engine, task);
+    };
 
     NativeValue* result = nullptr;
     AsyncTask::Schedule("JsWindowManager::OnCreateWindow", engine,
@@ -136,8 +135,8 @@ NativeValue* JsWindowManager::OnCreateWindow(NativeEngine& engine, NativeCallbac
     return result;
 }
 
-bool JsWindowManager::ParseConfigOption(NativeEngine& engine, NativeObject* jsObject,
-    WindowOption& option, void*& contextPtr)
+bool JsWindowManager::ParseConfigOption(
+    NativeEngine& engine, NativeObject* jsObject, WindowOption& option, void*& contextPtr)
 {
     std::string windowName;
     if (ParseJsValue(jsObject, engine, "name", windowName)) {
@@ -159,7 +158,7 @@ bool JsWindowManager::ParseConfigOption(NativeEngine& engine, NativeObject* jsOb
         HILOG_ERROR("JsWindowManager::ParseConfigOption : Failed to convert parameter to winType");
         return false;
     }
-   
+
     NativeValue* value = jsObject->GetProperty("ctx");
     if (value->TypeOf() == NATIVE_UNDEFINED) {
         return true;
@@ -199,10 +198,12 @@ NativeValue* JsWindowManager::OnFindWindowSync(NativeEngine& engine, NativeCallb
         return engine.CreateUndefined();
     }
 
-    HILOG_INFO("JsWindowManager::OnFindWindowSync : Window name = %{public}s, err = %{public}d", windowName.c_str(), errCode);
+    HILOG_INFO(
+        "JsWindowManager::OnFindWindowSync : Window name = %{public}s, err = %{public}d", windowName.c_str(), errCode);
     std::shared_ptr<NativeReference> jsWindowObj = FindJsWindowObject(windowName);
     if (jsWindowObj != nullptr && jsWindowObj->Get() != nullptr) {
-        HILOG_INFO("JsWindowManager::OnFindWindowSync : Find window: %{public}s, use exist js window", windowName.c_str());
+        HILOG_INFO(
+            "JsWindowManager::OnFindWindowSync : Find window: %{public}s, use exist js window", windowName.c_str());
         return jsWindowObj->Get();
     } else {
         HILOG_INFO("JsWindowManager::OnFindWindowSync : could not find window from js window, call Window::FindWindow");
@@ -252,9 +253,9 @@ static void GetTopWindowTask(void* contextPtr, NativeEngine& engine, AsyncTask& 
 NativeValue* JsWindowManager::OnGetLastWindow(NativeEngine& engine, NativeCallbackInfo& info)
 {
     HILOG_INFO("JsWindowManager::OnGetLastWindow : Start...");
-     WMError errCode = WMError::WM_OK;
-     NativeValue* nativeContext = nullptr;
-     NativeValue* nativeCallback = nullptr;
+    WMError errCode = WMError::WM_OK;
+    NativeValue* nativeContext = nullptr;
+    NativeValue* nativeCallback = nullptr;
     void* contextPtr = nullptr;
     HILOG_INFO("JsWindowManager::OnGetLastWindow : check parameter, info.argc = %{public}zu", info.argc);
     if (info.argc < 1 || info.argc > 2) {
@@ -272,13 +273,12 @@ NativeValue* JsWindowManager::OnGetLastWindow(NativeEngine& engine, NativeCallba
         return engine.CreateUndefined();
     }
     HILOG_INFO("JsWindowManager::OnGetLastWindow : processing...");
-    AsyncTask::CompleteCallback complete =
-        [=](NativeEngine& engine, AsyncTask& task, int32_t status) {
-            return GetTopWindowTask(contextPtr, engine, task, true);
-        };
+    AsyncTask::CompleteCallback complete = [=](NativeEngine& engine, AsyncTask& task, int32_t status) {
+        return GetTopWindowTask(contextPtr, engine, task, true);
+    };
     NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsWindowManager::OnGetTopWindow",
-        engine, CreateAsyncTaskWithLastParam(engine, nativeCallback, nullptr, std::move(complete), &result));
+    AsyncTask::Schedule("JsWindowManager::OnGetTopWindow", engine,
+        CreateAsyncTaskWithLastParam(engine, nativeCallback, nullptr, std::move(complete), &result));
     return result;
 }
 
@@ -304,11 +304,11 @@ NativeValue* JsWindowManagerInit(NativeEngine* engine, NativeValue* exportObj)
     object->SetProperty("WindowStageEventType", WindowStageEventTypeInit(engine));
     object->SetProperty("WmErrorCode", WindowErrorCodeInit(engine));
     object->SetProperty("WMError", WindowErrorInit(engine));
-    const char *moduleName = "JsWindowManager";
+    const char* moduleName = "JsWindowManager";
     BindNativeFunction(*engine, *object, "createWindow", moduleName, JsWindowManager::CreateWindow);
     BindNativeFunction(*engine, *object, "findWindow", moduleName, JsWindowManager::FindWindowSync);
     BindNativeFunction(*engine, *object, "getLastWindow", moduleName, JsWindowManager::GetLastWindow);
     return engine->CreateUndefined();
 }
-}  // namespace Rosen
-}  // namespace OHOS
+} // namespace Rosen
+} // namespace OHOS
