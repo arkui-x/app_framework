@@ -15,10 +15,12 @@
 #ifndef RENDER_SERVICE_BASE_ADAPTER_RS_TRACE_ANDROID_H
 #define RENDER_SERVICE_BASE_ADAPTER_RS_TRACE_ANDROID_H
 
+#include <string>
 namespace OHOS {
 namespace Rosen {
 
 void RosenTraceBegin(const char* name);
+void RosenTraceBegin(std::string name);
 void RosenTraceEnd();
 
 } // namespace Rosen
