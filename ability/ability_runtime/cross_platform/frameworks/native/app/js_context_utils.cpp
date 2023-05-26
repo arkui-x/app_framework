@@ -240,7 +240,7 @@ NativeValue* JsBaseContext::OnGetApplicationContext(NativeEngine& engine, Native
     if (systemModule_ != nullptr) {
         return systemModule_->Get();
     }
-    auto systemModule_ = JsRuntime::LoadSystemModuleByEngine(&engine, "application.ApplicationContext", &value, 1);
+    systemModule_ = JsRuntime::LoadSystemModuleByEngine(&engine, "application.ApplicationContext", &value, 1);
     if (systemModule_ == nullptr) {
         HILOG_ERROR("OnGetApplicationContext, invalid systemModule.");
         AbilityRuntimeErrorUtil::Throw(engine, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
