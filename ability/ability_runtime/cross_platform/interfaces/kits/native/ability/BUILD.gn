@@ -50,6 +50,7 @@ template("ability_runtime_abilitykit_native") {
       ":abilitykit_native_config",
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle:bundle_parser_config",
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
+      "${ability_runtime_cross_platform_path}/frameworks/js/napi/napi_common:napi_common_public_config",
     ]
 
     defines = []
@@ -73,7 +74,9 @@ template("ability_runtime_abilitykit_native") {
     ]
 
     deps = [
+      "${ability_runtime_cross_platform_path}/frameworks/js/napi/napi_common:napi_common",
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/jsruntime:cross_platform_jsruntime",
+      "//foundation/appframework/window_manager/dm:dm",
       "//foundation/appframework/window_manager/wm:wm",
       "//foundation/arkui/napi:ace_napi",
     ]

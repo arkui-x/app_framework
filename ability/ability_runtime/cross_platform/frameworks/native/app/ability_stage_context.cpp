@@ -122,7 +122,6 @@ void AbilityStageContext::InitResourceManeger()
     if (!sysResRet) {
         HILOG_ERROR("Add system resource failed");
     }
-
     std::unique_ptr<Global::Resource::ResConfig> resConfig(Global::Resource::CreateResConfig());
     if (resConfig == nullptr) {
         HILOG_ERROR("resConfig is nullptr");
@@ -132,9 +131,7 @@ void AbilityStageContext::InitResourceManeger()
     std::string country { "" };
     std::string script { "" };
     StageApplicationInfoAdapter::GetInstance()->GetLocale(language, country, script);
-
     resConfig->SetLocaleInfo(language.c_str(), script.c_str(), country.c_str());
-
     if (configuration_ != nullptr) {
         auto colorMode = configuration_->GetItem(ConfigurationInner::SYSTEM_COLORMODE);
         Global::Resource::ColorMode mode;
@@ -146,8 +143,19 @@ void AbilityStageContext::InitResourceManeger()
             mode = Global::Resource::ColorMode::COLOR_MODE_NOT_SET;
         }
         resConfig->SetColorMode(mode);
+        auto direction = configuration_->GetItem(ConfigurationInner::APPLICATION_DIRECTION);
+        if (direction == ConfigurationInner::DIRECTION_VERTICAL) {
+            resConfig->SetDirection(Global::Resource::Direction::DIRECTION_VERTICAL);
+        } else if (direction == ConfigurationInner::DIRECTION_HORIZONTAL) {
+            resConfig->SetDirection(Global::Resource::Direction::DIRECTION_HORIZONTAL);
+        }
+        auto densityDpi = configuration_->GetItem(
+            OHOS::AbilityRuntime::Platform::ConfigurationInner::APPLICATION_DENSITYDPI);
+        if (!densityDpi.empty()) {
+            double density = std::stoi(densityDpi) / 160.0f;
+            resConfig->SetScreenDensity(density);
+        }
     }
-    
     resourceManager_->UpdateResConfig(*resConfig);
 }
 

@@ -17,6 +17,7 @@
 
 #include "hilog.h"
 #include "js_runtime_utils.h"
+#include "resource_manager_addon.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -191,12 +192,9 @@ NativeValue* CreateJsConfiguration(NativeEngine& engine, const Platform::Configu
 NativeValue* CreateJsResourceManager(NativeEngine& engine,
     const std::shared_ptr<Global::Resource::ResourceManager>& resMgr, const std::shared_ptr<Platform::Context>& context)
 {
-    NativeValue* objValue = engine.CreateObject();
-    if (objValue == nullptr) {
-        HILOG_ERROR("CreateJsResourceManager, Failed to engine.CreateObject");
-        return objValue;
-    }
-    return objValue;
+    napi_env env = reinterpret_cast<napi_env>(&engine);
+    napi_value result = Global::Resource::ResourceManagerAddon::Create(env, "", resMgr, context);
+    return reinterpret_cast<NativeValue*>(result);
 }
 
 NativeValue* CreateJsProcessRunningInfoArray(

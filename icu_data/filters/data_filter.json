@@ -2,7 +2,7 @@
   "strategy": "additive",
   "localeFilter": {
     "filterType": "locale",
-    "includeChildren": true,
+    "includeChildren": false,
     "includelist": [
       "en",
       "zh"
@@ -10,16 +10,11 @@
   },
   "featureFilters": {
     "locales_tree": "include",
-    "confusables": "exclude",
-    "coll_ucadata": "exclude",
-    "translit": "exclude",
-    "conversion_mappings": "exclude",
     "normalization": {
       "whitelist": [
         "nfkc"
       ]
     },
-    "stringprep": "exclude",
     "lang_tree": {
       "whitelist": [
         "root",
@@ -27,7 +22,6 @@
         "zh"
       ]
     },
-    "region_tree": "exclude",
     "unit_tree": {
       "whitelist": [
         "root",
@@ -49,25 +43,13 @@
         "word"
       ]
     },
-    "brkitr_dictionaries": {
-      "whitelist": [
-        "burmesedict",
-        "thaidict",
-        "laodict",
-        "khmerdict",
-        "cjdict"
-      ]
-    },
     "brkitr_tree": {
       "whitelist": [
-        "ja",
         "root"
       ]
     },
-    "curr_supplemental": "exclude",
     "cnvalias": "include",
     "ulayout": "include",
-    "unames": "exclude",
     "zone_supplemental": "include",
     "rbnf_tree": {
       "whitelist": [
@@ -81,10 +63,6 @@
         "icustd",
         "likelySubtags",
         "icuver",
-        "metaZones",
-        "timezoneTypes",
-        "windowsZones",
-        "zoneinfo64",
         "supplementalData",
         "numberingSystems",
         "keyTypeData"
@@ -104,5 +82,14 @@
         "zh"
       ]
     }
+  },
+  "fileReplacements": {
+    "directory": "$SRC",
+    "replacements": [
+      {
+        "src": "../../../../../foundation/appframework/icu_data/filters/data/brkitr/root.txt",
+        "dest": "brkitr/root.txt"
+      }
+    ]
   }
 }

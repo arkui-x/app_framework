@@ -21,7 +21,7 @@
 #include "js_data_struct_converter.h"
 #include "js_error_utils.h"
 #include "js_runtime_utils.h"
-#include "js_want_utils.h"
+#include "napi_common_want.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -54,7 +54,7 @@ NativeValue* JsAbilityContext::OnStartAbility(NativeEngine& engine, NativeCallba
     }
 
     AAFwk::Want want;
-    UnwrapJsWant(engine, info.argv[0], want);
+    OHOS::AppExecFwk::UnwrapWant(reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[0]), want);
     decltype(info.argc) unwrapArgc = 1;
 
     auto innerErrorCode = std::make_shared<int>(ERR_OK);

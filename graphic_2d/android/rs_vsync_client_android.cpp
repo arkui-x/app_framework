@@ -15,9 +15,9 @@
 
 #include "rs_vsync_client_android.h"
 
-#include <chrono>
 #include <android/choreographer.h>
 #include <android/looper.h>
+#include <chrono>
 #include <sys/prctl.h>
 
 #include "platform/common/rs_log.h"
@@ -40,6 +40,9 @@ RSVsyncClientAndroid::~RSVsyncClientAndroid()
 {
     running_ = false;
     if (vsyncThread_) {
+        if (looper_) {
+            ALooper_wake(looper_);
+        }
         vsyncThread_->join();
     }
 }
@@ -47,7 +50,7 @@ RSVsyncClientAndroid::~RSVsyncClientAndroid()
 void RSVsyncClientAndroid::OnVsync(long frameTimeNanos, void* data)
 {
     auto client = static_cast<RSVsyncClientAndroid*>(data);
-    if (client) {
+    if (client && client->running_) {
         client->having_ = false;
         int64_t now = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
@@ -58,9 +61,14 @@ void RSVsyncClientAndroid::OnVsync(long frameTimeNanos, void* data)
 
 void RSVsyncClientAndroid::RequestNextVsync()
 {
+    if (!running_) {
+        return;
+    }
 #if defined(__ANDROID_API__ ) && __ANDROID_API__ >= 24
-    if (!having_ && grapher_) {
+    if (grapher_) {
         AChoreographer_postFrameCallback(grapher_, OnVsync, this);
+    } else {
+        needVsyncOnce_ = true;
     }
 #endif
     having_ = true;
@@ -79,6 +87,10 @@ void RSVsyncClientAndroid::VsyncThreadMain()
     ROSEN_LOGD("VsyncThreadMain Aosp");
     looper_ = ALooper_prepare(0);
     grapher_ = AChoreographer_getInstance();
+    if (needVsyncOnce_) {
+        RS_LOGE("RSVsyncClientAndroid need RequestNextVsync at first time");
+        RequestNextVsync();
+    }
     while (running_ && looper_) {
         ALooper_pollOnce(-1, nullptr, nullptr, nullptr);
     }

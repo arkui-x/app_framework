@@ -45,6 +45,8 @@ template("window_manager_napi") {
     include_dirs = [
       "${window_manager_napi_path}/wm/include",
       "${window_manager_napi_path}/innerkits/wm",
+      "${window_manager_napi_path}/kits/napi/window_runtime/window_manager_napi",
+      "${window_manager_napi_path}/kits/napi/window_runtime/window_napi",
       "${window_manager_napi_path}/kits/napi/window_runtime/window_stage_napi",
       "//commonlibrary/c_utils/base/include",
     ]
@@ -56,7 +58,15 @@ template("window_manager_napi") {
       include_dirs += [ "//foundation/arkui/ace_engine/adapter/ios/entrance" ]
     }
 
-    sources = [ "${window_manager_napi_path}/kits/napi/window_runtime/window_stage_napi/js_window_stage.cpp" ]
+    sources = [
+      "${window_manager_napi_path}/kits/napi/window_runtime/window_manager_napi/js_window_manager.cpp",
+      "${window_manager_napi_path}/kits/napi/window_runtime/window_napi/color_parser.cpp",
+      "${window_manager_napi_path}/kits/napi/window_runtime/window_napi/js_window.cpp",
+      "${window_manager_napi_path}/kits/napi/window_runtime/window_napi/js_window_listener.cpp",
+      "${window_manager_napi_path}/kits/napi/window_runtime/window_napi/js_window_register_manager.cpp",
+      "${window_manager_napi_path}/kits/napi/window_runtime/window_napi/js_window_utils.cpp",
+      "${window_manager_napi_path}/kits/napi/window_runtime/window_stage_napi/js_window_stage.cpp",
+    ]
 
     deps = [ "//foundation/arkui/napi:ace_napi" ]
 

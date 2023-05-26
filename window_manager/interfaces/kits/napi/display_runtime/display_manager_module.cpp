@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_JS_WANT_UTILS_H
-#define OHOS_ABILITY_RUNTIME_JS_WANT_UTILS_H
-
-#include "js_runtime_utils.h"
+#include "js_display_manager.h"
 #include "native_engine/native_engine.h"
-#include "want.h"
 
-namespace OHOS {
-namespace AbilityRuntime {
-NativeValue* CreateJsWant(NativeEngine& engine, const AAFwk::Want& want);
-bool UnwrapJsWant(NativeEngine& engine, NativeValue* param, AAFwk::Want& want);
-} // namespace AbilityRuntime
-} // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_JS_WANT_UTILS_H
+extern "C" __attribute__((constructor)) void NAPI_application_displaymanager_AutoRegister()
+{
+    auto moduleManager = NativeModuleManager::GetInstance();
+    NativeModule newModuleInfo = {
+        .name = "display",
+        .fileName = "module/libdisplaymanager_napi.so/display.js",
+        .registerCallback = OHOS::Rosen::JsDisplayManagerInit,
+    };
+
+    moduleManager->Register(&newModuleInfo);
+}

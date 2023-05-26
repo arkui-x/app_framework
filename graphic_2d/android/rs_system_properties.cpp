@@ -122,5 +122,10 @@ int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyCh
 {
     return {};
 }
+
+bool RSSystemProperties::GetDrawOpTraceEnabled()
+{
+    return {};
+}
 } // namespace Rosen
 } // namespace OHOS

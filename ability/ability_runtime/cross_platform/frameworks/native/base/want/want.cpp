@@ -14,30 +14,13 @@
  */
 
 #include "want.h"
+#include "json_want.h"
+#include "hilog.h"
 
 namespace OHOS {
 namespace AAFwk {
 const std::string Want::ABILITY_ID("ability_id");
 const std::string Want::INSTANCE_NAME("instance_name");
-static constexpr int VALUE_TYPE_BOOLEAN = 1;
-static constexpr int VALUE_TYPE_BYTE = 2;
-static constexpr int VALUE_TYPE_CHAR = 3;
-static constexpr int VALUE_TYPE_SHORT = 4;
-static constexpr int VALUE_TYPE_INT = 5;
-static constexpr int VALUE_TYPE_LONG = 6;
-static constexpr int VALUE_TYPE_LONGLONG = 7;
-static constexpr int VALUE_TYPE_FLOAT = 8;
-static constexpr int VALUE_TYPE_DOUBLE = 9;
-static constexpr int VALUE_TYPE_STRING = 10;
-static constexpr int VALUE_TYPE_BOOLEANARRAY = 11;
-static constexpr int VALUE_TYPE_BYTEARRAY = 12;
-static constexpr int VALUE_TYPE_CHARARRAY = 13;
-static constexpr int VALUE_TYPE_SHORTARRAY = 14;
-static constexpr int VALUE_TYPE_INTARRAY = 15;
-static constexpr int VALUE_TYPE_LONGARRAY = 16;
-static constexpr int VALUE_TYPE_FLOATARRAY = 17;
-static constexpr int VALUE_TYPE_DOUBLEARRAY = 18;
-static constexpr int VALUE_TYPE_STRINGARRAY = 19;
 
 /**
  * @description:Default construcotr of Want class, which is used to initialzie flags and URI.
@@ -677,5 +660,54 @@ void Want::CopyFromWant(const Want& want)
     abilityName_ = want.GetAbilityName();
 }
 
+std::string Want::ToJson() const
+{
+    JsonWant jsonWant;
+    for (auto iter = types_.begin(); iter != types_.end(); iter++) {
+        if (iter->second == AAFwk::VALUE_TYPE_BOOLEAN) {
+            WantParams param = {iter->first, (GetBoolParam(iter->first, false) ? "true" : "false"), VALUE_TYPE_BOOLEAN};
+            jsonWant.params.emplace_back(param);
+        } else if (iter->second == AAFwk::VALUE_TYPE_INT) {
+            WantParams param = {iter->first, std::to_string(GetIntParam(iter->first, 0)), VALUE_TYPE_INT};
+            jsonWant.params.emplace_back(param);
+        } else if (iter->second == AAFwk::VALUE_TYPE_DOUBLE) {
+            WantParams param = {iter->first, std::to_string(GetDoubleParam(iter->first, 0)), VALUE_TYPE_DOUBLE};
+            jsonWant.params.emplace_back(param);
+        } else if (iter->second == AAFwk::VALUE_TYPE_STRING) {
+            WantParams param = {iter->first, GetStringParam(iter->first), VALUE_TYPE_DOUBLE};
+            jsonWant.params.emplace_back(param);
+        }
+    }
+
+    nlohmann::json jWant = jsonWant;
+    return jWant.dump();
+}
+
+void Want::ParseJson(const std::string& jsonParams)
+{
+    HILOG_INFO("ParseJson, jsonParams: %{public}s", jsonParams.c_str());
+    if (jsonParams.empty()) {
+        return;
+    }
+
+    nlohmann::json jsonObject = nlohmann::json::parse(jsonParams.c_str(), nullptr, false);
+    if (jsonObject.is_discarded()) {
+        HILOG_ERROR("jsonObject is discarded");
+        return;
+    }
+
+    JsonWant jwant = jsonObject.get<JsonWant>();
+    for (auto iter = jwant.params.begin(); iter != jwant.params.end(); iter++) {
+        if (iter->type = AAFwk::VALUE_TYPE_BOOLEAN) {
+            SetParam(iter->key, (iter->value == "true"));
+        } else if (iter->type = AAFwk::VALUE_TYPE_INT) {
+            SetParam(iter->key, atoi(iter->value.c_str()));
+        } else if (iter->type = AAFwk::VALUE_TYPE_DOUBLE) {
+            SetParam(iter->key, stod(iter->value));
+        } else if (iter->type = AAFwk::VALUE_TYPE_STRING) {
+            SetParam(iter->key, iter->value);
+        }
+    }
+}
 } // namespace AAFwk
 } // namespace OHOS

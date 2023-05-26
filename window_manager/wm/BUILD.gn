@@ -19,7 +19,6 @@ config("window_manager_config") {
     "${app_framework_window_manager_path}/wm/include",
     "${window_manager_napi_path}/innerkits/wm",
     "${window_manager_napi_path}/kits/kits/napi/window_runtime",
-    "//foundation/arkui/ace_engine/adapter/ios/entrance",
   ]
 }
 
@@ -50,7 +49,10 @@ template("window_manager") {
       "//commonlibrary/c_utils/base/include",
     ]
 
-    sources = [ "${app_framework_window_manager_path}/wm/src/window_stage.cpp" ]
+    sources = [
+      "${app_framework_window_manager_path}/wm/src/window_option.cpp",
+      "${app_framework_window_manager_path}/wm/src/window_stage.cpp",
+    ]
 
     deps = [ "${window_manager_napi_path}/kits/napi/window_runtime:wm_napi" ]
 
@@ -67,12 +69,6 @@ template("window_manager") {
     }
 
     deps += [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client_static" ]
-
-    external_deps = [
-      "c_utils:utils",
-      "samgr:samgr_proxy",
-      "//commonlibrary/c_utils/base:utils",
-    ]
   }
 }
 

@@ -16,6 +16,7 @@ import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
 
 config("jsruntime_config") {
   include_dirs = [
+    "//foundation/appframework/resource_management/interfaces/js/innerkits/core/include",
     "//base/global/resource_management/interfaces/inner_api/include",
     "//foundation/arkui/napi",
     "//third_party/flutter/engine",
@@ -31,8 +32,11 @@ config("jsruntime_config") {
     "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/include",
     "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/include",
   ]
-  include_dirs += [ "$ark_toolchain_path/inspector" ]
-  include_dirs += [ "$ark_toolchain_path/websocket" ]
+  include_dirs += [
+    "$ark_toolchain_path",
+    "$ark_toolchain_path/inspector",
+    "$ark_toolchain_path/websocket",
+  ]
   if (target_os == "android") {
     include_dirs += [
       "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni",
@@ -53,7 +57,10 @@ template("ability_runtime_jsruntime") {
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
     ]
 
-    defines = [ "SUPPORT_GRAPHICS" ]
+    defines = [
+      "SUPPORT_GRAPHICS",
+      "__ARKUI_CROSS__",
+    ]
 
     if (target_cpu == "arm64") {
       defines += [ "_ARM64_" ]
@@ -68,13 +75,13 @@ template("ability_runtime_jsruntime") {
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_runtime.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_runtime_utils.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_timer.cpp",
-      "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_want_utils.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_worker.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/runtime.cpp",
     ]
 
     deps = [
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle:cross_platform_bundle_parser",
+      "//foundation/appframework/resource_management/interfaces/js/innerkits/core:resmgr_napi_core",
       "//foundation/arkui/napi:ace_napi",
     ]
 
@@ -84,8 +91,6 @@ template("ability_runtime_jsruntime") {
       defines += [ "IOS_PLATFORM" ]
     }
     deps += [ "//arkcompiler/ets_runtime:libark_jsruntime_static" ]
-
-    deps += [ "//arkcompiler/toolchain:ark_toolchain_packages" ]
 
     deps +=
         [ "//foundation/appframework/arkui/uicontent:ace_uicontent_interface" ]

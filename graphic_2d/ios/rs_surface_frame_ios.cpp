@@ -17,6 +17,7 @@
 #include <queue>
 #include <vector>
 #include "platform/common/rs_log.h"
+#include "render_context/render_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -53,10 +54,18 @@ sk_sp<SkSurface> RSSurfaceFrameIOS::GetSurface()
 
 void RSSurfaceFrameIOS::SetRenderContext(RenderContext* context)
 {
+    context_ = context;
 }
 
 void RSSurfaceFrameIOS::CreateSurface()
 {
+#ifdef USE_GPU
+    if (context_ == nullptr) {
+        ROSEN_LOGE("RSSurfaceFrameIOS::CreateSurface, context_ is null!");
+        return;
+    }
+    surface_ = context_->AcquireSurface(width_,height_);
+#else
     if (!surface_) {
         SkImageInfo info = SkImageInfo::MakeN32(width_, height_, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
         surface_ = SkSurface::MakeRaster(info, nullptr);
@@ -68,6 +77,7 @@ void RSSurfaceFrameIOS::CreateSurface()
             surfaceQueue.pop();
         }
     }
+#endif  
 }
 } // namespace Rosen
 } // namespace OHOS
