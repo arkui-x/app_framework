@@ -61,9 +61,14 @@ void RSVsyncClientAndroid::OnVsync(long frameTimeNanos, void* data)
 
 void RSVsyncClientAndroid::RequestNextVsync()
 {
+    if (!running_) {
+        return;
+    }
 #if defined(__ANDROID_API__ ) && __ANDROID_API__ >= 24
-    if (!having_ && grapher_) {
+    if (grapher_) {
         AChoreographer_postFrameCallback(grapher_, OnVsync, this);
+    } else {
+        needVsyncOnce_ = true;
     }
 #endif
     having_ = true;
@@ -82,6 +87,10 @@ void RSVsyncClientAndroid::VsyncThreadMain()
     ROSEN_LOGD("VsyncThreadMain Aosp");
     looper_ = ALooper_prepare(0);
     grapher_ = AChoreographer_getInstance();
+    if (needVsyncOnce_) {
+        RS_LOGE("RSVsyncClientAndroid need RequestNextVsync at first time");
+        RequestNextVsync();
+    }
     while (running_ && looper_) {
         ALooper_pollOnce(-1, nullptr, nullptr, nullptr);
     }
