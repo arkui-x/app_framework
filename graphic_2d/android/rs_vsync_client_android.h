@@ -47,6 +47,7 @@ private:
     ALooper* looper_ = nullptr;
     AChoreographer* grapher_ = nullptr;
     std::mutex mutex_;
+    bool needVsyncOnce_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
