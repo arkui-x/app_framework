@@ -30,9 +30,9 @@ public:
 
     static std::shared_ptr<StageAssetManager> GetInstance();
     std::list<std::vector<uint8_t>> GetModuleJsonBufferList();
-    std::vector<uint8_t> GetModuleBuffer(const std::string& moduleName, std::string& modulePath);
+    std::vector<uint8_t> GetModuleBuffer(const std::string& moduleName, std::string& modulePath, bool esmodule);
     std::vector<uint8_t> GetModuleAbilityBuffer(
-        const std::string& moduleName, const std::string& abilityName, std::string& modulePath);
+        const std::string& moduleName, const std::string& abilityName, std::string& modulePath, bool esmodule);
     std::string GetBundleCodeDir() const;
     std::string GetCacheDir() const;
     std::string GetTempDir() const;

@@ -38,15 +38,16 @@ std::list<std::vector<uint8_t>> StageAssetManager::GetModuleJsonBufferList()
 {
     return StageAssetProvider::GetInstance()->GetModuleJsonBufferList();
 }
-std::vector<uint8_t> StageAssetManager::GetModuleBuffer(const std::string& moduleName, std::string& modulePath)
+std::vector<uint8_t> StageAssetManager::GetModuleBuffer(
+    const std::string& moduleName, std::string& modulePath, bool esmodule)
 {
-    return StageAssetProvider::GetInstance()->GetModuleBuffer(moduleName, modulePath);
+    return StageAssetProvider::GetInstance()->GetModuleBuffer(moduleName, modulePath, esmodule);
 }
 
 std::vector<uint8_t> StageAssetManager::GetModuleAbilityBuffer(
-    const std::string& moduleName, const std::string& abilityName, std::string& modulePath)
+    const std::string& moduleName, const std::string& abilityName, std::string& modulePath, bool esmodule)
 {
-    return StageAssetProvider::GetInstance()->GetModuleAbilityBuffer(moduleName, abilityName, modulePath);
+    return StageAssetProvider::GetInstance()->GetModuleAbilityBuffer(moduleName, abilityName, modulePath, esmodule);
 }
 
 std::string StageAssetManager::GetBundleCodeDir() const

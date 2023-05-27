@@ -61,7 +61,8 @@ public:
     }
 
     std::unique_ptr<NativeReference> LoadModule(
-        const std::string& moduleName, const std::string& modulePath, std::vector<uint8_t>& buffer);
+        const std::string& moduleName, const std::string& modulePath, std::vector<uint8_t>& buffer,
+        const std::string& srcEntrance, bool esmodule);
     std::unique_ptr<NativeReference> LoadSystemModule(
         const std::string& moduleName, NativeValue* const* argv = nullptr, size_t argc = 0);
     void PostTask(const std::function<void()>& task, const std::string& name, int64_t delayTime);
@@ -78,7 +79,7 @@ protected:
     void Deinitialize();
 
     NativeValue* LoadJsBundle(const std::string& path, std::vector<uint8_t>& buffer);
-    virtual NativeValue* LoadJsModule(const std::string& path, const std::string& hapPath) = 0;
+    virtual NativeValue* LoadJsModule(const std::string& path, std::vector<uint8_t>& buffer) = 0;
 
     bool isArkEngine_ = false;
     bool preloaded_ = false;

@@ -85,11 +85,21 @@ void JsAbility::Init(const std::shared_ptr<AppExecFwk::AbilityInfo>& abilityInfo
     std::string moduleName(abilityInfo->moduleName);
     HILOG_INFO("moduleName: %{public}s abilityName: %{public}s", moduleName.c_str(), abilityInfo->name.c_str());
     std::string modulePath;
-    auto abilityBuffer =
-        StageAssetManager::GetInstance()->GetModuleAbilityBuffer(moduleName, abilityInfo->name, modulePath);
+    if (abilityInfo->srcEntrance.empty()) {
+        HILOG_ERROR("abilityInfo srcEntrance is empty");
+        return;
+    }
+    bool esmodule = abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
+    auto abilityBuffer = StageAssetManager::GetInstance()->GetModuleAbilityBuffer(moduleName,
+        abilityInfo->name, modulePath, esmodule);
     HILOG_INFO("modulePath: %{public}s ", modulePath.c_str());
-
-    jsAbilityObj_ = jsRuntime_.LoadModule(moduleName, modulePath, abilityBuffer);
+    if (esmodule) {
+        modulePath = abilityInfo->srcEntrance;
+        modulePath.erase(modulePath.rfind("."));
+        modulePath.append(".abc");
+    }
+    jsAbilityObj_ = jsRuntime_.LoadModule(moduleName, modulePath, abilityBuffer,
+        abilityInfo->srcEntrance, esmodule);
     if (jsAbilityObj_ == nullptr) {
         HILOG_ERROR("Failed to get Ability object");
         return;

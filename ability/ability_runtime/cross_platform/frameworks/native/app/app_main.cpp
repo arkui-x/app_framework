@@ -94,7 +94,8 @@ void AppMain::ScheduleLaunchApplication()
     applicationContext->SetApplicationInfo(applicationInfo);
     application_->SetApplicationContext(applicationContext);
 
-    if (!CreateRuntime()) {
+    auto bundleInfo = bundleContainer_->GetBundleInfo();
+    if (!CreateRuntime(applicationInfo->bundleName, bundleInfo->entryModuleName)) {
         HILOG_ERROR("runtime create failed.");
         return;
     }
@@ -102,13 +103,15 @@ void AppMain::ScheduleLaunchApplication()
     HILOG_INFO("Launch application success.");
 }
 
-bool AppMain::CreateRuntime()
+bool AppMain::CreateRuntime(const std::string& bundleName, const std::string& moduleName)
 {
     OHOS::AbilityRuntime::Runtime::Options options;
     options.loadAce = true;
-    options.isBundle = true;
     options.eventRunner = runner_;
     options.codePath = StageAssetManager::GetInstance()->GetBundleCodeDir();
+    options.bundleName = bundleName;
+    auto hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
+    options.isBundle = (hapModuleInfo->compileMode != AppExecFwk::CompileMode::ES_MODULE);
     auto runtime = AbilityRuntime::Runtime::Create(options);
     if (runtime == nullptr) {
         return false;

@@ -49,6 +49,7 @@ constexpr int32_t DEFAULT_ARK_PROPERTIES = -1;
 constexpr size_t DEFAULT_GC_THREAD_NUM = 7;
 constexpr size_t DEFAULT_LONG_PAUSE_TIME = 40;
 constexpr char TIMER_TASK[] = "uv_timer_task";
+constexpr char MERGE_ABC_PATH[] = "/ets/modules.abc";
 
 class ArkJsRuntime : public JsRuntime {
 public:
@@ -73,9 +74,35 @@ public:
         return true;
     }
 
-    NativeValue* LoadJsModule(const std::string& path, const std::string& hapPath) override
+    NativeValue* LoadJsModule(const std::string& path, std::vector<uint8_t>& buffer) override
     {
-        return nullptr;
+        std::string assetPath = moduleName_ + MERGE_ABC_PATH;
+        HILOG_INFO("LoadJsModule path %{public}s", path.c_str());
+        HILOG_INFO("LoadJsModule assetPath %{public}s", assetPath.c_str());
+        HILOG_INFO("LoadJsModule moduleName_ %{public}s", moduleName_.c_str());
+        panda::JSNApi::SetAssetPath(vm_, assetPath);
+        panda::JSNApi::SetModuleName(vm_, moduleName_);
+        bool result = nativeEngine_->RunScriptBuffer(path.c_str(), buffer, false) != nullptr;
+        if (!result) {
+            HILOG_ERROR("RunScriptBuffer failed path: %{public}s", path.c_str());
+            return nullptr;
+        }
+
+        if (!vm_) {
+            HILOG_ERROR("pointer is nullptr.");
+            return nullptr;
+        }
+        panda::Local<panda::ObjectRef> exportObj = panda::JSNApi::GetExportObject(vm_, path, "default");
+        if (exportObj->IsNull()) {
+            HILOG_ERROR("Get export object failed");
+            return nullptr;
+        }
+        if (!nativeEngine_) {
+            HILOG_ERROR("pointer is nullptr.");
+            return nullptr;
+        }
+        return ArkNativeEngine::ArkValueToNativeValue(
+            static_cast<ArkNativeEngine*>(nativeEngine_.get()), exportObj);
     }
 
 private:
@@ -107,6 +134,8 @@ private:
         nativeEngine_ = std::make_unique<ArkNativeEngine>(vm_, static_cast<JsRuntime*>(this));
 
         isBundle_ = options.isBundle;
+        panda::JSNApi::SetBundle(vm_, options.isBundle);
+        panda::JSNApi::SetBundleName(vm_, options.bundleName);
         return JsRuntime::Initialize(options);
     }
 
@@ -292,6 +321,8 @@ void JsRuntime::Deinitialize()
 
 NativeValue* JsRuntime::LoadJsBundle(const std::string& path, std::vector<uint8_t>& buffer)
 {
+    HILOG_INFO("LoadJsBundle path %{public}s", path.c_str());
+    HILOG_INFO("LoadJsBundle moduleName_ %{public}s", moduleName_.c_str());
     NativeObject* globalObj = ConvertNativeValueTo<NativeObject>(nativeEngine_->GetGlobal());
     NativeValue* exports = nativeEngine_->CreateObject();
     globalObj->SetProperty("exports", exports);
@@ -317,10 +348,11 @@ NativeValue* JsRuntime::LoadJsBundle(const std::string& path, std::vector<uint8_
     return exportObj;
 }
 
-std::unique_ptr<NativeReference> JsRuntime::LoadModule(
-    const std::string& moduleName, const std::string& modulePath, std::vector<uint8_t>& buffer)
+std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& moduleName,
+    const std::string& modulePath, std::vector<uint8_t>& buffer, const std::string& srcEntrance, bool esmodule)
 {
-    HILOG_INFO("JsRuntime::LoadModule(%{public}s, %{public}s)", moduleName.c_str(), modulePath.c_str());
+    HILOG_INFO("JsRuntime::LoadModule(%{public}s, %{public}s, %{public}s)",
+        moduleName.c_str(), modulePath.c_str(), srcEntrance.c_str());
     HandleScope handleScope(*this);
 
     std::string path = moduleName;
@@ -336,7 +368,17 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(
     if (it != modules_.end()) {
         classValue = it->second->Get();
     } else {
-        classValue = LoadJsBundle(modulePath, buffer);
+        if (esmodule) {
+            std::string fileName;
+            fileName.append(moduleName_).append("/").append(srcEntrance);
+            fileName.erase(fileName.rfind("."));
+            fileName.append(".abc");
+            std::regex pattern(std::string("\\.") + std::string("/"));
+            fileName = std::regex_replace(fileName, pattern, "");
+            classValue = LoadJsModule(fileName, buffer);
+        } else {
+            classValue = LoadJsBundle(modulePath, buffer);
+        }
         if (classValue == nullptr) {
             return std::unique_ptr<NativeReference>();
         }
