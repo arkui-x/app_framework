@@ -50,6 +50,7 @@ constexpr size_t DEFAULT_GC_THREAD_NUM = 7;
 constexpr size_t DEFAULT_LONG_PAUSE_TIME = 40;
 constexpr char TIMER_TASK[] = "uv_timer_task";
 constexpr char MERGE_ABC_PATH[] = "/ets/modules.abc";
+constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
 
 class ArkJsRuntime : public JsRuntime {
 public:
@@ -76,7 +77,7 @@ public:
 
     NativeValue* LoadJsModule(const std::string& path, std::vector<uint8_t>& buffer) override
     {
-        std::string assetPath = moduleName_ + MERGE_ABC_PATH;
+        std::string assetPath = BUNDLE_INSTALL_PATH + moduleName_ + MERGE_ABC_PATH;
         HILOG_INFO("LoadJsModule path %{public}s", path.c_str());
         HILOG_INFO("LoadJsModule assetPath %{public}s", assetPath.c_str());
         HILOG_INFO("LoadJsModule moduleName_ %{public}s", moduleName_.c_str());
