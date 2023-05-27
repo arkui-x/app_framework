@@ -454,6 +454,8 @@ NativeValue* JsWindow::OnLoadContent(NativeEngine& engine, NativeCallbackInfo& i
     if (info.argc == 2) {
         if (info.argv[1]->TypeOf() == NATIVE_OBJECT) {
             storage = info.argv[1];
+        } else if (info.argv[1]->TypeOf() == NATIVE_FUNCTION) {
+            callback = info.argv[1];
         } else {
             HILOG_INFO(
                 "JsWindow::OnLoadContent : info.argv[1] TypeOf %{public}d errorCode = -1", info.argv[1]->TypeOf());
