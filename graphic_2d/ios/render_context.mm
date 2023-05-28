@@ -124,12 +124,6 @@ bool RenderContext::UpdateStorageSizeIfNecessary()
     const int size_width = layer_size.width * contents_scale;
     const int size_height = layer_size.height * contents_scale;
 
-    if ((size_width == storage_width_) && (size_height == storage_height_)) {
-        ROSEN_LOGE("size_width == storage_width_ && size_height == storage_height_");
-        /* Nothing to since the stoage size is already consistent with the layer. */
-        return true;
-    }
-
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
     glBindRenderbuffer(GL_RENDERBUFFER, colorbuffer_);
 
