@@ -105,7 +105,7 @@ NativeValue* CreateJsDisplayObject(NativeEngine& engine, sptr<Display>& display)
     object->SetProperty("id", CreateJsValue(engine, static_cast<uint32_t>(info->GetDisplayId())));
     object->SetProperty("width", CreateJsValue(engine, info->GetWidth()));
     object->SetProperty("height", CreateJsValue(engine, info->GetHeight()));
-    object->SetProperty("orientation", CreateJsValue(engine, info->GetDisplayOrientation()));
+    object->SetProperty("orientation", CreateJsValue(engine, info->GetOrientation()));
     if (jsDisplayObj == nullptr || jsDisplayObj->Get() == nullptr) {
         std::unique_ptr<JsDisplay> jsDisplay = std::make_unique<JsDisplay>(display);
         object->SetNativePointer(jsDisplay.release(), JsDisplay::Finalizer, nullptr);
