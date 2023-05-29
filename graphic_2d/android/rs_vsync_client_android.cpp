@@ -65,13 +65,15 @@ void RSVsyncClientAndroid::RequestNextVsync()
         return;
     }
 #if defined(__ANDROID_API__ ) && __ANDROID_API__ >= 24
-    if (grapher_) {
+    if (!having_ && grapher_) {
+        having_ = true;
         AChoreographer_postFrameCallback(grapher_, OnVsync, this);
     } else {
         needVsyncOnce_ = true;
     }
-#endif
+#else
     having_ = true;
+#endif
 }
 
 void RSVsyncClientAndroid::SetVsyncCallback(VsyncCallback callback)
