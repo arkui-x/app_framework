@@ -75,22 +75,20 @@ std::shared_ptr<AbilityStage> JsAbilityStage::Create(
     std::string modulePath;
     auto& jsRuntime = static_cast<JsRuntime&>(*runtime);
     std::unique_ptr<NativeReference> moduleObj;
-    if (!hapModuleInfo.srcEntrance.empty()) {
-        bool esmodule = hapModuleInfo.compileMode == AppExecFwk::CompileMode::ES_MODULE;
-        auto buffer = StageAssetManager::GetInstance()->GetModuleBuffer(hapModuleInfo.moduleName,
-            modulePath, esmodule);
-        if (esmodule) {
-            modulePath = hapModuleInfo.srcEntrance;
-            modulePath.erase(modulePath.rfind("."));
-            modulePath.append(".abc");
-        }
-        std::string moduleName(hapModuleInfo.moduleName);
-        moduleName.append("::").append("AbilityStage");
-        HILOG_INFO("moduleName: %{public}s", moduleName.c_str());
-
-        moduleObj = jsRuntime.LoadModule(moduleName, modulePath, buffer,
-            hapModuleInfo.srcEntrance, esmodule);
+    bool esmodule = hapModuleInfo.compileMode == AppExecFwk::CompileMode::ES_MODULE;
+    auto buffer = StageAssetManager::GetInstance()->GetModuleBuffer(hapModuleInfo.moduleName,
+        modulePath, esmodule);
+    if (esmodule && !hapModuleInfo.srcEntrance.empty()) {
+        modulePath = hapModuleInfo.srcEntrance;
+        modulePath.erase(modulePath.rfind("."));
+        modulePath.append(".abc");
     }
+    std::string moduleName(hapModuleInfo.moduleName);
+    moduleName.append("::").append("AbilityStage");
+    HILOG_INFO("moduleName: %{public}s", moduleName.c_str());
+
+    moduleObj = jsRuntime.LoadModule(moduleName, modulePath, buffer,
+        hapModuleInfo.srcEntrance, esmodule);
     return std::make_shared<JsAbilityStage>(jsRuntime, std::move(moduleObj));
 }
 
