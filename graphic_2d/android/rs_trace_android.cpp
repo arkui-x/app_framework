@@ -25,6 +25,11 @@ void RosenTraceBegin(const char* name)
     }
 }
 
+void RosenTraceBegin(std::string name)
+{
+    ATrace_beginSection(name.c_str());
+}
+
 void RosenTraceEnd()
 {
     ATrace_endSection();
