@@ -32,6 +32,15 @@ RSSurfaceAndroid::RSSurfaceAndroid(ANativeWindow* data)
     ROSEN_LOGD("RSSurfaceAndroid entry with %p", nativeWindow_);
 }
 
+RSSurfaceAndroid::~RSSurfaceAndroid()
+{
+    if (renderContext_ != nullptr) {
+        renderContext_->DestroyEGLSurface(eglSurface_);
+    }
+    nativeWindow_ = nullptr;
+    eglSurface_ = EGL_NO_SURFACE;
+}
+
 bool RSSurfaceAndroid::IsValid() const
 {
     return nativeWindow_ != nullptr;

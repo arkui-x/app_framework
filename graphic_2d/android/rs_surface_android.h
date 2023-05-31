@@ -30,7 +30,7 @@ class RenderContext;
 class RSSurfaceAndroid : public RSSurface {
 public:
     RSSurfaceAndroid(ANativeWindow* data);
-    ~RSSurfaceAndroid() override = default;
+    ~RSSurfaceAndroid() override;
 
     bool IsValid() const override;
 
