@@ -352,8 +352,7 @@ NativeValue* JsRuntime::LoadJsBundle(const std::string& path, std::vector<uint8_
 std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& moduleName,
     const std::string& modulePath, std::vector<uint8_t>& buffer, const std::string& srcEntrance, bool esmodule)
 {
-    HILOG_INFO("JsRuntime::LoadModule(%{public}s, %{public}s, %{public}s)",
-        moduleName.c_str(), modulePath.c_str(), srcEntrance.c_str());
+    HILOG_INFO("JsRuntime::LoadModule(%{public}s, %{public}s", moduleName.c_str(), modulePath.c_str());
     HandleScope handleScope(*this);
 
     std::string path = moduleName;
