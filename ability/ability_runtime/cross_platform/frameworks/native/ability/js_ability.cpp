@@ -84,11 +84,11 @@ void JsAbility::Init(const std::shared_ptr<AppExecFwk::AbilityInfo>& abilityInfo
 
     std::string moduleName(abilityInfo->moduleName);
     HILOG_INFO("moduleName: %{public}s abilityName: %{public}s", moduleName.c_str(), abilityInfo->name.c_str());
-    moduleName.append("::").append(abilityInfo->name);
     std::string modulePath;
     bool esmodule = abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
     auto abilityBuffer = StageAssetManager::GetInstance()->GetModuleAbilityBuffer(moduleName,
         abilityInfo->name, modulePath, esmodule);
+    moduleName.append("::").append(abilityInfo->name);
     HILOG_INFO("modulePath: %{public}s ", modulePath.c_str());
     if (esmodule) {
         if (abilityInfo->srcEntrance.empty()) {
