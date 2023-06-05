@@ -23,7 +23,7 @@
 
 namespace OHOS {
 namespace Rosen {
-NativeValue* CreateJsWindowObject(NativeEngine& engine, std::shared_ptr<Rosen::Window> Window);
+NativeValue* CreateJsWindowObject(NativeEngine& engine, std::shared_ptr<Rosen::Window>& Window);
 std::shared_ptr<NativeReference> FindJsWindowObject(std::string windowName);
 void RemoveJsWindowObject(std::string windowName);
 class JsWindow {
