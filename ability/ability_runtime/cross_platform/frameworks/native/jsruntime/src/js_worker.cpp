@@ -88,11 +88,8 @@ void InitWorkerFunc(NativeEngine* nativeEngine)
         auto workerPostTask = [nativeEngine](std::function<void()>&& callback) {
             nativeEngine->CallDebuggerPostTaskFunc(std::move(callback));
         };
-#if !defined(IOS_PLATFORM)
-        panda::JSNApi::StartDebugger(ARK_DEBUGGER_LIB_PATH, vm, needBreakPoint, instanceId, workerPostTask);
-#else
-        panda::JSNApi::StartDebugger(nullptr, vm, needBreakPoint, instanceId, workerPostTask);
-#endif
+        panda::JSNApi::DebugOption debugOption = {ARK_DEBUGGER_LIB_PATH, needBreakPoint};
+        panda::JSNApi::StartDebugger(vm, debugOption, instanceId, workerPostTask);
     }
 }
 
