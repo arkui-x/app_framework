@@ -35,7 +35,7 @@ std::recursive_mutex g_jsWindowMutex;
 JsWindow::JsWindow(std::shared_ptr<Rosen::Window>& window) : windowToken_(window)
 {
     HILOG_INFO("JsWindow::JsWindow");
-     NotifyNativeWinDestroyFunc func = [](std::string windowName) {
+    NotifyNativeWinDestroyFunc func = [](std::string windowName) {
         std::lock_guard<std::recursive_mutex> lock(g_jsWindowMutex);
         if (windowName.empty() || g_jsWindowMap.count(windowName) == 0) {
             HILOG_ERROR("Can not find window %{public}s ", windowName.c_str());
@@ -49,7 +49,7 @@ JsWindow::JsWindow(std::shared_ptr<Rosen::Window>& window) : windowToken_(window
 
 JsWindow::~JsWindow()
 {
-     HILOG_INFO("JsWindow::~JsWindow");
+    HILOG_INFO("JsWindow::~JsWindow");
 }
 
 static void LoadContentTask(std::shared_ptr<NativeReference> contentStorage, std::string contextUrl,
