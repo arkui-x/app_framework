@@ -95,7 +95,9 @@ void JsAbility::Init(const std::shared_ptr<AppExecFwk::AbilityInfo>& abilityInfo
             HILOG_ERROR("abilityInfo srcEntrance is empty");
             return;
         }
-        modulePath = abilityInfo->srcEntrance;
+        modulePath = abilityInfo->package;
+        modulePath.append("/");
+        modulePath.append(abilityInfo->srcEntrance);
         modulePath.erase(modulePath.rfind("."));
         modulePath.append(".abc");
     }

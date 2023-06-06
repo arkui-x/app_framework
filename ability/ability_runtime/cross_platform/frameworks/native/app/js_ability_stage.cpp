@@ -80,7 +80,9 @@ std::shared_ptr<AbilityStage> JsAbilityStage::Create(
         modulePath, esmodule);
     if (!esmodule || !hapModuleInfo.srcEntrance.empty()) {
         if (esmodule) {
-            modulePath = hapModuleInfo.srcEntrance;
+            modulePath = hapModuleInfo.name;
+            modulePath.append("/");
+            modulePath.append(hapModuleInfo.srcEntrance);
             modulePath.erase(modulePath.rfind("."));
             modulePath.append(".abc");
         }
