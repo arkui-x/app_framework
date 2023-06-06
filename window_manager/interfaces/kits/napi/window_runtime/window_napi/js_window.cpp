@@ -32,9 +32,25 @@ using namespace AbilityRuntime;
 static thread_local std::map<std::string, std::shared_ptr<NativeReference>> g_jsWindowMap;
 std::recursive_mutex g_jsWindowMutex;
 
-JsWindow::JsWindow(std::shared_ptr<Rosen::Window>& window) : windowToken_(window) {}
+JsWindow::JsWindow(std::shared_ptr<Rosen::Window>& window) : windowToken_(window)
+{
+    HILOG_INFO("JsWindow::JsWindow");
+    NotifyNativeWinDestroyFunc func = [](std::string windowName) {
+        std::lock_guard<std::recursive_mutex> lock(g_jsWindowMutex);
+        if (windowName.empty() || g_jsWindowMap.count(windowName) == 0) {
+            HILOG_ERROR("Can not find window %{public}s ", windowName.c_str());
+            return;
+        }
+        g_jsWindowMap.erase(windowName);
+        HILOG_INFO("Destroy window %{public}s in js window", windowName.c_str());
+    };
+    windowToken_->RegisterWindowDestroyedListener(func);
+}
 
-JsWindow::~JsWindow() {}
+JsWindow::~JsWindow()
+{
+    HILOG_INFO("JsWindow::~JsWindow");
+}
 
 static void LoadContentTask(std::shared_ptr<NativeReference> contentStorage, std::string contextUrl,
     std::shared_ptr<Window> weakWindow, NativeEngine& engine, AsyncTask& task)
@@ -774,7 +790,7 @@ void JsWindow::Finalizer(NativeEngine* engine, void* data, void* hint)
     HILOG_INFO("Remove window %{public}s from g_jsWindowMap", windowName.c_str());
 }
 
-NativeValue* CreateJsWindowObject(NativeEngine& engine, std::shared_ptr<Rosen::Window> window)
+NativeValue* CreateJsWindowObject(NativeEngine& engine, std::shared_ptr<Rosen::Window>& window)
 {
     HILOG_INFO("CreateJsWindowObject %p", window.get());
     std::string windowName = window->GetWindowName();
