@@ -12,12 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "app_main.h"
 
 #include <string>
 
 #include "ability.h"
+#include "ability_delegator.h"
+#include "ability_delegator_registry.h"
+#include "ability_delegator_args.h"
 #include "application_context.h"
+#include "ability_context_adapter.h"
 #include "hilog.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
@@ -76,7 +81,6 @@ void AppMain::ScheduleLaunchApplication()
     bundleContainer_->LoadBundleInfos(moduleList);
     bundleContainer_->SetAppCodePath(StageAssetManager::GetInstance()->GetBundleCodeDir());
     bundleContainer_->SetPidAndUid(pid_, uid_);
-
     application_ = std::make_shared<Application>();
     if (application_ == nullptr) {
         HILOG_ERROR("application_ is nullptr");
@@ -101,6 +105,42 @@ void AppMain::ScheduleLaunchApplication()
     }
 
     HILOG_INFO("Launch application success.");
+}
+
+void AppMain::PrepareAbilityDelegator(const std::string& bundleName, const std::string& moduleName,
+    const std::string& testRunerName, const std::string& timeout)
+{
+    auto task = [bundleName, moduleName, testRunerName, timeout]() {
+        AppMain::GetInstance()->CreateAbilityDelegator(bundleName, moduleName, testRunerName, timeout);
+    };
+    eventHandler_->PostTask(task);
+}
+
+void AppMain::CreateAbilityDelegator(const std::string& bundleName, const std::string& moduleName,
+    const std::string& testRunerName, const std::string& timeout)
+{
+    HILOG_INFO("PrepareAbilityDelegator for Stage model.");
+    Want want;
+    want.SetBundleName(bundleName);
+    want.SetModuleName(moduleName);
+    want.SetAbilityName(testRunerName);
+    want.SetParam("timeout", timeout);
+    auto args = std::make_shared<AppExecFwk::AbilityDelegatorArgs>(want);
+    auto applicationContext = ApplicationContext::GetInstance();
+    std::unique_ptr<AppExecFwk::TestRunner> testRunner = AppExecFwk::TestRunner::Create(application_->GetRuntime(),
+        args, false, bundleContainer_->GetBundleInfo());
+    HILOG_INFO("PrepareAbilityDelegator create TestRunner.");
+    if (testRunner == nullptr) {
+        HILOG_WARN("AbilityDelegator: testRunner is null.");
+        return;
+    }
+    auto delegator = std::make_shared<AppExecFwk::AbilityDelegator>(applicationContext, std::move(testRunner));
+    if (delegator == nullptr) {
+        HILOG_WARN("AbilityDelegator: delegator is null.");
+        return;
+    }
+    AppExecFwk::AbilityDelegatorRegistry::RegisterInstance(delegator, args);
+    delegator->Prepare();
 }
 
 bool AppMain::CreateRuntime(const std::string& bundleName, const std::string& moduleName)
