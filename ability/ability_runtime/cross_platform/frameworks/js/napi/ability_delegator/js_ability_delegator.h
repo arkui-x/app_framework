@@ -205,7 +205,6 @@ private:
     NativeValue *OnFinishTest(NativeEngine &engine, NativeCallbackInfo &info);
 
 private:
-    NativeValue *CreateAbilityObject(NativeEngine &engine, const sptr<IRemoteObject> &remoteObject);
     NativeValue *ParseMonitorPara(NativeEngine &engine, NativeValue *value, std::shared_ptr<AbilityMonitor> &monitor);
     NativeValue *ParseStageMonitorPara(
         NativeEngine &engine, NativeValue *value, std::shared_ptr<AbilityStageMonitor> &monitor, bool &isExisted);

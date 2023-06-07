@@ -111,7 +111,6 @@ template("appkit_delegator_appkit_native") {
       "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability",
       "//third_party/icu/icu4c/source/common",
       "//third_party/icu/icu4c/source",
-      "//foundation/graphic/graphic_2d/rosen/modules/platform/ipc_core",
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/hilog",
     ]
 
@@ -152,15 +151,10 @@ template("appkit_delegator_appkit_native") {
       "//foundation/graphic/graphic_2d/rosen/modules/platform:mock_ipc_core",
     ]
 
-    external_deps = [
-      "ipc:ipc_core",
-    ]
-
     if (is_cross_platform_build) {
       include_dirs += [
         "//plugins/hilog/include",
         "//plugins/interfaces",
-        "//foundation/graphic/graphic_2d/rosen/modules/platform/ipc_core",
       ]
 
       if (target_os == "android") {

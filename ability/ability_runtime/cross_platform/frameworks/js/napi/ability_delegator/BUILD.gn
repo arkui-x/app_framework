@@ -23,7 +23,6 @@ ohos_shared_library("ability_delegator") {
       "${ability_runtime_path}/interfaces/kits/native/appkit/ability_delegator/",
       "${ability_runtime_path}/interfaces/kits/native/ability/native",
       "${ability_runtime_path}/tools/aa/include",
-      "//foundation/graphic/graphic_2d/rosen/modules/platform/ipc_core",
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/hilog",
     ]
 
@@ -55,7 +54,6 @@ ohos_shared_library("ability_delegator") {
       "common_event_service:cesfwk_innerkits",
       "hiviewdfx_hilog_native:libhilog",
       "napi:ace_napi",
-      "ipc:ipc_core",
     ]
 
     subsystem_name = "ability"
@@ -67,7 +65,6 @@ ohos_source_set("ability_delegator_source_set") {
       "./",
       "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit/ability_delegator/",
       "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability",
-      "//foundation/graphic/graphic_2d/rosen/modules/platform/ipc_core",
       "//foundation/arkui/napi",
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle",
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/jsruntime",
@@ -99,10 +96,6 @@ ohos_source_set("ability_delegator_source_set") {
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/jsruntime:cross_platform_jsruntime",
       "//foundation/appframework/window_manager/wm:wm",
       "//foundation/arkui/napi:ace_napi",
-    ]
-
-    external_deps = [
-      "ipc:ipc_core",
     ]
 
     if (use_static_napi_libs) {

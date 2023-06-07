@@ -42,7 +42,6 @@ constexpr size_t INDEX_TWO = 2;
 using namespace OHOS::AbilityRuntime;
 std::map<std::shared_ptr<NativeReference>, std::shared_ptr<AbilityMonitor>> g_monitorRecord;
 std::map<std::shared_ptr<NativeReference>, std::shared_ptr<AbilityStageMonitor>> g_stageMonitorRecord;
-std::map<std::weak_ptr<NativeReference>, sptr<IRemoteObject>, std::owner_less<>> g_abilityRecord;
 std::map<std::weak_ptr<NativeReference>, std::string, std::owner_less<>> g_abilityRecordInfo;
 std::mutex g_mutexAbilityRecord;
 std::mutex g_mtxStageMonitorRecord;
@@ -861,29 +860,6 @@ NativeValue *JSAbilityDelegator::ParseAbilityParaInfo(NativeEngine &engine, Nati
     HILOG_ERROR("Ability doesn't exist");
     fullname = "";
     return nullptr;
-}
-
-NativeValue *JSAbilityDelegator::CreateAbilityObject(NativeEngine &engine, const sptr<IRemoteObject> &remoteObject)
-{
-    HILOG_INFO("enter");
-
-    if (!remoteObject) {
-        return nullptr;
-    }
-
-    NativeValue *objValue = engine.CreateObject();
-    NativeObject *object = ConvertNativeValueTo<NativeObject>(objValue);
-    if (object == nullptr) {
-        HILOG_ERROR("Failed to get object");
-        return nullptr;
-    }
-
-    std::shared_ptr<NativeReference> reference = nullptr;
-    reference.reset(engine.CreateReference(objValue, 1));
-
-    std::unique_lock<std::mutex> lck(g_mutexAbilityRecord);
-    g_abilityRecord[reference] = remoteObject;
-    return objValue;
 }
 
 void JSAbilityDelegator::AbilityLifecycleStateToJs(
