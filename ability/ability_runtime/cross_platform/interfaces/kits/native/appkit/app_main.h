@@ -44,6 +44,8 @@ public:
     void OnConfigurationUpdate(const std::string& jsonConfiguration);
     void InitConfiguration(const std::string& jsonConfiguration);
     bool IsSingleton(const std::string& moduleName, const std::string& abilityName);
+    void PrepareAbilityDelegator(const std::string& bundleName, const std::string& moduleName,
+        const std::string& testRunerName, const std::string& timeout);
 
 private:
     void ScheduleLaunchApplication();
@@ -56,6 +58,8 @@ private:
     void HandleOnConfigurationUpdate(const std::string& jsonConfiguration);
     void HandleInitConfiguration(const std::string& jsonConfiguration);
     Want TransformToWant(const std::string& instanceName, const std::string& params = "");
+    void CreateAbilityDelegator(const std::string& bundleName, const std::string& moduleName,
+        const std::string& testRunerName, const std::string& timeout);
 
 private:
     std::shared_ptr<Application> application_ = nullptr;
