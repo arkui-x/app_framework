@@ -559,8 +559,8 @@ NativeValue *JSAbilityDelegator::OnGetAbilityState(NativeEngine &engine, NativeC
         return engine.CreateUndefined();
     }
 
-    std::string fullname;
-    if (!ParseAbilityParaInfo(engine, info.argv[INDEX_ZERO], fullname)) {
+    std::string fullName;
+    if (!ParseAbilityParaInfo(engine, info.argv[INDEX_ZERO], fullName)) {
         HILOG_ERROR("Parse ability parameter failed");
         return engine.CreateUndefined();
     }
@@ -570,7 +570,7 @@ NativeValue *JSAbilityDelegator::OnGetAbilityState(NativeEngine &engine, NativeC
         HILOG_ERROR("delegator is null");
         return engine.CreateNull();
     }
-    AbilityDelegator::AbilityState lifeState = delegator->GetAbilityState(fullname);
+    AbilityDelegator::AbilityState lifeState = delegator->GetAbilityState(fullName);
     AbilityLifecycleState abilityLifeState = AbilityLifecycleState::UNINITIALIZED;
     AbilityLifecycleStateToJs(lifeState, abilityLifeState);
     return engine.CreateNumber(static_cast<int>(abilityLifeState));
@@ -650,20 +650,20 @@ NativeValue *JSAbilityDelegator::OnDoAbilityForeground(NativeEngine &engine, Nat
 {
     HILOG_INFO("enter, argc = %{public}d", static_cast<int32_t>(info.argc));
 
-    std::string fullname;
-    if (!ParseAbilityCommonPara(engine, info, fullname)) {
+    std::string fullName;
+    if (!ParseAbilityCommonPara(engine, info, fullName)) {
         HILOG_ERROR("Parse doAbilityForeground parameters failed");
         return ThrowJsError(engine, INCORRECT_PARAMETERS);
     }
 
-    AsyncTask::CompleteCallback complete = [fullname](NativeEngine &engine, AsyncTask &task, int32_t status) {
+    AsyncTask::CompleteCallback complete = [fullName](NativeEngine &engine, AsyncTask &task, int32_t status) {
         HILOG_INFO("OnDoAbilityForeground AsyncTask is called");
         auto delegator = AbilityDelegatorRegistry::GetAbilityDelegator();
         if (!delegator) {
             task.Reject(engine, CreateJsError(engine, COMMON_FAILED, "doAbilityForeground failed."));
             return;
         }
-        if (delegator->DoAbilityForeground(fullname)) {
+        if (delegator->DoAbilityForeground(fullName)) {
             ResolveWithNoError(engine, task, engine.CreateNull());
         } else {
             task.Reject(engine, CreateJsError(engine, COMMON_FAILED, "doAbilityForeground failed."));
@@ -681,20 +681,20 @@ NativeValue *JSAbilityDelegator::OnDoAbilityBackground(NativeEngine &engine, Nat
 {
     HILOG_INFO("enter, argc = %{public}d", static_cast<int32_t>(info.argc));
 
-    std::string fullname;
-    if (!ParseAbilityCommonPara(engine, info, fullname)) {
+    std::string fullName;
+    if (!ParseAbilityCommonPara(engine, info, fullName)) {
         HILOG_ERROR("Parse doAbilityBackground parameters failed");
         return ThrowJsError(engine, INCORRECT_PARAMETERS);
     }
 
-    AsyncTask::CompleteCallback complete = [fullname](NativeEngine &engine, AsyncTask &task, int32_t status) {
+    AsyncTask::CompleteCallback complete = [fullName](NativeEngine &engine, AsyncTask &task, int32_t status) {
         HILOG_INFO("OnDoAbilityBackground AsyncTask is called");
         auto delegator = AbilityDelegatorRegistry::GetAbilityDelegator();
         if (!delegator) {
             task.Reject(engine, CreateJsError(engine, COMMON_FAILED, "doAbilityBackground failed."));
             return;
         }
-        if (delegator->DoAbilityBackground(fullname)) {
+        if (delegator->DoAbilityBackground(fullName)) {
             ResolveWithNoError(engine, task, engine.CreateNull());
         } else {
             task.Reject(engine, CreateJsError(engine, COMMON_FAILED, "doAbilityBackground failed."));
@@ -837,7 +837,7 @@ NativeValue *JSAbilityDelegator::ParseStageMonitorPara(
     return engine.CreateNull();
 }
 
-NativeValue *JSAbilityDelegator::ParseAbilityParaInfo(NativeEngine &engine, NativeValue *value, std::string &fullname)
+NativeValue *JSAbilityDelegator::ParseAbilityParaInfo(NativeEngine &engine, NativeValue *value, std::string &fullName)
 {
     HILOG_INFO("enter");
 
@@ -849,16 +849,16 @@ NativeValue *JSAbilityDelegator::ParseAbilityParaInfo(NativeEngine &engine, Nati
         }
 
         if (value->StrictEquals(iter->first.lock()->Get())) {
-            fullname = iter->second;
+            fullName = iter->second;
             HILOG_INFO("Ability exist");
-            return fullname.c_str() ? engine.CreateNull() : nullptr;
+            return fullName.c_str() ? engine.CreateNull() : nullptr;
         }
 
         ++iter;
     }
 
     HILOG_ERROR("Ability doesn't exist");
-    fullname = "";
+    fullName = "";
     return nullptr;
 }
 
@@ -1029,7 +1029,7 @@ NativeValue *JSAbilityDelegator::ParsePrintPara(NativeEngine &engine, NativeCall
 }
 
 NativeValue *JSAbilityDelegator::ParseAbilityCommonPara(
-    NativeEngine &engine, NativeCallbackInfo &info, std::string &fullname)
+    NativeEngine &engine, NativeCallbackInfo &info, std::string &fullName)
 {
     HILOG_INFO("enter");
     if (info.argc < ARGC_ONE) {
@@ -1037,7 +1037,7 @@ NativeValue *JSAbilityDelegator::ParseAbilityCommonPara(
         return nullptr;
     }
 
-    if (!ParseAbilityParaInfo(engine, info.argv[INDEX_ZERO], fullname)) {
+    if (!ParseAbilityParaInfo(engine, info.argv[INDEX_ZERO], fullName)) {
         HILOG_ERROR("Parse ability parameter failed");
         return nullptr;
     }

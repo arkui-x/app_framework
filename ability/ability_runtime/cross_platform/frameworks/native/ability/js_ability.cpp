@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "js_ability.h"
+#include "ability_delegator_registry.h"
 
 #include "hilog.h"
 #include "js_ability_context.h"
@@ -82,7 +83,9 @@ void JsAbility::Init(const std::shared_ptr<AppExecFwk::AbilityInfo>& abilityInfo
         return;
     }
 
+    Ability::Init(abilityInfo);
     std::string moduleName(abilityInfo->moduleName);
+    moduleName_ = moduleName;
     HILOG_INFO("moduleName: %{public}s abilityName: %{public}s", moduleName.c_str(), abilityInfo->name.c_str());
     std::string modulePath;
     bool esmodule = abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
@@ -186,11 +189,19 @@ void JsAbility::CallObjectMethod(const char* name, NativeValue* const* argv, siz
     nativeEngine.CallFunction(value, methodOnCreate, argv, argc);
 }
 
+void JsAbility::CallPostPerformStart()
+{
+    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
+    if (delegator) {
+        HILOG_DEBUG("Call AbilityDelegator::PostPerformStart");
+        delegator->PostPerformStart(CreateADelegatorAbilityProperty());
+    }
+}
+
 void JsAbility::OnCreate(const Want& want)
 {
     HILOG_INFO("OnCreate begin.");
     Ability::OnCreate(want);
-
     if (windowStage_ == nullptr) {
         windowStage_ = std::make_shared<Rosen::WindowStage>();
         if (windowStage_ == nullptr) {
@@ -210,7 +221,6 @@ void JsAbility::OnCreate(const Want& want)
         HILOG_WARN("Not found Ability.js");
         return;
     }
-
     auto applicationContext = ApplicationContext::GetInstance();
     if (applicationContext == nullptr) {
         HILOG_ERROR("OnCreate applicationContext is nullptr");
@@ -239,6 +249,8 @@ void JsAbility::OnCreate(const Want& want)
         CreateJsLaunchParam(nativeEngine, launchParam),
     };
     CallObjectMethod("onCreate", argv, ArraySize(argv));
+    CallPostPerformStart();
+    HILOG_DEBUG("OnCreate end, ability is %{public}s.", GetAbilityName().c_str());
 }
 
 void JsAbility::OnDestory()
@@ -317,6 +329,12 @@ void JsAbility::OnForeground(const Want& want)
         return;
     }
     CallObjectMethod("onForeground", &jsWant, 1);
+
+    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
+    if (delegator) {
+        HILOG_INFO("Call AbilityDelegator::PostPerformForeground");
+        delegator->PostPerformForeground(CreateADelegatorAbilityProperty());
+    }
     auto applicationContext = ApplicationContext::GetInstance();
     if (applicationContext == nullptr) {
         HILOG_ERROR("onForeground applicationContext is nullptr");
@@ -330,6 +348,12 @@ void JsAbility::OnBackground()
     HILOG_INFO("OnBackground begin.");
     Ability::OnBackground();
     CallObjectMethod("onBackground");
+
+    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
+    if (delegator) {
+        HILOG_INFO("Call AbilityDelegator::PostPerformBackground");
+        delegator->PostPerformBackground(CreateADelegatorAbilityProperty());
+    }
     auto applicationContext = ApplicationContext::GetInstance();
     if (applicationContext == nullptr) {
         HILOG_ERROR("OnBackground applicationContext is nullptr");
@@ -421,6 +445,36 @@ void JsAbility::OnConfigurationUpdate(const Configuration& configuration)
         diffConfiguration->UpdateConfigurationInfo(configuration);
         windowStage_->UpdateConfigurationForAll(diffConfiguration);
     }
+}
+
+std::shared_ptr<AppExecFwk::ADelegatorAbilityProperty> JsAbility::CreateADelegatorAbilityProperty()
+{
+    auto property = std::make_shared<AppExecFwk::ADelegatorAbilityProperty>();
+    if (property == nullptr) {
+        HILOG_ERROR("property is nullptr.");
+        return nullptr;
+    }
+    if (GetAbilityContext() == nullptr) {
+        HILOG_ERROR("getAbility context is nullptr.");
+        return nullptr;
+    }
+    property->name_ = GetAbilityName();
+    if (GetAbilityContext()->GetApplicationInfo() == nullptr ||
+        GetAbilityContext()->GetApplicationInfo()->bundleName.empty()) {
+        property->fullName_ = GetAbilityName();
+    } else {
+        std::string::size_type pos = GetAbilityName().find(GetAbilityContext()->GetApplicationInfo()->bundleName);
+        if (pos == std::string::npos || pos != 0) {
+            property->fullName_ = GetAbilityContext()->GetApplicationInfo()->bundleName + ":"+ moduleName_ + ":" +
+                GetAbilityName();
+        } else {
+            property->fullName_ = GetAbilityName();
+        }
+    }
+    property->lifecycleState_ = GetState();
+    property->object_ = jsAbilityObj_;
+
+    return property;
 }
 } // namespace Platform
 } // namespace AbilityRuntime

@@ -21,7 +21,7 @@ namespace AppExecFwk {
 DelegatorThread::DelegatorThread(bool isMain)
 {
     if (isMain) {
-        runner_ = EventRunner::GetMainEventRunner();
+        runner_ = EventRunner::Current();
     } else {
         runner_ = EventRunner::Create();
     }

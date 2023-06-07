@@ -19,6 +19,7 @@
 #include "hilog.h"
 #include "ability_context_adapter.h"
 #include "application_context_adapter.h"
+#include "base/utils/string_utils.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -32,18 +33,76 @@ AbilityDelegator::~AbilityDelegator()
 
 void AbilityDelegator::AddAbilityMonitor(const std::shared_ptr<IAbilityMonitor> &monitor)
 {
+    HILOG_INFO("AddAbilityMonitor start");
+    if (!monitor) {
+        HILOG_ERROR("Invalid input parameter");
+        return;
+    }
+
+    std::unique_lock<std::mutex> lck(mutexMonitor_);
+    auto pos = std::find(abilityMonitors_.begin(), abilityMonitors_.end(), monitor);
+    if (pos != abilityMonitors_.end()) {
+        HILOG_WARN("Monitor has been added");
+        return;
+    }
+
+    HILOG_DEBUG("before AddAbilityMonitor count: %{public}zu", abilityMonitors_.size());
+    abilityMonitors_.emplace_back(monitor);
+    HILOG_DEBUG("after AddAbilityMonitor count: %{public}zu", abilityMonitors_.size());
 }
 
 void AbilityDelegator::AddAbilityStageMonitor(const std::shared_ptr<IAbilityStageMonitor> &monitor)
 {
+    HILOG_INFO("AddAbilityStageMonitor start");
+    if (!monitor) {
+        HILOG_ERROR("Invalid input parameter");
+        return;
+    }
+	
+    std::unique_lock<std::mutex> lck(mutexStageMonitor_);
+    auto pos = std::find(abilityStageMonitors_.begin(), abilityStageMonitors_.end(), monitor);
+    if (pos != abilityStageMonitors_.end()) {
+        HILOG_WARN("Stage monitor has been added");
+        return;
+    }
+
+    HILOG_DEBUG("before AddAbilityStageMonitor count: %{public}zu", abilityStageMonitors_.size());
+    abilityStageMonitors_.emplace_back(monitor);
+    HILOG_DEBUG("after AddAbilityStageMonitor count: %{public}zu", abilityStageMonitors_.size());
 }
 
 void AbilityDelegator::RemoveAbilityMonitor(const std::shared_ptr<IAbilityMonitor> &monitor)
 {
+    HILOG_INFO("RemoveAbilityMonitor start");
+    if (!monitor) {
+        HILOG_ERROR("Invalid input parameter");
+        return;
+    }
+
+    std::unique_lock<std::mutex> lck(mutexMonitor_);
+    auto pos = std::find(abilityMonitors_.begin(), abilityMonitors_.end(), monitor);
+    if (pos != abilityMonitors_.end()) {
+        abilityMonitors_.erase(pos);
+    }
+
+    HILOG_DEBUG("RemoveAbilityMonitor count: %{public}zu", abilityMonitors_.size());
 }
 
 void AbilityDelegator::RemoveAbilityStageMonitor(const std::shared_ptr<IAbilityStageMonitor> &monitor)
 {
+    HILOG_INFO("RemoveAbilityStageMonitor start");
+    if (!monitor) {
+        HILOG_ERROR("Invalid input parameter");
+        return;
+    }
+
+    std::unique_lock<std::mutex> lck(mutexStageMonitor_);
+    auto pos = std::find(abilityStageMonitors_.begin(), abilityStageMonitors_.end(), monitor);
+    if (pos != abilityStageMonitors_.end()) {
+        abilityStageMonitors_.erase(pos);
+    }
+
+    HILOG_DEBUG("RemoveAbilityStageMonitor count: %{public}zu", abilityStageMonitors_.size());
 }
 
 void AbilityDelegator::ClearAllMonitors()
@@ -64,39 +123,134 @@ size_t AbilityDelegator::GetStageMonitorsNum()
 std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::WaitAbilityMonitor(
     const std::shared_ptr<IAbilityMonitor> &monitor)
 {
-    return {};
+    HILOG_INFO("WaitAbilityMonitor start");
+    if (!monitor) {
+        HILOG_ERROR("Invalid input parameter");
+        return nullptr;
+    }
+
+    AddAbilityMonitor(monitor);
+    auto obtainedAbility = monitor->WaitForAbility();
+    if (!obtainedAbility) {
+        HILOG_WARN("Invalid obtained ability");
+        return nullptr;
+    }
+
+    HILOG_INFO("WaitAbilityMonitor end");
+    return obtainedAbility;
 }
 
 std::shared_ptr<DelegatorAbilityStageProperty> AbilityDelegator::WaitAbilityStageMonitor(
     const std::shared_ptr<IAbilityStageMonitor> &monitor)
 {
-    return nullptr;
+    HILOG_INFO("WaitAbilityStageMonitor start");
+    if (!monitor) {
+        HILOG_ERROR("Invalid monitor for waiting abilityStage");
+        return nullptr;
+    }
+
+    AddAbilityStageMonitor(monitor);
+    auto stage = monitor->WaitForAbilityStage();
+    if (!stage) {
+        HILOG_WARN("Invalid obtained abilityStage");
+        return nullptr;
+    }
+
+    HILOG_INFO("WaitAbilityStageMonitor end");
+    return stage;
 }
 
 std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::WaitAbilityMonitor(
     const std::shared_ptr<IAbilityMonitor> &monitor, const int64_t timeoutMs)
 {
-    return {};
+    HILOG_INFO("WaitAbilityMonitor timeout start");
+    if (!monitor) {
+        HILOG_ERROR("Invalid input parameter");
+        return nullptr;
+    }
+
+    AddAbilityMonitor(monitor);
+    auto obtainedAbility = monitor->WaitForAbility(timeoutMs);
+    if (!obtainedAbility) {
+        HILOG_WARN("Invalid obtained ability");
+        return nullptr;
+    }
+
+    HILOG_INFO("WaitAbilityMonitor timeout end");
+    return obtainedAbility;
 }
 
 std::shared_ptr<DelegatorAbilityStageProperty> AbilityDelegator::WaitAbilityStageMonitor(
     const std::shared_ptr<IAbilityStageMonitor> &monitor, const int64_t timeoutMs)
 {
-    return nullptr;
+    HILOG_INFO("WaitAbilityStageMonitor timeout start");
+    if (!monitor) {
+        HILOG_ERROR("Invalid monitor for waiting abilityStage with timeout");
+        return nullptr;
+    }
+
+    AddAbilityStageMonitor(monitor);
+    auto stage = monitor->WaitForAbilityStage(timeoutMs);
+    if (!stage) {
+        HILOG_WARN("Invalid obtained abilityStage");
+        return nullptr;
+    }
+
+    HILOG_INFO("WaitAbilityStageMonitor timeout end");
+    return stage;
 }
 std::shared_ptr<AbilityRuntime::Platform::Context> AbilityDelegator::GetAppContext() const
 {
     return appContext_;
 }
 
-AbilityDelegator::AbilityState AbilityDelegator::GetAbilityState(const std::string &fullname)
+AbilityDelegator::AbilityState AbilityDelegator::GetAbilityState(const std::string &fullName)
 {
-    return AbilityDelegator::AbilityState::UNINITIALIZED;
+    HILOG_INFO("AbilityDelegator::GetAbilityState");
+    if (fullName == "") {
+        HILOG_WARN("Invalid input parameter");
+        return AbilityDelegator::AbilityState::UNINITIALIZED;
+    }
+
+    std::unique_lock<std::mutex> lck(mutexAbilityProperties_);
+    auto existedProperty = FindPropertyByName(fullName);
+    if (!existedProperty) {
+        HILOG_WARN("Unknown ability token");
+        return AbilityDelegator::AbilityState::UNINITIALIZED;
+    }
+
+    return ConvertAbilityState(existedProperty->lifecycleState_);
 }
 
 std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::GetCurrentTopAbility()
 {
-    return {};
+    HILOG_INFO("GetCurrentTopAbility Enter");
+    std::string abilityName = AbilityRuntime::Platform::ApplicationContextAdapter::GetInstance()->GetTopAbility();
+    if (abilityName.empty()) {
+        HILOG_ERROR("Failed to get top ability");
+        return {};
+    }
+
+    std::vector<std::string> vecList;
+    int32_t ABILITY_IDENTITY_LENS = 4;
+    int32_t INDEX_ZERO = 0;
+    int32_t INDEX_ONE = 1;
+    int32_t INDEX_TWO = 2;
+    Ace::StringUtils::StringSplitter(abilityName, ':', vecList);
+    if (vecList.size() != ABILITY_IDENTITY_LENS) {
+        HILOG_WARN("Enter DoAbilityForeground StringSplit fullName size is not equal four!");
+        return {};
+    }
+    abilityName =  vecList[INDEX_ZERO] + ":"+ vecList[INDEX_ONE] +":"+ vecList[INDEX_TWO];
+
+    std::unique_lock<std::mutex> lck(mutexAbilityProperties_);
+    auto existedProperty = FindPropertyByName(abilityName);
+    if (!existedProperty) {
+        HILOG_WARN("Unknown ability name");
+        return {};
+    }
+
+    return existedProperty;
 }
 
 std::string AbilityDelegator::GetThreadName() const
@@ -106,33 +260,125 @@ std::string AbilityDelegator::GetThreadName() const
 
 void AbilityDelegator::Prepare()
 {
+    HILOG_INFO("AbilityDelegator Prepare enter.");
+    if (!testRunner_) {
+        HILOG_WARN("Invalid TestRunner");
+        return;
+    }
+
+    HILOG_INFO("Call TestRunner::Prepare()");
+    testRunner_->Prepare();
+
+    if (!delegatorThread_) {
+        delegatorThread_ = std::make_unique<DelegatorThread>(true);
+        if (!delegatorThread_) {
+            HILOG_ERROR("Create delegatorThread failed");
+            return;
+        }
+    }
+
+    auto runTask = [this]() { this->OnRun(); };
+    if (!delegatorThread_->Run(runTask)) {
+        HILOG_ERROR("Run task on delegatorThread failed");
+    }
 }
 
 void AbilityDelegator::OnRun()
 {
+    HILOG_INFO("Enter");
+    if (!testRunner_) {
+        HILOG_WARN("Invalid TestRunner");
+        return;
+    }
+
+    HILOG_INFO("Call TestRunner::Run(), Start run");
+    testRunner_->Run();
+    HILOG_INFO("Run finished");
 }
 
 ErrCode AbilityDelegator::StartAbility(const AAFwk::Want &want)
 {
-    return 0;
+    HILOG_INFO("Enter");
+
+    std::string bundleName = want.GetBundleName();
+    std::string abilityName = want.GetAbilityName();
+    std::string moduleName = want.GetModuleName();
+
+    HILOG_INFO("AbilityDelegator: bundleName is %{public}s, abilityName is %{public}s, moduleName is %{public}s",
+        bundleName.c_str(), abilityName.c_str(), moduleName.c_str());
+#ifdef ANDROID_PLATFORM
+    return AbilityRuntime::Platform::ApplicationContextAdapter::GetInstance()->StartAbility(want);
+#else
+    return AbilityRuntime::Platform::AbilityContextAdapter::GetInstance()->StartAbility("", want);
+#endif
 }
 
-bool AbilityDelegator::DoAbilityForeground(const std::string &fullname)
+bool AbilityDelegator::DoAbilityForeground(const std::string &fullName)
 {
-    return false;
+    HILOG_INFO("DoAbilityForeground Enter");
+    if (fullName == "") {
+        return false;
+    }
+
+    auto ret = AbilityRuntime::Platform::AbilityContextAdapter::GetInstance()->DoAbilityForeground(fullName);
+    if (ret) {
+        HILOG_ERROR("Failed to call DelegatorDoAbilityForeground, reson : %{public}d", ret);
+        return false;
+    }
+
+    return true;
 }
 
-bool AbilityDelegator::DoAbilityBackground(const std::string &fullname)
+bool AbilityDelegator::DoAbilityBackground(const std::string &fullName)
 {
-    return false;
+    if (fullName.empty()) {
+        return false;
+    }
+
+    auto ret = AbilityRuntime::Platform::AbilityContextAdapter::GetInstance()->DoAbilityBackground(fullName);
+    if (ret) {
+        HILOG_ERROR("Failed to call DelegatorDoAbilityBackground, reson : %{public}d", ret);
+        return false;
+    }
+    return true;
 }
 
 void AbilityDelegator::Print(const std::string &msg)
 {
+#ifdef ANDROID_PLATFORM
+    AbilityRuntime::Platform::ApplicationContextAdapter::GetInstance()->Print(msg);
+#else
+    AbilityRuntime::Platform::AbilityContextAdapter::GetInstance()->print(msg);
+#endif
+    return;
 }
 
 void AbilityDelegator::PostPerformStart(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
+    HILOG_INFO("Enter AbilityDelegator::PostPerformStart");
+
+    if (!ability) {
+        HILOG_WARN("Invalid input parameter");
+        return;
+    }
+
+    ProcessAbilityProperties(ability);
+
+    std::unique_lock<std::mutex> lck(mutexMonitor_);
+    if (abilityMonitors_.empty()) {
+        HILOG_WARN("Empty abilityMonitors");
+        return;
+    }
+
+    for (auto &monitor : abilityMonitors_) {
+        if (!monitor) {
+            continue;
+        }
+
+        if (monitor->Match(ability, true)) {
+            monitor->OnAbilityStart(ability->object_);
+        }
+    }
 }
 
 void AbilityDelegator::PostPerformStageStart(const std::shared_ptr<DelegatorAbilityStageProperty> &abilityStage)
@@ -153,10 +399,26 @@ void AbilityDelegator::PostPerformScenceDestroyed(const std::shared_ptr<ADelegat
 
 void AbilityDelegator::PostPerformForeground(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
+    HILOG_INFO("Enter PostPerformForeground");
+
+    if (!ability) {
+        HILOG_WARN("Invalid input parameter");
+        return;
+    }
+
+    ProcessAbilityProperties(ability);
 }
 
 void AbilityDelegator::PostPerformBackground(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
+    HILOG_INFO("Enter PostPerformBackground");
+
+    if (!ability) {
+        HILOG_WARN("Invalid input parameter");
+        return;
+    }
+
+    ProcessAbilityProperties(ability);
 }
 
 void AbilityDelegator::PostPerformStop(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
@@ -166,11 +428,50 @@ void AbilityDelegator::PostPerformStop(const std::shared_ptr<ADelegatorAbilityPr
 AbilityDelegator::AbilityState AbilityDelegator::ConvertAbilityState(
     const AbilityLifecycleExecutor::LifecycleState lifecycleState)
 {
-    return AbilityDelegator::AbilityState::UNINITIALIZED;
+    HILOG_WARN("AbilityDelegator::ConvertAbilityState");
+    AbilityDelegator::AbilityState abilityState {AbilityDelegator::AbilityState::UNINITIALIZED};
+    switch (lifecycleState) {
+        case AbilityLifecycleExecutor::LifecycleState::STARTED_NEW:
+            abilityState = AbilityDelegator::AbilityState::STARTED;
+            break;
+        case AbilityLifecycleExecutor::LifecycleState::FOREGROUND_NEW:
+            abilityState = AbilityDelegator::AbilityState::FOREGROUND;
+            break;
+        case AbilityLifecycleExecutor::LifecycleState::BACKGROUND_NEW:
+            abilityState = AbilityDelegator::AbilityState::BACKGROUND;
+            break;
+        case AbilityLifecycleExecutor::LifecycleState::STOPED_NEW:
+            abilityState = AbilityDelegator::AbilityState::STOPPED;
+            break;
+        default:
+            HILOG_ERROR("Unknown lifecycleState");
+            break;
+    }
+
+    return abilityState;
 }
 
 void AbilityDelegator::ProcessAbilityProperties(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
+    HILOG_WARN("AbilityDelegator::ProcessAbilityProperties");
+
+    if (!ability) {
+        HILOG_WARN("Invalid ability property");
+        return;
+    }
+
+    HILOG_WARN("ability property : name : %{public}s, state : %{public}d",
+        ability->name_.data(), ability->lifecycleState_);
+
+    std::unique_lock<std::mutex> lck(mutexAbilityProperties_);
+    auto existedProperty = FindPropertyByName(ability->fullName_);
+    if (existedProperty) {
+        // update
+        existedProperty->lifecycleState_ = ability->lifecycleState_;
+        return;
+    }
+
+    abilityProperties_.emplace_back(ability);
 }
 
 void AppExecFwk::AbilityDelegator::RemoveAbilityProperty(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
@@ -179,11 +480,46 @@ void AppExecFwk::AbilityDelegator::RemoveAbilityProperty(const std::shared_ptr<A
 
 std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::FindPropertyByName(const std::string &name)
 {
+    if (name.empty()) {
+        HILOG_WARN("Invalid input parameter");
+        return {};
+    }
+
+    for (const auto &it : abilityProperties_) {
+        if (!it) {
+            HILOG_WARN("Invalid ability property");
+            continue;
+        }
+        if (name == it->fullName_) {
+            HILOG_INFO("Property exists");
+            return it;
+        }
+    }
     return {};
 }
 
 void AppExecFwk::AbilityDelegator::FinishUserTest(const std::string &msg, const int64_t resultCode)
 {
+    HILOG_INFO("FinishUserTest start");
+    auto realMsg(msg);
+    if (realMsg.length() > INFORMATION_MAX_LENGTH) {
+        HILOG_WARN("Too long message");
+        realMsg.resize(INFORMATION_MAX_LENGTH);
+        return;
+    }
+
+    HILOG_INFO("TestFinished-ResultMsg: %{public}s", msg.c_str());
+    HILOG_INFO("TestFinished-ResultCode: %{public}d", resultCode);
+#ifdef ANDROID_PLATFORM
+    auto err = AbilityRuntime::Platform::ApplicationContextAdapter::GetInstance()->FinishUserTest();
+#else
+    auto err = AbilityRuntime::Platform::AbilityContextAdapter::GetInstance()->FinishUserTest();
+#endif
+    if (err) {
+        HILOG_ERROR("Failed to call FinishUserTest : %{public}d", err);
+        return;
+    }
+    HILOG_INFO("FinishUserTest end");
 }
 
 void AppExecFwk::AbilityDelegator::RegisterClearFunc(ClearFunc func)
