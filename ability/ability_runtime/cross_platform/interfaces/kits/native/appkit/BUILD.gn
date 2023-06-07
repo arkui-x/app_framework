@@ -90,7 +90,6 @@ template("ability_runtime_appkit_native") {
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/want:cross_platform_want",
       "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability:cross_platform_abilitykit_native",
       "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability:cross_platform_abilitykit_native",
-      "//foundation/graphic/graphic_2d/rosen/modules/platform:mock_ipc_core",
     ]
 
     if (target_os == "android") {
@@ -148,7 +147,6 @@ template("appkit_delegator_appkit_native") {
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/want:cross_platform_want",
       "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability:cross_platform_abilitykit_native",
       "//foundation/appframework/resource_management:global_resmgr",
-      "//foundation/graphic/graphic_2d/rosen/modules/platform:mock_ipc_core",
     ]
 
     if (is_cross_platform_build) {
