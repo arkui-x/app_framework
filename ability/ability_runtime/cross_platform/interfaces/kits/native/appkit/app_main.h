@@ -49,7 +49,7 @@ public:
 
 private:
     void ScheduleLaunchApplication();
-    bool CreateRuntime(const std::string& bundleName, const std::string& moduleName);
+    bool CreateRuntime(const std::string& bundleName, bool isBundle);
     void HandleDispatchOnCreate(const std::string& instanceName, const std::string& params);
     void HandleDispatchOnNewWant(const std::string& instanceName);
     void HandleDispatchOnForeground(const std::string& instanceName);
