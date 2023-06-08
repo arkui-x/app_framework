@@ -99,7 +99,8 @@ void AppMain::ScheduleLaunchApplication()
     application_->SetApplicationContext(applicationContext);
 
     auto bundleInfo = bundleContainer_->GetBundleInfo();
-    if (!CreateRuntime(applicationInfo->bundleName, bundleInfo->entryModuleName)) {
+    if (!CreateRuntime(applicationInfo->bundleName, bundleInfo->hapModuleInfos.back().compileMode
+        != AppExecFwk::CompileMode::ES_MODULE)) {
         HILOG_ERROR("runtime create failed.");
         return;
     }
@@ -143,15 +144,14 @@ void AppMain::CreateAbilityDelegator(const std::string& bundleName, const std::s
     delegator->Prepare();
 }
 
-bool AppMain::CreateRuntime(const std::string& bundleName, const std::string& moduleName)
+bool AppMain::CreateRuntime(const std::string& bundleName, bool isBundle)
 {
     OHOS::AbilityRuntime::Runtime::Options options;
     options.loadAce = true;
     options.eventRunner = runner_;
     options.codePath = StageAssetManager::GetInstance()->GetBundleCodeDir();
     options.bundleName = bundleName;
-    auto hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
-    options.isBundle = (hapModuleInfo->compileMode != AppExecFwk::CompileMode::ES_MODULE);
+    options.isBundle = isBundle;
     auto runtime = AbilityRuntime::Runtime::Create(options);
     if (runtime == nullptr) {
         return false;
