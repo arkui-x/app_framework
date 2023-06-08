@@ -52,28 +52,52 @@ JsTestRunner::JsTestRunner(
     : jsRuntime_(jsRuntime), isFaJsModel_(isFaJsModel)
 {
     HILOG_INFO("AbilityDelegator:JsTestRunner enter");
+    if (bundleInfo == nullptr || args == nullptr) {
+        HILOG_ERROR("bundleInfo or args is null.");
+        return;
+    }
     std::string moduleName = args->GetTestModuleName();
     std::string testRunnerName = args->GetTestRunnerClassName();
     std::string modulePath;
-    srcPath_ = modulePath;
+    auto hapModuleInfos = bundleInfo->hapModuleInfos;
+    CompileMode compileMode = AppExecFwk::CompileMode::JS_BUNDLE;
+
+    for (auto hapModuleInfo : hapModuleInfos) {
+        if (hapModuleInfo.moduleName == moduleName) {
+            compileMode = hapModuleInfo.compileMode;
+            break;
+        }
+    }
+    bool isEsModule = compileMode == AppExecFwk::CompileMode::ES_MODULE;
     auto abilityBuffer =
         AbilityRuntime::Platform::StageAssetManager::GetInstance()->GetModuleAbilityBuffer(moduleName, testRunnerName,
-            modulePath, false);
-    HILOG_INFO("modulePath: %{public}s , testRunnerName: %{public}s", modulePath.c_str(), testRunnerName.c_str());
-    HILOG_INFO("moduleName: %{public}s", moduleName.c_str());
+            modulePath, isEsModule);
+    HILOG_INFO("modulePath: %{public}s , testRunnerName: %{public}s, moduleName: %{public}s", modulePath.c_str(),
+        testRunnerName.c_str(), moduleName.c_str());
     srcPath_ = modulePath;
-    HILOG_INFO("AbilityDelegator JsTestRunner srcPath is %{public}s", srcPath_.c_str());
 
     if (abilityBuffer.empty()) {
-        HILOG_INFO("AbilityDelegator abilityBuffer is null");
-    } else {
-        HILOG_INFO("AbilityDelegator abilityBuffer is not null, %{public}d", abilityBuffer.size());
-    }
-    if (isFaJsModel) {
+        HILOG_WARN("AbilityDelegator abilityBuffer is null");
         return;
     }
 
-    jsTestRunnerObj_ = jsRuntime_.LoadModule(moduleName, modulePath, abilityBuffer, "", false);
+    if (isFaJsModel) {
+        HILOG_WARN("AbilityDelegator is FA model");
+        return;
+    }
+    std::string srcEntrance;
+    if (isEsModule) {
+        HILOG_INFO("AbilityDelegator is isEsModule");
+        srcEntrance.append("ets/TestRunner/").append(testRunnerName);
+        modulePath = srcEntrance;
+        srcEntrance.append(".ts");
+        modulePath.append(".abc");
+    } else {
+        HILOG_INFO("AbilityDelegator is not isEsModule");
+    }
+
+    moduleName.append("::").append("TestRunner");
+    jsTestRunnerObj_ = jsRuntime_.LoadModule(moduleName, modulePath, abilityBuffer, srcEntrance, isEsModule);
 }
 
 JsTestRunner::~JsTestRunner() = default;
