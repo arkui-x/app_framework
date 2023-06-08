@@ -1,95 +1,131 @@
 {
-  "strategy": "additive",
-  "localeFilter": {
-    "filterType": "locale",
-    "includeChildren": false,
-    "includelist": [
-      "en",
-      "zh"
-    ]
-  },
-  "featureFilters": {
-    "locales_tree": "include",
-    "normalization": {
-      "whitelist": [
-        "nfkc"
+    "strategy": "subtractive",
+    "localeFilter" : {
+      "filterType" : "locale",
+	  "includeChildren": false,
+      "whitelist" : [
+				"root",
+				"en_US",
+				"zh_Hans_CN",
+				"zh_Hant_HK",
+				"zh_Hant_TW",
+				"bo_CN",
+				"ug_CN"
       ]
     },
-    "lang_tree": {
-      "whitelist": [
-        "root",
-        "en",
-        "zh"
-      ]
-    },
-    "unit_tree": {
-      "whitelist": [
-        "root",
-        "en",
-        "zh"
-      ]
-    },
-    "brkitr_rules": {
-      "whitelist": [
-        "char",
-        "line",
-        "line_loose",
-        "line_loose_cj",
-        "line_cj",
-        "line_normal",
-        "line_normal_cj",
-        "sent",
-        "title",
-        "word"
-      ]
-    },
-    "brkitr_tree": {
-      "whitelist": [
-        "root"
-      ]
-    },
-    "cnvalias": "include",
-    "ulayout": "include",
-    "zone_supplemental": "include",
-    "rbnf_tree": {
-      "whitelist": [
-        "root",
-        "en",
-        "zh"
-      ]
-    },
-    "misc": {
-      "whitelist": [
-        "icustd",
-        "likelySubtags",
-        "icuver",
-        "supplementalData",
-        "numberingSystems",
-        "keyTypeData"
-      ]
-    },
-    "zone_tree": {
-      "whitelist": [
-        "root",
-        "en",
-        "zh"
-      ]
-    },
-    "curr_tree": {
-      "whitelist": [
-        "root",
-        "en",
-        "zh"
-      ]
+    "featureFilters": {
+      "confusables" : "exclude",
+      "conversion_mappings" : "exclude",
+      "translit" :  "exclude",
+      "uemoji" : "exclude",
+      "collationUCAData" : "implicithan",
+      "normalization" : {
+    	  "whitelist": [
+		      "nfkc"
+		  ]
+	  },
+      "lang_tree": {
+		"whitelist": [
+				"root",
+				"en_US",
+				"zh_Hans_CN",
+				"zh_Hant_HK",
+				"zh_Hant_TW",
+				"bo_CN",
+				"ug_CN"
+		]
+	  },
+	  "brkitr_rules": {
+		    "whitelist": [
+				"char",
+				"line",
+				"line_loose",
+				"line_loose_cj",
+				"line_cj",
+				"line_normal",
+				"line_normal_cj",
+				"sent",
+				"title",
+				"word"
+		    ]
+	  },
+        "brkitr_tree": {
+		    "whitelist": [
+				"root"
+		    ]
+        },
+        "brkitr_dictionaries": "exclude",
+        "stringprep" : "exclude",
+		"unit_tree": {
+			"whitelist": [
+				"root",
+				"en_US",
+				"zh_Hans_CN",
+				"zh_Hant_HK",
+				"zh_Hant_TW",
+				"bo_CN",
+				"ug_CN"
+			]
+		},
+		"rbnf_tree": {
+			"whitelist": [
+				"root",
+				"en_US",
+				"zh_Hans_CN",
+				"zh_Hant_HK",
+				"zh_Hant_TW",
+				"bo_CN",
+				"ug_CN"
+			]
+		},
+		"zone_tree": {
+			"whitelist": [
+				"root",
+				"en_US",
+				"zh_Hans_CN",
+				"zh_Hant_HK",
+				"zh_Hant_TW",
+				"bo_CN",
+				"ug_CN"
+			]
+		},
+		"curr_tree": {
+			"whitelist": [
+				"root",
+				"en_US",
+				"zh_Hans_CN",
+				"zh_Hant_HK",
+				"zh_Hant_TW",
+				"bo_CN",
+				"ug_CN"
+			]
+		},
+		"coll_tree": {
+            "filterType" : "locale",
+			"whitelist": [
+				"root",
+				"en_US"
+			]
+		},
+		"region_tree": {
+    		"whitelist": [
+				"root",
+				"en_US",
+				"zh_Hans_CN",
+				"zh_Hant_HK",
+				"zh_Hant_TW",
+				"bo_CN",
+				"ug_CN"
+			]
+		},
+        "fileReplacements": {
+          "directory": "$SRC",
+          "replacements": [
+            {
+              "src": "../../../../../foundation/appframework/icu_data/filters/data/brkitr/root.txt",
+              "dest": "brkitr/root.txt"
+            }
+          ]
+        }
     }
-  },
-  "fileReplacements": {
-    "directory": "$SRC",
-    "replacements": [
-      {
-        "src": "../../../../../foundation/appframework/icu_data/filters/data/brkitr/root.txt",
-        "dest": "brkitr/root.txt"
-      }
-    ]
-  }
 }
