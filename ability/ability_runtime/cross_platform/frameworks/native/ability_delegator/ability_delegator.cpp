@@ -225,7 +225,12 @@ AbilityDelegator::AbilityState AbilityDelegator::GetAbilityState(const std::stri
 std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::GetCurrentTopAbility()
 {
     HILOG_INFO("GetCurrentTopAbility Enter");
-    std::string abilityName = AbilityRuntime::Platform::ApplicationContextAdapter::GetInstance()->GetTopAbility();
+    std::string abilityName;
+#ifdef ANDROID_PLATFORM
+    abilityName = AbilityRuntime::Platform::ApplicationContextAdapter::GetInstance()->GetTopAbility();
+#else
+    abilityName = AbilityRuntime::Platform::AbilityContextAdapter::GetInstance()->GetTopAbility();
+#endif
     if (abilityName.empty()) {
         HILOG_ERROR("Failed to get top ability");
         return {};
