@@ -184,7 +184,7 @@ public:
      * @param token, Indicates the specified ability.
      * @return the lifecycle state of the specified ability.
      */
-    AbilityDelegator::AbilityState GetAbilityState(const std::string &fullname);
+    AbilityDelegator::AbilityState GetAbilityState(const std::string &fullName);
 
     /**
      * Obtains the ability that is currently being displayed.
@@ -224,7 +224,7 @@ public:
      * @param token, Indicates the specified ability.
      * @return true if succeed; returns false otherwise.
      */
-    bool DoAbilityForeground(const std::string &fullname);
+    bool DoAbilityForeground(const std::string &fullName);
 
     /**
      * Transits the specified ability to background.
@@ -232,7 +232,7 @@ public:
      * @param token, Indicates the specified ability.
      * @return true if succeed; returns false otherwise.
      */
-    bool DoAbilityBackground(const std::string &fullname);
+    bool DoAbilityBackground(const std::string &fullName);
 
     /**
      * Prints log information to the console.

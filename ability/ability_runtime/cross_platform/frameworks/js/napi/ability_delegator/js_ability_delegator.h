@@ -208,7 +208,7 @@ private:
     NativeValue *ParseMonitorPara(NativeEngine &engine, NativeValue *value, std::shared_ptr<AbilityMonitor> &monitor);
     NativeValue *ParseStageMonitorPara(
         NativeEngine &engine, NativeValue *value, std::shared_ptr<AbilityStageMonitor> &monitor, bool &isExisted);
-    NativeValue *ParseAbilityParaInfo(NativeEngine &engine, NativeValue *value, std::string &fullname);
+    NativeValue *ParseAbilityParaInfo(NativeEngine &engine, NativeValue *value, std::string &fullName);
     void AbilityLifecycleStateToJs(
         const AbilityDelegator::AbilityState &lifeState, AbilityLifecycleState &abilityLifeState);
     NativeValue *ParseAbilityMonitorPara(
@@ -223,7 +223,7 @@ private:
         NativeEngine &engine, NativeCallbackInfo &info, TimeoutCallback &opt, int64_t &timeout);
     NativeValue *ParsePrintPara(NativeEngine &engine, NativeCallbackInfo &info, std::string &msg);
     NativeValue *ParseAbilityCommonPara(
-        NativeEngine &engine, NativeCallbackInfo &info, std::string &fullame);
+        NativeEngine &engine, NativeCallbackInfo &info, std::string &fullName);
     NativeValue *ParseStartAbilityPara(
         NativeEngine &engine, NativeCallbackInfo &info, AAFwk::Want &want);
     NativeValue *ParseFinishTestPara(NativeEngine &engine, NativeCallbackInfo &info, std::string &msg, int64_t &code);

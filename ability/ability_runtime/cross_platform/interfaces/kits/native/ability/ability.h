@@ -20,6 +20,7 @@
 
 #include "ability_context.h"
 #include "ability_info.h"
+#include "ability_lifecycle_executor.h"
 #include "application.h"
 #include "launch_param.h"
 #include "want.h"
@@ -31,7 +32,6 @@ class Runtime;
 namespace Platform {
 
 using Want = AAFwk::Want;
-
 class Ability {
 public:
     static std::shared_ptr<Ability> Create(const std::unique_ptr<AbilityRuntime::Runtime>& runtime);
@@ -99,6 +99,20 @@ public:
      */
     virtual void OnBackground();
 
+    /**
+     * @brief Obtains the class name in this ability name, without the prefixed bundle name.
+     *
+     * @return Returns the class name of this ability.
+     */
+    std::string GetAbilityName();
+
+    /**
+     * @brief Obtains the lifecycle state of this ability.
+     *
+     * @return Returns the lifecycle state of this ability.
+     */
+    virtual OHOS::AppExecFwk::AbilityLifecycleExecutor::LifecycleState GetState() final;
+
     virtual void OnWindowStageCreated();
     virtual void OnWindowStageDestroy();
     void SetWant(const AAFwk::Want& want);
@@ -115,14 +129,19 @@ public:
     }
 
     virtual void OnConfigurationUpdate(const Configuration& configuration);
+    void DispatchLifecycleOnForeground(const Want &want);
 
     const LaunchParam& GetLaunchParam() const;
 
 public:
     std::shared_ptr<Rosen::WindowStage> windowStage_ = nullptr;
 
+protected:
+    std::shared_ptr<OHOS::AppExecFwk::AbilityInfo> abilityInfo_ = nullptr;
+
 private:
     std::shared_ptr<AbilityContext> abilityContext_ = nullptr;
+    std::shared_ptr<OHOS::AppExecFwk::AbilityLifecycleExecutor> abilityLifecycleExecutor_ = nullptr;
     std::shared_ptr<AAFwk::Want> want_ = nullptr;
     std::string instanceName_ { "" };
     LaunchParam launchParam_;

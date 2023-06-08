@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "ability.h"
+#include "ability_delegator_infos.h"
 #include "ability_info.h"
 #include "application.h"
 
@@ -51,11 +52,14 @@ public:
 
 private:
     void CallObjectMethod(const char* name, NativeValue* const* argv = nullptr, size_t argc = 0);
+    void CallPostPerformStart();
+    std::shared_ptr<AppExecFwk::ADelegatorAbilityProperty> CreateADelegatorAbilityProperty();
     JsRuntime& jsRuntime_;
     std::shared_ptr<NativeReference> jsAbilityObj_;
     std::shared_ptr<NativeReference> shellContextRef_;
     std::shared_ptr<NativeReference> jsWindowStageObj_;
     bool isDispatchOnWindowStageCreated_ = false;
+    std::string moduleName_;
 };
 } // namespace Platform
 } // namespace AbilityRuntime

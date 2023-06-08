@@ -20,6 +20,7 @@
 #include "runtime.h"
 #include "window_view_adapter.h"
 
+using namespace OHOS::AppExecFwk;
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
@@ -42,12 +43,30 @@ std::shared_ptr<Ability> Ability::Create(const std::unique_ptr<AbilityRuntime::R
 void Ability::Init(const std::shared_ptr<AppExecFwk::AbilityInfo>& abilityInfo)
 {
     HILOG_INFO("Init begin.");
+    abilityInfo_ = abilityInfo;
+
+    abilityLifecycleExecutor_ = std::make_shared<AbilityLifecycleExecutor>();
+    if (abilityLifecycleExecutor_ != nullptr) {
+        abilityLifecycleExecutor_->DispatchLifecycleState(AbilityLifecycleExecutor::LifecycleState::INITIAL);
+    } else {
+        HILOG_ERROR("abilityLifecycleExecutor_ make failed.");
+    }
 }
 
 void Ability::OnCreate(const Want& want)
 {
     HILOG_INFO("OnCreate begin.");
     SetWant(want);
+
+    if (abilityLifecycleExecutor_ == nullptr) {
+        HILOG_ERROR("Ability::OnStart error. abilityLifecycleExecutor_ == nullptr.");
+        return;
+    }
+    if (!abilityInfo_->isStageBasedModel) {
+        abilityLifecycleExecutor_->DispatchLifecycleState(AbilityLifecycleExecutor::LifecycleState::INACTIVE);
+    } else {
+        abilityLifecycleExecutor_->DispatchLifecycleState(AbilityLifecycleExecutor::LifecycleState::STARTED_NEW);
+    }
 }
 
 void Ability::OnNewWant(const Want& want)
@@ -58,16 +77,49 @@ void Ability::OnNewWant(const Want& want)
 void Ability::OnForeground(const Want& want)
 {
     HILOG_INFO("OnForeground begin.");
+    DispatchLifecycleOnForeground(want);
+}
+
+void Ability::DispatchLifecycleOnForeground(const Want &want)
+{
+    if (abilityLifecycleExecutor_ == nullptr) {
+        HILOG_ERROR("Ability::OnForeground error. abilityLifecycleExecutor_ == nullptr.");
+        return;
+    }
+    if (abilityInfo_ != nullptr && abilityInfo_->isStageBasedModel) {
+        abilityLifecycleExecutor_->DispatchLifecycleState(AbilityLifecycleExecutor::LifecycleState::FOREGROUND_NEW);
+    } else {
+        abilityLifecycleExecutor_->DispatchLifecycleState(AbilityLifecycleExecutor::LifecycleState::INACTIVE);
+    }
 }
 
 void Ability::OnBackground()
 {
     HILOG_INFO("OnBackground begin.");
+    if (abilityInfo_ == nullptr) {
+        HILOG_ERROR("abilityInfo_ is nullptr.");
+        return;
+    }
+    if (abilityLifecycleExecutor_ == nullptr) {
+        HILOG_ERROR("Ability::OnBackground error. abilityLifecycleExecutor_ == nullptr.");
+        return;
+    }
+
+    if (abilityInfo_->isStageBasedModel) {
+        abilityLifecycleExecutor_->DispatchLifecycleState(AbilityLifecycleExecutor::LifecycleState::BACKGROUND_NEW);
+    } else {
+        abilityLifecycleExecutor_->DispatchLifecycleState(AbilityLifecycleExecutor::LifecycleState::BACKGROUND);
+    }
 }
 
 void Ability::OnDestory()
 {
     HILOG_INFO("OnDestory begin.");
+    if (abilityLifecycleExecutor_ == nullptr) {
+        HILOG_ERROR("Ability::OnStop error. abilityLifecycleExecutor_ == nullptr.");
+        return;
+    }
+    abilityLifecycleExecutor_->DispatchLifecycleState(AbilityLifecycleExecutor::LifecycleState::INITIAL);
 }
 
 void Ability::OnWindowStageCreated()
@@ -89,6 +141,28 @@ void Ability::SetWant(const AAFwk::Want& want)
 std::shared_ptr<AAFwk::Want> Ability::GetWant()
 {
     return want_;
+}
+
+std::string Ability::GetAbilityName()
+{
+    if (abilityInfo_ == nullptr) {
+        HILOG_ERROR("Ability::GetAbilityName abilityInfo_ is nullptr");
+        return "";
+    }
+
+    return abilityInfo_->name;
+}
+
+AbilityLifecycleExecutor::LifecycleState Ability::GetState()
+{
+    HILOG_DEBUG("Ability::GetState called");
+
+    if (abilityLifecycleExecutor_ == nullptr) {
+        HILOG_ERROR("Ability::GetState error. abilityLifecycleExecutor_ == nullptr.");
+        return AbilityLifecycleExecutor::LifecycleState::UNINITIALIZED;
+    }
+
+    return (AbilityLifecycleExecutor::LifecycleState)abilityLifecycleExecutor_->GetState();
 }
 
 void Ability::OnConfigurationUpdate(const Configuration& configuration)
