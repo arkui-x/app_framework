@@ -54,22 +54,36 @@ std::unordered_map<int32_t, std::string> errorMap = {
     {INCORRECT_PARAMETERS,  "Incorrect parameters."},
 };
 
+#ifdef ENABLE_ERRCODE
 constexpr int COMMON_FAILED = 16000100;
+#else
+constexpr int COMMON_FAILED = -1;
+#endif
 
 NativeValue *ThrowJsError(NativeEngine& engine, int32_t errCode)
 {
+#ifdef ENABLE_ERRCODE
     NativeValue *error = CreateJsError(engine, errCode, errorMap[errCode]);
     engine.Throw(error);
+#endif
     return engine.CreateUndefined();
 }
 
 void ResolveWithNoError(NativeEngine &engine, AsyncTask &task, NativeValue *value = nullptr)
 {
+#ifdef ENABLE_ERRCODE
     if (value == nullptr) {
         task.ResolveWithNoError(engine, engine.CreateUndefined());
     } else {
         task.ResolveWithNoError(engine, value);
     }
+#else
+    if (value == nullptr) {
+        task.Resolve(engine, engine.CreateNull());
+    } else {
+        task.Resolve(engine, value);
+    }
+#endif
 }
 
 NativeValue *AttachAppContext(NativeEngine *engine, void *value, void *)
