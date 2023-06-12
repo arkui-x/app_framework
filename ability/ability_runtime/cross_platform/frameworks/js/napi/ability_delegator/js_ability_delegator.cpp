@@ -66,9 +66,9 @@ NativeValue *ThrowJsError(NativeEngine& engine, int32_t errCode)
 void ResolveWithNoError(NativeEngine &engine, AsyncTask &task, NativeValue *value = nullptr)
 {
     if (value == nullptr) {
-        task.ResolveWithNoError(engine, engine.CreateUndefined());
+        task.Resolve(engine, engine.CreateNull());
     } else {
-        task.ResolveWithNoError(engine, value);
+        task.Resolve(engine, value);
     }
 }
 
