@@ -328,6 +328,22 @@ EGLint RenderContext::QueryEglBufferAge()
 
 void RenderContext::DamageFrame(int32_t left, int32_t top, int32_t width, int32_t height)
 {
+    RS_TRACE_FUNC();
+    if ((eglDisplay_ == nullptr) || (eglSurface_ == nullptr)) {
+        ROSEN_LOGE("eglDisplay or eglSurface is nullptr");
+        return;
+    }
+
+    EGLint rect[4];
+    rect[0] = left;
+    rect[1] = top;
+    rect[2] = width;
+    rect[3] = height;
+
+    EGLBoolean ret = GetEGLSetDamageRegionKHRFunc()(eglDisplay_, eglSurface_, rect, 1);
+    if (ret == EGL_FALSE) {
+        ROSEN_LOGE("eglSetDamageRegionKHR is failed");
+    }
 }
 
 void RenderContext::DamageFrame(const std::vector<RectI> &rects)

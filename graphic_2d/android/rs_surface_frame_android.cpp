@@ -17,6 +17,7 @@
 
 #include "platform/common/rs_log.h"
 #include "render_context/render_context.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -27,7 +28,10 @@ RSSurfaceFrameAndroid::RSSurfaceFrameAndroid(int32_t width, int32_t height)
 
 void RSSurfaceFrameAndroid::SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height)
 {
-    // renderContext_->DamageFrame(left, top, width, height);
+    RS_TRACE_NAME("SetDamageRegion:" + std::to_string(left) + "," +
+        std::to_string(top) + "," + std::to_string(width) + "," + std::to_string(height));
+    ROSEN_LOGD("SetDamageRegion, left=%d, top=%d, width=%d, height=%d", left, top, width, height);
+    renderContext_->DamageFrame(left, top, width, height);
 }
 
 int32_t RSSurfaceFrameAndroid::GetBufferAge() const
