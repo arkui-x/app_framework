@@ -17,13 +17,13 @@
 #define FOUNDATION_APPFRAMEWORK_UICONTENT_COMMON_COMPONENT_INFO_H
 
 #include <string>
-
+#include <vector>
 namespace OHOS::Ace::Platform {
 struct ComponentInfo {
 public:
-  std::string compid;
   std::string text;
   std::string type;
+  unsigned compid = 0;
   float top = 0.0f;
   float width = 0.0f;
   float left = 0.0f;
@@ -36,6 +36,7 @@ public:
   bool enabled = true;
   bool focused = true;
   bool longClickable = true;
+  std::vector<ComponentInfo> children;
 };
 } // namespace OHOS::Ace::Platform
 #endif
