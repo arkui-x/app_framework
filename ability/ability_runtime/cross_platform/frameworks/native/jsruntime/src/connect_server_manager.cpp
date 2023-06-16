@@ -1,7 +1,5 @@
-
-
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,7 +53,15 @@ using StoreInspectorInfo = void (*)(const std::string&, const std::string&);
 using SetSwitchCallBack = void (*)(const std::function<void(bool)> &setStatus,
     const std::function<void(int32_t)> &createLayoutInfo, int32_t instanceId);
 using RemoveMessage = void (*)(int32_t);
-using WaitForDebugger = bool (*)();
+using WaitForConnection = bool (*)();
+
+SendMessage g_sendMessage = nullptr;
+SendLayoutMessage g_sendLayoutMessage = nullptr;
+RemoveMessage g_removeMessage = nullptr;
+StoreInspectorInfo g_storeInspectorInfo = nullptr;
+StoreMessage g_storeMessage = nullptr;
+SetSwitchCallBack g_setSwitchCallBack = nullptr;
+WaitForConnection g_waitForConnection = nullptr;
 
 ConnectServerManager::~ConnectServerManager()
 {
@@ -67,6 +73,39 @@ ConnectServerManager& ConnectServerManager::Get()
 {
     static ConnectServerManager connectServerManager;
     return connectServerManager;
+}
+
+bool ConnectServerManager::InitFunc()
+{
+#if !defined(IOS_PLATFORM)
+    g_sendMessage = reinterpret_cast<SendMessage>(dlsym(handlerConnectServerSo_, "SendMessage"));
+    g_storeMessage = reinterpret_cast<StoreMessage>(dlsym(handlerConnectServerSo_, "StoreMessage"));
+    g_removeMessage = reinterpret_cast<RemoveMessage>(dlsym(handlerConnectServerSo_, "RemoveMessage"));
+    g_setSwitchCallBack = reinterpret_cast<SetSwitchCallBack>(dlsym(handlerConnectServerSo_, "SetSwitchCallBack"));
+    g_sendLayoutMessage = reinterpret_cast<SendLayoutMessage>(dlsym(handlerConnectServerSo_, "SendLayoutMessage"));
+    g_storeInspectorInfo = reinterpret_cast<StoreInspectorInfo>(dlsym(handlerConnectServerSo_, "StoreInspectorInfo"));
+    g_waitForConnection = reinterpret_cast<WaitForConnection>(dlsym(handlerConnectServerSo_, "WaitForConnection"));
+#else
+    using namespace OHOS::ArkCompiler;
+    g_sendMessage = reinterpret_cast<SendMessage>(&Toolchain::SendMessage);
+    g_storeMessage = reinterpret_cast<StoreMessage>(&Toolchain::StoreMessage);
+    g_removeMessage = reinterpret_cast<RemoveMessage>(&Toolchain::RemoveMessage);
+    g_setSwitchCallBack = reinterpret_cast<SetSwitchCallBack>(&Toolchain::SetSwitchCallBack);
+    g_sendLayoutMessage = reinterpret_cast<SendLayoutMessage>(&Toolchain::SendLayoutMessage);
+    g_storeInspectorInfo = reinterpret_cast<StoreInspectorInfo>(&Toolchain::StoreInspectorInfo);
+    g_waitForConnection = reinterpret_cast<WaitForConnection>(&Toolchain::WaitForConnection);
+#endif
+    if (g_sendMessage == nullptr || g_storeMessage == nullptr || g_removeMessage == nullptr) {
+        CloseConnectServerSo();
+        return false;
+    }
+
+    if (g_storeInspectorInfo == nullptr || g_setSwitchCallBack == nullptr || g_waitForConnection == nullptr ||
+        g_sendLayoutMessage == nullptr) {
+        CloseConnectServerSo();
+        return false;
+    }
+    return true;
 }
 
 void ConnectServerManager::StartConnectServer(const std::string& bundleName)
@@ -84,15 +123,15 @@ void ConnectServerManager::StartConnectServer(const std::string& bundleName)
         return;
     }
     auto startServer = reinterpret_cast<StartServer>(dlsym(handlerConnectServerSo_, "StartServer"));
-    if (startServer == nullptr) {
+#else
+    auto startServer = reinterpret_cast<StartServer>(&ArkCompiler::Toolchain::StartServer);
+#endif // IOS_PLATFORM
+    if (startServer == nullptr|| !InitFunc()) {
         HILOG_ERROR("ConnectServerManager::StartConnectServer failed to find symbol 'StartServer'");
         return;
     }
     bundleName_ = bundleName;
     startServer(bundleName_);
-#else
-
-#endif // IOS_PLATFORM
 }
 
 void ConnectServerManager::CloseConnectServerSo()
@@ -116,29 +155,19 @@ void ConnectServerManager::StopConnectServer()
         return;
     }
     auto stopServer = reinterpret_cast<StopServer>(dlsym(handlerConnectServerSo_, "StopServer"));
+#else
+    auto stopServer = reinterpret_cast<StopServer>(&ArkCompiler::Toolchain::StopServer);
+#endif
     if (stopServer != nullptr) {
         stopServer(bundleName_);
     } else {
         HILOG_ERROR("ConnectServerManager::StopConnectServer failed to find symbol 'StopServer'");
     }
-#else
-
-#endif
 }
 
 bool ConnectServerManager::AddInstance(int32_t instanceId, const std::string& instanceName)
 {
     HILOG_DEBUG("ConnectServerManager::AddInstance Add instance to connect server");
-    if (handlerConnectServerSo_ == nullptr) {
-        HILOG_ERROR("ConnectServerManager::AddInstance handlerConnectServerSo_ is nullptr");
-        return false;
-    }
-
-    auto waitForDebugger = reinterpret_cast<WaitForDebugger>(dlsym(handlerConnectServerSo_, "WaitForDebugger"));
-    if (waitForDebugger == nullptr) {
-        HILOG_ERROR("ConnectServerManager::AddInstance failed to find symbol 'WaitForDebugger'");
-        return false;
-    }
 
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -161,38 +190,20 @@ bool ConnectServerManager::AddInstance(int32_t instanceId, const std::string& in
     // Get the message including information of new instance, which will be send to IDE.
     std::string message = GetInstanceMapMessage("addInstance", instanceId, instanceName);
 
-    if (waitForDebugger()) {
-        // if not connected, message will be stored and sent later when "connected" coming.
-        auto storeMessage = reinterpret_cast<StoreMessage>(dlsym(handlerConnectServerSo_, "StoreMessage"));
-        if (storeMessage == nullptr) {
-            HILOG_ERROR("ConnectServerManager::AddInstance failed to find symbol 'StoreMessage'");
-            return false;
-        }
-        storeMessage(instanceId, message);
-        return false;
+    if (!g_waitForConnection()) { // g_waitForConnection : the res means the connection state of the connect server
+        g_sendMessage(message); // if connected, message will be sent immediately.
+    } else { // if not connected, message will be stored and sent later when "connected" coming.
+        g_storeMessage(instanceId, message);
     }
-
-    // WaitForDebugger() means the connection state of the connect server
-    auto sendMessage = reinterpret_cast<SendMessage>(dlsym(handlerConnectServerSo_, "SendMessage"));
-    if (sendMessage == nullptr) {
-        HILOG_ERROR("ConnectServerManager::AddInstance failed to find symbol 'SendMessage'");
-        return false;
-    }
-    // if connected, message will be sent immediately.
-    sendMessage(message);
+    g_setSwitchCallBack([this](bool status) { setStatus_(status); },
+        [this](int32_t containerId) { createLayoutInfo_(containerId); }, instanceId);
     return true;
 }
 
 void ConnectServerManager::RemoveInstance(int32_t instanceId)
 {
     HILOG_DEBUG("ConnectServerManager::RemoveInstance Remove instance to connect server");
-    if (handlerConnectServerSo_ == nullptr) {
-        HILOG_ERROR("ConnectServerManager::RemoveInstance handlerConnectServerSo_ is nullptr");
-        return;
-    }
-
     std::string instanceName;
-
     {
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = instanceMap_.find(instanceId);
@@ -204,52 +215,22 @@ void ConnectServerManager::RemoveInstance(int32_t instanceId)
         instanceName = std::move(it->second);
         instanceMap_.erase(it);
     }
-
-    auto waitForDebugger = reinterpret_cast<WaitForDebugger>(dlsym(handlerConnectServerSo_, "WaitForDebugger"));
-    if (waitForDebugger == nullptr) {
-        HILOG_ERROR("ConnectServerManager::RemoveInstance failed to find symbol 'WaitForDebugger'");
-        return;
-    }
-
     // Get the message including information of deleted instance, which will be send to IDE.
     std::string message = GetInstanceMapMessage("destroyInstance", instanceId, instanceName);
 
-    if (waitForDebugger()) {
-        auto removeMessage = reinterpret_cast<RemoveMessage>(dlsym(handlerConnectServerSo_, "RemoveMessage"));
-        if (removeMessage == nullptr) {
-            HILOG_ERROR("ConnectServerManager::RemoveInstance failed to find symbol 'RemoveMessage'");
-            return;
-        }
-        removeMessage(instanceId);
-        return;
+    if (!g_waitForConnection()) {
+        g_sendMessage(message);
+    } else {
+        g_removeMessage(instanceId);
     }
-
-    auto sendMessage = reinterpret_cast<SendMessage>(dlsym(handlerConnectServerSo_, "SendMessage"));
-    if (sendMessage == nullptr) {
-        HILOG_ERROR("ConnectServerManager::RemoveInstance failed to find symbol 'SendMessage'");
-        return;
-    }
-    sendMessage(message);
 }
 
 void ConnectServerManager::SendInspector(const std::string& jsonTreeStr, const std::string& jsonSnapshotStr)
 {
-    HILOG_INFO("ConnectServerManager SendInspector Start");
-    auto sendLayoutMessage = reinterpret_cast<SendMessage>(dlsym(handlerConnectServerSo_, "SendLayoutMessage"));
-    if (sendLayoutMessage == nullptr) {
-        HILOG_ERROR("ConnectServerManager::AddInstance failed to find symbol 'sendLayoutMessage'");
-        return;
-    }
-
-    sendLayoutMessage(jsonTreeStr);
-    sendLayoutMessage(jsonSnapshotStr);
-    auto storeInspectorInfo = reinterpret_cast<StoreInspectorInfo>(
-        dlsym(handlerConnectServerSo_, "StoreInspectorInfo"));
-    if (storeInspectorInfo == nullptr) {
-        HILOG_ERROR("ConnectServerManager::AddInstance failed to find symbol 'StoreInspectorInfo'");
-        return;
-    }
-    storeInspectorInfo(jsonTreeStr, jsonSnapshotStr);
+    LOGI("ConnectServerManager SendInspector Start");
+    g_sendLayoutMessage(jsonTreeStr);
+    g_sendLayoutMessage(jsonSnapshotStr);
+    g_storeInspectorInfo(jsonTreeStr, jsonSnapshotStr);
 }
 
 void ConnectServerManager::SetLayoutInspectorCallback(
