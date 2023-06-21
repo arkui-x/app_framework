@@ -254,7 +254,7 @@ bool JsAbilityContext::UnWrapAbilityResult(
         HILOG_ERROR("invalid type of resultCode");
         return false;
     }
-    resultCode = int64_t(*ConvertNativeValueTo<NativeNumber>(jObj->GetProperty("resultCode")));
+    resultCode = int32_t(*ConvertNativeValueTo<NativeNumber>(jObj->GetProperty("resultCode")));
     NativeValue* jWant = jObj->GetProperty("want");
     if (jWant == nullptr) {
         HILOG_ERROR("jWant is nullptr");
