@@ -23,6 +23,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
 using ErrCode = int32_t;
+using RuntimeTask = std::function<void(int, const AAFwk::Want&)>;
 
 class AbilityContext : public Context {
 public:
@@ -37,6 +38,12 @@ public:
     virtual int32_t CloseAbility() = 0;
 
     virtual std::shared_ptr<Configuration> GetConfiguration() override;
+
+    virtual int32_t StartAbilityForResult(const AAFwk::Want& want, int32_t requestCode, RuntimeTask&& task) = 0;
+
+    virtual int32_t TerminateAbilityWithResult(const AAFwk::Want& want, int32_t resultCode) = 0;
+
+    virtual void OnAbilityResult(int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant) = 0;
 
     using SelfType = AbilityContext;
     static const size_t CONTEXT_TYPE_ID;

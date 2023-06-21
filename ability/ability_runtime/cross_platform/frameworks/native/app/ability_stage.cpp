@@ -202,6 +202,19 @@ bool AbilityStage::IsEmpty()
 {
     return abilities_.empty();
 }
+
+void AbilityStage::DispatchOnAbilityResult(
+    const AAFwk::Want& want, int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant)
+{
+    HILOG_INFO("called.");
+    auto abilityName = want.GetAbilityName() + want.GetStringParam(Want::ABILITY_ID);
+    auto ability = FindAbility(abilityName);
+    if (ability == nullptr) {
+        HILOG_ERROR("ability is nullptr");
+        return;
+    }
+    ability->OnAbilityResult(requestCode, resultCode, resultWant);
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

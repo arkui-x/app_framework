@@ -46,6 +46,8 @@ public:
     bool IsSingleton(const std::string& moduleName, const std::string& abilityName);
     void PrepareAbilityDelegator(const std::string& bundleName, const std::string& moduleName,
         const std::string& testRunerName, const std::string& timeout);
+    void DispatchOnAbilityResult(const std::string& instanceName, int32_t requestCode, int32_t resultCode,
+        const std::string& wantParams);
 
 private:
     void ScheduleLaunchApplication();
@@ -60,6 +62,8 @@ private:
     Want TransformToWant(const std::string& instanceName, const std::string& params = "");
     void CreateAbilityDelegator(const std::string& bundleName, const std::string& moduleName,
         const std::string& testRunerName, const std::string& timeout);
+    void HandleDispatchOnAbilityResult(
+        const std::string& instanceName, int32_t requestCode, int32_t resultCode, const std::string& resultWant);
 
 private:
     std::shared_ptr<Application> application_ = nullptr;

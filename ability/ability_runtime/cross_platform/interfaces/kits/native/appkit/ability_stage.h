@@ -55,6 +55,8 @@ public:
     void DispatchOnBackground(const AAFwk::Want& want);
     void DispatchOnDestroy(const AAFwk::Want& want);
     bool IsEmpty();
+    void DispatchOnAbilityResult(
+        const AAFwk::Want& want, int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant);
 
 private:
     std::shared_ptr<Ability> FindAbility(const std::string& abilityName);

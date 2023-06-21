@@ -674,7 +674,7 @@ std::string Want::ToJson() const
             WantParams param = {iter->first, std::to_string(GetDoubleParam(iter->first, 0)), VALUE_TYPE_DOUBLE};
             jsonWant.params.emplace_back(param);
         } else if (iter->second == AAFwk::VALUE_TYPE_STRING) {
-            WantParams param = {iter->first, GetStringParam(iter->first), VALUE_TYPE_DOUBLE};
+            WantParams param = {iter->first, GetStringParam(iter->first), VALUE_TYPE_STRING};
             jsonWant.params.emplace_back(param);
         }
     }
@@ -698,13 +698,13 @@ void Want::ParseJson(const std::string& jsonParams)
 
     JsonWant jwant = jsonObject.get<JsonWant>();
     for (auto iter = jwant.params.begin(); iter != jwant.params.end(); iter++) {
-        if (iter->type = AAFwk::VALUE_TYPE_BOOLEAN) {
+        if (iter->type == AAFwk::VALUE_TYPE_BOOLEAN) {
             SetParam(iter->key, (iter->value == "true"));
-        } else if (iter->type = AAFwk::VALUE_TYPE_INT) {
+        } else if (iter->type == AAFwk::VALUE_TYPE_INT) {
             SetParam(iter->key, atoi(iter->value.c_str()));
-        } else if (iter->type = AAFwk::VALUE_TYPE_DOUBLE) {
+        } else if (iter->type == AAFwk::VALUE_TYPE_DOUBLE) {
             SetParam(iter->key, stod(iter->value));
-        } else if (iter->type = AAFwk::VALUE_TYPE_STRING) {
+        } else if (iter->type == AAFwk::VALUE_TYPE_STRING) {
             SetParam(iter->key, iter->value);
         }
     }

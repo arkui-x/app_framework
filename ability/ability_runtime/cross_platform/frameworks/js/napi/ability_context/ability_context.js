@@ -34,6 +34,14 @@ class AbilityContext extends Context {
     terminateSelf(callback) {
         return this.__context_impl__.terminateSelf(callback)
     }
+
+    startAbilityForResult(want, callback) {
+        return this.__context_impl__.startAbilityForResult(want, callback)
+    }
+
+    terminateSelfWithResult(abilityResult, callback) {
+        return this.__context_impl__.terminateSelfWithResult(abilityResult, callback)
+    }
 }
 
 export default AbilityContext

@@ -476,6 +476,17 @@ std::shared_ptr<AppExecFwk::ADelegatorAbilityProperty> JsAbility::CreateADelegat
 
     return property;
 }
+
+void JsAbility::OnAbilityResult(int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant)
+{
+    HILOG_INFO("called.");
+    auto abilityContext = GetAbilityContext();
+    if (abilityContext == nullptr) {
+        HILOG_ERROR("abilityContext is nullptr");
+        return;
+    }
+    abilityContext->OnAbilityResult(requestCode, resultCode, resultWant);
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS
