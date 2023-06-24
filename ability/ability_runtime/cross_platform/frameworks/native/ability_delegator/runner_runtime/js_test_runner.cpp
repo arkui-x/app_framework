@@ -19,7 +19,12 @@
 #include "runner_runtime/js_test_runner.h"
 
 extern const char _binary_delegator_mgmt_abc_start[];
+#if !defined(IOS_PLATFORM)
 extern const char _binary_delegator_mgmt_abc_end[];
+#else
+extern const char* _binary_delegator_mgmt_abc_end;
+#endif
+
 namespace OHOS {
 namespace RunnerRuntime {
 std::unique_ptr<TestRunner> JsTestRunner::Create(const std::unique_ptr<Runtime> &runtime,
