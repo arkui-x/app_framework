@@ -16,9 +16,15 @@
 #include "native_engine/native_engine.h"
 
 extern const char _binary_window_stage_js_start[];
-extern const char _binary_window_stage_js_end[];
 extern const char _binary_window_stage_abc_start[];
+#if !defined(IOS_PLATFORM)
+extern const char _binary_window_stage_js_end[];
 extern const char _binary_window_stage_abc_end[];
+#else
+extern const char* _binary_window_stage_js_end;
+extern const char* _binary_window_stage_abc_end;
+#endif
+
 
 extern "C" __attribute__((visibility("default")))
 void NAPI_application_WindowStage_GetJSCode(const char **buf, int *bufLen)
