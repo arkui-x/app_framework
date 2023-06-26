@@ -428,6 +428,14 @@ void AbilityDelegator::PostPerformBackground(const std::shared_ptr<ADelegatorAbi
 
 void AbilityDelegator::PostPerformStop(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
+    HILOG_INFO("Enter PostPerformStop");
+
+    if (!ability) {
+        HILOG_WARN("Invalid input parameter");
+        return;
+    }
+
+    ProcessAbilityProperties(ability);
 }
 
 AbilityDelegator::AbilityState AbilityDelegator::ConvertAbilityState(
