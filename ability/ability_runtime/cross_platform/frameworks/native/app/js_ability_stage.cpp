@@ -16,6 +16,7 @@
 #include "js_ability_stage.h"
 
 #include "ability.h"
+#include "ability_delegator_registry.h"
 #include "ability_stage_context.h"
 #include "context.h"
 #include "hilog.h"
@@ -127,6 +128,11 @@ void JsAbilityStage::OnCreate() const
         return;
     }
     nativeEngine.CallFunction(value, methodOnCreate, nullptr, 0);
+    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
+    if (delegator) {
+        HILOG_DEBUG("Call AbilityDelegator::PostPerformStageStart");
+        delegator->PostPerformStageStart(CreateStageProperty());
+    }
 }
 
 void JsAbilityStage::Init(const std::shared_ptr<Context>& context)
@@ -222,6 +228,37 @@ void JsAbilityStage::OnConfigurationUpdate(const Configuration& configuration)
 
     NativeValue* argv[] = { CreateJsConfiguration(nativeEngine, *config) };
     nativeEngine.CallFunction(value, methodOnCreate, argv, ArraySize(argv));
+}
+
+std::shared_ptr<OHOS::AppExecFwk::DelegatorAbilityStageProperty> JsAbilityStage::CreateStageProperty() const
+{
+    auto property = std::make_shared<OHOS::AppExecFwk::DelegatorAbilityStageProperty>();
+    property->moduleName_ = GetHapModuleProp("name");
+    property->srcEntrance_ = GetHapModuleProp("srcEntrance");
+    property->object_ = jsAbilityStageObj_;
+    return property;
+}
+
+std::string JsAbilityStage::GetHapModuleProp(const std::string &propName) const
+{
+    auto context = GetContext();
+    if (!context) {
+       HILOG_ERROR("Failed to get context");
+        return std::string();
+    }
+    auto hapModuleInfo = context->GetHapModuleInfo();
+    if (!hapModuleInfo) {
+        HILOG_ERROR("Failed to get hapModuleInfo");
+        return std::string();
+    }
+    if (propName.compare("name") == 0) {
+        return hapModuleInfo->name;
+    }
+    if (propName.compare("srcEntrance") == 0) {
+        return hapModuleInfo->srcEntrance;
+    }
+    HILOG_ERROR("Failed to GetHapModuleProp name = %{public}s", propName.c_str());
+    return std::string();
 }
 } // namespace Platform
 } // namespace AbilityRuntime

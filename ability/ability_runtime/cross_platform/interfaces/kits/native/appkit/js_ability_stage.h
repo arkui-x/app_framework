@@ -16,6 +16,7 @@
 #ifndef FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_JS_ABILITY_STAGE_H
 #define FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_JS_ABILITY_STAGE_H
 
+#include "ability_delegator_infos.h"
 #include "ability_stage.h"
 #include "native_engine/native_value.h"
 
@@ -39,6 +40,9 @@ public:
     void OnConfigurationUpdate(const Configuration& configuration) override;
 
 private:
+    std::shared_ptr<OHOS::AppExecFwk::DelegatorAbilityStageProperty> CreateStageProperty() const;
+    std::string GetHapModuleProp(const std::string &propName) const;
+
     JsRuntime& jsRuntime_;
     std::shared_ptr<NativeReference> jsAbilityStageObj_;
     std::shared_ptr<NativeReference> shellContextRef_;
