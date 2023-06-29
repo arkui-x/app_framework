@@ -259,6 +259,12 @@ void JsAbility::OnDestory()
     OnWindowStageDestroy();
     Ability::OnDestory();
     CallObjectMethod("onDestroy");
+
+    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
+    if (delegator) {
+        delegator->PostPerformStop(CreateADelegatorAbilityProperty());
+    }
+
     auto applicationContext = ApplicationContext::GetInstance();
     if (applicationContext == nullptr) {
         HILOG_ERROR("onDestroy applicationContext is nullptr");
