@@ -31,6 +31,9 @@ constexpr char CHARACTER_WHITESPACE = ' ';
 constexpr const char* CHARACTER_STRING_WHITESPACE = " ";
 constexpr const char* EGL_KHR_SURFACELESS_CONTEXT = "EGL_KHR_surfaceless_context";
 
+constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
+constexpr int DEFAULT_SKIA_CACHE_COUNT          = 2 * (1 << 12);
+
 // use functor to call gel*KHR API
 static PFNEGLSETDAMAGEREGIONKHRPROC GetEGLSetDamageRegionKHRFunc()
 {
@@ -265,6 +268,16 @@ bool RenderContext::SetUpGrContext()
     if (grContext == nullptr) {
         ROSEN_LOGE("SetUpGrContext grContext is null");
         return false;
+    }
+    int maxResources = 0;
+    size_t maxResourcesSize = 0;
+    int cacheLimitsTimes = 2;
+    grContext->getResourceCacheLimits(&maxResources, &maxResourcesSize);
+    if (maxResourcesSize > 0) {
+        grContext->setResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes *
+            std::fmin(maxResourcesSize, DEFAULT_SKIA_CACHE_SIZE));
+    } else {
+        grContext->setResourceCacheLimits(DEFAULT_SKIA_CACHE_COUNT, DEFAULT_SKIA_CACHE_SIZE);
     }
     grContext_ = std::move(grContext);
     return true;
