@@ -236,18 +236,6 @@ std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::GetCurrentTopAbilit
         return {};
     }
 
-    std::vector<std::string> vecList;
-    int32_t ABILITY_IDENTITY_LENS = 4;
-    int32_t INDEX_ZERO = 0;
-    int32_t INDEX_ONE = 1;
-    int32_t INDEX_TWO = 2;
-    Ace::StringUtils::StringSplitter(abilityName, ':', vecList);
-    if (vecList.size() != ABILITY_IDENTITY_LENS) {
-        HILOG_WARN("Enter DoAbilityForeground StringSplit fullName size is not equal four!");
-        return {};
-    }
-    abilityName =  vecList[INDEX_ZERO] + ":"+ vecList[INDEX_ONE] +":"+ vecList[INDEX_TWO];
-
     std::unique_lock<std::mutex> lck(mutexAbilityProperties_);
     auto existedProperty = FindPropertyByName(abilityName);
     if (!existedProperty) {
