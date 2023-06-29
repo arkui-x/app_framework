@@ -243,7 +243,7 @@ std::string JsAbilityStage::GetHapModuleProp(const std::string &propName) const
 {
     auto context = GetContext();
     if (!context) {
-       HILOG_ERROR("Failed to get context");
+        HILOG_ERROR("Failed to get context");
         return std::string();
     }
     auto hapModuleInfo = context->GetHapModuleInfo();
