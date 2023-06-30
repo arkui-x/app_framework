@@ -380,6 +380,13 @@ void JsAbility::OnWindowStageCreated()
     }
     NativeValue* argv[] = { jsAppWindowStage->Get() };
     CallObjectMethod("onWindowStageCreate", argv, ArraySize(argv));
+
+    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
+    if (delegator) {
+        HILOG_DEBUG("Call AbilityDelegator::PostPerformScenceCreated");
+        delegator->PostPerformScenceCreated(CreateADelegatorAbilityProperty());
+    }
+
     jsWindowStageObj_ = std::shared_ptr<NativeReference>(jsAppWindowStage.release());
     auto applicationContext = ApplicationContext::GetInstance();
     if (applicationContext == nullptr) {
@@ -394,6 +401,12 @@ void JsAbility::OnWindowStageDestroy()
     HILOG_INFO("OnWindowStageDestroy begin");
     Ability::OnWindowStageDestroy();
     CallObjectMethod("onWindowStageDestroy");
+
+    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
+    if (delegator) {
+        HILOG_DEBUG("Call AbilityDelegator::PostPerformScenceDestroyed");
+        delegator->PostPerformScenceDestroyed(CreateADelegatorAbilityProperty());
+    }
     auto applicationContext = ApplicationContext::GetInstance();
     if (applicationContext == nullptr) {
         HILOG_ERROR("OnWindowStageDestroy applicationContext is nullptr");

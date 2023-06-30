@@ -363,7 +363,7 @@ void AbilityDelegator::PostPerformStart(const std::shared_ptr<ADelegatorAbilityP
         return;
     }
 
-    for (auto &monitor : abilityMonitors_) {
+    for (const auto &monitor : abilityMonitors_) {
         if (!monitor) {
             continue;
         }
@@ -376,10 +376,52 @@ void AbilityDelegator::PostPerformStart(const std::shared_ptr<ADelegatorAbilityP
 
 void AbilityDelegator::PostPerformStageStart(const std::shared_ptr<DelegatorAbilityStageProperty> &abilityStage)
 {
+    HILOG_INFO("Enter");
+    if (!abilityStage) {
+        HILOG_WARN("Invalid input parameter");
+        return;
+    }
+
+    std::unique_lock<std::mutex> lck(mutexStageMonitor_);
+    if (abilityStageMonitors_.empty()) {
+        HILOG_WARN("Empty abilityStageMonitors");
+        return;
+    }
+
+    for (const auto &monitor : abilityStageMonitors_) {
+        if (!monitor) {
+            continue;
+        }
+        monitor->Match(abilityStage, true);
+    }
 }
 
 void AbilityDelegator::PostPerformScenceCreated(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
+    HILOG_INFO("Enter PostPerformScenceCreated");
+
+    if (!ability) {
+        HILOG_WARN("Invalid input parameter");
+        return;
+    }
+
+    ProcessAbilityProperties(ability);
+
+    std::unique_lock<std::mutex> lck(mutexMonitor_);
+    if (abilityMonitors_.empty()) {
+        HILOG_WARN("Empty abilityMonitors");
+        return;
+    }
+
+    for (const auto &monitor : abilityMonitors_) {
+        if (!monitor) {
+            continue;
+        }
+
+        if (monitor->Match(ability)) {
+            monitor->OnWindowStageCreate(ability->object_);
+        }
+    }
 }
 
 void AbilityDelegator::PostPerformScenceRestored(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
@@ -388,6 +430,30 @@ void AbilityDelegator::PostPerformScenceRestored(const std::shared_ptr<ADelegato
 
 void AbilityDelegator::PostPerformScenceDestroyed(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
+    HILOG_INFO("Enter PostPerformScenceDestroyed");
+
+    if (!ability) {
+        HILOG_WARN("Invalid input parameter");
+        return;
+    }
+
+    ProcessAbilityProperties(ability);
+
+    std::unique_lock<std::mutex> lck(mutexMonitor_);
+    if (abilityMonitors_.empty()) {
+        HILOG_WARN("Empty abilityMonitors");
+        return;
+    }
+
+    for (const auto &monitor : abilityMonitors_) {
+        if (!monitor) {
+            continue;
+        }
+
+        if (monitor->Match(ability)) {
+            monitor->OnWindowStageDestroy(ability->object_);
+        }
+    }
 }
 
 void AbilityDelegator::PostPerformForeground(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
@@ -400,6 +466,22 @@ void AbilityDelegator::PostPerformForeground(const std::shared_ptr<ADelegatorAbi
     }
 
     ProcessAbilityProperties(ability);
+
+    std::unique_lock<std::mutex> lck(mutexMonitor_);
+    if (abilityMonitors_.empty()) {
+        HILOG_WARN("Empty abilityMonitors");
+        return;
+    }
+
+    for (const auto &monitor : abilityMonitors_) {
+        if (!monitor) {
+            continue;
+        }
+
+        if (monitor->Match(ability)) {
+            monitor->OnAbilityForeground(ability->object_);
+        }
+    }
 }
 
 void AbilityDelegator::PostPerformBackground(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
@@ -412,6 +494,22 @@ void AbilityDelegator::PostPerformBackground(const std::shared_ptr<ADelegatorAbi
     }
 
     ProcessAbilityProperties(ability);
+
+    std::unique_lock<std::mutex> lck(mutexMonitor_);
+    if (abilityMonitors_.empty()) {
+        HILOG_WARN("Empty abilityMonitors");
+        return;
+    }
+
+    for (const auto &monitor : abilityMonitors_) {
+        if (!monitor) {
+            continue;
+        }
+
+        if (monitor->Match(ability)) {
+            monitor->OnAbilityBackground(ability->object_);
+        }
+    }
 }
 
 void AbilityDelegator::PostPerformStop(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
@@ -424,6 +522,25 @@ void AbilityDelegator::PostPerformStop(const std::shared_ptr<ADelegatorAbilityPr
     }
 
     ProcessAbilityProperties(ability);
+
+    std::unique_lock<std::mutex> lck(mutexMonitor_);
+    if (abilityMonitors_.empty()) {
+        HILOG_WARN("Empty abilityMonitors");
+        return;
+    }
+
+    for (const auto &monitor : abilityMonitors_) {
+        if (!monitor) {
+            continue;
+        }
+
+        if (monitor->Match(ability)) {
+            monitor->OnAbilityStop(ability->object_);
+        }
+    }
+
+    RemoveAbilityProperty(ability);
+    CallClearFunc(ability);
 }
 
 AbilityDelegator::AbilityState AbilityDelegator::ConvertAbilityState(
@@ -477,6 +594,20 @@ void AbilityDelegator::ProcessAbilityProperties(const std::shared_ptr<ADelegator
 
 void AppExecFwk::AbilityDelegator::RemoveAbilityProperty(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
+    HILOG_INFO("RemoveAbilityProperty Enter");
+
+    if (!ability) {
+        HILOG_WARN("Invalid ability property");
+        return;
+    }
+
+    HILOG_INFO("ability property { name : %{public}s, state : %{public}d }",
+        ability->name_.data(), ability->lifecycleState_);
+
+    std::unique_lock<std::mutex> lck(mutexAbilityProperties_);
+    abilityProperties_.remove_if([ability](const auto &properties) {
+        return ability->fullName_ == properties->fullName_;
+    });
 }
 
 std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::FindPropertyByName(const std::string &name)
@@ -525,10 +656,21 @@ void AppExecFwk::AbilityDelegator::FinishUserTest(const std::string &msg, const 
 
 void AppExecFwk::AbilityDelegator::RegisterClearFunc(ClearFunc func)
 {
+    HILOG_INFO("RegisterClearFunc Enter");
+    if (!func) {
+        HILOG_ERROR("Invalid func");
+        return;
+    }
+
+    clearFunc_ = func;
 }
 
 inline void AppExecFwk::AbilityDelegator::CallClearFunc(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
+    HILOG_INFO("CallClearFunc Enter");
+    if (clearFunc_) {
+        clearFunc_(ability);
+    }
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
