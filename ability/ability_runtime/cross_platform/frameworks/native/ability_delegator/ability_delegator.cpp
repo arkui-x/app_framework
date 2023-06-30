@@ -410,7 +410,7 @@ void AbilityDelegator::PostPerformStageStart(const std::shared_ptr<DelegatorAbil
 
 void AbilityDelegator::PostPerformScenceCreated(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
-        HILOG_INFO("Enter PostPerformScenceCreated");
+    HILOG_INFO("Enter PostPerformScenceCreated");
 
     if (!ability) {
         HILOG_WARN("Invalid input parameter");
@@ -442,7 +442,7 @@ void AbilityDelegator::PostPerformScenceRestored(const std::shared_ptr<ADelegato
 
 void AbilityDelegator::PostPerformScenceDestroyed(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
-        HILOG_INFO("Enter PostPerformScenceDestroyed");
+    HILOG_INFO("Enter PostPerformScenceDestroyed");
 
     if (!ability) {
         HILOG_WARN("Invalid input parameter");
@@ -606,7 +606,7 @@ void AbilityDelegator::ProcessAbilityProperties(const std::shared_ptr<ADelegator
 
 void AppExecFwk::AbilityDelegator::RemoveAbilityProperty(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
-        HILOG_INFO("RemoveAbilityProperty Enter");
+    HILOG_INFO("RemoveAbilityProperty Enter");
 
     if (!ability) {
         HILOG_WARN("Invalid ability property");
@@ -668,7 +668,7 @@ void AppExecFwk::AbilityDelegator::FinishUserTest(const std::string &msg, const 
 
 void AppExecFwk::AbilityDelegator::RegisterClearFunc(ClearFunc func)
 {
-        HILOG_INFO("RegisterClearFunc Enter");
+    HILOG_INFO("RegisterClearFunc Enter");
     if (!func) {
         HILOG_ERROR("Invalid func");
         return;
@@ -679,7 +679,7 @@ void AppExecFwk::AbilityDelegator::RegisterClearFunc(ClearFunc func)
 
 inline void AppExecFwk::AbilityDelegator::CallClearFunc(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
-        HILOG_INFO("CallClearFunc Enter");
+    HILOG_INFO("CallClearFunc Enter");
     if (clearFunc_) {
         clearFunc_(ability);
     }
