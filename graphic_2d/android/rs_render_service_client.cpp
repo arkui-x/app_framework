@@ -22,6 +22,10 @@
 
 namespace OHOS {
 namespace Rosen {
+void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
+{
+}
+
 std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderServiceClient()
 {
     static std::shared_ptr<RSIRenderClient> client = std::make_shared<RSRenderServiceClient>();
