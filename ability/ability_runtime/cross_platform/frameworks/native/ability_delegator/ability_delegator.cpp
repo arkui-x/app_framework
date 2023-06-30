@@ -375,7 +375,7 @@ void AbilityDelegator::PostPerformStart(const std::shared_ptr<ADelegatorAbilityP
         return;
     }
 
-    for (auto &monitor : abilityMonitors_) {
+    for (const auto &monitor : abilityMonitors_) {
         if (!monitor) {
             continue;
         }
@@ -400,7 +400,7 @@ void AbilityDelegator::PostPerformStageStart(const std::shared_ptr<DelegatorAbil
         return;
     }
 
-    for (auto &monitor : abilityStageMonitors_) {
+    for (const auto &monitor : abilityStageMonitors_) {
         if (!monitor) {
             continue;
         }
@@ -425,7 +425,7 @@ void AbilityDelegator::PostPerformScenceCreated(const std::shared_ptr<ADelegator
         return;
     }
 
-    for (auto &monitor : abilityMonitors_) {
+    for (const auto &monitor : abilityMonitors_) {
         if (!monitor) {
             continue;
         }
@@ -457,7 +457,7 @@ void AbilityDelegator::PostPerformScenceDestroyed(const std::shared_ptr<ADelegat
         return;
     }
 
-    for (auto &monitor : abilityMonitors_) {
+    for (const auto &monitor : abilityMonitors_) {
         if (!monitor) {
             continue;
         }
@@ -485,7 +485,7 @@ void AbilityDelegator::PostPerformForeground(const std::shared_ptr<ADelegatorAbi
         return;
     }
 
-    for (auto &monitor : abilityMonitors_) {
+    for (const auto &monitor : abilityMonitors_) {
         if (!monitor) {
             continue;
         }
@@ -513,7 +513,7 @@ void AbilityDelegator::PostPerformBackground(const std::shared_ptr<ADelegatorAbi
         return;
     }
 
-    for (auto &monitor : abilityMonitors_) {
+    for (const auto &monitor : abilityMonitors_) {
         if (!monitor) {
             continue;
         }
@@ -541,7 +541,7 @@ void AbilityDelegator::PostPerformStop(const std::shared_ptr<ADelegatorAbilityPr
         return;
     }
 
-    for (auto &monitor : abilityMonitors_) {
+    for (const auto &monitor : abilityMonitors_) {
         if (!monitor) {
             continue;
         }
