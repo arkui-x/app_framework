@@ -174,11 +174,15 @@ void RenderContext::SwapBuffers(EGLSurface surface) const
 
 void RenderContext::DestroyEGLSurface(EGLSurface surface)
 {
+    ROSEN_LOGI("RenderContext::DestroyEGLSurface");
+    [static_cast<CAEAGLLayer*>(surface) release];
+    layer_ = nullptr;
 }
 
 EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
 {
-    layer_ = eglNativeWindow;
+    [static_cast<CAEAGLLayer*>(layer_) release];
+    layer_ = [static_cast<CAEAGLLayer*>(eglNativeWindow) retain];
     if (static_cast<CAEAGLLayer*>(layer_) == nullptr) {
        ROSEN_LOGE("RenderContextEAGL layer_ is null");
        return nullptr;
