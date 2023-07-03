@@ -159,6 +159,9 @@ gen_pkgdata_inc_for_android() {
     elif [ "$target_os_arch"X = "arm"X ]; then
         target_type="armv7a-linux-androideabi"
         RANLIB=ranlib
+    elif [ "$target_os_arch"X = "x86_64"X ]; then
+        target_type="x86_64-linux-android"
+        RANLIB=ranlib
     else
         # unknown
         echo "Unsupported this target_os_arch: $target_os_arch"
