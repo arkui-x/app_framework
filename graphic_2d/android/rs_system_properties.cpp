@@ -36,7 +36,7 @@ DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 
 PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 {
-    return PartialRenderType::SET_DAMAGE_AND_DROP_OP;
+    return {};
 }
 
 PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
