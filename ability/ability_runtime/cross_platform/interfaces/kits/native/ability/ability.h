@@ -132,6 +132,7 @@ public:
     void DispatchLifecycleOnForeground(const Want &want);
 
     const LaunchParam& GetLaunchParam() const;
+    virtual void OnAbilityResult(int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant);
 
 public:
     std::shared_ptr<Rosen::WindowStage> windowStage_ = nullptr;

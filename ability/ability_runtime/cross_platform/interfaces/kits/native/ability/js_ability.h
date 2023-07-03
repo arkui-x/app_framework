@@ -49,6 +49,7 @@ public:
     void OnWindowStageDestroy() override;
     std::unique_ptr<NativeReference> CreateJsWindowStage();
     void OnConfigurationUpdate(const Configuration& configuration) override;
+    void OnAbilityResult(int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant) override;
 
 private:
     void CallObjectMethod(const char* name, NativeValue* const* argv = nullptr, size_t argc = 0);

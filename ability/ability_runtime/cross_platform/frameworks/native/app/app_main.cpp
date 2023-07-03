@@ -361,6 +361,34 @@ bool AppMain::IsSingleton(const std::string& moduleName, const std::string& abil
     }
     return (abilityInfo->launchMode == AppExecFwk::LaunchMode::SINGLETON);
 }
+
+void AppMain::DispatchOnAbilityResult(
+    const std::string& instanceName, int32_t requestCode, int32_t resultCode, const std::string& resultWant)
+{
+    HILOG_INFO("called");
+    if (!eventHandler_) {
+        HILOG_ERROR("eventHandler_ is nullptr");
+        return;
+    }
+    auto task = [instanceName, requestCode, resultCode, resultWant]() {
+        AppMain::GetInstance()->HandleDispatchOnAbilityResult(instanceName, requestCode, resultCode, resultWant);
+    };
+    eventHandler_->PostTask(task);
+}
+
+void AppMain::HandleDispatchOnAbilityResult(
+    const std::string& instanceName, int32_t requestCode, int32_t resultCode, const std::string& resultWant)
+{
+    HILOG_INFO("called, instanceName: %{public}s, resultWant: %{public}s", instanceName.c_str(), resultWant.c_str());
+    if (application_ == nullptr) {
+        HILOG_ERROR("application_ is nullptr");
+        return;
+    }
+    Want abilityResultWant;
+    abilityResultWant.ParseJson(resultWant);
+    application_->DispatchOnAbilityResult(
+        TransformToWant(instanceName), requestCode, resultCode, abilityResultWant);
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

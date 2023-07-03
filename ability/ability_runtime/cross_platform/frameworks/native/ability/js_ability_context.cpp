@@ -28,7 +28,8 @@ namespace AbilityRuntime {
 namespace Platform {
 namespace {
 constexpr size_t ARGC_ZERO = 0;
-}
+constexpr size_t ARGC_ONE = 1;
+} // namespace
 
 void JsAbilityContext::Finalizer(NativeEngine* engine, void* data, void* hint)
 {
@@ -122,6 +123,154 @@ NativeValue* JsAbilityContext::OnTerminateSelf(NativeEngine& engine, NativeCallb
     return result;
 }
 
+NativeValue* JsAbilityContext::StartAbilityForResult(NativeEngine* engine, NativeCallbackInfo* info)
+{
+    JsAbilityContext* me = CheckParamsAndGetThis<JsAbilityContext>(engine, info);
+    return (me != nullptr) ? me->OnStartAbilityForResult(*engine, *info) : nullptr;
+}
+
+NativeValue* JsAbilityContext::OnStartAbilityForResult(NativeEngine& engine, NativeCallbackInfo& info)
+{
+    HILOG_INFO("called.");
+    if (info.argc == ARGC_ZERO) {
+        HILOG_ERROR("Not enough params");
+        ThrowTooFewParametersError(engine);
+        return engine.CreateUndefined();
+    }
+    AAFwk::Want want;
+    AppExecFwk::UnwrapWant(reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[0]), want);
+    decltype(info.argc) unwrapArgc = 1;
+
+    auto lastParam = (info.argc > unwrapArgc) ? info.argv[unwrapArgc] : nullptr;
+    NativeValue* result = nullptr;
+    auto uasyncTask = CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, nullptr, &result);
+    std::shared_ptr<AsyncTask> asyncTask = std::move(uasyncTask);
+    RuntimeTask task = [&engine, asyncTask](int32_t resultCode, const AAFwk::Want& resultWant) {
+        HILOG_INFO("OnStartAbilityForResult async callback is called");
+        NativeValue* abilityResult = JsAbilityContext::WrapAbilityResult(engine, resultCode, resultWant);
+        if (abilityResult == nullptr) {
+            HILOG_WARN("wrap abilityResult failed");
+            asyncTask->Reject(engine, CreateJsError(engine, AbilityErrorCode::ERROR_CODE_INNER));
+        } else {
+            asyncTask->Resolve(engine, abilityResult);
+        }
+    };
+    auto context = context_.lock();
+    if (context == nullptr) {
+        HILOG_WARN("context is released");
+        asyncTask->Reject(engine, CreateJsError(engine, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+    } else {
+        curRequestCode_ = (curRequestCode_ == INT_MAX) ? 0 : (curRequestCode_ + 1);
+        context->StartAbilityForResult(want, curRequestCode_, std::move(task));
+    }
+    return result;
+}
+
+NativeValue* JsAbilityContext::TerminateSelfWithResult(NativeEngine* engine, NativeCallbackInfo* info)
+{
+    JsAbilityContext* me = CheckParamsAndGetThis<JsAbilityContext>(engine, info);
+    return (me != nullptr) ? me->OnTerminateSelfWithResult(*engine, *info) : nullptr;
+}
+
+NativeValue* JsAbilityContext::OnTerminateSelfWithResult(NativeEngine& engine, NativeCallbackInfo& info)
+{
+    HILOG_INFO("called.");
+    if (info.argc == 0) {
+        HILOG_ERROR("Not enough params");
+        ThrowTooFewParametersError(engine);
+        return engine.CreateUndefined();
+    }
+    int32_t resultCode = 0;
+    AAFwk::Want resultWant;
+    if (!JsAbilityContext::UnWrapAbilityResult(engine, info.argv[0], resultCode, resultWant)) {
+        HILOG_ERROR("Failed to parse ability result!");
+        ThrowError(engine, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+        return engine.CreateUndefined();
+    }
+
+    auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
+    AsyncTask::ExecuteCallback execute = [weak = context_, resultWant, resultCode, innerErrorCode]() {
+        auto context = weak.lock();
+        if (!context) {
+            HILOG_WARN("context is released");
+            *innerErrorCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+            return;
+        }
+
+        *innerErrorCode = context->TerminateAbilityWithResult(resultWant, resultCode);
+    };
+
+    AsyncTask::CompleteCallback complete = [innerErrorCode](NativeEngine& engine, AsyncTask& task, int32_t status) {
+        if (*innerErrorCode == ERR_OK) {
+            task.Resolve(engine, engine.CreateUndefined());
+        } else {
+            task.Reject(engine, CreateJsErrorByNativeErr(engine, *innerErrorCode));
+        }
+    };
+
+    NativeValue* lastParam = (info.argc > ARGC_ONE) ? info.argv[ARGC_ONE] : nullptr;
+    NativeValue* result = nullptr;
+    AsyncTask::Schedule("JsAbilityContext::OnTerminateSelfWithResult", engine,
+        CreateAsyncTaskWithLastParam(engine, lastParam, std::move(execute), std::move(complete), &result));
+    return result;
+}
+
+NativeValue* JsAbilityContext::WrapAbilityResult(
+    NativeEngine& engine, int32_t resultCode, const AAFwk::Want& resultWant)
+{
+    NativeValue* jAbilityResult = engine.CreateObject();
+    NativeObject* abilityResult = ConvertNativeValueTo<NativeObject>(jAbilityResult);
+    if (abilityResult == nullptr) {
+        HILOG_ERROR("abilityResult is nullptr");
+        return jAbilityResult;
+    }
+    abilityResult->SetProperty("resultCode", engine.CreateNumber(resultCode));
+    abilityResult->SetProperty("want", AppExecFwk::CreateJsWant(engine, resultWant));
+    return jAbilityResult;
+}
+
+bool JsAbilityContext::UnWrapAbilityResult(
+    NativeEngine& engine, NativeValue* argv, int32_t& resultCode, AAFwk::Want& resultWant)
+{
+    if (argv == nullptr) {
+        HILOG_ERROR("argv is nullptr");
+        return false;
+    }
+    if (argv->TypeOf() != NativeValueType::NATIVE_OBJECT) {
+        HILOG_ERROR("invalid type of abilityResult");
+        return false;
+    }
+    NativeObject* jObj = ConvertNativeValueTo<NativeObject>(argv);
+    if (jObj == nullptr) {
+        HILOG_ERROR("jObj is nullptr");
+        return false;
+    }
+    NativeValue* jResultCode = jObj->GetProperty("resultCode");
+    if (jResultCode == nullptr) {
+        HILOG_ERROR("jResultCode is nullptr");
+        return false;
+    }
+    if (jResultCode->TypeOf() != NativeValueType::NATIVE_NUMBER) {
+        HILOG_ERROR("invalid type of resultCode");
+        return false;
+    }
+    resultCode = int32_t(*ConvertNativeValueTo<NativeNumber>(jObj->GetProperty("resultCode")));
+    NativeValue* jWant = jObj->GetProperty("want");
+    if (jWant == nullptr) {
+        HILOG_ERROR("jWant is nullptr");
+        return false;
+    }
+    if (jWant->TypeOf() == NativeValueType::NATIVE_UNDEFINED) {
+        HILOG_ERROR("want is undefined");
+        return true;
+    }
+    if (jWant->TypeOf() != NativeValueType::NATIVE_OBJECT) {
+        HILOG_ERROR("invalid type of want");
+        return false;
+    }
+    return AppExecFwk::UnwrapWant(reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(jWant), resultWant);
+}
+
 NativeValue* CreateJsAbilityContext(NativeEngine& engine, const std::shared_ptr<AbilityContext>& context)
 {
     if (context == nullptr) {
@@ -160,6 +309,9 @@ NativeValue* CreateJsAbilityContext(NativeEngine& engine, const std::shared_ptr<
     const char* moduleName = "JsAbilityContext";
     BindNativeFunction(engine, *object, "startAbility", moduleName, JsAbilityContext::StartAbility);
     BindNativeFunction(engine, *object, "terminateSelf", moduleName, JsAbilityContext::TerminateSelf);
+    BindNativeFunction(engine, *object, "startAbilityForResult", moduleName, JsAbilityContext::StartAbilityForResult);
+    BindNativeFunction(
+        engine, *object, "terminateSelfWithResult", moduleName, JsAbilityContext::TerminateSelfWithResult);
     return objValue;
 }
 

@@ -38,11 +38,18 @@ public:
     static NativeValue* TerminateSelf(NativeEngine* engine, NativeCallbackInfo* info);
     static void ConfigurationUpdated(NativeEngine* engine, std::shared_ptr<NativeReference>& jsContext,
         const std::shared_ptr<Configuration>& config);
+    static NativeValue* StartAbilityForResult(NativeEngine* engine, NativeCallbackInfo* info);
+    static NativeValue* TerminateSelfWithResult(NativeEngine* engine, NativeCallbackInfo* info);
 
 private:
     NativeValue* OnStartAbility(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnTerminateSelf(NativeEngine& engine, NativeCallbackInfo& info);
+    NativeValue* OnStartAbilityForResult(NativeEngine& engine, NativeCallbackInfo& info);
+    NativeValue* OnTerminateSelfWithResult(NativeEngine& engine, NativeCallbackInfo& info);
+    static NativeValue* WrapAbilityResult(NativeEngine& engine, int32_t resultCode, const AAFwk::Want& resultWant);
+    bool UnWrapAbilityResult(NativeEngine& engine, NativeValue* argv, int32_t& resultCode, AAFwk::Want& want);
     std::weak_ptr<AbilityContext> context_;
+    int32_t curRequestCode_ = 0;
 };
 NativeValue* CreateJsAbilityContext(NativeEngine& engine, const std::shared_ptr<AbilityContext>& context);
 } // namespace Platform

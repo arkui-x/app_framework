@@ -133,6 +133,43 @@ void AbilityContextImpl::SetInstanceName(const std::string& instanceName)
 {
     instanceName_ = instanceName;
 }
+
+ErrCode AbilityContextImpl::StartAbilityForResult(const AAFwk::Want& want, int32_t requestCode, RuntimeTask&& task)
+{
+    HILOG_INFO("called.");
+    resultCallbacks_.insert(std::make_pair(requestCode, std::move(task)));
+    ErrCode err =
+        Platform::AbilityContextAdapter::GetInstance()->StartAbilityForResult(instanceName_, want, requestCode);
+    if (err != 0) {
+        HILOG_ERROR("failed, ret = %{public}d", err);
+        HandleOnAbilityResult(requestCode, err, want);
+    }
+    return err;
+}
+
+ErrCode AbilityContextImpl::TerminateAbilityWithResult(const AAFwk::Want& resultWant, int32_t resultCode)
+{
+    HILOG_INFO("called.");
+    return Platform::AbilityContextAdapter::GetInstance()->TerminateAbilityWithResult(
+        instanceName_, resultWant, resultCode);
+}
+
+void AbilityContextImpl::OnAbilityResult(int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant)
+{
+    HILOG_INFO("called.");
+    HandleOnAbilityResult(requestCode, resultCode, resultWant);
+}
+
+void AbilityContextImpl::HandleOnAbilityResult(int32_t requestCode, int32_t resultCode, const AAFwk::Want& want)
+{
+    auto callback = resultCallbacks_.find(requestCode);
+    if (callback != resultCallbacks_.end()) {
+        if (callback->second) {
+            callback->second(resultCode, want);
+        }
+        resultCallbacks_.erase(requestCode);
+    }
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

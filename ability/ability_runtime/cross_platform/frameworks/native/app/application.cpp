@@ -184,6 +184,19 @@ std::shared_ptr<AbilityStage> Application::FindAbilityStage(const std::string& m
     }
     return nullptr;
 }
+
+void Application::DispatchOnAbilityResult(
+    const AAFwk::Want& want, int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant)
+{
+    HILOG_INFO("called");
+    std::string moduleName = want.GetModuleName();
+    auto stage = FindAbilityStage(moduleName);
+    if (stage == nullptr) {
+        HILOG_ERROR("stage is nullptr");
+        return;
+    }
+    stage->DispatchOnAbilityResult(want, requestCode, resultCode, resultWant);
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

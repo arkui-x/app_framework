@@ -49,6 +49,8 @@ public:
     void DispatchOnDestroy(const AAFwk::Want& want);
     void OnConfigurationUpdate(const Configuration& configuration);
     void InitConfiguration(const Configuration& configuration);
+    void DispatchOnAbilityResult(
+        const AAFwk::Want& want, int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant);
 
 private:
     std::shared_ptr<AbilityStage> FindAbilityStage(const std::string& moduleName);

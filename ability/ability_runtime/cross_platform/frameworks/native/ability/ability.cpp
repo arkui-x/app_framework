@@ -174,6 +174,11 @@ const LaunchParam& Ability::GetLaunchParam() const
 {
     return launchParam_;
 }
+
+void Ability::OnAbilityResult(int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant)
+{
+    HILOG_INFO("OnAbilityResult begin.");
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

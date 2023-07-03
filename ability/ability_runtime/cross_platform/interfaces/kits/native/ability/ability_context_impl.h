@@ -45,7 +45,9 @@ public:
     std::shared_ptr<Configuration> GetConfiguration() override;
     void GetResourcePaths(std::string& hapResPath, std::string& sysResPath) override;
     std::shared_ptr<Context> CreateModuleContext(const std::string &moduleName) override;
-
+    ErrCode StartAbilityForResult(const AAFwk::Want& want, int32_t requestCode, RuntimeTask&& task) override;
+    ErrCode TerminateAbilityWithResult(const AAFwk::Want& resultWant, int32_t resultCode) override;
+    void OnAbilityResult(int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant) override;
     /**
      * @brief Set the Ability Info object
      *
@@ -56,9 +58,11 @@ public:
     void SetAbilityStageContext(const std::shared_ptr<Context>& abilityStageContext);
     void SetInstanceName(const std::string& instanceName);
 private:
+    void HandleOnAbilityResult(int32_t requestCode, int32_t resultCode, const AAFwk::Want& want);
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo_ = nullptr;
     std::shared_ptr<Context> stageContext_ = nullptr;
     std::string instanceName_;
+    std::map<int, RuntimeTask> resultCallbacks_;
 };
 } // namespace Platform
 } // namespace AbilityRuntime
