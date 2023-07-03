@@ -29,8 +29,18 @@
 namespace OHOS {
 namespace Rosen {
 RSSurfaceGPU::RSSurfaceGPU(void* layer)
-    : layer_(layer)
 {
+    [static_cast<CAEAGLLayer*>(layer_) release];
+    layer_ = [layer retain];
+}
+
+RSSurfaceGPU::~RSSurfaceGPU()
+{
+    ROSEN_LOGI("RSSurfaceGPU::release");
+    if (renderContext_ != nullptr) {
+        renderContext_->DestroyEGLSurface(layer_);
+    }
+    layer_ = nullptr;
 }
 
 bool RSSurfaceGPU::IsValid() const

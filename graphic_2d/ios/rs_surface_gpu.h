@@ -25,6 +25,11 @@
 #include "platform/drawing/rs_surface_frame.h"
 #include "render_context/render_context.h"
 
+#ifdef __OBJC__
+@class CAEAGLLayer;
+#else
+typedef struct objc_object CAEAGLLayer;
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -32,7 +37,7 @@ class RenderContext;
 class RSSurfaceGPU : public RSSurface {
 public:
     RSSurfaceGPU(void* layer);
-    ~RSSurfaceGPU() override = default;
+    ~RSSurfaceGPU() override;
 
     bool IsValid() const override;
 
@@ -60,8 +65,7 @@ private:
     bool SetupGrContext();
 
     sk_sp<SkColorSpace> skColorSpace_ = nullptr;
-    void* layer_ = nullptr;
-
+    CAEAGLLayer* layer_ = nullptr;
     RenderContext *renderContext_ = nullptr;
 };
 } // namespace Rosen
