@@ -520,7 +520,7 @@ void JsApplicationContextUtils::BindNativeApplicationContext(NativeEngine& engin
         engine, *object, "getApplicationContext", MD_NAME, JsApplicationContextUtils::GetApplicationContext);
     BindNativeFunction(engine, *object, "getRunningProcessInformation", MD_NAME,
         JsApplicationContextUtils::GetRunningProcessInformation);
-    BindNativeFunction(engine, *object, "createModuleContext", MD_NAME, JsBaseContext::CreateModuleContext);
+    BindNativeFunction(engine, *object, "createModuleContext", MD_NAME, JsApplicationContextUtils::CreateModuleContext);
 }
 } // namespace Platform
 } // namespace AbilityRuntime

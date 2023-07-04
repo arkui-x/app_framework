@@ -58,7 +58,7 @@ class Context {
         return this.__context_impl__.getApplicationContext()
     }
 
-    CreateModuleContext(moduleName) {
+    createModuleContext(moduleName) {
         return this.__context_impl__.createModuleContext(moduleName)
     }
 }
