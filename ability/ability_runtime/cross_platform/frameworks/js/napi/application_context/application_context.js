@@ -29,6 +29,10 @@ class ApplicationContext {
         return this.__context_impl__.getApplicationContext()
     }
 
+    createModuleContext(moduleName) {
+        return this.__context_impl__.createModuleContext(moduleName)
+    }
+
     get applicationInfo() {
         return this.__context_impl__.applicationInfo
     }
