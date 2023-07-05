@@ -152,6 +152,7 @@ bool AppMain::CreateRuntime(const std::string& bundleName, bool isBundle)
     options.codePath = StageAssetManager::GetInstance()->GetBundleCodeDir();
     options.bundleName = bundleName;
     options.isBundle = isBundle;
+    options.appLibPath = StageAssetManager::GetInstance()->GetAppLibDir();
     auto runtime = AbilityRuntime::Runtime::Create(options);
     if (runtime == nullptr) {
         return false;

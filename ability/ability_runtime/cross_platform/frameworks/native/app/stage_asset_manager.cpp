@@ -15,6 +15,8 @@
 
 #include "stage_asset_manager.h"
 
+#include <string>
+
 #include "hilog.h"
 #include "stage_asset_provider.h"
 
@@ -78,6 +80,11 @@ std::string StageAssetManager::GetDatabaseDir() const
 std::string StageAssetManager::GetPreferencesDir() const
 {
     return StageAssetProvider::GetInstance()->GetPreferencesDir();
+}
+
+std::string StageAssetManager::GetAppLibDir() const
+{
+    return StageAssetProvider::GetInstance()->GetAppLibDir();
 }
 
 void StageAssetManager::GetResIndexPath(
