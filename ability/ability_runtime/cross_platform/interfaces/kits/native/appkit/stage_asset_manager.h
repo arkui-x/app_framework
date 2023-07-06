@@ -39,6 +39,7 @@ public:
     std::string GetFilesDir() const;
     std::string GetDatabaseDir() const;
     std::string GetPreferencesDir() const;
+    std::string GetAppLibDir() const;
     void GetResIndexPath(const std::string& moduleName, std::string& appResIndexPath, std::string& sysResIndexPath);
 
 private:

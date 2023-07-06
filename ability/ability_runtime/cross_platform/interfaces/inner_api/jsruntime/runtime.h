@@ -47,6 +47,7 @@ public:
         bool isDebugVersion = false;
         std::string codePath = "";
         std::string bundleName = "";
+        std::string appLibPath = "";
     };
 
     static std::unique_ptr<Runtime> Create(const Options& options);

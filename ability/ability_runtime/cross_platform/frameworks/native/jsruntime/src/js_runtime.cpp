@@ -27,10 +27,10 @@
 #endif
 #include <unistd.h>
 
+#include "connect_server_manager.h"
 #include "ecmascript/napi/include/jsnapi.h"
 #include "event_handler.h"
 #include "hilog.h"
-#include "connect_server_manager.h"
 #include "js_console_log.h"
 #include "js_runtime_utils.h"
 #include "js_timer.h"
@@ -102,8 +102,7 @@ public:
             HILOG_ERROR("pointer is nullptr.");
             return nullptr;
         }
-        return ArkNativeEngine::ArkValueToNativeValue(
-            static_cast<ArkNativeEngine*>(nativeEngine_.get()), exportObj);
+        return ArkNativeEngine::ArkValueToNativeValue(static_cast<ArkNativeEngine*>(nativeEngine_.get()), exportObj);
     }
 
 private:
@@ -132,7 +131,11 @@ private:
             return false;
         }
 
-        nativeEngine_ = std::make_unique<ArkNativeEngine>(vm_, static_cast<JsRuntime*>(this));
+        auto nativeEngine = std::make_unique<ArkNativeEngine>(vm_, static_cast<JsRuntime*>(this));
+        if (!options.appLibPath.empty()) {
+            nativeEngine->SetPackagePath("default", { options.appLibPath });
+        }
+        nativeEngine_ = std::move(nativeEngine);
 
         isBundle_ = options.isBundle;
         panda::JSNApi::SetBundle(vm_, options.isBundle);
@@ -349,8 +352,8 @@ NativeValue* JsRuntime::LoadJsBundle(const std::string& path, std::vector<uint8_
     return exportObj;
 }
 
-std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& moduleName,
-    const std::string& modulePath, std::vector<uint8_t>& buffer, const std::string& srcEntrance, bool esmodule)
+std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& moduleName, const std::string& modulePath,
+    std::vector<uint8_t>& buffer, const std::string& srcEntrance, bool esmodule)
 {
     HILOG_INFO("JsRuntime::LoadModule(%{public}s, %{public}s", moduleName.c_str(), modulePath.c_str());
     HandleScope handleScope(*this);
@@ -433,23 +436,22 @@ void JsRuntime::StartDebugMode(bool needBreakPoint)
     if (JsRuntime::hasInstance.exchange(true, std::memory_order_relaxed)) {
         uint64_t tid;
 #if !defined(IOS_PLATFORM)
-            tid = gettid();
+        tid = gettid();
 #else
-            pthread_threadid_np(0, &tid);
+        pthread_threadid_np(0, &tid);
 #endif
         instanceId_ = static_cast<uint32_t>(tid);
     }
 
     HILOG_INFO("Ark VM is starting debug mode [%{public}s]", needBreakPoint ? "break" : "normal");
-    auto debuggerPostTask = [eventHandler = eventHandler_](std::function<void()>&& task) {
-        eventHandler->PostTask(task);
-    };
+    auto debuggerPostTask = [eventHandler = eventHandler_](
+                                std::function<void()>&& task) { eventHandler->PostTask(task); };
 
     debugMode_ = StartDebugMode(bundleName_, needBreakPoint, instanceId_, debuggerPostTask);
 }
 
-bool JsRuntime::StartDebugMode(const std::string& bundleName, bool needBreakPoint, uint32_t instanceId,
-    const DebuggerPostTask& debuggerPostTask)
+bool JsRuntime::StartDebugMode(
+    const std::string& bundleName, bool needBreakPoint, uint32_t instanceId, const DebuggerPostTask& debuggerPostTask)
 {
     ConnectServerManager::Get().StartConnectServer(bundleName);
     ConnectServerManager::Get().AddInstance(instanceId);
