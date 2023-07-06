@@ -84,6 +84,7 @@ void Application::HandleAbilityStage(const AAFwk::Want& want)
     abilityStageContext->SetHapModuleInfo(hapModuleInfo);
     abilityStageContext->SetConfiguration(configuration_);
     abilityStageContext->InitResourceManeger();
+    applicationContext_->SetResourceManager(abilityStageContext->GetResourceManager());
 
     auto abilityStage = AbilityRuntime::Platform::AbilityStage::Create(runtime_, *hapModuleInfo);
     abilityStage->Init(abilityStageContext);

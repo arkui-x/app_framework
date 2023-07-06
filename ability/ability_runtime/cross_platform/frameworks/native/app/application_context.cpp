@@ -67,7 +67,12 @@ void ApplicationContext::SetApplicationInfo(const std::shared_ptr<AppExecFwk::Ap
 
 std::shared_ptr<Global::Resource::ResourceManager> ApplicationContext::GetResourceManager() const
 {
-    return nullptr;
+    return resourceMgr_;
+}
+
+void ApplicationContext::SetResourceManager(const std::shared_ptr<Global::Resource::ResourceManager> &resMgr)
+{
+    resourceMgr_ = resMgr;
 }
 
 std::string ApplicationContext::GetBundleCodePath() const
