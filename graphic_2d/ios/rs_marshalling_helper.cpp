@@ -49,7 +49,9 @@
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pixel_map.h"
 #include "platform/common/rs_log.h"
+#if defined(NEW_SKIA)
 #include "render/rs_blur_filter.h"
+#endif
 #include "render/rs_filter.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
