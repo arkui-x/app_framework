@@ -33,6 +33,10 @@ class ApplicationContext {
         return this.__context_impl__.createModuleContext(moduleName)
     }
 
+    get resourceManager() {
+        return this.__context_impl__.resourceManager
+    }
+
     get applicationInfo() {
         return this.__context_impl__.applicationInfo
     }

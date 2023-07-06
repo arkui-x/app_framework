@@ -59,6 +59,7 @@ public:
     void DispatchOnAbilityForeground(const std::shared_ptr<NativeReference>& ability);
     void DispatchOnAbilityBackground(const std::shared_ptr<NativeReference>& ability);
     int32_t GetProcessRunningInformation(std::vector<RunningProcessInfo>& processInfos);
+    void SetResourceManager(const std::shared_ptr<Global::Resource::ResourceManager> &resMgr);
 
 private:
     std::shared_ptr<AppExecFwk::ApplicationInfo> applicationInfo_ = nullptr;
@@ -66,6 +67,7 @@ private:
     std::shared_ptr<AppExecFwk::BundleContainer> bundleContainer_ = nullptr;
     static std::vector<std::shared_ptr<AbilityLifecycleCallback>> callbacks_;
     std::mutex callbackLock_;
+    std::shared_ptr<Global::Resource::ResourceManager> resourceMgr_;
 };
 } // namespace Platform
 } // namespace AbilityRuntime
