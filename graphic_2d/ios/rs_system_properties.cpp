@@ -108,6 +108,16 @@ bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetKawaseEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetASTCEnabled()
+{
+    return false;
+}
+
 float RSSystemProperties::GetAnimationScale()
 {
     return 1.f;
@@ -126,6 +136,16 @@ int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyCh
 bool RSSystemProperties::GetDrawOpTraceEnabled()
 {
     return {};
+}
+
+bool RSSystemProperties::GetFilterCacheEnabled()
+{
+    return false;
+}
+
+int RSSystemProperties::GetFilterCacheUpdateInterval()
+{
+    return 0;
 }
 } // namespace Rosen
 } // namespace OHOS

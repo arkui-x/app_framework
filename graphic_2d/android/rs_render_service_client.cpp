@@ -56,6 +56,19 @@ bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
     return {};
 }
 
+void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
+{
+}
+
+void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
+{
+}
+
+uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
+{
+    return {};
+}
+
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
 {
     return std::make_shared<RSSurfaceAndroid>(static_cast<ANativeWindow*>(config.additionalData));
@@ -270,6 +283,11 @@ void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap>
 
 void RSRenderServiceClient::ReportJankStats()
 {
+}
+
+std::vector<uint32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
+{
+    return {};
 }
 } // namespace Rosen
 } // namespace OHOS
