@@ -66,7 +66,7 @@ void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
 
 uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
 {
-  return 60;
+    return {};
 }
 
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
