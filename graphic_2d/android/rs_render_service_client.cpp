@@ -289,6 +289,5 @@ std::vector<uint32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(Scre
 {
     return {};
 }
-
 } // namespace Rosen
 } // namespace OHOS

@@ -147,6 +147,5 @@ int RSSystemProperties::GetFilterCacheUpdateInterval()
 {
     return 0;
 }
-
 } // namespace Rosen
 } // namespace OHOS
