@@ -110,7 +110,7 @@ bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 
 bool RSSystemProperties::GetKawaseEnabled()
 {
-  return {};
+    return {};
 }
 
 bool RSSystemProperties::GetASTCEnabled()
