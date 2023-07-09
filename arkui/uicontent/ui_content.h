@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "interfaces/inner_api/ace/viewport_config.h"
-#include "foundation/arkui/ace_engine/frameworks/core/accessibility/accessibility_node.h"
+#include "core/accessibility/accessibility_node.h"
 #include "foundation/appframework/arkui/uicontent/component_info.h"
 
 namespace OHOS::Ace {

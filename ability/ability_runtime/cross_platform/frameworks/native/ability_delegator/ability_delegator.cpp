@@ -705,7 +705,6 @@ void AbilityDelegator::RemoveUIContent(int32_t instanceId)
 {
     std::unique_lock<std::shared_mutex> lock(mutex_);
     size_t num = contentMap_.erase(instanceId);
-
     if (num == 0) {
         LOGW("AbilityDelegator-uicontent not found with instance id: %{public}d", instanceId);
     }

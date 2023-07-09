@@ -36,7 +36,6 @@ void UIContent::AddUIContent(int32_t instanceId, UIContent* content)
     } else {
         LOGE("UIContent::AddUIContent Delegator is null, delegator is not initialized");
     }
-
 }
 
 void UIContent::RemoveUIContent(int32_t instanceId)
