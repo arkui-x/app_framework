@@ -15,6 +15,10 @@
 
 #include "foundation/appframework/arkui/uicontent/ui_content.h"
 
+#include "foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit/ability_delegator/ability_delegator_registry.h"
+
+#include "base/log/log.h"
+
 namespace OHOS::Ace::Platform {
 void UIContent::ShowDumpHelp(std::vector<std::string>& info)
 {
@@ -22,5 +26,26 @@ void UIContent::ShowDumpHelp(std::vector<std::string>& info)
     info.emplace_back(" -render                        |show render tree");
     info.emplace_back(" -inspector                     |show inspector tree");
     info.emplace_back(" -frontend                      |show path and components count of current page");
+}
+
+void UIContent::AddUIContent(int32_t instanceId, UIContent* content)
+{
+    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
+    if (delegator != nullptr) {
+        delegator->AddUIContent(instanceId, content);
+    } else {
+        LOGE("UIContent::AddUIContent Delegator is null, delegator is not initialized");
+    }
+
+}
+
+void UIContent::RemoveUIContent(int32_t instanceId)
+{
+    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
+    if (delegator != nullptr) {
+        delegator->RemoveUIContent(instanceId);
+    } else {
+        LOGE("UIContent::RemoveUIContent Delegator is null, delegator is not initialized");
+    }
 }
 } // namespace OHOS::Ace::Platform 

@@ -111,6 +111,7 @@ template("appkit_delegator_appkit_native") {
       "//third_party/icu/icu4c/source/common",
       "//third_party/icu/icu4c/source",
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/hilog",
+      "//foundation/arkui/ace_engine/interfaces/inner_api/ace",
     ]
 
     configs = [

@@ -29,6 +29,8 @@
 #include "inttypes.h"
 #endif
 
+#include <shared_mutex>
+
 #include "ability_delegator_infos.h"
 #include "iability_monitor.h"
 #include "iability_stage_monitor.h"
@@ -38,6 +40,10 @@
 #include "ability_lifecycle_executor.h"
 #include "foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit/context.h"
 #include "want.h"
+
+namespace OHOS::Ace::Platform {
+class UIContent;
+}
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -314,6 +320,30 @@ public:
      */
     void RegisterClearFunc(ClearFunc func);
 
+    /**
+     * get a uicontent instance from contentMap_ by instanceId
+     *
+     * @param instanceId id of a ability
+     *
+     * @return a instance of UIContent
+     */
+    Ace::Platform::UIContent* GetUIContent(int32_t instanceId);
+
+    /**
+     * add a uicontent instance to contentMap_, the key is instanceId
+     *
+     * @param instanceId id of a ability
+     * @param content a instance of UIContent to be added
+     */
+    void AddUIContent(int32_t instanceId, Ace::Platform::UIContent* content);
+
+    /**
+     * remove a uicontent instance from contentMap_, the key is instanceId
+     *
+     * @param instanceId id of a ability to be removed
+     */
+    void RemoveUIContent(int32_t instanceId);
+
 private:
     AbilityDelegator::AbilityState ConvertAbilityState(const AbilityLifecycleExecutor::LifecycleState lifecycleState);
     void ProcessAbilityProperties(const std::shared_ptr<ADelegatorAbilityProperty> &ability);
@@ -339,6 +369,9 @@ private:
     std::mutex mutexMonitor_;
     std::mutex mutexAbilityProperties_;
     std::mutex mutexStageMonitor_;
+
+    std::unordered_map<int32_t, OHOS::Ace::Platform::UIContent*> contentMap_;
+    std::shared_mutex mutex_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
