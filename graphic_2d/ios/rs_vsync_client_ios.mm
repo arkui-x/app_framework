@@ -23,7 +23,6 @@
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
 
-
 @interface RSVsyncIOS : NSObject
 
 - (instancetype)init;
@@ -58,7 +57,6 @@ void RSVsyncClientIOS::RequestNextVsync()
 
 void RSVsyncClientIOS::SetVsyncCallback(VsyncCallback callback)
 {
-    std::unique_lock lock(mutex_);
     [vsyncIOS_ setVsyncCallback:callback];
 }
 } // namespace Rosen
@@ -66,6 +64,7 @@ void RSVsyncClientIOS::SetVsyncCallback(VsyncCallback callback)
 
 @implementation RSVsyncIOS {
     OHOS::Rosen::RSVsyncClient::VsyncCallback callback_;
+    NSLock *lock_;
     CADisplayLink* displayLink_;
 }
 
@@ -75,6 +74,7 @@ void RSVsyncClientIOS::SetVsyncCallback(VsyncCallback callback)
         displayLink_ = [[CADisplayLink displayLinkWithTarget:self selector:@selector(onDisplayLink:)] retain];
         displayLink_.paused = YES;
         [displayLink_ addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+        lock_ = [[[NSLock alloc] init] retain];
     }
     return self;
 }
@@ -84,14 +84,18 @@ void RSVsyncClientIOS::SetVsyncCallback(VsyncCallback callback)
 }
 
 - (void)setVsyncCallback:(OHOS::Rosen::RSVsyncClient::VsyncCallback) callback {
+    [lock_ lock];
     callback_ = callback;
+    [lock_ unlock];
 }
 
 - (void)onDisplayLink:(CADisplayLink*)link {
     displayLink_.paused = YES;
     int64_t now = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
-    callback_(now); 
+    [lock_ lock];
+    callback_(now);
+    [lock_ unlock];
 }
 
 - (void)invalidate {
@@ -101,6 +105,7 @@ void RSVsyncClientIOS::SetVsyncCallback(VsyncCallback callback)
 - (void)dealloc {
     NSLog(@"RSVsyncIOS::dealloc");
     [displayLink_ release];
+    [lock_ release];
     [super dealloc];
 }
 @end

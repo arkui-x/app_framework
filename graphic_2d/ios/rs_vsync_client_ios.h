@@ -38,7 +38,6 @@ public:
 
 private:
     RSVsyncIOS* vsyncIOS_ = nullptr;
-    std::mutex mutex_;
 };
 } // namespace Rosen
 } // namespace OHOS
