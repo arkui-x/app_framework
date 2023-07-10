@@ -301,6 +301,7 @@ NativeValue* JsWindowManagerInit(NativeEngine* engine, NativeValue* exportObj)
     object->SetNativePointer(jsWinManager.release(), JsWindowManager::Finalizer, nullptr);
     object->SetProperty("WindowType", WindowTypeInit(engine));
     object->SetProperty("WindowMode", WindowModeInit(engine));
+    object->SetProperty("Orientation", OrientationInit(engine));
     object->SetProperty("WindowStageEventType", WindowStageEventTypeInit(engine));
     object->SetProperty("WmErrorCode", WindowErrorCodeInit(engine));
     object->SetProperty("WMError", WindowErrorInit(engine));
