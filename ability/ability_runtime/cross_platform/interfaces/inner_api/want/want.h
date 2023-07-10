@@ -425,6 +425,7 @@ public:
 public:
     static const std::string ABILITY_ID;
     static const std::string INSTANCE_NAME;
+    static const std::string ELEMENT_BUNDLE_NAME;
 
 private:
     void CopyFromWant(const Want& want);

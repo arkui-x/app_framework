@@ -90,6 +90,10 @@ void AbilityContextImpl::SetAbilityInfo(const std::shared_ptr<AppExecFwk::Abilit
 
 std::shared_ptr<AppExecFwk::AbilityInfo> AbilityContextImpl::GetAbilityInfo() const
 {
+    auto platformBundleName = Platform::AbilityContextAdapter::GetInstance()->GetPlatformBundleName();
+    if (!platformBundleName.empty() && abilityInfo_ != nullptr) {
+        abilityInfo_->bundleName = platformBundleName;
+    }
     return abilityInfo_;
 }
 

@@ -21,6 +21,7 @@ namespace OHOS {
 namespace AAFwk {
 const std::string Want::ABILITY_ID("ability_id");
 const std::string Want::INSTANCE_NAME("instance_name");
+const std::string Want::ELEMENT_BUNDLE_NAME("elementBundleName");
 
 /**
  * @description:Default construcotr of Want class, which is used to initialzie flags and URI.
