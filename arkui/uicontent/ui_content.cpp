@@ -14,8 +14,8 @@
  */
 
 #include "ability_delegator/ability_delegator_registry.h"
-#include "foundation/appframework/arkui/uicontent/ui_content.h"
 #include "base/log/log.h"
+#include "foundation/appframework/arkui/uicontent/ui_content.h"
 
 namespace OHOS::Ace::Platform {
 void UIContent::ShowDumpHelp(std::vector<std::string>& info)
