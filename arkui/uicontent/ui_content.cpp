@@ -13,10 +13,8 @@
  * limitations under the License.
  */
 
+#include "ability_delegator/ability_delegator_registry.h"
 #include "foundation/appframework/arkui/uicontent/ui_content.h"
-
-#include "foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit/ability_delegator/ability_delegator_registry.h"
-
 #include "base/log/log.h"
 
 namespace OHOS::Ace::Platform {
