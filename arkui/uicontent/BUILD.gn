@@ -21,6 +21,7 @@ config("uicontent_config") {
     "${ace_root}",
     "${ace_root}/interfaces/frameworks",
     "${ace_root}/interfaces/inner_api/ace",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_engine",
     "//arkcompiler/ets_runtime",
     "//arkcompiler/runtime_core",
     "//third_party/libuv/include",
