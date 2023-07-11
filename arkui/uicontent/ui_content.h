@@ -72,6 +72,7 @@ public:
     virtual void UnFocus() = 0;
     virtual void Destroy() = 0;
     virtual void OnNewWant(const OHOS::AAFwk::Want& want) = 0;
+    virtual void Finish() = 0;
 
     // UI content event process
     virtual bool ProcessBackPressed() = 0;
