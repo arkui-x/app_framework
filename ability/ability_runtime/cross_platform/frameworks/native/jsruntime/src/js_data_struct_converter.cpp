@@ -93,9 +93,9 @@ NativeValue* CreateJsApplicationInfo(NativeEngine& engine, const ApplicationInfo
     object->SetProperty("description", CreateJsValue(engine, applicationInfo.description));
     object->SetProperty("descriptionId", CreateJsValue(engine, applicationInfo.descriptionId));
     object->SetProperty("label", CreateJsValue(engine, applicationInfo.label));
-    object->SetProperty("labelId", CreateJsValue(engine, std::to_string(applicationInfo.labelId)));
+    object->SetProperty("labelId", CreateJsValue(engine, applicationInfo.labelId));
     object->SetProperty("icon", CreateJsValue(engine, applicationInfo.iconPath));
-    object->SetProperty("iconId", CreateJsValue(engine, std::to_string(applicationInfo.iconId)));
+    object->SetProperty("iconId", CreateJsValue(engine, applicationInfo.iconId));
     object->SetProperty("codePath", CreateJsValue(engine, applicationInfo.codePath));
     return objValue;
 }
