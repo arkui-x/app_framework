@@ -33,6 +33,8 @@ public:
     std::string GetDatabaseDir() override;
     std::string GetPreferencesDir() override;
     std::string GetBundleName() const override;
+    int GetSystemDatabaseDir(std::string groupId, std::string &databaseDir) override;
+    int GetSystemPreferencesDir(std::string groupId, std::string &preferencesDir) override;
     std::shared_ptr<AppExecFwk::ApplicationInfo> GetApplicationInfo() const override;
     std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager() const override;
 

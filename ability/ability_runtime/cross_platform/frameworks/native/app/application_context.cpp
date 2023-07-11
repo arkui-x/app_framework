@@ -110,6 +110,32 @@ std::string ApplicationContext::GetPreferencesDir()
     return StageAssetManager::GetInstance()->GetPreferencesDir();
 }
 
+int ApplicationContext::GetSystemDatabaseDir(std::string groupId, std::string &databaseDir)
+{
+    std::string dir;
+    if (groupId.empty()) {
+        databaseDir = GetDatabaseDir();
+    } else {
+        HILOG_ERROR("GetSystemDatabaseDir doesn't support cross-platform");
+        return -1;
+    }
+    HILOG_DEBUG("ApplicationContext::GetSystemDatabaseDir:%{public}s", dir.c_str());
+    return 0;
+}
+
+int ApplicationContext::GetSystemPreferencesDir(std::string groupId, std::string &preferencesDir)
+{
+    std::string dir;
+    if (groupId.empty()) {
+        preferencesDir = GetPreferencesDir();
+    } else {
+        HILOG_ERROR("GetSystemPreferencesDir doesn't support cross-platform");
+        return -1;
+    }
+    HILOG_DEBUG("ApplicationContext::GetSystemPreferencesDir:%{public}s", dir.c_str());
+    return 0;
+}
+
 std::shared_ptr<AppExecFwk::HapModuleInfo> ApplicationContext::GetHapModuleInfo() const
 {
     return nullptr;

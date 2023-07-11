@@ -42,6 +42,18 @@ std::string AbilityContextImpl::GetPreferencesDir()
     return stageContext_ ? stageContext_->GetPreferencesDir() : "";
 }
 
+int AbilityContextImpl::GetSystemDatabaseDir(std::string groupId, std::string &databaseDir)
+{
+    return stageContext_ ?
+        stageContext_->GetSystemDatabaseDir(groupId, databaseDir) : -1;
+}
+
+int AbilityContextImpl::GetSystemPreferencesDir(std::string groupId, std::string &preferencesDir)
+{
+    return stageContext_ ?
+        stageContext_->GetSystemPreferencesDir(groupId, preferencesDir) : -1;
+}
+
 std::string AbilityContextImpl::GetTempDir()
 {
     return stageContext_ ? stageContext_->GetTempDir() : "";
