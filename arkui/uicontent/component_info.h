@@ -23,19 +23,19 @@ struct ComponentInfo {
 public:
   std::string text;
   std::string type;
-  unsigned compid = 0;
+  std::string compid;
   float top = 0.0f;
   float width = 0.0f;
   float left = 0.0f;
   float height = 0.0f;
-  bool clickable = true;
-  bool checkable = true;
-  bool checked = true;
-  bool selected = true;
-  bool scrollable = true;
-  bool enabled = true;
-  bool focused = true;
-  bool longClickable = true;
+  bool clickable = false;
+  bool checkable = false;
+  bool checked = false;
+  bool selected = false;
+  bool scrollable = false;
+  bool enabled = false;
+  bool focused = false;
+  bool longClickable = false;
   std::vector<ComponentInfo> children;
 };
 } // namespace OHOS::Ace::Platform

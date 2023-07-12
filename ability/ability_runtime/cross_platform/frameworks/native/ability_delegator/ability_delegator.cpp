@@ -236,12 +236,16 @@ std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::GetCurrentTopAbilit
         return {};
     }
 
+    std::vector<std::string> vecList;
+    Ace::StringUtils::StringSplitter(abilityName, ':', vecList);
     std::unique_lock<std::mutex> lck(mutexAbilityProperties_);
     auto existedProperty = FindPropertyByName(abilityName);
     if (!existedProperty) {
         HILOG_WARN("Unknown ability name");
         return {};
     }
+
+    existedProperty->instanceId_ = std::stoi(vecList.back());
 
     return existedProperty;
 }
@@ -670,6 +674,39 @@ inline void AppExecFwk::AbilityDelegator::CallClearFunc(const std::shared_ptr<AD
     HILOG_INFO("CallClearFunc Enter");
     if (clearFunc_) {
         clearFunc_(ability);
+    }
+}
+
+Ace::Platform::UIContent* AbilityDelegator::GetUIContent(int32_t instanceId)
+{
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    auto uicontent = contentMap_.find(instanceId);
+    if (uicontent != contentMap_.end()) {
+        LOGI("AbilityDelegator-GetUIContent instance is : %p", uicontent->second);
+        return uicontent->second;
+    } else {
+        LOGI("AbilityDelegator-GetUIContent instance is null");
+        return nullptr;
+    }
+}
+
+void AbilityDelegator::AddUIContent(int32_t instanceId, Ace::Platform::UIContent* content)
+{
+    std::unique_lock<std::shared_mutex> lock(mutex_);
+    const auto result = contentMap_.try_emplace(instanceId, content);
+    if (!result.second) {
+        LOGW("AbilityDelegator::AddUIContent already have uicontent of this instance id: %{public}d", instanceId);
+    } else {
+        LOGI("AbilityDelegator::AddUIContent %{public}d   %p", instanceId, content);
+    }
+}
+
+void AbilityDelegator::RemoveUIContent(int32_t instanceId)
+{
+    std::unique_lock<std::shared_mutex> lock(mutex_);
+    size_t num = contentMap_.erase(instanceId);
+    if (num == 0) {
+        LOGW("AbilityDelegator-uicontent not found with instance id: %{public}d", instanceId);
     }
 }
 }  // namespace AppExecFwk

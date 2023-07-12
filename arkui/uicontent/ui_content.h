@@ -21,6 +21,8 @@
 #include <vector>
 
 #include "interfaces/inner_api/ace/viewport_config.h"
+#include "core/accessibility/accessibility_node.h"
+#include "foundation/appframework/arkui/uicontent/component_info.h"
 
 namespace OHOS::Ace {
 class TouchEvent;
@@ -57,6 +59,9 @@ public:
     static std::unique_ptr<UIContent> Create(OHOS::AbilityRuntime::Platform::Context* context, NativeEngine* runtime);
     static void ShowDumpHelp(std::vector<std::string>& info);
 
+    static void AddUIContent(int32_t instanceId, UIContent* content);
+    static void RemoveUIContent(int32_t instanceId);
+
     virtual ~UIContent() = default;
 
     // UI content life-cycles
@@ -67,6 +72,7 @@ public:
     virtual void UnFocus() = 0;
     virtual void Destroy() = 0;
     virtual void OnNewWant(const OHOS::AAFwk::Want& want) = 0;
+    virtual void Finish() = 0;
 
     // UI content event process
     virtual bool ProcessBackPressed() = 0;
@@ -86,6 +92,9 @@ public:
     // Window color
     virtual uint32_t GetBackgroundColor() = 0;
     virtual void SetBackgroundColor(uint32_t color) = 0;
+
+    // Control filtering
+    virtual bool GetAllComponents(NodeId nodeID, OHOS::Ace::Platform::ComponentInfo& components) = 0;
 
     virtual void DumpInfo(const std::vector<std::string>& params, std::vector<std::string>& info) = 0;
 

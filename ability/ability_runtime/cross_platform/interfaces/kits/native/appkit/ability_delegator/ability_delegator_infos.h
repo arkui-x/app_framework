@@ -32,6 +32,8 @@ struct ADelegatorAbilityProperty {
     AbilityLifecycleExecutor::LifecycleState lifecycleState_ {AbilityLifecycleExecutor::LifecycleState::UNINITIALIZED};
     // ability object in jsruntime
     std::weak_ptr<NativeReference> object_;
+    // id of ability
+    int32_t instanceId_;
 };
 
 struct DelegatorAbilityStageProperty {
