@@ -119,7 +119,7 @@ void Ability::OnDestory()
         HILOG_ERROR("Ability::OnStop error. abilityLifecycleExecutor_ == nullptr.");
         return;
     }
-    abilityLifecycleExecutor_->DispatchLifecycleState(AbilityLifecycleExecutor::LifecycleState::INITIAL);
+    abilityLifecycleExecutor_->DispatchLifecycleState(AbilityLifecycleExecutor::LifecycleState::STOPED_NEW);
 }
 
 void Ability::OnWindowStageCreated()
