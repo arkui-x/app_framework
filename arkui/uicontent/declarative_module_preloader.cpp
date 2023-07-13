@@ -15,16 +15,25 @@
 
 #include "foundation/appframework/arkui/uicontent/declarative_module_preloader.h"
 
+#include "base/thread/background_task_executor.h"
+#include "core/components_ng/render/font_collection.h"
 #include "frameworks/bridge/declarative_frontend/engine/jsi/jsi_declarative_engine.h"
+#include "rosen_text/ui/font_collection.h"
 
 namespace OHOS::Ace::Platform {
-void InitAceModule(void* runtime)
+
+void InitAceModule(void *runtime)
 {
     Framework::JsiDeclarativeEngineInstance::PreloadAceModule(runtime);
 }
 
-void DeclarativeModulePreloader::Preload(NativeEngine& runtime)
+void DeclarativeModulePreloader::Preload(NativeEngine &runtime)
 {
-    InitAceModule(reinterpret_cast<void*>(&runtime));
+    InitAceModule(reinterpret_cast<void *>(&runtime));
+    BackgroundTaskExecutor::GetInstance().PostTask([]() {
+        auto fontCollection = rosen::FontCollection::GetInstance(false);
+        NG::FontCollection::Current();
+    });
 }
-} // namespace ::Ace::Platform
+
+} // namespace OHOS::Ace::Platform

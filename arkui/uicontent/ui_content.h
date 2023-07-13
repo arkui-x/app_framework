@@ -25,7 +25,7 @@
 #include "foundation/appframework/arkui/uicontent/component_info.h"
 
 namespace OHOS::Ace {
-class TouchEvent;
+struct TouchEvent;
 }
 
 namespace OHOS {
