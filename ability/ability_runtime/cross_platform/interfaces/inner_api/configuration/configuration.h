@@ -29,6 +29,7 @@ constexpr const char* EMPTY_STRING = "";
 constexpr const char* SYSTEM_COLORMODE = "ohos.system.colorMode";
 constexpr const char* APPLICATION_DIRECTION = "ohos.application.direction";
 constexpr const char* APPLICATION_DENSITYDPI = "ohos.application.densitydpi";
+constexpr const char* APPLICATION_LANGUAGE = "ohos.system.language";
 constexpr const char* COLOR_MODE_LIGHT = "light";
 constexpr const char* COLOR_MODE_DARK = "dark";
 constexpr const char* DIRECTION_VERTICAL = "vertical";
