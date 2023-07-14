@@ -110,7 +110,7 @@ std::string ApplicationContext::GetPreferencesDir()
     return StageAssetManager::GetInstance()->GetPreferencesDir();
 }
 
-int ApplicationContext::GetSystemDatabaseDir(std::string groupId, std::string &databaseDir)
+int ApplicationContext::GetSystemDatabaseDir(const std::string &groupId, bool checkExist, std::string &databaseDir)
 {
     std::string dir;
     if (groupId.empty()) {
@@ -123,7 +123,8 @@ int ApplicationContext::GetSystemDatabaseDir(std::string groupId, std::string &d
     return 0;
 }
 
-int ApplicationContext::GetSystemPreferencesDir(std::string groupId, std::string &preferencesDir)
+int ApplicationContext::GetSystemPreferencesDir(
+    const std::string &groupId, bool checkExist, std::string &preferencesDir)
 {
     std::string dir;
     if (groupId.empty()) {
