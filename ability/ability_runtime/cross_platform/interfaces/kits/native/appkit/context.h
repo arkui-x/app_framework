@@ -124,21 +124,23 @@ public:
      * If the local system database path does not exist, the system creates one and returns the created path.
      *
      * @param groupId Indicates the group Id of the dir.
+     * @param checkExist Check if the path exists.
      * @param databaseDir Indicates the result of database file dir.
      *
      * @return Returns 0 for success, others for failure.
      */
-    virtual int GetSystemDatabaseDir(std::string groupId, std::string &databaseDir) = 0;
+    virtual int GetSystemDatabaseDir(const std::string &groupId, bool checkExist, std::string &databaseDir) = 0;
 
     /**
      * @brief Obtains the path storing the system storage file of the application.
      *
      * @param groupId Indicates the group Id of the dir.
+     * @param checkExist Check if the path exists.
      * @param preferencesDir Indicates the result of preferences dir.
      *
      * @return Returns 0 for success, others for failure.
      */
-    virtual int GetSystemPreferencesDir(std::string groupId, std::string &preferencesDir) = 0;
+    virtual int GetSystemPreferencesDir(const std::string &groupId, bool checkExist, std::string &preferencesDir) = 0;
 
     /**
      * @brief Obtains the HapModuleInfo object of the application.

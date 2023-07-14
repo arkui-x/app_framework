@@ -71,16 +71,17 @@ std::string AbilityStageContext::GetPreferencesDir()
     return applicationContext_ ? applicationContext_->GetPreferencesDir() : "";
 }
 
-int AbilityStageContext::GetSystemDatabaseDir(std::string groupId, std::string &databaseDir)
+int AbilityStageContext::GetSystemDatabaseDir(const std::string &groupId, bool checkExist, std::string &databaseDir)
 {
     return applicationContext_ ?
-        applicationContext_->GetSystemDatabaseDir(groupId, databaseDir) : -1;
+        applicationContext_->GetSystemDatabaseDir(groupId, checkExist, databaseDir) : -1;
 }
 
-int AbilityStageContext::GetSystemPreferencesDir(std::string groupId, std::string &preferencesDir)
+int AbilityStageContext::GetSystemPreferencesDir(
+    const std::string &groupId, bool checkExist, std::string &preferencesDir)
 {
     return applicationContext_ ?
-        applicationContext_->GetSystemPreferencesDir(groupId, preferencesDir) : -1;
+        applicationContext_->GetSystemPreferencesDir(groupId, checkExist, preferencesDir) : -1;
 }
 
 std::shared_ptr<Context> AbilityStageContext::CreateModuleContext(const std::string &moduleName)
