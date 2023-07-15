@@ -15,6 +15,7 @@
 
 #include "ability_delegator.h"
 #include "ability_delegator_registry.h"
+#include "ability_manager_errors.h"
 #include "want.h"
 #include "hilog.h"
 #include "ability_context_adapter.h"
@@ -299,6 +300,17 @@ ErrCode AbilityDelegator::StartAbility(const AAFwk::Want &want)
 
     HILOG_INFO("AbilityDelegator: bundleName is %{public}s, abilityName is %{public}s, moduleName is %{public}s",
         bundleName.c_str(), abilityName.c_str(), moduleName.c_str());
+   
+    if (want.IsEmpty()) {
+        return AAFwk::ERR_IMPLICIT_START_ABILITY_FAIL;
+    }
+    if (bundleName.empty()) {
+        return AAFwk::RESOLVE_ABILITY_ERR;
+    }
+    if (abilityName.empty()) {
+        return AAFwk::ERR_IMPLICIT_START_ABILITY_FAIL;
+    }
+   
 #ifdef ANDROID_PLATFORM
     return AbilityRuntime::Platform::ApplicationContextAdapter::GetInstance()->StartAbility(want);
 #else
