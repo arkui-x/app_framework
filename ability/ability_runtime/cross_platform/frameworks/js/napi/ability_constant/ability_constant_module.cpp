@@ -20,7 +20,6 @@
 
 namespace OHOS {
 namespace AAFwk {
-
 static napi_status SetEnumItem(napi_env env, napi_value object, const char* name, int32_t value)
 {
     napi_status status;
@@ -63,9 +62,6 @@ static napi_value InitLastExitReasonObject(napi_env env)
     return object;
 }
 
-/*
- * The module initialization.
- */
 static napi_value AbilityConstantInit(napi_env env, napi_value exports)
 {
     napi_value launchReason = InitLaunchReasonObject(env);
@@ -93,9 +89,6 @@ static napi_value AbilityConstantInit(napi_env env, napi_value exports)
     return exports;
 }
 
-/*
- * The module definition.
- */
 static napi_module _module = {
     .nm_version = 1,
     .nm_flags = 0,
@@ -106,9 +99,6 @@ static napi_module _module = {
     .reserved = {0}
 };
 
-/*
- * The module registration.
- */
 extern "C" __attribute__((constructor)) void NAPI_app_ability_AbilityConstant_AutoRegister(void)
 {
     napi_module_register(&_module);
