@@ -28,6 +28,7 @@
 #include "js_runtime_utils.h"
 #include "runtime.h"
 
+#include "base/log/ace_trace.h"
 #include "base/utils/string_utils.h"
 
 namespace OHOS {
@@ -69,6 +70,7 @@ void AppMain::LaunchApplication()
 void AppMain::ScheduleLaunchApplication()
 {
     HILOG_INFO("AppMain schedule launch application.");
+    Ace::AceScopedTrace trace("ScheduleLaunchApplication");
 
     bundleContainer_ = std::make_shared<AppExecFwk::BundleContainer>();
     if (bundleContainer_ == nullptr) {
