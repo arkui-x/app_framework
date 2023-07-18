@@ -18,6 +18,7 @@ group("napi_packages") {
   if (use_static_napi_libs) {
     deps = [
       "${cross_platform_napi_path}/ability:app_ability_uiability_source_set",
+      "${cross_platform_napi_path}/ability_constant:app_ability_abilityconstant_source_set",
       "${cross_platform_napi_path}/ability_context:application_abilitycontext_source_set",
       "${cross_platform_napi_path}/ability_delegator:ability_delegator_source_set",
       "${cross_platform_napi_path}/ability_stage:app_ability_abilitystage_source_set",
@@ -29,6 +30,7 @@ group("napi_packages") {
   } else {
     deps = [
       "${cross_platform_napi_path}/ability:app_ability_uiability",
+      "${cross_platform_napi_path}/ability_constant:app_ability_abilityconstant",
       "${cross_platform_napi_path}/ability_context:application_abilitycontext",
       "${cross_platform_napi_path}/ability_delegator:ability_delegator",
       "${cross_platform_napi_path}/ability_stage:app_ability_abilitystage",
