@@ -17,6 +17,7 @@
 
 #include "ability_stage_context.h"
 #include "hilog.h"
+#include "base/log/ace_trace.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -48,6 +49,7 @@ void Application::SetApplicationContext(const std::shared_ptr<ApplicationContext
 void Application::HandleAbilityStage(const AAFwk::Want& want)
 {
     HILOG_INFO("Application::HandleAbilityStage");
+    Ace::AceScopedTrace trace("HandleAbilityStage");
     if (applicationContext_ == nullptr) {
         HILOG_ERROR("abilityRuntimeContext_ is nullptr.");
         return;

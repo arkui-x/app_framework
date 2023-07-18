@@ -18,6 +18,7 @@
 #include "ability.h"
 #include "ability_context_impl.h"
 #include "ability_info.h"
+#include "base/log/ace_trace.h"
 #include "bundle_container.h"
 #include "context.h"
 #include "hilog.h"
@@ -81,6 +82,7 @@ std::shared_ptr<Context> AbilityStage::GetContext() const
 void AbilityStage::LaunchAbility(const AAFwk::Want& want, const std::unique_ptr<Runtime>& runtime)
 {
     HILOG_INFO("AbilityStage::LaunchAbility called.");
+    Ace::AceScopedTrace trace("LaunchAbility");
     auto abilityName = want.GetAbilityName() + want.GetStringParam(Want::ABILITY_ID);
     auto ability = FindAbility(abilityName);
     if (ability != nullptr) {

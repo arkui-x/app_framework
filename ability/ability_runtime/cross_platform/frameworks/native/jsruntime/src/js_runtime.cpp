@@ -27,6 +27,7 @@
 #endif
 #include <unistd.h>
 
+#include "base/log/ace_trace.h"
 #include "connect_server_manager.h"
 #include "ecmascript/napi/include/jsnapi.h"
 #include "event_handler.h"
@@ -114,6 +115,7 @@ private:
 
     bool Initialize(const Runtime::Options& options) override
     {
+        Ace::AceScopedTrace trace("ArkJsRuntimeInit");
         panda::RuntimeOption pandaOption;
         pandaOption.SetArkProperties(DEFAULT_ARK_PROPERTIES);
         pandaOption.SetGcThreadNum(DEFAULT_GC_THREAD_NUM);
@@ -219,6 +221,7 @@ private:
 
 std::unique_ptr<Runtime> JsRuntime::Create(const Runtime::Options& options)
 {
+    Ace::AceScopedTrace trace("JsRuntimeCreate");
     std::unique_ptr<JsRuntime> instance = std::make_unique<ArkJsRuntime>();
     if (instance == nullptr) {
         HILOG_INFO("instance is nullptr");
