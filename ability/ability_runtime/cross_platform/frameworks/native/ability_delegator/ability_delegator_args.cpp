@@ -40,7 +40,7 @@ AbilityDelegatorArgs::AbilityDelegatorArgs(const AAFwk::Want &want)
     params_["bundleName"] = bundleName_;
     params_["moduleName"] = moduleName_;
     params_["abilityName"] = abilityName_;
-    params_["timeout"] = want.GetStringParam("timeout");
+    params_["-s timeout"] = want.GetStringParam("timeout");
 }
 
 AbilityDelegatorArgs::~AbilityDelegatorArgs()
