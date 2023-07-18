@@ -24,6 +24,7 @@
 #include "js_window_utils.h"
 #include "virtual_rs_window.h"
 #include "wm_common.h"
+#include "foundation/appframework/arkui/uicontent/ui_content.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -790,6 +791,46 @@ void JsWindow::Finalizer(NativeEngine* engine, void* data, void* hint)
     HILOG_INFO("Remove window %{public}s from g_jsWindowMap", windowName.c_str());
 }
 
+NativeValue* JsWindow::GetUIContext(NativeEngine* engine, NativeCallbackInfo* info)
+{
+    HILOG_INFO("GetUIContext");
+    JsWindow* me = CheckParamsAndGetThis<JsWindow>(engine, info);
+    return (me != nullptr) ? me->OnGetUIContext(*engine, *info) : nullptr;
+}
+
+NativeValue* JsWindow::OnGetUIContext(NativeEngine& engine, NativeCallbackInfo& info)
+{
+    if (info.argc >= 1) {
+        HILOG_ERROR("Argc is invalid: %{public}zu, expect zero params", info.argc);
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
+        return engine.CreateUndefined();
+    }
+
+    std::weak_ptr<Window> weakToken(windowToken_);
+    auto window = weakToken.lock();
+    if (window == nullptr) {
+        HILOG_ERROR("window is nullptr");
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
+        return engine.CreateUndefined();
+    }
+
+    auto uicontent = window->GetUIContent();
+    if (uicontent == nullptr) {
+        HILOG_ERROR("uicontent is nullptr");
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
+        return engine.CreateUndefined();
+    }
+
+    NativeValue* uiContext = uicontent->GetUIContext();
+    if (uiContext == nullptr) {
+        HILOG_ERROR("uiContext obtained from jsEngine is nullptr");
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
+        return engine.CreateUndefined();
+    } else {
+        return uiContext;
+    }
+}
+
 NativeValue* CreateJsWindowObject(NativeEngine& engine, std::shared_ptr<Rosen::Window>& window)
 {
     HILOG_INFO("CreateJsWindowObject %p", window.get());
@@ -816,6 +857,7 @@ NativeValue* CreateJsWindowObject(NativeEngine& engine, std::shared_ptr<Rosen::W
     BindNativeFunction(engine, *object, "setWindowSystemBarEnable", moduleName, JsWindow::SetWindowSystemBarEnable);
     BindNativeFunction(engine, *object, "setPreferredOrientation", moduleName, JsWindow::SetPreferredOrientation);
     BindNativeFunction(engine, *object, "loadContent", moduleName, JsWindow::LoadContent);
+    BindNativeFunction(engine, *object, "getUIContext", moduleName, JsWindow::GetUIContext);
     BindNativeFunction(engine, *object, "setUIContent", moduleName, JsWindow::SetUIContent);
     BindNativeFunction(engine, *object, "isWindowShowing", moduleName, JsWindow::IsWindowShowingSync);
     BindNativeFunction(engine, *object, "setWindowBackgroundColor", moduleName, JsWindow::SetWindowBackgroundColorSync);

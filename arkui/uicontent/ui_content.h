@@ -103,6 +103,11 @@ public:
 
     // Receive memory level notification
     virtual void NotifyMemoryLevel(int32_t level) = 0;
+
+    virtual NativeValue* GetUIContext()
+    {
+        return nullptr;
+    };
 };
 } // namespace OHOS::Ace::Platform
 #endif // FOUNDATION_APPFRAMEWORK_UICONTENT_ACE_UI_CONTENT_H
