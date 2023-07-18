@@ -285,6 +285,22 @@ void RSRenderServiceClient::ReportJankStats()
 {
 }
 
+void RSRenderServiceClient::ReportEventResponse(DataBaseRs info)
+{
+}
+
+void RSRenderServiceClient::ReportEventComplete(DataBaseRs info)
+{
+}
+
+void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
+{
+}
+
+void RSRenderServiceClient::ReportEventFirstFrame(DataBaseRs info)
+{
+}
+
 std::vector<uint32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
 {
     return {};
