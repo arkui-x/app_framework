@@ -41,11 +41,6 @@ static napi_value InitLaunchReasonObject(napi_env env)
     NAPI_CALL(env, napi_create_object(env, &object));
 
     NAPI_CALL(env, SetEnumItem(env, object, "UNKNOWN", AbilityRuntime::Platform::LAUNCHREASON_UNKNOWN));
-    NAPI_CALL(env, SetEnumItem(env, object, "START_ABILITY", AbilityRuntime::Platform::LAUNCHREASON_START_ABILITY));
-    NAPI_CALL(env, SetEnumItem(env, object, "CALL", AbilityRuntime::Platform::LAUNCHREASON_CALL));
-    NAPI_CALL(env, SetEnumItem(env, object, "CONTINUATION", AbilityRuntime::Platform::LAUNCHREASON_CONTINUATION));
-    NAPI_CALL(env, SetEnumItem(env, object, "APP_RECOVERY", AbilityRuntime::Platform::LAUNCHREASON_APP_RECOVERY));
-
     return object;
 }
 
@@ -55,10 +50,6 @@ static napi_value InitLastExitReasonObject(napi_env env)
     NAPI_CALL(env, napi_create_object(env, &object));
 
     NAPI_CALL(env, SetEnumItem(env, object, "UNKNOWN",  AbilityRuntime::Platform::LASTEXITREASON_UNKNOWN));
-    NAPI_CALL(env, SetEnumItem(
-        env, object, "ABILITY_NOT_RESPONDING", AbilityRuntime::Platform::LASTEXITREASON_ABILITY_NOT_RESPONDING));
-    NAPI_CALL(env, SetEnumItem(env, object, "NORMAL",  AbilityRuntime::Platform::LASTEXITREASON_NORMAL));
-
     return object;
 }
 
