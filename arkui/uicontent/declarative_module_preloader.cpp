@@ -45,7 +45,7 @@ void DeclarativeModulePreloader::Preload(NativeEngine &runtime)
         auto paragraph = NG::Paragraph::Create(paraStyle, NG::FontCollection::Current());
         TextStyle textStyle;
         paragraph->PushStyle(textStyle);
-        paragraph->AddText(u"abc123\u4e2d\u6587\u2705");
+        paragraph->AddText(u"abc123\u4e2d\u6587");
         paragraph->Build();
         paragraph->Layout(100);
     });
