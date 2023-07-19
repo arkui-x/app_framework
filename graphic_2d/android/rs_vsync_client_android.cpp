@@ -52,8 +52,7 @@ void RSVsyncClientAndroid::OnVsync(long frameTimeNanos, void* data)
     auto client = static_cast<RSVsyncClientAndroid*>(data);
     if (client && client->running_) {
         client->having_ = false;
-        int64_t now = std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count();
+        int64_t now = static_cast<int64_t>(frameTimeNanos);
         std::unique_lock lock(client->mutex_);
         client->vsyncCallback_(now);
     }
