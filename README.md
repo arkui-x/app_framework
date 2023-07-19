@@ -1,39 +1,35 @@
-# app_framework
+# ArkUI-X应用框架适配层
 
-#### 介绍
-{**以下是 Gitee 平台说明，您可以替换此简介**
-Gitee 是 OSCHINA 推出的基于 Git 的代码托管平台（同时支持 SVN）。专为开发者提供稳定、高效、安全的云端软件开发协作平台
-无论是个人、团队、或是企业，都能够用 Gitee 实现代码托管、项目管理、协作开发。企业项目请看 [https://gitee.com/enterprises](https://gitee.com/enterprises)}
+-   [简介](#section722458482)
+-   [目录介绍](#section310658660)
+-   [框架开发指导](#section475040653)
 
-#### 软件架构
-软件架构说明
+## 简介<a name="section722458482"></a>
 
+ArkUI-X 应用框架（AppFramework）适配层是在不同平台上模拟OpenHarmony应用框架的运行环境，将应用的生命周期以及开发模型适配到对应的系统平台上，确保应用的开发模式保持兼容。
 
-#### 安装教程
+应用框架适配层主要包含以下模块：
+- AbilityRuntime：Ability基础运行环境，提供Stage模型的基础能力
+- ArkUI接口层：ArkUI实例的启动对接
+- Graphic2D：2D图形适配层
+- ResourceManagement：资源管理
+- WindowManager：窗口管理模块
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+## 目录介绍<a name="section310658660"></a>
 
-#### 使用说明
+目录结构如下图所示：
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+```
+/foundation/appframework
+├── ability                       # Ability基础运行环境
+├── arkui                         # ArkUI相关接口
+├── graphic_2d                    # 2D图形适配层
+├── icu_data                      # ICU国际化数据配置
+├── resource_management           # 资源管理模块
+└── window_manager                # 窗口管理模块
+```
 
-#### 参与贡献
+## 框架开发指导<a name="section475040653"></a>
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+更多框架开发相关内容可参考：
+- [框架开发者文档](https://gitee.com/arkui-x/docs/blob/master/zh-cn/framework-dev/README.md)
