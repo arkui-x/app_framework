@@ -44,6 +44,7 @@ public:
     static NativeValue* SetWindowBrightness(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* SetWindowKeepScreenOn(NativeEngine* engine, NativeCallbackInfo* info);
     static void Finalizer(NativeEngine* engine, void* data, void* hint);
+    static NativeValue* GetUIContext(NativeEngine* engine, NativeCallbackInfo* info);
 
 private:
     NativeValue* OnShowWindow(NativeEngine& engine, NativeCallbackInfo& info);
@@ -59,6 +60,7 @@ private:
     NativeValue* OnSetWindowBackgroundColorSync(NativeEngine& engine, NativeCallbackInfo&info);
     NativeValue* OnSetWindowBrightness(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnSetWindowKeepScreenOn(NativeEngine& engine, NativeCallbackInfo& info);
+    NativeValue* OnGetUIContext(NativeEngine& engine, NativeCallbackInfo& info);
 
     std::string GetWindowName();
 
