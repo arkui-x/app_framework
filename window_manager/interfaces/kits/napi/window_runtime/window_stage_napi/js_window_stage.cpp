@@ -33,8 +33,8 @@ static void LoadContentTask(std::shared_ptr<NativeReference> contentStorage, std
     std::shared_ptr<Window> weakWindow, NativeEngine& engine, AsyncTask& task)
 {
     NativeValue* nativeStorage = (contentStorage == nullptr) ? nullptr : contentStorage->Get();
-    int ret = weakWindow->SetUIContent(contextUrl, &engine, nativeStorage, false, nullptr);
-    if (ret == 0) {
+    WMError ret = weakWindow->SetUIContent(contextUrl, &engine, nativeStorage, false, nullptr);
+    if (ret == WMError::WM_OK) {
         task.Resolve(engine, engine.CreateUndefined());
     } else {
         task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(ret), "Window load content failed"));
