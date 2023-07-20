@@ -57,8 +57,9 @@ static void LoadContentTask(std::shared_ptr<NativeReference> contentStorage, std
     std::shared_ptr<Window> weakWindow, NativeEngine& engine, AsyncTask& task)
 {
     NativeValue* nativeStorage = (contentStorage == nullptr) ? nullptr : contentStorage->Get();
-    int ret = weakWindow->SetUIContent(contextUrl, &engine, nativeStorage, false, nullptr);
-    if (ret == 0) {
+    WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(
+        weakWindow->SetUIContent(contextUrl, &engine, nativeStorage, false, nullptr));
+    if (ret == WmErrorCode::WM_OK) {
         task.Resolve(engine, engine.CreateUndefined());
     } else {
         task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(ret), "Window load content failed"));
@@ -463,7 +464,7 @@ NativeValue* JsWindow::OnSetPreferredOrientation(NativeEngine& engine, NativeCal
 NativeValue* JsWindow::OnLoadContent(NativeEngine& engine, NativeCallbackInfo& info)
 {
     HILOG_INFO("JsWindow::OnLoadContent : Start...");
-    WMError errCode = WMError::WM_OK;
+    WmErrorCode errCode = WmErrorCode::WM_OK;
     NativeValue* storage = nullptr;
     NativeValue* callback = nullptr;
 
@@ -476,7 +477,7 @@ NativeValue* JsWindow::OnLoadContent(NativeEngine& engine, NativeCallbackInfo& i
         } else {
             HILOG_INFO(
                 "JsWindow::OnLoadContent : info.argv[1] TypeOf %{public}d errorCode = -1", info.argv[1]->TypeOf());
-            errCode = WMError::WM_ERROR_INVALID_PARAM;
+            errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         }
     } else if (info.argc == 3) {
         if (info.argv[1]->TypeOf() == NATIVE_OBJECT && info.argv[2]->TypeOf() == NATIVE_FUNCTION) {
@@ -484,21 +485,21 @@ NativeValue* JsWindow::OnLoadContent(NativeEngine& engine, NativeCallbackInfo& i
             callback = info.argv[2];
         } else {
             HILOG_INFO("JsWindow::OnLoadContent : info.argv[1]&info.argv[2] TypeOf errorCode = -1");
-            errCode = WMError::WM_ERROR_INVALID_PARAM;
+            errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         }
     } else {
         HILOG_INFO("JsWindow::OnLoadContent : info.argc errorCode = -1");
-        errCode = WMError::WM_ERROR_INVALID_PARAM;
+        errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
     HILOG_INFO("JsWindow::OnLoadContent : Parse Parameter");
     std::string contextUrl;
-    if (errCode == WMError::WM_OK) {
+    if (errCode == WmErrorCode::WM_OK) {
         if (!ConvertFromJsValue(engine, info.argv[0], contextUrl)) {
             HILOG_INFO("JsWindow::OnLoadContent : ConvertFromJsValue errorCode = -1");
-            errCode = WMError::WM_ERROR_INVALID_PARAM;
+            errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         }
     }
-    if (errCode != WMError::WM_OK) {
+    if (errCode != WmErrorCode::WM_OK) {
         HILOG_INFO("JsWindow::OnLoadContent : errCode = %{public}d", errCode);
         engine.Throw(CreateJsError(engine, static_cast<int32_t>(errCode)));
         return engine.CreateUndefined();
@@ -513,7 +514,8 @@ NativeValue* JsWindow::OnLoadContent(NativeEngine& engine, NativeCallbackInfo& i
         auto weakWindow = weakToken.lock();
         if (weakWindow == nullptr) {
             HILOG_ERROR("JsWindow::OnLoadContent : Window is nullptr or get invalid param");
-            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(-1)));
+            task.Reject(engine, CreateJsError(engine,
+                static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
             return;
         }
         LoadContentTask(contentStorage, contextUrl, weakWindow, engine, task);
@@ -527,17 +529,17 @@ NativeValue* JsWindow::OnLoadContent(NativeEngine& engine, NativeCallbackInfo& i
 NativeValue* JsWindow::OnSetUIContent(NativeEngine& engine, NativeCallbackInfo& info)
 {
     HILOG_INFO("JsWindow::OnSetUIContent : Start...");
-    WMError errCode = WMError::WM_OK;
+    WmErrorCode errCode = WmErrorCode::WM_OK;
     if (info.argc < 1) { // 2 maximum param num
         HILOG_ERROR("JsWindow::OnSetUIContent : Argc is invalid: %{public}zu", info.argc);
-        errCode = WMError::WM_ERROR_INVALID_PARAM;
+        errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
     std::string contextUrl;
-    if (errCode == WMError::WM_OK && !ConvertFromJsValue(engine, info.argv[0], contextUrl)) {
+    if (errCode == WmErrorCode::WM_OK && !ConvertFromJsValue(engine, info.argv[0], contextUrl)) {
         HILOG_ERROR("JsWindow::OnSetUIContent : Failed to convert parameter to context url");
-        errCode = WMError::WM_ERROR_INVALID_PARAM;
+        errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
-    if (errCode != WMError::WM_OK) {
+    if (errCode != WmErrorCode::WM_OK) {
         HILOG_INFO("JsWindow::OnSetUIContent : errorCode != 0");
         engine.Throw(CreateJsError(engine, static_cast<int32_t>(errCode)));
         return engine.CreateUndefined();
@@ -549,7 +551,7 @@ NativeValue* JsWindow::OnSetUIContent(NativeEngine& engine, NativeCallbackInfo& 
     }
     std::shared_ptr<NativeReference> contentStorage =
         (storage == nullptr) ? nullptr : std::shared_ptr<NativeReference>(engine.CreateReference(storage, 1));
-    if (errCode != WMError::WM_OK) {
+    if (errCode != WmErrorCode::WM_OK) {
         HILOG_ERROR("JsWindow::OnSetUIContent : errCode = %{public}d", errCode);
         engine.Throw(CreateJsError(engine, static_cast<int32_t>(errCode)));
         return engine.CreateUndefined();
@@ -575,11 +577,11 @@ NativeValue* JsWindow::OnSetUIContent(NativeEngine& engine, NativeCallbackInfo& 
 NativeValue* JsWindow::OnIsWindowShowingSync(NativeEngine& engine, NativeCallbackInfo& info)
 {
     HILOG_INFO("JsWindow::OnIsWindowShowingSync : Start...");
-    WMError errCode = WMError::WM_OK;
+    WmErrorCode errCode = WmErrorCode::WM_OK;
     if (info.argc > 1) {
-        errCode = WMError::WM_ERROR_INVALID_PARAM;
+        errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
-    if (errCode != WMError::WM_OK) {
+    if (errCode != WmErrorCode::WM_OK) {
         HILOG_INFO("JsWindow::OnIsWindowShowingSync : errCode = %{public}d", errCode);
         engine.Throw(CreateJsError(engine, static_cast<int32_t>(errCode)));
         return engine.CreateUndefined();
