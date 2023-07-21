@@ -710,5 +710,19 @@ void Want::ParseJson(const std::string& jsonParams)
         }
     }
 }
+
+bool Want::IsEmpty() const
+{
+    if (!bundleName_.empty() || !abilityName_.empty() || !moduleName_.empty()) {
+        return false;
+    }
+    if (params_.size() != 0) {
+        return false;
+    }
+    if (types_.size() != 0) {
+        return false;
+    }
+    return true;
+}
 } // namespace AAFwk
 } // namespace OHOS

@@ -15,6 +15,7 @@
 
 #include "js_ability_context.h"
 
+#include "ability_manager_errors.h"
 #include "errors.h"
 #include "hilog.h"
 #include "js_context_utils.h"
@@ -64,6 +65,18 @@ NativeValue* JsAbilityContext::OnStartAbility(NativeEngine& engine, NativeCallba
         if (!context) {
             HILOG_WARN("context is released");
             *innerErrorCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+            return;
+        }
+        if (cpWant.IsEmpty()) {
+            *innerErrorCode = AAFwk::ERR_IMPLICIT_START_ABILITY_FAIL;
+            return;
+        }
+        if (cpWant.GetBundleName().empty()) {
+            *innerErrorCode = AAFwk::RESOLVE_ABILITY_ERR;
+            return;
+        }
+        if (cpWant.GetAbilityName().empty()) {
+            *innerErrorCode = AAFwk::ERR_IMPLICIT_START_ABILITY_FAIL;
             return;
         }
         *innerErrorCode = context->StartAbility(cpWant, -1);
