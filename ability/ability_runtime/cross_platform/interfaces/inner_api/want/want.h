@@ -421,6 +421,7 @@ public:
 
     std::string ToJson() const;
     void ParseJson(const std::string& jsonParams);
+    bool IsEmpty() const;
 
 public:
     static const std::string ABILITY_ID;
