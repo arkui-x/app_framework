@@ -304,7 +304,7 @@ bool JsRuntime::Initialize(const Options& options)
     uint32_t events = AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT | AppExecFwk::FILE_DESCRIPTOR_OUTPUT_EVENT;
     eventHandler_->AddFileDescriptorListener(fd, events, std::make_shared<UvLoopHandler>(uvLoop));
     InitTimerModule(*nativeEngine_, *globalObj);
-    InitWorkerModule(*nativeEngine_, codePath_, options.isDebugVersion);
+    InitWorkerModule(*nativeEngine_, codePath_, options.isDebugVersion, options.isBundle);
     return true;
 }
 

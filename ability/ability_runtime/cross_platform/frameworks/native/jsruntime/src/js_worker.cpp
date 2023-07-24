@@ -147,31 +147,93 @@ bool ReadAssetData(const std::string& filePath, std::vector<uint8_t>& content, b
 }
 
 struct AssetHelper final {
-    explicit AssetHelper(const std::string& codePath, bool isDebugVersion)
-        : codePath_(codePath), isDebugVersion_(isDebugVersion)
+    explicit AssetHelper(const std::string& codePath, bool isDebugVersion, bool isBundle)
+        : codePath_(codePath), isDebugVersion_(isDebugVersion), isBundle_(isBundle)
     {
         if (!codePath_.empty() && codePath.back() != '/') {
             codePath_.append("/");
         }
     }
 
-    void operator()(const std::string& uri, std::vector<uint8_t>& content, std::string &ami) const
+    std::string NormalizedFileName(const std::string& fileName) const
+    {
+        std::string normalizedFilePath;
+        size_t index = 0;
+        index = fileName.find_last_of(".");
+        // 1.1 end with file name
+        // 1.2 end with file name and file type
+        if (index == std::string::npos) {
+            HILOG_INFO("uri end without file type");
+            normalizedFilePath = fileName + ".abc";
+        } else {
+            HILOG_INFO("uri end with file type");
+            normalizedFilePath = fileName.substr(0, index) + ".abc";
+        }
+        return normalizedFilePath;
+    }
+
+    void operator()(const std::string& uri,
+        std::vector<uint8_t>& content, std::string &ami) const
     {
         if (uri.empty()) {
             HILOG_ERROR("Uri is empty.");
             return;
         }
-
         HILOG_INFO("RegisterAssetFunc called, uri: %{private}s", uri.c_str());
-        size_t index = uri.find_last_of(".");
-        if (index == std::string::npos) {
-            HILOG_ERROR("Invalid uri");
-            return;
+        std::string realPath;
+        std::string filePath;
+
+        // 1. compilemode is jsbundle
+        // 2. compilemode is esmodule
+        if (isBundle_) {
+            // 1.1 start with @bundle:bundlename/modulename
+            // 1.2 start with /modulename
+            // 1.3 start with modulename
+            HILOG_INFO("The application is packaged using jsbundle mode.");
+            if (uri.find(BUNDLE_NAME_FLAG) == 0) {
+                size_t index = 0;
+                HILOG_INFO("uri start with @bundle:");
+                index = uri.find_first_of("/");
+                realPath = uri.substr(index + 1);
+            } else if (uri.find_first_of("/") == 0) {
+                HILOG_INFO("uri start with /modulename");
+                realPath = uri.substr(1);
+            } else {
+                HILOG_INFO("uri start with modulename");
+                realPath = uri;
+            }
+
+            filePath = NormalizedFileName(realPath);
+        } else {
+            // 2.1 start with @bundle:bundlename/modulename
+            // 2.2 start with /modulename
+            // 2.3 start with modulename
+            HILOG_INFO("The application is packaged using esmodule mode.");
+            if (uri.find(BUNDLE_NAME_FLAG) == 0) {
+                HILOG_INFO("uri start with @bundle:");
+                size_t fileNamePos = uri.find_last_of("/");
+                realPath = uri.substr(fileNamePos + 1);
+                if (realPath.find_last_of(".") != std::string::npos) {
+                    ami = NormalizedFileName(uri);
+                } else {
+                    ami = uri;
+                }
+                HILOG_INFO("Get asset, ami: %{private}s", ami.c_str());
+                return;
+            } else if (uri.find_first_of("/") == 0) {
+                HILOG_DEBUG("uri start with /modulename");
+                realPath = uri.substr(1);
+            } else {
+                HILOG_DEBUG("uri start with modulename");
+                realPath = uri;
+            }
+
+            filePath = NormalizedFileName(realPath);
         }
-#if defined(ANDROID_PLATFORM)
-        ami = uri.substr(0, index) + ".abc";
+#if defined(ANDROID_PLATFORM) || defined(IOS_PLATFORM)
+        ami = filePath;
 #else
-        ami = codePath_ + uri.substr(0, index) + ".abc";
+        ami = codePath_ + filePath;
 #endif
         HILOG_INFO("Get asset, ami: %{private}s", ami.c_str());
         if (!ReadAssetData(ami, content, isDebugVersion_)) {
@@ -181,6 +243,7 @@ struct AssetHelper final {
     }
 
     std::string codePath_;
+    bool isBundle_ = true;
     bool isDebugVersion_ = false;
 };
 
@@ -208,11 +271,11 @@ ContainerScope::UpdateCurrent(-1);
 }
 }
 
-void InitWorkerModule(NativeEngine& engine, const std::string& codePath, bool isDebugVersion)
+void InitWorkerModule(NativeEngine& engine, const std::string& codePath, bool isDebugVersion, bool isBundle)
 {
     engine.SetInitWorkerFunc(InitWorkerFunc);
     engine.SetOffWorkerFunc(OffWorkerFunc);
-    engine.SetGetAssetFunc(AssetHelper(codePath, isDebugVersion));
+    engine.SetGetAssetFunc(AssetHelper(codePath, isDebugVersion, isBundle));
     engine.SetGetContainerScopeIdFunc(GetContainerId);
     engine.SetInitContainerScopeFunc(UpdateContainerScope);
     engine.SetFinishContainerScopeFunc(RestoreContainerScope);
