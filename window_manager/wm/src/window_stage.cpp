@@ -47,7 +47,7 @@ const std::shared_ptr<Window>& WindowStage::GetMainWindow() const
     return mainWindow_;
 }
 
-const std::shared_ptr<Window>& WindowStage::CreateSubWindow(const std::string& windowName)
+std::shared_ptr<Window> WindowStage::CreateSubWindow(const std::string& windowName)
 {
     if (windowName.empty() || mainWindow_ == nullptr) {
         return nullptr;
@@ -61,7 +61,7 @@ const std::shared_ptr<Window>& WindowStage::CreateSubWindow(const std::string& w
     return subWindow;
 }
 
-const std::vector<std::shared_ptr<Window>>& WindowStage::GetSubWindow()
+std::vector<std::shared_ptr<Window>> WindowStage::GetSubWindow()
 {
     if (mainWindow_ == nullptr) {
         LOGE("Get sub window failed, because main window is null");
