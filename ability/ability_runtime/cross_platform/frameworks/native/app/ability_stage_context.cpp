@@ -169,6 +169,7 @@ void AbilityStageContext::InitResourceManeger()
             resConfig->SetScreenDensity(density);
         }
     }
+    resConfig->SetDeviceType(Global::Resource::DeviceType::DEVICE_PHONE);
     resourceManager_->UpdateResConfig(*resConfig);
 }
 
