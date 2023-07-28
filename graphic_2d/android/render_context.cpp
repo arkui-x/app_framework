@@ -284,7 +284,12 @@ bool RenderContext::SetUpGrContext()
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
 
+#if defined(NEW_SKIA)
+    sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
+#else
     sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
+#endif
+
     if (grContext == nullptr) {
         ROSEN_LOGE("SetUpGrContext grContext is null");
         return false;
@@ -319,7 +324,11 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
     /* sampleCnt and stencilBits for GrBackendRenderTarget */
     const int stencilBufferSize = 8;
     GrBackendRenderTarget backendRenderTarget(width, height, 0, stencilBufferSize, framebufferInfo);
+#if defined(NEW_SKIA)
+    SkSurfaceProps surfaceProps(0, kRGB_H_SkPixelGeometry);
+#else
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
+#endif
     sk_sp<SkColorSpace> skColorSpace = nullptr;
 
     skSurface_ = SkSurface::MakeFromBackendRenderTarget(

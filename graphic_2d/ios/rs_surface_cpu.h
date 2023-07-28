@@ -18,7 +18,11 @@
 
 #include <memory>
 
+#if defined(NEW_SKIA)
+#include <include/gpu/GrDirectContext.h>
+#else
 #include <include/gpu/GrContext.h>
+#endif
 
 #include "common/rs_common_def.h"
 #include "platform/drawing/rs_surface.h"

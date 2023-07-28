@@ -28,6 +28,10 @@
 #include "include/core/SkTextBlob.h"
 #include "include/core/SkTypeface.h"
 #include "include/core/SkVertices.h"
+#if defined(NEW_SKIA)
+#include "include/core/SkSamplingOptions.h"
+#include "src/core/SkVerticesPriv.h"
+#endif
 #include "securec.h"
 #include "src/core/SkAutoMalloc.h"
 #include "src/core/SkPaintPriv.h"
@@ -325,6 +329,19 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RectT<fl
 {
     return {};
 }
+
+#if defined(NEW_SKIA)
+// SkPaint
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkSamplingOptions& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkSamplingOptions& val)
+{
+    return {};
+}
+#endif
 
 #define MARSHALLING_AND_UNMARSHALLING(TYPE)                                                 \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TYPE>& val) \
