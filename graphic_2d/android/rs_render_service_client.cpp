@@ -213,6 +213,12 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(NodeId id, const Buf
     return {};
 }
 
+bool RSRenderServiceClient::RegisterBufferClearListener(
+    NodeId id, const BufferClearCallback &callback)
+{
+    return {};
+}
+
 bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
 {
     return {};
