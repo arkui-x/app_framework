@@ -1,0 +1,93 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//third_party/icu/icu4c/icu4c_config.gni")
+
+action("pkg_icudata") {
+  deps = [ "//third_party/icu/icu4c/source:bin_host" ]
+  script = "scripts/pkgdata.sh"
+  sources = [ "//foundation/appframework/icu_data/scripts/pkgdata.sh" ]
+
+  icu_bin_root_out_dir =
+      get_label_info(
+          "//third_party/icu/icu4c/source:bin_host(${host_toolchain})",
+          "root_out_dir")
+
+  is_use_ios_simulator = defined(use_ios_simulator) && use_ios_simulator
+  args = [
+    "-n",
+    "$icu_bin_root_out_dir",
+    "-o",
+    "$root_out_dir",
+    "-b",
+    "$icu_bin_host_subsystem_name/$icu_bin_host_subsystem_name",
+    "-l",
+    "$icu_lib_host_subsystem_name/$icu_lib_host_subsystem_name",
+    "-i",
+    "$icu_subsystem_name/$icu_part_name",
+    "-c",
+    host_os,
+    "-t",
+    target_os,
+    "-u",
+    current_cpu,
+    "-s",
+    host_platform_dir,
+    "-m",
+    "$is_use_ios_simulator",
+  ]
+  outputs = [ "$root_out_dir/icu_data/res/icudt69l_dat.S" ]
+}
+
+ohos_shared_library("shared_icudata") {
+  deps = [ ":pkg_icudata" ]
+  sources = [ "$root_out_dir/icu_data/res/icudt69l_dat.S" ]
+  cflags = [
+    "-O3",
+    "-std=c11",
+    "-W",
+    "-Wall",
+    "-pedantic",
+    "-Wshadow",
+    "-Wpointer-arith",
+    "-Wwrite-strings",
+    "-Wmissing-prototypes",
+  ]
+  ldflags = [ "-shared" ]
+
+  part_name = "icudata"
+  subsystem_name = "arkui"
+  output_name = "icudata"
+}
+
+ohos_static_library("static_icudata") {
+  deps = [ ":pkg_icudata" ]
+  sources = [ "$root_out_dir/icu_data/res/icudt69l_dat.S" ]
+  cflags = [
+    "-O3",
+    "-std=c11",
+    "-W",
+    "-Wall",
+    "-pedantic",
+    "-Wshadow",
+    "-Wpointer-arith",
+    "-Wwrite-strings",
+    "-Wmissing-prototypes",
+  ]
+
+  ldflags = [ "-static" ]
+
+  output_dir = "${root_out_dir}/arkui/icudata"
+  output_name = "icudata"
+}
