@@ -168,8 +168,13 @@ void AbilityStageContext::InitResourceManeger()
             double density = std::stoi(densityDpi) / 160.0f;
             resConfig->SetScreenDensity(density);
         }
+        auto deviceType = configuration_->GetItem(ConfigurationInner::DEVICE_TYPE);
+        if (deviceType == ConfigurationInner::DEVICE_TYPE_TABLET) {
+            resConfig->SetDeviceType(Global::Resource::DeviceType::DEVICE_TABLET);
+        } else {
+            resConfig->SetDeviceType(Global::Resource::DeviceType::DEVICE_PHONE);
+        }
     }
-    resConfig->SetDeviceType(Global::Resource::DeviceType::DEVICE_PHONE);
     resourceManager_->UpdateResConfig(*resConfig);
 }
 
