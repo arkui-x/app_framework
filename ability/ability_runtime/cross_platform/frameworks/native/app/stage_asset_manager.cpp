@@ -87,10 +87,32 @@ std::string StageAssetManager::GetAppLibDir() const
     return StageAssetProvider::GetInstance()->GetAppLibDir();
 }
 
+#ifdef ANDROID_PLATFORM
+std::string StageAssetManager::GetAppDataLibDir() const
+{
+    return StageAssetProvider::GetInstance()->GetAppDataLibDir();
+}
+#endif
+
 void StageAssetManager::GetResIndexPath(
     const std::string& moduleName, std::string& appResIndexPath, std::string& sysResIndexPath)
 {
     return StageAssetProvider::GetInstance()->GetResIndexPath(moduleName, appResIndexPath, sysResIndexPath);
+}
+
+std::string StageAssetManager::GetAppDataModuleDir() const
+{
+    return StageAssetProvider::GetInstance()->GetAppDataModuleDir();
+}
+
+bool GetAppDataModuleAssetList(const std::string& path, std::vector<std::string>& fileFullPaths, bool onlyChild)
+{
+    return StageAssetProvider::GetInstance()->GetAppDataModuleAssetList(path, fileFullPaths, onlyChild);
+}
+
+std::vector<uint8_t> StageAssetManager::GetBufferByAppDataPath(const std::string& fileFullPath)
+{
+    return StageAssetProvider::GetInstance()->GetBufferByAppDataPath(fileFullPath);
 }
 } // namespace Platform
 } // namespace AbilityRuntime

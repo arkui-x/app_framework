@@ -155,6 +155,9 @@ bool AppMain::CreateRuntime(const std::string& bundleName, bool isBundle)
     options.bundleName = bundleName;
     options.isBundle = isBundle;
     options.appLibPath = StageAssetManager::GetInstance()->GetAppLibDir();
+#ifdef ANDROID_PLATFORM
+    options.appDataLibPath = StageAssetManager::GetInstance()->GetAppDataLibDir();
+#endif
     auto runtime = AbilityRuntime::Runtime::Create(options);
     if (runtime == nullptr) {
         return false;
@@ -251,6 +254,19 @@ void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std:
     if (application_ == nullptr) {
         HILOG_ERROR("application_ is nullptr");
         return;
+    }
+    auto want = TransformToWant(instanceName);
+    std::string moduleName = want.GetModuleName();
+    auto hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
+    if (hapModuleInfo == nullptr) {        
+        auto moduleList = StageAssetManager::GetInstance()->GetModuleJsonBufferList();
+        auto jsonFile = StageAssetManager::GetInstance()->GetAppDataModuleDir() + '/' + moduleName + "/module.json";
+        auto dynamicModuleJson = StageAssetManager::GetInstance()->GetBufferByAppDataPath(jsonFile);
+        if (dynamicModuleJson.size() > 0) {
+            moduleList.emplace_back(dynamicModuleJson);
+            HILOG_INFO("stage dynamic module list size: %{public}d", static_cast<int32_t>(moduleList.size()));
+            bundleContainer_->LoadBundleInfos(moduleList);
+        } 
     }
 
     application_->HandleAbilityStage(TransformToWant(instanceName, params));
