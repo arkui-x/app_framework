@@ -318,14 +318,13 @@ void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
 {
 }
 
-void RSRenderServiceClient::ReportEventFirstFrame(DataBaseRs info)
-{
-}
-
 std::vector<uint32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
 {
     return {};
 }
 
+void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled)
+{
+}
 } // namespace Rosen
 } // namespace OHOS
