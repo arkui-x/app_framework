@@ -77,7 +77,7 @@ void RSVsyncClientIOS::SetVsyncCallback(VsyncCallback callback)
         displayLink_ = [[CADisplayLink displayLinkWithTarget:self selector:@selector(onDisplayLink:)] retain];
         displayLink_.paused = YES;
         [displayLink_ addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
-        lock_ = [[[NSLock alloc] init] retain];
+        lock_ = [[NSLock alloc] init];
     }
     return self;
 }
