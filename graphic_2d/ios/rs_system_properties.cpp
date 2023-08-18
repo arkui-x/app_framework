@@ -222,7 +222,7 @@ bool RSSystemProperties::GetImageGpuResourceCacheEnable(int, int)
 
 bool RSSystemProperties::GetBlurEnabled()
 {
-    return false;
+    return true;
 }
 
 bool RSSystemProperties::GetDebugTraceEnabled()
