@@ -269,7 +269,6 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
 bool RenderContext::SetUpGrContext()
 {
     if (grContext_ != nullptr) {
-        ROSEN_LOGD("grContext has already created!!");
         return true;
     }
 
