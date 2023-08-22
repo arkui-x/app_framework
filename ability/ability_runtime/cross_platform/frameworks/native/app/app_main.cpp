@@ -97,6 +97,10 @@ void AppMain::ScheduleLaunchApplication()
     }
     applicationContext->SetBundleContainer(bundleContainer_);
     auto applicationInfo = bundleContainer_->GetApplicationInfo();
+    if (applicationInfo == nullptr) {
+        HILOG_ERROR("applicationInfo is nullptr");
+        return;
+    }
     applicationContext->SetApplicationInfo(applicationInfo);
     application_->SetApplicationContext(applicationContext);
 
