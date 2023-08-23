@@ -48,6 +48,9 @@ public:
         std::string codePath = "";
         std::string bundleName = "";
         std::string appLibPath = "";
+#ifdef ANDROID_PLATFORM
+        std::string appDataLibPath = "";
+#endif
     };
 
     static std::unique_ptr<Runtime> Create(const Options& options);

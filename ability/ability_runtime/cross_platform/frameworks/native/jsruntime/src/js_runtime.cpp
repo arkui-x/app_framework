@@ -134,9 +134,22 @@ private:
         }
 
         auto nativeEngine = std::make_unique<ArkNativeEngine>(vm_, static_cast<JsRuntime*>(this));
+#ifdef ANDROID_PLATFORM
+        std::vector<std::string> paths;
+        if (!options.appLibPath.empty()) {
+            paths.push_back(options.appLibPath);
+        }
+        if (!options.appDataLibPath.empty()) {
+            paths.push_back(options.appDataLibPath);
+        }
+        if (paths.size() != 0) {
+            nativeEngine->SetPackagePath("default", paths);
+        }
+#else
         if (!options.appLibPath.empty()) {
             nativeEngine->SetPackagePath("default", { options.appLibPath });
         }
+#endif
         nativeEngine_ = std::move(nativeEngine);
 
         isBundle_ = options.isBundle;
