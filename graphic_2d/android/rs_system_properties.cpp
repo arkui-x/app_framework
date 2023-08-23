@@ -227,6 +227,7 @@ bool RSSystemProperties::GetBlurEnabled()
 
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS
