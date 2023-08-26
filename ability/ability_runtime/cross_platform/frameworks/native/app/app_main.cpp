@@ -80,7 +80,9 @@ void AppMain::ScheduleLaunchApplication()
 
     auto moduleList = StageAssetManager::GetInstance()->GetModuleJsonBufferList();
     HILOG_INFO("module list size: %{public}d", static_cast<int32_t>(moduleList.size()));
-    bundleContainer_->LoadBundleInfos(moduleList);
+    if (!moduleList.empty()) {
+        bundleContainer_->LoadBundleInfos(moduleList);
+    }
     bundleContainer_->SetAppCodePath(StageAssetManager::GetInstance()->GetBundleCodeDir());
     bundleContainer_->SetPidAndUid(pid_, uid_);
     application_ = std::make_shared<Application>();
@@ -96,16 +98,7 @@ void AppMain::ScheduleLaunchApplication()
         return;
     }
     applicationContext->SetBundleContainer(bundleContainer_);
-    auto applicationInfo = bundleContainer_->GetApplicationInfo();
-    applicationContext->SetApplicationInfo(applicationInfo);
-    application_->SetApplicationContext(applicationContext);
-
-    auto bundleInfo = bundleContainer_->GetBundleInfo();
-    if (!CreateRuntime(applicationInfo->bundleName, bundleInfo->hapModuleInfos.back().compileMode
-        != AppExecFwk::CompileMode::ES_MODULE)) {
-        HILOG_ERROR("runtime create failed.");
-        return;
-    }
+    ParseBundleComplete();
 
     HILOG_INFO("Launch application success.");
 }
@@ -165,6 +158,38 @@ bool AppMain::CreateRuntime(const std::string& bundleName, bool isBundle)
 
     application_->SetRuntime(std::move(runtime));
     return true;
+}
+
+void AppMain::ParseBundleComplete()
+{
+    if (bundleContainer_ == nullptr) {
+        HILOG_ERROR("bundleContainer_ is nullptr");
+        return;
+    }
+
+    auto applicationContext = ApplicationContext::GetInstance();
+    if (applicationContext == nullptr) {
+        HILOG_ERROR("applicationContext is nullptr");
+        return;
+    }
+
+    auto applicationInfo = bundleContainer_->GetApplicationInfo();
+    if (applicationInfo != nullptr) {
+        applicationContext->SetApplicationInfo(applicationInfo);
+    }
+    application_->SetApplicationContext(applicationContext);
+
+    auto bundleInfo = bundleContainer_->GetBundleInfo();
+    if (applicationInfo == nullptr || bundleInfo == nullptr) {
+        HILOG_ERROR("applicationInfo or bundleInfo is nullptr.");
+        return;
+    }
+
+    if (!CreateRuntime(applicationInfo->bundleName,
+            bundleInfo->hapModuleInfos.back().compileMode != AppExecFwk::CompileMode::ES_MODULE)) {
+        HILOG_ERROR("runtime create failed.");
+        return;
+    }
 }
 
 void AppMain::DispatchOnCreate(const std::string& instanceName, const std::string& params)
@@ -258,7 +283,7 @@ void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std:
     auto want = TransformToWant(instanceName);
     std::string moduleName = want.GetModuleName();
     auto hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
-    if (hapModuleInfo == nullptr) {        
+    if (hapModuleInfo == nullptr) {
         auto moduleList = StageAssetManager::GetInstance()->GetModuleJsonBufferList();
         auto jsonFile = StageAssetManager::GetInstance()->GetAppDataModuleDir() + '/' + moduleName + "/module.json";
         auto dynamicModuleJson = StageAssetManager::GetInstance()->GetBufferByAppDataPath(jsonFile);
@@ -266,7 +291,10 @@ void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std:
             moduleList.emplace_back(dynamicModuleJson);
             HILOG_INFO("stage dynamic module list size: %{public}d", static_cast<int32_t>(moduleList.size()));
             bundleContainer_->LoadBundleInfos(moduleList);
-        } 
+            if (application_->GetRuntime() == nullptr) {
+                ParseBundleComplete();
+            }
+        }
     }
 
     application_->HandleAbilityStage(TransformToWant(instanceName, params));
