@@ -73,6 +73,7 @@ template("ability_runtime_jsruntime") {
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_data_struct_converter.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_error_utils.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_runtime.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_module_reader.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_runtime_utils.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_timer.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_worker.cpp",

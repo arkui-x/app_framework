@@ -27,6 +27,7 @@
 #endif
 #include <unistd.h>
 
+#include "js_module_reader.h"
 #include "base/log/ace_trace.h"
 #include "connect_server_manager.h"
 #include "ecmascript/napi/include/jsnapi.h"
@@ -155,6 +156,7 @@ private:
         isBundle_ = options.isBundle;
         panda::JSNApi::SetBundle(vm_, options.isBundle);
         panda::JSNApi::SetBundleName(vm_, options.bundleName);
+        panda::JSNApi::SetHostResolveBufferTracker(vm_, JsModuleReader(options.bundleName));
         return JsRuntime::Initialize(options);
     }
 
