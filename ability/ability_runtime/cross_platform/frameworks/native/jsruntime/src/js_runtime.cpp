@@ -27,17 +27,18 @@
 #endif
 #include <unistd.h>
 
-#include "js_module_reader.h"
-#include "base/log/ace_trace.h"
 #include "connect_server_manager.h"
 #include "ecmascript/napi/include/jsnapi.h"
 #include "event_handler.h"
 #include "hilog.h"
 #include "js_console_log.h"
+#include "js_module_reader.h"
 #include "js_runtime_utils.h"
 #include "js_timer.h"
 #include "js_worker.h"
 #include "native_engine/impl/ark/ark_native_engine.h"
+
+#include "base/log/ace_trace.h"
 
 #ifdef SUPPORT_GRAPHICS
 #include "foundation/appframework/arkui/uicontent/declarative_module_preloader.h"
