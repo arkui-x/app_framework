@@ -27,7 +27,7 @@ namespace AbilityRuntime {
 class JsModuleReader {
 public:
 
-    JsModuleReader(const std::string& bundleName);
+    explicit JsModuleReader(const std::string& bundleName);
     ~JsModuleReader() = default;
 
     JsModuleReader(const JsModuleReader&) = default;
