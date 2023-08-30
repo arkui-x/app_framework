@@ -91,6 +91,9 @@ bool RSSurfaceAndroid::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64
     renderContext_->RenderFrame();
     renderContext_->SwapBuffers(eglSurface_);
     ROSEN_LOGD("RSSurfaceAndroid: FlushFrame, SwapBuffers eglsurface is %p", eglSurface_);
+    if (auto grContext = renderContext_->GetGrContext()) {
+        grContext->purgeUnlockedResources(true);
+    }
     return true;
 }
 
