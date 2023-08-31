@@ -81,7 +81,9 @@ bool RSSurfaceGPU::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t u
     renderContext_->MakeCurrent(nullptr, nullptr);
     renderContext_->RenderFrame();
     renderContext_->SwapBuffers(nullptr);
-
+    if (auto grContext = renderContext_->GetGrContext()) {
+        grContext->purgeUnlockedResources(true);
+    }
     return true;
 }
 
