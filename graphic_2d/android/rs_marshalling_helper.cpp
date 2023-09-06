@@ -492,42 +492,42 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
 }
 
 // RSParticle
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<EmitterConfig>& val)
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const EmitterConfig& val)
 {
     return {};
 }
 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<EmitterConfig>& val)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, EmitterConfig& val)
 {
     return {};
 }
 
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleVelocity>& val)
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const ParticleVelocity& val)
 {
     return {};
 }
 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleVelocity>& val)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, ParticleVelocity& val)
 {
     return {};
 }
 
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RenderParticleParaType<float>>& val)
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RenderParticleParaType<float>& val)
 {
     return {};
 }
 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RenderParticleParaType<float>>& val)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleParaType<float>& val)
 {
     return {};
 }
 
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RenderParticleColorParaType>& val)
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RenderParticleColorParaType& val)
 {
     return {};
 }
 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RenderParticleColorParaType>& val)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleColorParaType& val)
 {
     return {};
 }
@@ -542,21 +542,21 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     return {};
 }
 
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<std::vector<ParticleRenderParams>>& val)
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::vector<std::shared_ptr<ParticleRenderParams>>& val)
 {
     return {};
 }
 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<std::vector<ParticleRenderParams>>& val)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_ptr<ParticleRenderParams>>& val)
 {
     return {};
 }
 
-bool RSMarshallingHelper::Marshalling(OHOS::Parcel&, std::__ndk1::shared_ptr<OHOS::Rosen::RSRenderParticleAnimation> const&) {
+bool RSMarshallingHelper::Marshalling(OHOS::Parcel&, const std::shared_ptr<OHOS::Rosen::RSRenderParticleAnimation>& val) {
     return {};
 }
 
-bool RSMarshallingHelper::Unmarshalling(OHOS::Parcel&, std::__ndk1::shared_ptr<OHOS::Rosen::RSRenderParticleAnimation>&) {
+bool RSMarshallingHelper::Unmarshalling(OHOS::Parcel&, std::shared_ptr<OHOS::Rosen::RSRenderParticleAnimation>& val) {
     return {};
 }
 

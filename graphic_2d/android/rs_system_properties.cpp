@@ -220,6 +220,21 @@ bool RSSystemProperties::GetImageGpuResourceCacheEnable(int, int)
     return false;
 }
 
+float RSSystemProperties::GetKawaseRandomColorFactor()
+{
+    return 0.f;
+}
+
+bool RSSystemProperties::GetRandomColorEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetKawaseOriginalEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetBlurEnabled()
 {
     return true;

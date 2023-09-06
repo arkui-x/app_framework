@@ -21,7 +21,6 @@
 #include "core/components_ng/render/font_collection.h"
 #include "core/components_ng/render/paragraph.h"
 #include "frameworks/bridge/declarative_frontend/engine/jsi/jsi_declarative_engine.h"
-#include "rosen_text/ui/font_collection.h"
 #include "stage_application_info_adapter.h"
 
 namespace OHOS::Ace::Platform {
@@ -35,7 +34,6 @@ void DeclarativeModulePreloader::Preload(NativeEngine &runtime)
 {
     BackgroundTaskExecutor::GetInstance().PostTask([]() {
         ACE_SCOPED_TRACE("PreLayout");
-        auto fontCollection = rosen::FontCollection::GetInstance(false);
         std::string language;
         std::string country;
         std::string script;
