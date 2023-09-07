@@ -82,7 +82,7 @@ void* AshmemAllocator::Realloc(void* data, size_t newSize)
 }
 
 void RSAshmemHelper::CopyFileDescriptor(
-    std::shared_ptr<MessageParcel>& ashmemParcel, std::shared_ptr<MessageParcel>& dataParcel)
+    MessageParcel* ashmemParcel, std::shared_ptr<MessageParcel>& dataParcel)
 {
 }
 

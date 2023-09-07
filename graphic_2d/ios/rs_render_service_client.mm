@@ -49,6 +49,11 @@ MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
     return {};
 }
 
+bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
+{
+    return {};
+}
+
 std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
 {
     return {};
@@ -139,8 +144,9 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     return std::make_shared<VSyncReceiverIOS>(looper);
 }
 
-bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    float scaleX, float scaleY)
+bool RSRenderServiceClient::TakeSurfaceCapture(
+    NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
+    SurfaceCaptureType surfaceCaptureType)
 {
     return false;
 }
@@ -289,7 +295,23 @@ int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t 
     return {};
 }
 
+int32_t RSRenderServiceClient::RegisterSurfaceOcclusionChangeCallback(
+    NodeId id, const SurfaceOcclusionChangeCallback& callback)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)
 {
     return {};
 }
@@ -318,7 +340,7 @@ void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
 {
 }
 
-std::vector<uint32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
+std::vector<int32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
 {
     return {};
 }
