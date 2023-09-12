@@ -46,6 +46,7 @@ public:
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo() const override;
     std::shared_ptr<Configuration> GetConfiguration() override;
     void GetResourcePaths(std::string& hapResPath, std::string& sysResPath) override;
+    void GetResourcePaths(std::vector<std::string>& appResourcePaths, std::string& sysResourcePath) override;
     std::shared_ptr<Context> CreateModuleContext(const std::string &moduleName) override;
     ErrCode StartAbilityForResult(const AAFwk::Want& want, int32_t requestCode, RuntimeTask&& task) override;
     ErrCode TerminateAbilityWithResult(const AAFwk::Want& resultWant, int32_t resultCode) override;

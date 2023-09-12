@@ -46,6 +46,7 @@ public:
     int GetSystemPreferencesDir(const std::string &groupId, bool checkExist, std::string &preferencesDir) override;
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo() const override;
     void GetResourcePaths(std::string& hapResPath, std::string& sysResPath) override;
+    void GetResourcePaths(std::vector<std::string>& appResourcePaths, std::string& sysResourcePath) override;
     std::shared_ptr<Context> CreateModuleContext(const std::string &moduleName) override;
     std::shared_ptr<Configuration> GetConfiguration() override;
     static std::shared_ptr<ApplicationContext> GetInstance();

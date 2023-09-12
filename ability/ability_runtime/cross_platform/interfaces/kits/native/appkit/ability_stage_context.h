@@ -47,6 +47,7 @@ public:
     void SetConfiguration(const std::shared_ptr<Configuration>& configuration);
     void InitResourceManeger();
     void GetResourcePaths(std::string& appResourcePath, std::string& sysResourcePath) override;
+    void GetResourcePaths(std::vector<std::string>& appResourcePaths, std::string& sysResourcePath) override;
 
 private:
     std::shared_ptr<Context> applicationContext_ = nullptr;

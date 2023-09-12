@@ -293,10 +293,21 @@ void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std:
             bundleContainer_->LoadBundleInfos(moduleList);
             if (application_->GetRuntime() == nullptr) {
                 ParseBundleComplete();
+                hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
             }
         }
     }
 
+#ifdef ANDROID_PLATFORM
+    if (hapModuleInfo != nullptr) {
+        auto dependencies = hapModuleInfo->dependencies;
+        if (!dependencies.empty()) {
+            for (const auto& dependency : dependencies) {
+                StageAssetManager::GetInstance()->CopyHspResourcePath(dependency);
+            }
+        }
+    }
+#endif
     application_->HandleAbilityStage(TransformToWant(instanceName, params));
 }
 
