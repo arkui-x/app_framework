@@ -92,6 +92,11 @@ std::string StageAssetManager::GetAppDataLibDir() const
 {
     return StageAssetProvider::GetInstance()->GetAppDataLibDir();
 }
+
+void StageAssetManager::CopyHspResourcePath(const std::string& moduleName)
+{
+    StageAssetProvider::GetInstance()->CopyHspResourcePath(moduleName);
+}
 #endif
 
 void StageAssetManager::GetResIndexPath(

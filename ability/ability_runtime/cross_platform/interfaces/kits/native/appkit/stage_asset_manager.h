@@ -42,6 +42,7 @@ public:
     std::string GetAppLibDir() const;
 #ifdef ANDROID_PLATFORM
     std::string GetAppDataLibDir() const;
+    void CopyHspResourcePath(const std::string& moduleName);
 #endif
     void GetResIndexPath(const std::string& moduleName, std::string& appResIndexPath, std::string& sysResIndexPath);
     std::string GetAppDataModuleDir() const;
