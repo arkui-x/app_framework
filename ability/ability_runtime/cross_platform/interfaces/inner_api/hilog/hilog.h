@@ -44,11 +44,11 @@
 #undef LOG_LABEL
 #endif
 
-#define HILOG_FATAL(fmt, ...) PRINT_LOG(FATAL, fmt, ##__VA_ARGS__)
-#define HILOG_ERROR(fmt, ...) PRINT_LOG(ERROR, fmt, ##__VA_ARGS__)
-#define HILOG_WARN(fmt, ...) PRINT_LOG(WARN, fmt, ##__VA_ARGS__)
-#define HILOG_INFO(fmt, ...) PRINT_LOG(INFO, fmt, ##__VA_ARGS__)
-#define HILOG_DEBUG(fmt, ...) PRINT_LOG(DEBUG, fmt, ##__VA_ARGS__)
+#define HILOG_FATAL(fmt, ...) PRINT_LOG(FATAL, OHOS::Ace::AceLogTag::DEFAULT, fmt, ##__VA_ARGS__)
+#define HILOG_ERROR(fmt, ...) PRINT_LOG(ERROR, OHOS::Ace::AceLogTag::DEFAULT, fmt, ##__VA_ARGS__)
+#define HILOG_WARN(fmt, ...) PRINT_LOG(WARN, OHOS::Ace::AceLogTag::DEFAULT, fmt, ##__VA_ARGS__)
+#define HILOG_INFO(fmt, ...) PRINT_LOG(INFO, OHOS::Ace::AceLogTag::DEFAULT, fmt, ##__VA_ARGS__)
+#define HILOG_DEBUG(fmt, ...) PRINT_LOG(DEBUG, OHOS::Ace::AceLogTag::DEFAULT, fmt, ##__VA_ARGS__)
 #else
 
 #define HILOG_FATAL(...)
