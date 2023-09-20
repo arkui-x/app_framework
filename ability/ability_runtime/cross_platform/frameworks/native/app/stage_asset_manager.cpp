@@ -97,6 +97,17 @@ void StageAssetManager::CopyHspResourcePath(const std::string& moduleName)
 {
     StageAssetProvider::GetInstance()->CopyHspResourcePath(moduleName);
 }
+
+void StageAssetManager::CopyNativeLibToAppDataModuleDir(const std::string& bundleName)
+{
+    StageAssetProvider::GetInstance()->CopyNativeLibToAppDataModuleDir(bundleName);
+}
+
+void StageAssetManager::SetNativeLibPaths(
+    const std::string& bundleName, const std::vector<std::string>& moduleNames)
+{
+    StageAssetProvider::GetInstance()->SetNativeLibPaths(bundleName, moduleNames);
+}
 #endif
 
 void StageAssetManager::GetResIndexPath(

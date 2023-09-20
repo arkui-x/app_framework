@@ -85,6 +85,12 @@ void AppMain::ScheduleLaunchApplication()
     }
     bundleContainer_->SetAppCodePath(StageAssetManager::GetInstance()->GetBundleCodeDir());
     bundleContainer_->SetPidAndUid(pid_, uid_);
+#ifdef ANDROID_PLATFORM
+    auto bundleName = bundleContainer_->GetBundleName();
+    if (!bundleName.empty()) {
+        StageAssetManager::GetInstance()->CopyNativeLibToAppDataModuleDir(bundleName);
+    }
+#endif
     application_ = std::make_shared<Application>();
     if (application_ == nullptr) {
         HILOG_ERROR("application_ is nullptr");
@@ -299,14 +305,17 @@ void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std:
     }
 
 #ifdef ANDROID_PLATFORM
+    std::vector<std::string> moduleNames { moduleName };
     if (hapModuleInfo != nullptr) {
         auto dependencies = hapModuleInfo->dependencies;
         if (!dependencies.empty()) {
             for (const auto& dependency : dependencies) {
                 StageAssetManager::GetInstance()->CopyHspResourcePath(dependency);
+                moduleNames.emplace_back(dependency);
             }
         }
     }
+    StageAssetManager::GetInstance()->SetNativeLibPaths(hapModuleInfo->bundleName, moduleNames);
 #endif
     application_->HandleAbilityStage(TransformToWant(instanceName, params));
 }
