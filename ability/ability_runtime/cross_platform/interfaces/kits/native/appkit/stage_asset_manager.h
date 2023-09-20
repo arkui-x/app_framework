@@ -43,6 +43,8 @@ public:
 #ifdef ANDROID_PLATFORM
     std::string GetAppDataLibDir() const;
     void CopyHspResourcePath(const std::string& moduleName);
+    void CopyNativeLibToAppDataModuleDir(const std::string& bundleName);
+    void SetNativeLibPaths(const std::string& bundleName, const std::vector<std::string>& moduleNames);
 #endif
     void GetResIndexPath(const std::string& moduleName, std::string& appResIndexPath, std::string& sysResIndexPath);
     std::string GetAppDataModuleDir() const;

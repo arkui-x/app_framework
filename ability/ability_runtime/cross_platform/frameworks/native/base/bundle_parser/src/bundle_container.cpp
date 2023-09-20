@@ -144,5 +144,14 @@ void BundleContainer::SetPidAndUid(int32_t pid, int32_t uid)
     bundleInfo_->SetPid(pid);
     bundleInfo_->SetUid(uid);
 }
+
+std::string BundleContainer::GetBundleName() const
+{
+    if (bundleInfo_ == nullptr) {
+        HILOG_ERROR("bundleInfo_ is nullptr");
+        return "";
+    }
+    return bundleInfo_->GetBundleName();
+}
 } // namespace AppExecFwk
 } // namespace OHOS
