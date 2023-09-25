@@ -352,5 +352,9 @@ void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled)
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
 }
+
+int32_t RSRenderServiceClient::GetCurrentRefreshRateMode()
+{
+}
 } // namespace Rosen
 } // namespace OHOS
