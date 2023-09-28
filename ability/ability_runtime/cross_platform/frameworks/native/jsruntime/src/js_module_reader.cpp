@@ -23,24 +23,24 @@ namespace AbilityRuntime {
 
 JsModuleReader::JsModuleReader(const std::string& bundleName) : bundleName_(bundleName) {}
 
-bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, size_t* buffSize) const
+bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, size_t* buffSize)
 {
     HILOG_INFO("JsModuleReader operator start: %{private}s", inputPath.c_str());
     if (inputPath.empty() || buff == nullptr || buffSize == nullptr) {
         HILOG_ERROR("Invalid param");
         return false;
     }
-
+    moduleBuffer_.clear();
     std::string moduleName = GetModuleName(inputPath);
     std::string modulePath;
-    auto moduleBuffer = Platform::StageAssetManager::GetInstance()->GetModuleBuffer(moduleName, modulePath, true);
-    if (moduleBuffer.empty()) {
+    moduleBuffer_ = Platform::StageAssetManager::GetInstance()->GetModuleBuffer(moduleName, modulePath, true);
+    if (moduleBuffer_.empty()) {
         HILOG_ERROR("GetModuleBuffer failed.");
         return false;
     }
 
-    *buff = moduleBuffer.data();
-    *buffSize = moduleBuffer.size();
+    *buff = moduleBuffer_.data();
+    *buffSize = moduleBuffer_.size();
     return true;
 }
 
