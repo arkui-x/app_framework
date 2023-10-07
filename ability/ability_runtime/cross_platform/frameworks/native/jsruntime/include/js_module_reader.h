@@ -35,12 +35,13 @@ public:
     JsModuleReader& operator=(const JsModuleReader&) = default;
     JsModuleReader& operator=(JsModuleReader&&) = default;
 
-    bool operator()(const std::string& inputPath, uint8_t **buff, size_t *buffSize) const;
+    bool operator()(const std::string& inputPath, uint8_t **buff, size_t *buffSize);
 
 private:
     std::string GetModuleName(const std::string& inputPath) const;
 
     std::string bundleName_;
+    std::vector<uint8_t> moduleBuffer_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
