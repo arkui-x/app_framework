@@ -68,7 +68,6 @@ template("ability_runtime_jsruntime") {
 
     sources = [
       "${ability_runtime_cross_platform_path}/frameworks/native/base/error/ability_business_error.cpp",
-      "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/connect_server_manager.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_console_log.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_data_struct_converter.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_error_utils.cpp",
@@ -79,6 +78,11 @@ template("ability_runtime_jsruntime") {
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_worker.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/runtime.cpp",
     ]
+
+    if (runtime_mode != "release") {
+      sources += [ "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/connect_server_manager.cpp" ]
+      defines += [ "DEBUG_MODE" ]
+    }
 
     deps = [
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle:cross_platform_bundle_parser",

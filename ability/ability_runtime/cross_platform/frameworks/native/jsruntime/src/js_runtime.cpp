@@ -27,7 +27,9 @@
 #endif
 #include <unistd.h>
 
+#ifdef DEBUG_MODE
 #include "connect_server_manager.h"
+#endif
 #include "ecmascript/napi/include/jsnapi.h"
 #include "event_handler.h"
 #include "hilog.h"
@@ -472,8 +474,10 @@ void JsRuntime::StartDebugMode(bool needBreakPoint)
 bool JsRuntime::StartDebugMode(
     const std::string& bundleName, bool needBreakPoint, uint32_t instanceId, const DebuggerPostTask& debuggerPostTask)
 {
+#ifdef DEBUG_MODE
     ConnectServerManager::Get().StartConnectServer(bundleName);
     ConnectServerManager::Get().AddInstance(instanceId);
+#endif
     StartDebuggerInWorkerModule();
     return true;
 }
