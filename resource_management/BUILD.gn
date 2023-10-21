@@ -13,6 +13,7 @@
 
 import("//base/global/resource_management/resmgr.gni")
 import("//build/ohos.gni")
+import("//foundation/arkui/ace_engine/ace_config.gni")
 
 config("resmgr_config") {
   include_dirs = [
@@ -74,10 +75,13 @@ ohos_source_set("global_resmgr") {
 
   public_configs = [ ":resmgr_public_config" ]
 
-  deps = [
-    "//third_party/bounds_checking_function:libsec_static",
-    "//third_party/zlib:libz",
-  ]
+  deps = [ "//third_party/bounds_checking_function:libsec_static" ]
+  if (is_cross_platform_build && target_os == "ios") {
+    deps +=
+        [ "//foundation/arkui/ace_engine/adapter/ios/build:arkui_shared_libz" ]
+  } else {
+    deps += [ "//third_party/zlib:libz" ]
+  }
 
   if (resource_management_support_icu) {
     deps += [ "//third_party/icu/icu4c:static_icui18n" ]
