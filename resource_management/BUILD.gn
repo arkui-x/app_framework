@@ -77,7 +77,7 @@ ohos_source_set("global_resmgr") {
 
   deps = [
     "//third_party/bounds_checking_function:libsec_static",
-    "//third_party/zlib:shared_libz",
+    "//third_party/zlib:libz",
   ]
 
   if (resource_management_support_icu) {
