@@ -290,6 +290,11 @@ bool RSRenderServiceClient::GetBitmap(NodeId id, SkBitmap& bitmap)
     return {};
 }
 
+bool RSRenderServiceClient::GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
 {
     return {};
