@@ -36,10 +36,11 @@ RSSurfaceGPU::RSSurfaceGPU(void* layer)
 
 RSSurfaceGPU::~RSSurfaceGPU()
 {
-    ROSEN_LOGI("RSSurfaceGPU::release");
+    ROSEN_LOGD("RSSurfaceGPU::release");
     if (renderContext_ != nullptr) {
         renderContext_->DestroyEGLSurface(layer_);
     }
+    [static_cast<CAEAGLLayer*>(layer_) release];
     layer_ = nullptr;
 }
 

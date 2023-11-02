@@ -178,8 +178,8 @@ void RenderContext::SwapBuffers(EGLSurface surface) const
 
 void RenderContext::DestroyEGLSurface(EGLSurface surface)
 {
-    ROSEN_LOGI("RenderContext::DestroyEGLSurface");
-    [static_cast<CAEAGLLayer*>(surface) release];
+    ROSEN_LOGD("RenderContext::DestroyEGLSurface");
+    [static_cast<CAEAGLLayer*>(layer_) release];
     layer_ = nullptr;
 }
 
