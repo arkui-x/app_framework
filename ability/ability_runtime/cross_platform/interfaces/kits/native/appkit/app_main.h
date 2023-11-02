@@ -48,6 +48,7 @@ public:
         const std::string& testRunerName, const std::string& timeout);
     void DispatchOnAbilityResult(const std::string& instanceName, int32_t requestCode, int32_t resultCode,
         const std::string& wantParams);
+    void ParseHspModuleJson(const std::string& moduleName);
 
 private:
     void ScheduleLaunchApplication();
