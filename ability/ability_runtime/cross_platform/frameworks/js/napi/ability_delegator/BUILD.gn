@@ -16,106 +16,107 @@ import("//build/ohos.gni")
 import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
 import("//foundation/arkui/ace_engine/build/ace_gen_obj.gni")
 
-
 ohos_shared_library("ability_delegator") {
-    include_dirs = [
-      "./",
-      "${ability_runtime_path}/interfaces/kits/native/appkit/ability_delegator/",
-      "${ability_runtime_path}/interfaces/kits/native/ability/native",
-      "${ability_runtime_path}/tools/aa/include",
-      "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/hilog",
-    ]
+  include_dirs = [
+    "./",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_delegator/",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native",
+    "${ability_runtime_path}/tools/aa/include",
+    "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/hilog",
+  ]
 
-    sources = [
-      "ability_monitor.cpp",
-      "js_ability_delegator.cpp",
-      "js_ability_delegator_registry.cpp",
-      "js_ability_delegator_utils.cpp",
-      "js_ability_monitor.cpp",
-      "native_module.cpp",
-    ]
+  sources = [
+    "ability_monitor.cpp",
+    "js_ability_delegator.cpp",
+    "js_ability_delegator_registry.cpp",
+    "js_ability_delegator_utils.cpp",
+    "js_ability_monitor.cpp",
+    "native_module.cpp",
+  ]
 
-    configs = [ "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit:appkit_native_config",
-    "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config", ]
+  configs = [
+    "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit:appkit_native_config",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
+  ]
 
-    deps = [
-      "${ability_runtime_cross_platform_path}/frameworks/js/napi/napi_common:napi_common",
-      "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit:cross_platform_appkit_native",
-      "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit:appkit_delegator",
-      "${ability_runtime_cross_platform_path}/interfaces/inner_api/jsruntime:cross_platform_jsruntime",
-      "//foundation/appframework/window_manager/wm:wm",
-    ]
+  deps = [
+    "${ability_runtime_cross_platform_path}/frameworks/js/napi/napi_common:napi_common",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/jsruntime:cross_platform_jsruntime",
+    "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit:appkit_delegator",
+    "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit:cross_platform_appkit_native",
+    "//foundation/appframework/window_manager/wm:wm",
+  ]
 
-    external_deps = [
-      "ability_base:want",
-      "ability_runtime:abilitykit_native",
-      "ability_runtime:runtime",
-      "c_utils:utils",
-      "common_event_service:cesfwk_innerkits",
-      "hiviewdfx_hilog_native:libhilog",
-      "napi:ace_napi",
-    ]
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:abilitykit_native",
+    "ability_runtime:runtime",
+    "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
+    "hiviewdfx_hilog_native:libhilog",
+    "napi:ace_napi",
+  ]
 
-    subsystem_name = "ability"
-    part_name = "ability_runtime"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
 }
 
 ohos_source_set("ability_delegator_source_set") {
-    include_dirs = [
-      "./",
-      "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit/ability_delegator/",
-      "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability",
-      "//foundation/arkui/napi",
-      "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle",
-      "${ability_runtime_cross_platform_path}/interfaces/inner_api/jsruntime",
-      "${ability_runtime_cross_platform_path}/interfaces/inner_api/want",
-      "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/include/",
-      "${ability_runtime_cross_platform_path}/interfaces/inner_api/ability_manager",
-      "//foundation/appframework/window_manager/interfaces/innerkits/wm",
-      "//foundation/appframework/window_manager/interfaces/kits/napi/window_runtime/window_stage_napi",
-    ]
+  include_dirs = [
+    "./",
+    "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit/ability_delegator/",
+    "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability",
+    "//foundation/arkui/napi",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/jsruntime",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/want",
+    "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/include/",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/ability_manager",
+    "//foundation/appframework/window_manager/interfaces/innerkits/wm",
+    "//foundation/appframework/window_manager/interfaces/kits/napi/window_runtime/window_stage_napi",
+  ]
 
-    sources = [
-      "ability_monitor.cpp",
-      "js_ability_delegator.cpp",
-      "js_ability_delegator_registry.cpp",
-      "js_ability_delegator_utils.cpp",
-      "js_ability_monitor.cpp",
-      "native_module.cpp",
-    ]
+  sources = [
+    "ability_monitor.cpp",
+    "js_ability_delegator.cpp",
+    "js_ability_delegator_registry.cpp",
+    "js_ability_delegator_utils.cpp",
+    "js_ability_monitor.cpp",
+    "native_module.cpp",
+  ]
 
-    configs = [
-      "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit:appkit_native_config",
-      "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
-    ]
+  configs = [
+    "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit:appkit_native_config",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
+  ]
 
-    deps = [
-      "${ability_runtime_cross_platform_path}/frameworks/js/napi/napi_common:napi_common",
-      "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit:cross_platform_appkit_native",
-      "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit:appkit_delegator",
-      "${ability_runtime_cross_platform_path}/interfaces/inner_api/jsruntime:cross_platform_jsruntime",
-      "//foundation/appframework/window_manager/wm:wm",
-      "//foundation/arkui/napi:ace_napi",
-    ]
+  deps = [
+    "${ability_runtime_cross_platform_path}/frameworks/js/napi/napi_common:napi_common",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/jsruntime:cross_platform_jsruntime",
+    "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit:appkit_delegator",
+    "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit:cross_platform_appkit_native",
+    "//foundation/appframework/window_manager/wm:wm",
+    "//foundation/arkui/napi:ace_napi",
+  ]
 
-    if (use_static_napi_libs) {
-      deps += [ "//foundation/arkui/napi:ace_napi" ]
-    } else {
-      deps += ["//plugins/libs/napi:napi_${target_os}"]
-    }
-
-    if (is_cross_platform_build) {
-      include_dirs += [
-        "//plugins/hilog/include",
-        "//plugins/interfaces",
-      ]
-      if (target_os == "android") {
-        defines = [ "ANDROID_PLATFORM" ]
-      }
-      if (target_os == "ios") {
-        defines = [ "IOS_PLATFORM" ]
-      }
-    }
-    subsystem_name = "ability"
-    part_name = "ability_runtime"
+  if (use_static_napi_libs) {
+    deps += [ "//foundation/arkui/napi:ace_napi" ]
+  } else {
+    deps += [ "//plugins/libs/napi:napi_${target_os}" ]
   }
+
+  if (is_arkui_x) {
+    include_dirs += [
+      "//plugins/hilog/include",
+      "//plugins/interfaces",
+    ]
+    if (target_os == "android") {
+      defines = [ "ANDROID_PLATFORM" ]
+    }
+    if (target_os == "ios") {
+      defines = [ "IOS_PLATFORM" ]
+    }
+  }
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
