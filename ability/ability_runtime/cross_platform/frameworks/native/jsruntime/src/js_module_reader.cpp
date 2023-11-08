@@ -15,6 +15,7 @@
 
 #include "js_module_reader.h"
 
+#include "app_main.h"
 #include "hilog.h"
 #include "stage_asset_manager.h"
 
@@ -38,6 +39,7 @@ bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, si
         HILOG_ERROR("GetModuleBuffer failed.");
         return false;
     }
+    Platform::AppMain::GetInstance()->ParseHspModuleJson(moduleName);
 
     *buff = moduleBuffer_.data();
     *buffSize = moduleBuffer_.size();

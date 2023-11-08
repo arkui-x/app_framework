@@ -456,6 +456,27 @@ void AppMain::HandleDispatchOnAbilityResult(
     application_->DispatchOnAbilityResult(
         TransformToWant(instanceName), requestCode, resultCode, abilityResultWant);
 }
+
+void AppMain::ParseHspModuleJson(const std::string& moduleName)
+{
+    if (bundleContainer_ == nullptr) {
+        HILOG_ERROR("bundleContainer_ is nullptr");
+        return;
+    }
+    auto hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
+    if (hapModuleInfo != nullptr) {
+        HILOG_WARN("Module has been parsed");
+        return;
+    }
+    auto jsonFile = StageAssetManager::GetInstance()->GetAppDataModuleDir() + '/' + moduleName + "/module.json";
+    auto dynamicModuleJson = StageAssetManager::GetInstance()->GetBufferByAppDataPath(jsonFile);
+    if (dynamicModuleJson.empty()) {
+        HILOG_ERROR("Get buffer by module path failed.");
+        return;
+    }
+    std::list<std::vector<uint8_t>> moduleList { dynamicModuleJson };
+    bundleContainer_->LoadBundleInfos(moduleList);
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS
