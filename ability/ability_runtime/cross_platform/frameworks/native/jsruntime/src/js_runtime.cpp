@@ -110,6 +110,17 @@ public:
         return ArkNativeEngine::ArkValueToNativeValue(static_cast<ArkNativeEngine*>(nativeEngine_.get()), exportObj);
     }
 
+    // TODO: refactor
+    void LoadAotFile(const std::string& moduleName) override
+    {
+        panda::RuntimeOption postOption;
+        postOption.SetBundleName(bundleName_);
+        postOption.SetAnDir(appLibPath_ + "/aot/");
+        postOption.SetEnableProfile(false);
+        panda::JSNApi::PostFork(vm_, postOption);
+        panda::JSNApi::LoadAotFile(vm_, moduleName);
+    }
+
 private:
     static int32_t PrintVmLog(int32_t, int32_t, const char*, const char*, const char* message)
     {
@@ -156,7 +167,9 @@ private:
 #endif
         nativeEngine_ = std::move(nativeEngine);
 
+        bundleName_ = options.bundleName;
         isBundle_ = options.isBundle;
+        appLibPath_ = options.appLibPath;
         panda::JSNApi::SetBundle(vm_, options.isBundle);
         panda::JSNApi::SetBundleName(vm_, options.bundleName);
         panda::JSNApi::SetHostResolveBufferTracker(vm_, JsModuleReader(options.bundleName));
@@ -415,6 +428,7 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
         HILOG_ERROR("Failed to create object instance");
         return std::unique_ptr<NativeReference>();
     }
+    LoadAotFile(moduleName_);
 
     return std::unique_ptr<NativeReference>(nativeEngine_->CreateReference(instanceValue, 1));
 }
