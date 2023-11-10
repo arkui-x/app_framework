@@ -82,6 +82,7 @@ protected:
 
     NativeValue* LoadJsBundle(const std::string& path, std::vector<uint8_t>& buffer);
     virtual NativeValue* LoadJsModule(const std::string& path, std::vector<uint8_t>& buffer) = 0;
+    virtual void LoadAotFile(const std::string& moduleName) = 0;
 
     bool isArkEngine_ = false;
     bool preloaded_ = false;
@@ -89,6 +90,7 @@ protected:
     bool isBundle_ = true;
     std::unique_ptr<NativeEngine> nativeEngine_;
     std::string codePath_;
+    std::string appLibPath_;
     std::string moduleName_;
     std::unique_ptr<NativeReference> methodRequireNapiRef_;
     std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
