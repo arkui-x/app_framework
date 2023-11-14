@@ -165,6 +165,11 @@ bool RSSystemProperties::GetPropertyDrawableEnable()
     return {};
 }
 
+bool RSSystemProperties::GetAnimationCacheEnabled()
+{
+    return {};
+}
+
 float RSSystemProperties::GetAnimationScale()
 {
     return 1.f;
