@@ -24,6 +24,7 @@ JsWindowRegisterManager::JsWindowRegisterManager()
     };
     // white register list for window
     listenerProcess_[CaseType::CASE_WINDOW] = {
+        { "windowEvent",              &JsWindowRegisterManager::ProcessLifeCycleEventRegister    },
     };
     // white register list for window stage
     listenerProcess_[CaseType::CASE_STAGE] = {
@@ -86,7 +87,7 @@ WmErrorCode JsWindowRegisterManager::RegisterListener(std::shared_ptr<Window> wi
     }
     std::shared_ptr<NativeReference> callbackRef;
     callbackRef.reset(engine.CreateReference(value, 1));
-    sptr<JsWindowListener> windowManagerListener = new(std::nothrow) JsWindowListener(&engine, callbackRef);
+    sptr<JsWindowListener> windowManagerListener = new(std::nothrow) JsWindowListener(type, &engine, callbackRef);
     if (windowManagerListener == nullptr) {
         HILOG_ERROR("JsWindowRegisterManager::RegisterListener : New JsWindowListener failed");
         return WmErrorCode::WM_ERROR_STATE_ABNORMALLY;
