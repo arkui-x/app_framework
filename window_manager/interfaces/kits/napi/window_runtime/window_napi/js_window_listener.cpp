@@ -44,7 +44,7 @@ void JsWindowListener::LifeCycleCallBack(LifeCycleEventType eventType)
 {
     HILOG_INFO("[NAPI]LifeCycleCallBack, envent type: %{public}u", eventType);
     std::unique_ptr<AsyncTask::CompleteCallback> complete = std::make_unique<AsyncTask::CompleteCallback>(
-        [self = weakRef_, eventType, eng = engine_] (NativeEngine &engine,
+        [self = weakRef_, eventType, eng = engine_, caseType = caseType_] (NativeEngine &engine,
             AsyncTask &task, int32_t status) {
             auto thisListener = self.promote();
             if (thisListener == nullptr || eng == nullptr) {
@@ -52,7 +52,7 @@ void JsWindowListener::LifeCycleCallBack(LifeCycleEventType eventType)
                 return;
             }
             NativeValue* argv[] = {CreateJsValue(*eng, static_cast<uint32_t>(eventType))};
-            thisListener->CallJsMethod(WINDOW_STAGE_EVENT_CB.c_str(), argv, ArraySize(argv));
+            thisListener->CallJsMethod(caseType.c_str(), argv, ArraySize(argv));
         }
     );
     NativeReference* callback = nullptr;

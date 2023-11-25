@@ -24,6 +24,7 @@
 #include "js_window_utils.h"
 #include "virtual_rs_window.h"
 #include "wm_common.h"
+#include "js_window_register_manager.h"
 #include "foundation/appframework/arkui/uicontent/ui_content.h"
 
 namespace OHOS {
@@ -31,6 +32,7 @@ namespace Rosen {
 using namespace AbilityRuntime;
 
 static thread_local std::map<std::string, std::shared_ptr<NativeReference>> g_jsWindowMap;
+std::unique_ptr<JsWindowRegisterManager> g_registerManager =  std::make_unique<JsWindowRegisterManager>();
 #ifdef IOS_PLATFORM
 static bool g_willTerminate;
 #endif
@@ -73,6 +75,20 @@ static void LoadContentTask(std::shared_ptr<NativeReference> contentStorage, std
     } else {
         task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(ret), "Window load content failed"));
     }
+}
+
+NativeValue* JsWindow::RegisterWindowManagerCallback(NativeEngine* engine, NativeCallbackInfo* info)
+{
+    HILOG_INFO("JsWindow::On");
+    JsWindow* me = CheckParamsAndGetThis<JsWindow>(engine, info);
+    return (me != nullptr) ? me->OnRegisterWindowManagerCallback(*engine, *info) : nullptr;
+}
+
+NativeValue* JsWindow::UnregisterWindowManagerCallback(NativeEngine* engine, NativeCallbackInfo* info)
+{
+    HILOG_INFO("JsWindow::OnUnregisterWindowManagerCallback");
+    JsWindow* me = CheckParamsAndGetThis<JsWindow>(engine, info);
+    return (me != nullptr) ? me->OnUnregisterWindowManagerCallback(*engine, *info) : nullptr;
 }
 
 NativeValue* JsWindow::ShowWindow(NativeEngine* engine, NativeCallbackInfo* info)
@@ -762,6 +778,70 @@ NativeValue* JsWindow::OnSetWindowKeepScreenOn(NativeEngine& engine, NativeCallb
     return result;
 }
 
+NativeValue* JsWindow::OnRegisterWindowManagerCallback(NativeEngine& engine, NativeCallbackInfo& info)
+{
+    HILOG_INFO("JsWindow::OnRegisterWindowManagerCallback : Start...");
+    if (info.argc < 2) { // 2: params num
+        HILOG_ERROR("Argc is invalid: %{public}zu", info.argc);
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
+        return engine.CreateUndefined();
+    }
+    std::string cbType;
+    if (!ConvertFromJsValue(engine, info.argv[0], cbType)) {
+        HILOG_ERROR("Failed to convert parameter to callbackType");
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
+        return engine.CreateUndefined();
+    }
+
+    WmErrorCode ret = g_registerManager->RegisterListener(windowToken_, cbType, CaseType::CASE_WINDOW,
+        engine, info.argv[1]);
+    if (ret != WmErrorCode::WM_OK) {
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
+        return engine.CreateUndefined();
+    }
+    HILOG_INFO("Register end, type = %{public}s", cbType.c_str());
+    return engine.CreateUndefined();
+}
+
+NativeValue* JsWindow::OnUnregisterWindowManagerCallback(NativeEngine& engine, NativeCallbackInfo& info)
+{
+    HILOG_INFO("JsWindow::OnUnregisterWindowManagerCallback : Start...");
+    if (info.argc < 1) {
+        HILOG_ERROR("Argc is invalid: %{public}zu", info.argc);
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
+        return engine.CreateUndefined();
+    }
+    std::string cbType;
+    if (!ConvertFromJsValue(engine, info.argv[0], cbType)) {
+        HILOG_ERROR("Failed to convert parameter to callbackType");
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
+        return engine.CreateUndefined();
+    }
+    if (cbType.compare("windowEvent") != 0) {
+        HILOG_ERROR("JsWindow::OnUnregisterWindowManagerCallback : Envent %{public}s is invalid", cbType.c_str());
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
+        return engine.CreateUndefined();
+    }
+
+    WmErrorCode ret = WmErrorCode::WM_OK;
+    if (info.argc <= 1) {
+        g_registerManager->UnregisterListener(windowToken_, cbType, CaseType::CASE_WINDOW, nullptr);
+    } else {
+         NativeValue* value = info.argv[1];
+        if (value != nullptr && value->TypeOf() == NATIVE_FUNCTION) {
+            g_registerManager->UnregisterListener(windowToken_, cbType, CaseType::CASE_WINDOW, value);
+        } else {
+            g_registerManager->UnregisterListener(windowToken_, cbType, CaseType::CASE_WINDOW, nullptr);
+        }
+    }
+    if (ret != WmErrorCode::WM_OK) {
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(ret)));
+        return engine.CreateUndefined();
+    }
+    HILOG_INFO("Unregister end, type = %{public}s", cbType.c_str());
+    return engine.CreateUndefined();
+}
+
 std::shared_ptr<NativeReference> FindJsWindowObject(std::string windowName)
 {
     HILOG_INFO("Try to find window %{public}s in g_jsWindowMap", windowName.c_str());
@@ -879,6 +959,8 @@ NativeValue* CreateJsWindowObject(NativeEngine& engine, std::shared_ptr<Rosen::W
     BindNativeFunction(engine, *object, "setWindowBackgroundColor", moduleName, JsWindow::SetWindowBackgroundColorSync);
     BindNativeFunction(engine, *object, "setWindowBrightness", moduleName, JsWindow::SetWindowBrightness);
     BindNativeFunction(engine, *object, "setWindowKeepScreenOn", moduleName, JsWindow::SetWindowKeepScreenOn);
+    BindNativeFunction(engine, *object, "on", moduleName, JsWindow::RegisterWindowManagerCallback);
+    BindNativeFunction(engine, *object, "off", moduleName, JsWindow::UnregisterWindowManagerCallback);
 
     std::shared_ptr<NativeReference> jsWindowRef;
     jsWindowRef.reset(engine.CreateReference(objValue, 1));

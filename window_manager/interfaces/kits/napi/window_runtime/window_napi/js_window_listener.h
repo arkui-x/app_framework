@@ -18,6 +18,7 @@
 
 #include <map>
 #include <mutex>
+#include <string>
 #include "js_window_utils.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
@@ -28,11 +29,12 @@
 namespace OHOS {
 namespace Rosen {
 const std::string WINDOW_STAGE_EVENT_CB = "windowStageEvent";
+const std::string WINDOW_EVENT_CB = "windowEvent";
 
 class JsWindowListener : public IWindowLifeCycle {
 public:
-    JsWindowListener(NativeEngine* engine, std::shared_ptr<NativeReference> callback)
-        : engine_(engine), jsCallBack_(callback), weakRef_(wptr<JsWindowListener> (this)) {}
+    JsWindowListener(const std::string& caseType, NativeEngine* engine, std::shared_ptr<NativeReference> callback)
+        : caseType_(caseType), engine_(engine), jsCallBack_(callback), weakRef_(wptr<JsWindowListener> (this)) {}
     ~JsWindowListener();
     void AfterForeground() override;
     void AfterBackground() override;
@@ -45,6 +47,7 @@ private:
     NativeEngine* engine_ = nullptr;
     std::shared_ptr<NativeReference> jsCallBack_ = nullptr;
     wptr<JsWindowListener> weakRef_  = nullptr;
+    std::string caseType_;
 };
 }  // namespace Rosen
 }  // namespace OHOS
