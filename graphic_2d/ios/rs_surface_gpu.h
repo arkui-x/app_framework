@@ -25,6 +25,7 @@
 #endif
 
 #include "common/rs_common_def.h"
+#include "platform/common/rs_surface_ext.h"
 #include "platform/drawing/rs_surface.h"
 #include "platform/drawing/rs_surface_frame.h"
 #include "render_context/render_context.h"
@@ -65,6 +66,8 @@ public:
     void ResetBufferAge() override
     {
     }
+    RSSurfaceExtPtr CreateSurfaceExt(const RSSurfaceExtConfig& config) {};
+    RSSurfaceExtPtr GetSurfaceExt(const RSSurfaceExtConfig& config) {};
 private:
     bool SetupGrContext();
 

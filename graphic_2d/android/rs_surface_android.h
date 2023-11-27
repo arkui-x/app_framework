@@ -21,6 +21,7 @@
 #include "EGL/egl.h"
 
 #include "common/rs_common_def.h"
+#include "platform/common/rs_surface_ext.h"
 #include "platform/drawing/rs_surface.h"
 #include "platform/drawing/rs_surface_frame.h"
 
@@ -46,7 +47,8 @@ public:
     void ClearBuffer() override;
     void ClearAllBuffer() override;
     void ResetBufferAge() override;
-
+    RSSurfaceExtPtr CreateSurfaceExt(const RSSurfaceExtConfig& config) {};
+    RSSurfaceExtPtr GetSurfaceExt(const RSSurfaceExtConfig& config) {};
 private:
     void YInvert(void *addr, int32_t width, int32_t height);
     bool SetupGrContext();
