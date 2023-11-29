@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_NAPI_COMMON_WANT_H
 
 #include "js_runtime_utils.h"
+#include "napi/native_api.h"
 #include "native_engine/native_engine.h"
 #include "want.h"
 
@@ -26,8 +27,8 @@ using Want = OHOS::AAFwk::Want;
 bool UnwrapWant(napi_env env, napi_value param, Want& want);
 bool UnwrapWantParams(napi_env env, napi_value param, Want& want);
 void InnerUnwrapWantParamsNumber(napi_env env, const std::string& key, napi_value param, Want& want);
-NativeValue* CreateJsWant(NativeEngine& engine, const Want& want);
-NativeValue* CreateJsWantParams(NativeEngine& engine, const Want& want);
+napi_value CreateJsWant(napi_env env, const AAFwk::Want &want);
+napi_value CreateJsWantParams(napi_env env, const Want& want);
 } // namespace AppExecFwk
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_NAPI_COMMON_WANT_H

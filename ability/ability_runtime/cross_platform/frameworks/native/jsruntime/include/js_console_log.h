@@ -16,11 +16,12 @@
 #ifndef OHOS_ABILITY_RUNTIME_JS_CONSOLE_LOG_H
 #define OHOS_ABILITY_RUNTIME_JS_CONSOLE_LOG_H
 
+#include "napi/native_api.h"
 #include "native_engine/native_engine.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-void InitConsoleLogModule(NativeEngine& engine, NativeObject& globalObject);
+void InitConsoleLogModule(napi_env env, napi_value globalObject);
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_JS_CONSOLE_LOG_H

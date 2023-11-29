@@ -12,17 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
+#include "napi/native_api.h"
 #include "native_engine/native_engine.h"
 #include "js_ability_delegator_registry.h"
 
+static napi_module _module = {
+    .nm_modname = "app.ability.abilityDelegatorRegistry",
+    .nm_filename = "app/ability/libabilitydelegator.so/ability_delegator_registry.js",
+    .nm_register_func = OHOS::AbilityDelegatorJs::JsAbilityDelegatorRegistryInit,
+};
+
 extern "C" __attribute__((constructor)) void NAPI_application_AbilityDelegatorRegistry_AutoRegister()
 {
-    auto moduleManager = NativeModuleManager::GetInstance();
-    NativeModule newModuleInfo = {
-        .name = "app.ability.abilityDelegatorRegistry",
-        .fileName = "app/ability/libabilitydelegator.so/ability_delegator_registry.js",
-        .registerCallback = OHOS::AbilityDelegatorJs::JsAbilityDelegatorRegistryInit,
-    };
-    moduleManager->Register(&newModuleInfo);
+    napi_module_register(&_module);
 }

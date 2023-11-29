@@ -22,6 +22,7 @@
 #include "hilog.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
+#include "napi/native_common.h"
 
 #ifdef SUPPORT_GRAPHICS
 #include "core/common/container_scope.h"
@@ -34,7 +35,11 @@ using OHOS::Ace::ContainerScope;
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
+class JsTimer;
+    
 std::atomic<uint32_t> g_callbackId(1);
+std::mutex g_mutex;
+std::unordered_map<uint32_t, std::shared_ptr<JsTimer>> g_timerTable;
 
 class JsTimer final {
 public:
@@ -56,14 +61,16 @@ public:
 #endif
         HandleScope handleScope(jsRuntime_);
 
-        std::vector<NativeValue*> args_;
+        std::vector<napi_value> args_;
         args_.reserve(jsArgs_.size());
         for (auto arg : jsArgs_) {
-            args_.emplace_back(arg->Get());
+            args_.emplace_back(arg->GetNapiValue());
         }
 
-        NativeEngine& engine = jsRuntime_.GetNativeEngine();
-        engine.CallFunction(engine.CreateUndefined(), jsFunction_->Get(), args_.data(), args_.size());
+        napi_env env = jsRuntime_.GetNapiEnv();
+        napi_value result = nullptr;
+        napi_get_undefined(env, &result);
+        napi_call_function(env, result, jsFunction_->GetNapiValue(), args_.size(), args_.data(), nullptr);
     }
 
     void PushArgs(const std::shared_ptr<NativeReference>& ref)
@@ -83,79 +90,92 @@ private:
 #endif
 };
 
-NativeValue* StartTimeoutOrInterval(NativeEngine* engine, NativeCallbackInfo* info, bool isInterval)
+napi_value StartTimeoutOrInterval(napi_env env, napi_callback_info info, bool isInterval)
 {
-    if (engine == nullptr || info == nullptr) {
-        HILOG_ERROR("StartTimeoutOrInterval, engine or callback info is nullptr.");
+    if (env == nullptr || info == nullptr) {
+        HILOG_ERROR("StartTimeoutOrInterval, env or callback info is nullptr.");
         return nullptr;
     }
+    size_t argc = ARGC_MAX_COUNT;
+    napi_value argv[ARGC_MAX_COUNT] = {nullptr};
+    napi_value thisVar = nullptr;
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
 
     // parameter check, must have at least 2 params
-    if (info->argc < 2 || info->argv[0]->TypeOf() != NATIVE_FUNCTION || info->argv[1]->TypeOf() != NATIVE_NUMBER) {
+    if (argc < 2 ||!CheckTypeForNapiValue(env, argv[0], napi_function)
+        || !CheckTypeForNapiValue(env, argv[1], napi_number)) {
         HILOG_ERROR("Set callback timer failed with invalid parameter.");
-        return engine->CreateUndefined();
+        return CreateJsUndefined(env);
     }
 
     // parse parameter
-    std::shared_ptr<NativeReference> jsFunction(engine->CreateReference(info->argv[0], 1));
-    int64_t delayTime = *ConvertNativeValueTo<NativeNumber>(info->argv[1]);
+    napi_ref ref = nullptr;
+    napi_create_reference(env, argv[0], 1, &ref);
+    std::shared_ptr<NativeReference> jsFunction(reinterpret_cast<NativeReference*>(ref));
+    int64_t delayTime = 0;
+    napi_get_value_int64(env, argv[1], &delayTime);
     uint32_t callbackId = g_callbackId.fetch_add(1, std::memory_order_relaxed);
     std::string name = "JsRuntimeTimer_";
     name.append(std::to_string(callbackId));
 
     // create timer task
-    JsRuntime& jsRuntime = *reinterpret_cast<JsRuntime*>(engine->GetJsEngine());
+    JsRuntime& jsRuntime = *reinterpret_cast<JsRuntime*>(env);
     JsTimer task(jsRuntime, jsFunction, name, delayTime, isInterval);
-    for (size_t index = 2; index < info->argc; ++index) {
-        task.PushArgs(std::shared_ptr<NativeReference>(engine->CreateReference(info->argv[index], 1)));
+    for (size_t index = 2; index < argc; ++index) {
+        napi_ref ref = nullptr;
+        napi_create_reference(env, argv[index], 1, &ref);
+        task.PushArgs(std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref)));
     }
 
     jsRuntime.PostTask(task, name, delayTime);
-    return engine->CreateNumber(callbackId);
+    return CreateJsValue(env, callbackId);
 }
 
-NativeValue* StartTimeout(NativeEngine* engine, NativeCallbackInfo* info)
+napi_value StartTimeout(napi_env env, napi_callback_info info)
 {
-    return StartTimeoutOrInterval(engine, info, false);
+    return StartTimeoutOrInterval(env, info, false);
 }
 
-NativeValue* StartInterval(NativeEngine* engine, NativeCallbackInfo* info)
+napi_value StartInterval(napi_env env, napi_callback_info info)
 {
-    return StartTimeoutOrInterval(engine, info, true);
+    return StartTimeoutOrInterval(env, info, true);
 }
 
-NativeValue* StopTimeoutOrInterval(NativeEngine* engine, NativeCallbackInfo* info)
+napi_value StopTimeoutOrInterval(napi_env env, napi_callback_info info)
 {
-    if (engine == nullptr || info == nullptr) {
-        HILOG_ERROR("Stop timeout or interval failed with engine or callback info is nullptr.");
+    if (env == nullptr || info == nullptr) {
+        HILOG_ERROR("Stop timeout or interval failed with env or callback info is nullptr.");
         return nullptr;
     }
+    size_t argc = ARGC_MAX_COUNT;
+    napi_value argv[ARGC_MAX_COUNT] = {nullptr};
+    napi_value thisVar = nullptr;
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
 
     // parameter check, must have at least 1 param
-    if (info->argc < 1 || info->argv[0]->TypeOf() != NATIVE_NUMBER) {
+    if (argc < 1 || !CheckTypeForNapiValue(env, argv[0], napi_number)) {
         HILOG_ERROR("Clear callback timer failed with invalid parameter.");
-        return engine->CreateUndefined();
+        return CreateJsUndefined(env);
     }
 
-    uint32_t callbackId = *ConvertNativeValueTo<NativeNumber>(info->argv[0]);
-    std::string name = "JsRuntimeTimer_";
-    name.append(std::to_string(callbackId));
-
-    // event should be cancelable before executed
-    JsRuntime& jsRuntime = *reinterpret_cast<JsRuntime*>(engine->GetJsEngine());
-    jsRuntime.RemoveTask(name);
-    return engine->CreateUndefined();
+    uint32_t callbackId = 0;
+    napi_get_value_uint32(env, argv[0], &callbackId);
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        g_timerTable.erase(callbackId);
+    }
+    return CreateJsUndefined(env);
 }
 }
 
-void InitTimerModule(NativeEngine& engine, NativeObject& globalObject)
+void InitTimerModule(napi_env env, napi_value globalObject)
 {
     HILOG_DEBUG("InitTimerModule begin.");
     const char *moduleName = "JsTimer";
-    BindNativeFunction(engine, globalObject, "setTimeout", moduleName, StartTimeout);
-    BindNativeFunction(engine, globalObject, "setInterval", moduleName, StartInterval);
-    BindNativeFunction(engine, globalObject, "clearTimeout", moduleName, StopTimeoutOrInterval);
-    BindNativeFunction(engine, globalObject, "clearInterval", moduleName, StopTimeoutOrInterval);
+    BindNativeFunction(env, globalObject, "setTimeout", moduleName, StartTimeout);
+    BindNativeFunction(env, globalObject, "setInterval", moduleName, StartInterval);
+    BindNativeFunction(env, globalObject, "clearTimeout", moduleName, StopTimeoutOrInterval);
+    BindNativeFunction(env, globalObject, "clearInterval", moduleName, StopTimeoutOrInterval);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

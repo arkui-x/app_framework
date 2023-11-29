@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 #include "native_engine/native_engine.h"
 
 extern const char _binary_ability_stage_context_js_start[];
@@ -49,15 +51,15 @@ extern "C" __attribute__((visibility("default"))) void NAPI_application_AbilityS
     }
 }
 
+static napi_module_with_js _module = {
+    .nm_version = 0,
+    .nm_filename = "application/libabilitystagecontext_napi.so/ability_stage_context.js",
+    .nm_modname = "application.AbilityStageContext",
+    .nm_get_js_code = (GetJSCodeCallback)NAPI_application_AbilityStageContext_GetJSCode,
+    .nm_get_abc_code = (GetJSCodeCallback)NAPI_application_AbilityStageContext_GetABCCode,
+};
+
 extern "C" __attribute__((constructor)) void NAPI_application_AbilityStageContext_AutoRegister()
 {
-    auto moduleManager = NativeModuleManager::GetInstance();
-    NativeModule newModuleInfo = {
-        .name = "application.AbilityStageContext",
-        .fileName = "application/libabilitystagecontext_napi.so/ability_stage_context.js",
-        .getJSCode = (GetJSCodeCallback)NAPI_application_AbilityStageContext_GetJSCode,
-        .getABCCode = (GetJSCodeCallback)NAPI_application_AbilityStageContext_GetABCCode,
-    };
-
-    moduleManager->Register(&newModuleInfo);
+    napi_module_with_js_register(&_module);
 }

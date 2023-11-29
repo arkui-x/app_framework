@@ -319,6 +319,7 @@ void* GetNativePointerFromCallbackInfo(napi_env env, napi_callback_info info, co
 void SetNamedNativePointer(
     napi_env env, napi_value object, const char* name, void* ptr, napi_finalize func);
 void* GetNamedNativePointer(napi_env env, napi_value object, const char* name);
+bool CheckTypeForNapiValue(napi_env env, napi_value param, napi_valuetype expectType);
 
 template<class T>
 T* CheckParamsAndGetThis(napi_env env, napi_callback_info info, const char* name = nullptr)
@@ -375,6 +376,7 @@ public:
     using CompleteCallback = std::function<void(napi_env, NapiAsyncTask&, int32_t)>;
 
     static void Schedule(const std::string& name, napi_env env, std::unique_ptr<NapiAsyncTask>&& task);
+    static void ScheduleHighQos(const std::string& name, napi_env env, std::unique_ptr<NapiAsyncTask>&& task);
 
     NapiAsyncTask(napi_deferred deferred, std::unique_ptr<ExecuteCallback>&& execute,
         std::unique_ptr<CompleteCallback>&& complete);
@@ -393,6 +395,7 @@ private:
     static void Complete(napi_env env, napi_status status, void* data);
 
     bool Start(const std::string &name, napi_env env);
+    bool StartHighQos(const std::string &name, napi_env env);
     
     napi_deferred deferred_ = nullptr;
     napi_ref callbackRef_ = nullptr;

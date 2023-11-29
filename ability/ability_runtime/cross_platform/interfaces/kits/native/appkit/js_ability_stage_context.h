@@ -30,16 +30,16 @@ public:
     explicit JsAbilityStageContext(const std::shared_ptr<Context>& context) : context_(context) {}
     ~JsAbilityStageContext() = default;
 
-    static void Finalizer(NativeEngine* engine, void* data, void* hint);
-    static void ConfigurationUpdated(NativeEngine* engine, std::shared_ptr<NativeReference>& jsContext,
+    static void Finalizer(napi_env env, void* data, void* hint);
+    static void ConfigurationUpdated(napi_env env, std::shared_ptr<NativeReference>& jsContext,
         const std::shared_ptr<Configuration>& config);
 
 private:
     std::weak_ptr<Context> context_;
 };
 
-NativeValue* CreateJsAbilityStageContext(
-    NativeEngine& engine, const std::shared_ptr<Context>& context, DetachCallback detach, AttachCallback attach);
+napi_value CreateJsAbilityStageContext(
+    napi_env env, const std::shared_ptr<Context>& context, DetachCallback detach, AttachCallback attach);
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

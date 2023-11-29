@@ -54,8 +54,8 @@ extern "C" __attribute__((constructor)) void NAPI_application_WindowStage_AutoRe
 {
     auto moduleManager = NativeModuleManager::GetInstance();
     NativeModule newModuleInfo = {
-        .name = "application.WindowStage",
         .fileName = "application/libwindowstage.so/window_stage.js",
+        .name = "application.WindowStage",
         .getJSCode = (GetJSCodeCallback)NAPI_application_WindowStage_GetJSCode,
         .getABCCode = (GetJSCodeCallback)NAPI_application_WindowStage_GetABCCode,
     };

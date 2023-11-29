@@ -26,6 +26,7 @@
 
 namespace OHOS {
 namespace AbilityDelegatorJs {
+using namespace OHOS::AbilityRuntime;
 class JSAbilityDelegator {
 public:
     struct TimeoutCallback {
@@ -46,190 +47,191 @@ public:
     /**
      * Destory object.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param data Indicates the object to be destroyed.
      * @param hint Indicates the hint.
      */
-    static void Finalizer(NativeEngine *engine, void *data, void *hint);
+    static void Finalizer(napi_env env, void *data, void *hint);
 
     /**
      * Adds ability monitor.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param info Indicates the parameters from js.
      * @return exec result.
      */
-    static NativeValue *AddAbilityMonitor(NativeEngine *engine, NativeCallbackInfo *info);
+    static napi_value AddAbilityMonitor(napi_env env, napi_callback_info info);
 
     /**
      * Adds abilityStage monitor.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param info Indicates the parameters from js.
      * @return exec result.
      */
-    static NativeValue *AddAbilityStageMonitor(NativeEngine *engine, NativeCallbackInfo *info);
+    static napi_value AddAbilityStageMonitor(napi_env env, napi_callback_info info);
 
     /**
      * Removes ability monitor.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param info Indicates the parameters from js.
      * @return exec result.
      */
-    static NativeValue *RemoveAbilityMonitor(NativeEngine *engine, NativeCallbackInfo *info);
+    static napi_value RemoveAbilityMonitor(napi_env env, napi_callback_info info);
 
     /**
      * Removes abilityStage monitor.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param info Indicates the parameters from js.
      * @return exec result.
      */
-    static NativeValue *RemoveAbilityStageMonitor(NativeEngine *engine, NativeCallbackInfo *info);
+    static napi_value RemoveAbilityStageMonitor(napi_env env, napi_callback_info info);
 
     /**
      * Waits for the specified monitor.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param info Indicates the parameters from js.
      * @return exec result.
      */
-    static NativeValue *WaitAbilityMonitor(NativeEngine *engine, NativeCallbackInfo *info);
+    static napi_value WaitAbilityMonitor(napi_env env, napi_callback_info info);
 
     /**
      * Waits for the specified stage monitor.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param info Indicates the parameters from js.
      * @return exec result.
      */
-    static NativeValue *WaitAbilityStageMonitor(NativeEngine *engine, NativeCallbackInfo *info);
+    static napi_value WaitAbilityStageMonitor(napi_env env, napi_callback_info info);
 
     /**
      * Prints log information to the console.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param info Indicates the parameters from js.
      * @return exec result.
      */
-    static NativeValue *Print(NativeEngine *engine, NativeCallbackInfo *info);
+    static napi_value Print(napi_env env, napi_callback_info info);
 
     /**
      * Prints log information to the console.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param info Indicates the parameters from js.
      * @return exec result.
      */
-    static NativeValue *PrintSync(NativeEngine *engine, NativeCallbackInfo *info);
+    static napi_value PrintSync(napi_env env, napi_callback_info info);
 
     /**
      * Obtains the application context.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param info Indicates the parameters from js.
      * @return exec result.
      */
-    static NativeValue *GetAppContext(NativeEngine *engine, NativeCallbackInfo *info);
+    static napi_value GetAppContext(napi_env env, napi_callback_info info);
 
     /**
      * Obtains the lifecycle state of the specified ability.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param info Indicates the parameters from js.
      * @return exec result.
      */
-    static NativeValue *GetAbilityState(NativeEngine *engine, NativeCallbackInfo *info);
+    static napi_value GetAbilityState(napi_env env, napi_callback_info info);
 
     /**
      * Obtains the ability that is currently being displayed.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param info Indicates the parameters from js.
      * @return exec result.
      */
-    static NativeValue *GetCurrentTopAbility(NativeEngine *engine, NativeCallbackInfo *info);
+    static napi_value GetCurrentTopAbility(napi_env env, napi_callback_info info);
 
     /**
      * Starts an ability based on the given parameters.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param info Indicates the parameters from js.
      * @return exec result.
      */
-    static NativeValue *StartAbility(NativeEngine *engine, NativeCallbackInfo *info);
+    static napi_value StartAbility(napi_env env, napi_callback_info info);
 
     /**
      * Transits the specified ability to foreground.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param info Indicates the parameters from js.
      * @return exec result.
      */
-    static NativeValue *DoAbilityForeground(NativeEngine *engine, NativeCallbackInfo *info);
+    static napi_value DoAbilityForeground(napi_env env, napi_callback_info info);
 
     /**
      * Transits the specified ability to background.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param info Indicates the parameters from js.
      * @return exec result.
      */
-    static NativeValue *DoAbilityBackground(NativeEngine *engine, NativeCallbackInfo *info);
+    static napi_value DoAbilityBackground(napi_env env, napi_callback_info info);
 
     /**
      * Finishes user test.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      * @param info Indicates the parameters from js.
      * @return exec result.
      */
-    static NativeValue *FinishTest(NativeEngine *engine, NativeCallbackInfo *info);
+    static napi_value FinishTest(napi_env env, napi_callback_info info);
 
 private:
-    NativeValue *OnAddAbilityMonitor(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue *OnAddAbilityStageMonitor(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue *OnRemoveAbilityMonitor(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue *OnRemoveAbilityStageMonitor(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue *OnWaitAbilityMonitor(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue *OnWaitAbilityStageMonitor(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue *OnPrint(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue *OnPrintSync(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue *OnGetAppContext(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue *OnGetAbilityState(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue *OnGetCurrentTopAbility(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue *OnStartAbility(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue *OnDoAbilityForeground(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue *OnDoAbilityBackground(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue *OnFinishTest(NativeEngine &engine, NativeCallbackInfo &info);
+    napi_value OnAddAbilityMonitor(napi_env env, NapiCallbackInfo& info);
+    napi_value OnAddAbilityStageMonitor(napi_env env, NapiCallbackInfo& info);
+    napi_value OnRemoveAbilityMonitor(napi_env env, NapiCallbackInfo& info);
+    napi_value OnRemoveAbilityStageMonitor(napi_env env, NapiCallbackInfo& info);
+    napi_value OnWaitAbilityMonitor(napi_env env, NapiCallbackInfo& info);
+    napi_value OnWaitAbilityStageMonitor(napi_env env, NapiCallbackInfo& info);
+    napi_value OnPrint(napi_env env, NapiCallbackInfo& info);
+    napi_value OnPrintSync(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetAppContext(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetAbilityState(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetCurrentTopAbility(napi_env env, NapiCallbackInfo& info);
+    napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info);
+    napi_value OnDoAbilityForeground(napi_env env, NapiCallbackInfo& info);
+    napi_value OnDoAbilityBackground(napi_env env, NapiCallbackInfo& info);
+    napi_value OnFinishTest(napi_env env, NapiCallbackInfo& info);
 
 private:
-    NativeValue *ParseMonitorPara(NativeEngine &engine, NativeValue *value, std::shared_ptr<AbilityMonitor> &monitor);
-    NativeValue *ParseStageMonitorPara(
-        NativeEngine &engine, NativeValue *value, std::shared_ptr<AbilityStageMonitor> &monitor, bool &isExisted);
-    NativeValue *ParseAbilityParaInfo(NativeEngine &engine, NativeValue *value, std::string &fullName);
+    napi_value ParseMonitorPara(napi_env env, napi_value value, std::shared_ptr<AbilityMonitor> &monitor);
+    napi_value ParseStageMonitorPara(
+        napi_env env, napi_value value, std::shared_ptr<AbilityStageMonitor> &monitor, bool &isExisted);
+    napi_value ParseAbilityParaInfo(napi_env env, napi_value value, std::string &fullName);
     void AbilityLifecycleStateToJs(
         const AbilityDelegator::AbilityState &lifeState, AbilityLifecycleState &abilityLifeState);
-    NativeValue *ParseAbilityMonitorPara(
-        NativeEngine &engine, NativeCallbackInfo &info, std::shared_ptr<AbilityMonitor> &monitor);
-    NativeValue *ParseAbilityStageMonitorPara(
-        NativeEngine &engine, NativeCallbackInfo &info, std::shared_ptr<AbilityStageMonitor> &monitor, bool &isExisted);
-    NativeValue *ParseWaitAbilityMonitorPara(NativeEngine &engine, NativeCallbackInfo &info,
+    napi_value ParseAbilityMonitorPara(
+        napi_env env, NapiCallbackInfo& info, std::shared_ptr<AbilityMonitor> &monitor);
+    napi_value ParseAbilityStageMonitorPara(
+        napi_env env, NapiCallbackInfo& info,
+        std::shared_ptr<AbilityStageMonitor> &monitor, bool &isExisted);
+    napi_value ParseWaitAbilityMonitorPara(napi_env env, NapiCallbackInfo& info,
         std::shared_ptr<AbilityMonitor> &monitor, TimeoutCallback &opt, int64_t &timeout);
-    NativeValue *ParseWaitAbilityStageMonitorPara(NativeEngine &engine, NativeCallbackInfo &info,
+    napi_value ParseWaitAbilityStageMonitorPara(napi_env env, NapiCallbackInfo& info,
         std::shared_ptr<AbilityStageMonitor> &monitor, TimeoutCallback &opt, int64_t &timeout);
-    NativeValue *ParseTimeoutCallbackPara(
-        NativeEngine &engine, NativeCallbackInfo &info, TimeoutCallback &opt, int64_t &timeout);
-    NativeValue *ParsePrintPara(NativeEngine &engine, NativeCallbackInfo &info, std::string &msg);
-    NativeValue *ParseAbilityCommonPara(
-        NativeEngine &engine, NativeCallbackInfo &info, std::string &fullName);
-    NativeValue *ParseStartAbilityPara(
-        NativeEngine &engine, NativeCallbackInfo &info, AAFwk::Want &want);
-    NativeValue *ParseFinishTestPara(NativeEngine &engine, NativeCallbackInfo &info, std::string &msg, int64_t &code);
+    napi_value ParseTimeoutCallbackPara(
+        napi_env env, NapiCallbackInfo& info, TimeoutCallback &opt, int64_t &timeout);
+    napi_value ParsePrintPara(napi_env env, NapiCallbackInfo& info, std::string &msg);
+    napi_value ParseAbilityCommonPara(
+        napi_env env, NapiCallbackInfo& info, std::string &fullName);
+    napi_value ParseStartAbilityPara(
+        napi_env env, NapiCallbackInfo& info, AAFwk::Want &want);
+    napi_value ParseFinishTestPara(napi_env env, NapiCallbackInfo& info, std::string &msg, int64_t &code);
     void AddStageMonitorRecord(
-        NativeEngine &engine, NativeValue *value, const std::shared_ptr<AbilityStageMonitor> &monitor);
-    void RemoveStageMonitorRecord(NativeValue *value);
+        napi_env env, napi_value value, const std::shared_ptr<AbilityStageMonitor> &monitor);
+    void RemoveStageMonitorRecord(napi_env env, napi_value value);
 };
 }  // namespace AbilityDelegatorJs
 }  // namespace OHOS
