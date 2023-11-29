@@ -600,7 +600,7 @@ bool CheckModuleNameIsValid(const std::string& moduleName)
     if (moduleName.empty()) {
         return false;
     }
-    if (moduleName.size() <= 0 || moduleName.size() > Constants::MAX_MODULE_NAME) {
+    if (moduleName.size() > Constants::MAX_MODULE_NAME) {
         return false;
     }
     if (moduleName.find(Constants::RELATIVE_PATH) != std::string::npos) {

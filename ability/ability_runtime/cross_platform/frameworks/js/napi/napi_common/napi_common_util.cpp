@@ -57,6 +57,7 @@ bool UnwrapString(napi_env env, napi_value param, std::string& value)
     auto ret = memset_s(buf, (size + 1), 0, (size + 1));
     if (ret != EOK) {
         HILOG_ERROR("memset_s failed, ret: %{public}d", ret);
+        delete[] buf;
         return false;
     }
 
@@ -89,6 +90,7 @@ std::string UnwrapStringFromJS(napi_env env, napi_value param, const std::string
     auto ret = memset_s(buf, size + 1, 0, size + 1);
     if (ret != EOK) {
         HILOG_ERROR("memset_s failed, ret: %{public}d", ret);
+        delete[] buf;
         return value;
     }
 

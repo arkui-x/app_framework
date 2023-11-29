@@ -1311,7 +1311,6 @@ void InnerBundleInfo::GetBundleWithReqPermissionsV9(int32_t flags, uint32_t user
         RemoveDuplicateName(bundleInfo.defPermissions);
     }
 
-    std::string deviceId = baseApplicationInfo_->deviceId;
     bundleInfo.reqPermissionDetails = GetAllRequestPermissions();
 }
 
