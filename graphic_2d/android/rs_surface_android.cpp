@@ -113,9 +113,6 @@ void RSSurfaceAndroid::YInvert(void *addr, int32_t width, int32_t height)
 
 bool RSSurfaceAndroid::SetupGrContext()
 {
-    // if (renderContext_->GetGrContext() != nullptr) {
-    //     return true;
-    // }
     if (renderContext_) {
         renderContext_->InitializeEglContext();
         renderContext_->SetUpGrContext();
@@ -139,6 +136,133 @@ void RSSurfaceAndroid::ClearAllBuffer()
 void RSSurfaceAndroid::ResetBufferAge()
 {
     ROSEN_LOGD("RSSurfaceAndroid: Reset Buffer Age!");
+}
+
+RSSurfaceExtPtr RSSurfaceAndroid::CreateSurfaceExt(const RSSurfaceExtConfig& config)
+{
+    ROSEN_LOGD("RSSurfaceAndroid::CreateSurfaceExt %{public}u", config.type);
+    switch(config.type) {
+        case RSSurfaceExtType::SURFACE_TEXTURE: {
+            if (texture_ == nullptr) {
+                texture_ = std::make_shared<AndroidSurfaceTexture>(this, config);
+            }
+            return texture_;
+        }
+        default:
+            return nullptr;
+    }
+}
+
+RSSurfaceExtPtr RSSurfaceAndroid::GetSurfaceExt(const RSSurfaceExtConfig& config)
+{
+    switch(config.type) {
+        case RSSurfaceExtType::SURFACE_TEXTURE: {
+            return texture_;
+        }
+        default:
+            return nullptr;
+    }
+}
+
+AndroidSurfaceTexture::AndroidSurfaceTexture(RSSurfaceAndroid* surface, const RSSurfaceExtConfig& config)
+    : RSSurfaceExt(), config_(std::move(config)), transform_(SkMatrix::I())
+{
+}
+
+AndroidSurfaceTexture::~AndroidSurfaceTexture()
+{
+    ROSEN_LOGD("AndroidSurfaceTexture::~AndroidSurfaceTexture textureId_ %{public}d ", textureId_);
+    if (textureId_ > 0 && attachCallback_ != nullptr) {
+        attachCallback_(textureId_, false);
+    }
+}
+
+void AndroidSurfaceTexture::MarkUiFrameAvailable(bool available)
+{
+    ROSEN_LOGD("AndroidSurfaceTexture::MarkUiFrameAvailable textureId_ %{public}d ", textureId_);
+    bufferAvailable_.store(available);
+}
+
+static inline SkSize ScaleToFill(float scaleX, float scaleY)
+{
+    const double epsilon = std::numeric_limits<double>::epsilon();
+    /* scaleY is negative. */ 
+    const double minScale = fmin(scaleX, fabs(scaleY));
+    const double rescale = 1.0f / (minScale + epsilon);
+    return SkSize::Make(scaleX * rescale, scaleY * rescale);
+}
+
+void AndroidSurfaceTexture::updateTransform()
+{
+    std::vector<float> matrix {};
+    updateCallback_(matrix);
+    if (matrix.size() == 16) { // 16 max len
+        const SkSize scaled = ScaleToFill(matrix[0], matrix[5]); // 5 index
+        SkScalar matrix3[] = {
+            scaled.fWidth, matrix[1], matrix[2], matrix[4], // 2 4 index
+            scaled.fHeight, matrix[6], matrix[8], matrix[9], matrix[10]}; // 6,8,9,10 index
+        transform_.set9(matrix3);
+    }
+}
+
+void AndroidSurfaceTexture::UpdateSurfaceDefaultSize(float width, float height)
+{
+    width_ = width;
+    height_ = height;
+}
+
+#ifndef USE_ROSEN_DRAWING
+void AndroidSurfaceTexture::DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const SkRect& clipRect)
+#else
+void AndroidSurfaceTexture::DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect)
+#endif
+{
+    if (state_ == AttachmentState::detached || attachCallback_ == nullptr || updateCallback_ == nullptr) {
+        return;
+    }
+#ifndef USE_ROSEN_DRAWING
+    auto x = clipRect.x();
+    auto y = clipRect.y();
+    auto width = clipRect.width();
+    auto height = clipRect.height();
+#else
+    auto x = clipRect.GetLeft();
+    auto y = clipRect.GetTop();
+    auto width = clipRect.GetWidth();
+    auto height = clipRect.GetHeight();
+#endif
+    if (state_ == AttachmentState::uninitialized) {
+        if (!bufferAvailable_.load()){
+            return;
+        }
+        glGenTextures(1, &textureId_);
+        ROSEN_LOGD("AndroidSurfaceTexture::DrawTextureImage attachCallback textureId %{public}d", textureId_);
+        attachCallback_(textureId_, true);
+        state_ = AttachmentState::attached;
+    }
+    bool bufferAvailable = bufferAvailable_.load();
+    if (!freeze && bufferAvailable_.load()) {
+        updateTransform();
+        bufferAvailable_.store(false);
+    }
+
+    ROSEN_LOGD("AndroidSurfaceTexture::textureId_ %{public}d %{public}d %{public}d",
+        textureId_, bufferAvailable, transform_.isIdentity());
+    GrGLTextureInfo textureInfo = {GL_TEXTURE_EXTERNAL_OES, textureId_, GL_RGBA8_OES};
+    GrBackendTexture backendTexture((int)width_, (int)height_, GrMipMapped::kNo, textureInfo);
+#ifdef NEW_SKIA
+    auto image = SkImage::MakeFromTexture(
+        canvas.recordingContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
+        kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+#else
+    auto image = SkImage::MakeFromTexture(
+        canvas.getGrContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
+        kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+#endif
+    if (!image) {
+        return;
+    }
+    canvas.drawImage(image, x, y);
 }
 } // namespace Rosen
 } // namespace OHOS

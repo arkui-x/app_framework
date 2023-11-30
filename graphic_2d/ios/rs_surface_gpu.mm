@@ -24,7 +24,7 @@
 
 #include "platform/common/rs_log.h"
 #include "rs_surface_frame_ios.h"
-
+#include "rs_surface_texture_ios.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -112,5 +112,34 @@ uint32_t RSSurfaceGPU::GetQueueSize() const
     /* cache buffer count */
     return 0x3;
 }
+
+RSSurfaceExtPtr RSSurfaceGPU::CreateSurfaceExt(const RSSurfaceExtConfig& config)
+{
+    ROSEN_LOGD("RSSurfaceGPU::CreateSurfaceExt");
+    switch(config.type) {
+        case RSSurfaceExtType::SURFACE_TEXTURE: {
+            if (texture_ == nullptr) {
+                texture_ = std::make_shared<RSSurfaceTextureIOS>(config);
+            }
+            return texture_;
+        }
+        default:
+            return nullptr;
+    }
+}
+
+RSSurfaceExtPtr RSSurfaceGPU::GetSurfaceExt(const RSSurfaceExtConfig& config)
+{
+    switch(config.type) {
+        case RSSurfaceExtType::SURFACE_TEXTURE: {
+            return texture_;
+        }
+        default:
+            return nullptr;
+    }
+}
+
+
+
 } // namespace Rosen
 } // namespace OHOS

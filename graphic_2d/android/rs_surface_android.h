@@ -16,11 +16,19 @@
 #ifndef RENDER_SERVICE_BASE_SRC_PLATFORM_ANDROID_RS_SURFACE_ANDROID_H
 #define RENDER_SERVICE_BASE_SRC_PLATFORM_ANDROID_RS_SURFACE_ANDROID_H
 
-#include <memory>
 #include <android/native_window.h>
 #include "EGL/egl.h"
+#include <GLES3/gl3.h>
+#include <GLES3/gl31.h>
+#include <GLES3/gl32.h>
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#include <GLES/gl.h>
+#include <GLES/glext.h>
+#include <memory>
 
 #include "common/rs_common_def.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_surface_ext.h"
 #include "platform/drawing/rs_surface.h"
 #include "platform/drawing/rs_surface_frame.h"
@@ -28,6 +36,8 @@
 namespace OHOS {
 namespace Rosen {
 class RenderContext;
+class AndroidSurfaceTexture;
+
 class RSSurfaceAndroid : public RSSurface {
 public:
     RSSurfaceAndroid(ANativeWindow* data);
@@ -47,8 +57,9 @@ public:
     void ClearBuffer() override;
     void ClearAllBuffer() override;
     void ResetBufferAge() override;
-    RSSurfaceExtPtr CreateSurfaceExt(const RSSurfaceExtConfig& config) {};
-    RSSurfaceExtPtr GetSurfaceExt(const RSSurfaceExtConfig& config) {};
+
+    RSSurfaceExtPtr CreateSurfaceExt(const RSSurfaceExtConfig& config) override;
+    RSSurfaceExtPtr GetSurfaceExt(const RSSurfaceExtConfig& config) override;
 private:
     void YInvert(void *addr, int32_t width, int32_t height);
     bool SetupGrContext();
@@ -56,6 +67,53 @@ private:
     RenderContext* renderContext_ = nullptr;
     ANativeWindow* nativeWindow_ = nullptr;
     EGLSurface eglSurface_ = EGL_NO_SURFACE;
+    std::shared_ptr<AndroidSurfaceTexture> texture_;
+};
+
+class AndroidSurfaceTexture : public RSSurfaceExt {
+public:
+    static inline constexpr RSSurfaceExtType Type = RSSurfaceExtType::SURFACE_TEXTURE;
+
+    AndroidSurfaceTexture(RSSurfaceAndroid* surface, const RSSurfaceExtConfig& config);
+    ~AndroidSurfaceTexture();
+#ifndef USE_ROSEN_DRAWING
+    void DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const SkRect& clipRect) override;
+#else
+    void DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect) override;
+#endif
+
+    void SetAttachCallback(const RSSurfaceTextureAttachCallBack& attachCallback) override
+    {
+        if (attachCallback_ == nullptr) {
+            attachCallback_ = attachCallback;
+        }
+    }
+    void SetUpdateCallback(const RSSurfaceTextureUpdateCallBack& updateCallback) override
+    {
+        if (updateCallback_ == nullptr) {
+            updateCallback_ = updateCallback;
+        }
+    }
+    void MarkUiFrameAvailable(bool available) override;
+    bool IsUiFrameAvailable() const override
+    {
+        return bufferAvailable_.load();
+    }
+
+    void UpdateSurfaceDefaultSize(float width, float height) override;
+
+private:
+    void updateTransform();
+    enum class AttachmentState { uninitialized, attached, detached };
+    AttachmentState state_ = AttachmentState::uninitialized;
+    GLuint textureId_ = 0;
+    RSSurfaceTextureAttachCallBack attachCallback_;
+    RSSurfaceTextureUpdateCallBack updateCallback_;
+    std::atomic<bool> bufferAvailable_ = false;
+    RSSurfaceExtConfig config_;
+    SkMatrix transform_;
+    float width_ = 0;
+    float height_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
