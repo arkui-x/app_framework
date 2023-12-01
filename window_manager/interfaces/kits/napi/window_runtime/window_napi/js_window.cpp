@@ -91,6 +91,20 @@ NativeValue* JsWindow::UnregisterWindowManagerCallback(NativeEngine* engine, Nat
     return (me != nullptr) ? me->OnUnregisterWindowManagerCallback(*engine, *info) : nullptr;
 }
 
+NativeValue* JsWindow::SetWindowColorSpace(NativeEngine* engine, NativeCallbackInfo* info)
+{
+    HILOG_INFO("JsWindow::SetWindowColorSpace");
+    JsWindow* me = CheckParamsAndGetThis<JsWindow>(engine, info);
+    return (me != nullptr) ? me->OnSetWindowColorSpace(*engine, *info) : nullptr;
+}
+
+NativeValue* JsWindow::GetWindowColorSpace(NativeEngine* engine, NativeCallbackInfo* info)
+{
+    HILOG_INFO("JsWindow::getWindowColorSpace");
+    JsWindow* me = CheckParamsAndGetThis<JsWindow>(engine, info);
+    return (me != nullptr) ? me->OnGetWindowColorSpace(*engine, *info) : nullptr;
+}
+
 NativeValue* JsWindow::ShowWindow(NativeEngine* engine, NativeCallbackInfo* info)
 {
     HILOG_INFO("JsWindow::ShowWindow");
@@ -778,6 +792,74 @@ NativeValue* JsWindow::OnSetWindowKeepScreenOn(NativeEngine& engine, NativeCallb
     return result;
 }
 
+NativeValue* JsWindow::OnSetWindowColorSpace(NativeEngine& engine, NativeCallbackInfo& info)
+{
+    HILOG_INFO("JsWindow::OnSetWindowColorSpace start...");
+    ColorSpace colorSpace = ColorSpace::COLOR_SPACE_DEFAULT;
+    if (info.argc < 1) { // 1: params num
+        HILOG_ERROR("JsWindow::OnSetWindowColorSpace, argc is invalid: %{public}zu", info.argc);
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
+        return engine.CreateUndefined();
+    }
+    uint32_t resultValue = 0;
+    if (!ConvertFromJsValue(engine, info.argv[0], resultValue)) {
+        HILOG_ERROR("Failed to convert parameter to callbackType");
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
+        return engine.CreateUndefined();
+    }
+    colorSpace = static_cast<ColorSpace>(resultValue);
+    if (colorSpace > ColorSpace::COLOR_SPACE_WIDE_GAMUT) {
+        HILOG_ERROR("ColorSpace %{public}u invalid!", static_cast<uint32_t>(colorSpace));
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_INVALID_PARAM)));
+        return engine.CreateUndefined();
+    }
+    std::weak_ptr<Window> weakToken(windowToken_);
+    AsyncTask::CompleteCallback complete = [weakToken, colorSpace](
+                                               NativeEngine& engine, AsyncTask& task, int32_t status) {
+        auto weakWindow = weakToken.lock();
+        if (weakWindow == nullptr) {
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY),
+                "Invalidate params."));
+            return;
+        }
+        HILOG_INFO("JsWindow::OnSetWindowColorSpace colorSpace..., %{public}d",  colorSpace);
+        WmErrorCode ret = WmErrorCode::WM_OK;
+        ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->SetColorSpace(colorSpace));
+        if (ret == WmErrorCode::WM_OK) {
+            task.Resolve(engine, engine.CreateUndefined());
+        } else {
+            task.Reject(engine, CreateJsError(engine, static_cast<int32_t>(ret), "Window SetColorSpace failed"));
+        }
+        HILOG_INFO("JsWindow::SetColorSpace : Window [%{public}u, %{public}s] set colorSpace end",
+            weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str());
+    };
+
+    NativeValue* lastParam =
+        (info.argc <= 1)
+            ? nullptr
+            : ((info.argv[1] != nullptr && info.argv[1]->TypeOf() == NATIVE_FUNCTION) ? info.argv[1] : nullptr);
+    NativeValue* result = nullptr;
+    AsyncTask::Schedule("JsWindow::OnSetWindowColorSpace", engine,
+        CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+    return result;
+}
+
+NativeValue* JsWindow::OnGetWindowColorSpace(NativeEngine& engine, NativeCallbackInfo& info)
+{
+    std::weak_ptr<Window> weakToken(windowToken_);
+    auto weakWindow = weakToken.lock();
+    if (weakWindow == nullptr) {
+        HILOG_ERROR("JsWindow::OnGetWindowColorSpace is nullptr");
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY)));
+        return engine.CreateUndefined();
+    }
+    ColorSpace colorSpace = weakWindow->GetColorSpace();
+    HILOG_INFO("JsWindow [%{public}u, %{public}s] OnGetColorSpace end, colorSpace = %{public}u",
+        weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), static_cast<uint32_t>(colorSpace));
+
+    return CreateJsValue(engine, static_cast<uint32_t>(colorSpace));
+}
+
 NativeValue* JsWindow::OnRegisterWindowManagerCallback(NativeEngine& engine, NativeCallbackInfo& info)
 {
     HILOG_INFO("JsWindow::OnRegisterWindowManagerCallback : Start...");
@@ -961,6 +1043,8 @@ NativeValue* CreateJsWindowObject(NativeEngine& engine, std::shared_ptr<Rosen::W
     BindNativeFunction(engine, *object, "setWindowKeepScreenOn", moduleName, JsWindow::SetWindowKeepScreenOn);
     BindNativeFunction(engine, *object, "on", moduleName, JsWindow::RegisterWindowManagerCallback);
     BindNativeFunction(engine, *object, "off", moduleName, JsWindow::UnregisterWindowManagerCallback);
+    BindNativeFunction(engine, *object, "setWindowColorSpace", moduleName, JsWindow::SetWindowColorSpace);
+    BindNativeFunction(engine, *object, "getWindowColorSpace", moduleName, JsWindow::GetWindowColorSpace);
 
     std::shared_ptr<NativeReference> jsWindowRef;
     jsWindowRef.reset(engine.CreateReference(objValue, 1));

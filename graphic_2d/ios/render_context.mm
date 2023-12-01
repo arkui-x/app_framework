@@ -231,13 +231,38 @@ bool RenderContext::SetUpGrContext()
     return true;
 }
 
+void RenderContext::SetColorSpace(GraphicColorGamut colorSpace)
+{
+    ROSEN_LOGD("RenderContext::SetColorSpace %{public}d", colorSpace);
+    colorSpace_ = colorSpace;
+}
+
 sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
 {
     GrGLFramebufferInfo framebufferInfo;
     framebufferInfo.fFBOID = framebuffer_;
-    framebufferInfo.fFormat = 0x8058;
+    framebufferInfo.fFormat = 0x8058; // GL_RGBA8
 
     SkColorType colorType = kRGBA_8888_SkColorType;
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+
+    ROSEN_LOGD("RenderContext::AcquireSurface, colorSpace_ =  (%d)", colorSpace_ );
+    switch (colorSpace_) {
+        // [planning] in order to stay consistant with the colorspace used before, we disabled
+        // GRAPHIC_COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+        case GRAPHIC_COLOR_GAMUT_DCI_P3:
+#if defined(NEW_SKIA)
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
+#else
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
+#endif
+            framebufferInfo.fFormat = 0x881A; // GL_RGBA16F
+            colorType = kRGBA_F16_SkColorType;
+            break;
+        default:
+            break;
+    }
     /* sampleCnt and stencilBits for GrBackendRenderTarget */
     const int stencilBufferSize = 8;
     GrBackendRenderTarget backendRenderTarget(width, height, 0, stencilBufferSize, framebufferInfo);
@@ -246,7 +271,6 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
 #else
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
 #endif
-    sk_sp<SkColorSpace> skColorSpace = nullptr;
 
     skSurface_ = SkSurface::MakeFromBackendRenderTarget(
         grContext_.get(), backendRenderTarget, kBottomLeft_GrSurfaceOrigin, colorType, skColorSpace, &surfaceProps);
