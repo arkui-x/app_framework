@@ -52,6 +52,7 @@ struct AbilityInfo;
 
 class NativeEngine;
 class NativeValue;
+typedef struct napi_value__* napi_value;
 
 namespace OHOS::Ace::Platform {
 class UIContent {
@@ -66,6 +67,7 @@ public:
 
     // UI content life-cycles
     virtual void Initialize(OHOS::Rosen::Window* window, const std::string& url, NativeValue* storage) = 0;
+    virtual void Initialize(OHOS::Rosen::Window* window, const std::string& url, napi_value storage) = 0;
     virtual void Foreground() = 0;
     virtual void Background() = 0;
     virtual void Focus() = 0;
@@ -109,6 +111,12 @@ public:
     {
         return nullptr;
     };
+
+    virtual napi_value GetUINapiContext()
+    {
+        napi_value result = nullptr;
+        return result;
+    }
 };
 } // namespace OHOS::Ace::Platform
 #endif // FOUNDATION_APPFRAMEWORK_UICONTENT_ACE_UI_CONTENT_H
