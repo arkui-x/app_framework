@@ -33,7 +33,7 @@ ohos_source_set("ace_uicontent_interface") {
   configs = [
     "$ace_root:ace_config",
     "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit:appkit_native_config",
-    "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/ability:abilitykit_native_config"
+    "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/ability:abilitykit_native_config",
   ]
   public_configs = [ ":uicontent_config" ]
   if (current_os == "ios") {
