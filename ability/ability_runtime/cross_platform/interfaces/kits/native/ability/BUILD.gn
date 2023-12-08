@@ -81,6 +81,8 @@ template("ability_runtime_abilitykit_native") {
       "//foundation/appframework/window_manager/dm:dm",
       "//foundation/appframework/window_manager/wm:wm",
       "//foundation/arkui/napi:ace_napi",
+      "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/color_manager:color_space_object_convertor",
+      "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/color_manager:colorspacemanager_napi",
     ]
 
     if (target_os == "android") {
