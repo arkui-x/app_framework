@@ -146,5 +146,16 @@ void RSSurfaceCPU::ResetBufferAge()
 {
     ROSEN_LOGD("RSSurfaceCPU: Reset Buffer Age!");
 }
+
+GraphicColorGamut RSSurfaceCPU::GetColorSpace() const
+{
+    ROSEN_LOGD("RSSurfaceCPU: return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB in cpu!");
+    return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB
+}
+
+void RSSurfaceCPU::SetColorSpace(GraphicColorGamut colorSpace)
+{
+    ROSEN_LOGD("RSSurfaceCPU: SetColorSpace!");
+}
 } // namespace Rosen
 } // namespace OHOS

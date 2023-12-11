@@ -73,7 +73,7 @@ void InitWorkerFunc(NativeEngine* nativeEngine)
         HILOG_ERROR("Failed to get global object");
         return;
     }
-    
+
     InitConsoleLogModule(*nativeEngine, *globalObj);
 
     if (g_debugMode) {

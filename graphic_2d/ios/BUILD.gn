@@ -41,17 +41,20 @@ ohos_source_set("ios") {
     "rs_marshalling_helper.cpp",
     "rs_render_service_client.mm",
     "rs_surface_frame_ios.cpp",
+    "rs_surface_texture_ios.mm",
     "rs_system_properties.cpp",
     "rs_vsync_client_ios.mm",
   ]
 
   include_dirs = [
+    "//foundation/appframework/utils",
     "//foundation/graphic/graphic_2d/utils/log",
     "$rosen_root/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
   ]
 
   defines += [ "MODULE_RSB" ]
+  defines += [ "USE_SURFACE_TEXTURE" ]
   if (rs_enable_gpu) {
     defines += [ "USE_GPU" ]
     sources += [ "rs_surface_gpu.mm" ]

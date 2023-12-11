@@ -54,6 +54,8 @@ public:
     RenderContext* GetRenderContext() override;
     void SetRenderContext(RenderContext* context) override;
     void ResetBufferAge() override;
+    GraphicColorGamut GetColorSpace() const override;
+    void SetColorSpace(GraphicColorGamut colorSpace) override;
 private:
     void YInvert(void *addr, int32_t width, int32_t height);
     bool SetupGrContext();

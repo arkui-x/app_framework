@@ -152,6 +152,28 @@ NativeValue* OrientationInit(NativeEngine* engine)
     return objValue;
 }
 
+NativeValue* WindowEventTypeInit(NativeEngine* engine)
+{
+    HILOG_INFO("WindowEventTypeInit");
+
+    if (engine == nullptr) {
+        HILOG_ERROR("Engine is nullptr");
+        return nullptr;
+    }
+
+    NativeValue *objValue = engine->CreateObject();
+    NativeObject *object = ConvertNativeValueTo<NativeObject>(objValue);
+    if (object == nullptr) {
+        HILOG_ERROR("Failed to get object");
+        return nullptr;
+    }
+    object->SetProperty("WINDOW_SHOWN", CreateJsValue(*engine, static_cast<int32_t>(LifeCycleEventType::FOREGROUND)));
+    object->SetProperty("WINDOW_ACTIVE", CreateJsValue(*engine, static_cast<int32_t>(LifeCycleEventType::ACTIVE)));
+    object->SetProperty("WINDOW_INACTIVE", CreateJsValue(*engine, static_cast<int32_t>(LifeCycleEventType::INACTIVE)));
+    object->SetProperty("WINDOW_HIDDEN", CreateJsValue(*engine, static_cast<int32_t>(LifeCycleEventType::BACKGROUND)));
+    return objValue;
+}
+
 NativeValue* WindowStageEventTypeInit(NativeEngine* engine)
 {
     HILOG_INFO("WindowStageEventTypeInit");
@@ -259,6 +281,28 @@ NativeValue* WindowErrorCodeInit(NativeEngine* engine)
         static_cast<int32_t>(WmErrorCode::WM_ERROR_CONTEXT_ABNORMALLY)));
     object->SetProperty("WM_ERROR_START_ABILITY_FAILED", CreateJsValue(*engine,
         static_cast<int32_t>(WmErrorCode::WM_ERROR_START_ABILITY_FAILED)));
+    return objValue;
+}
+
+NativeValue* WindowColorSpaceInit(NativeEngine* engine)
+{
+    HILOG_INFO("WindowColorSpaceInit");
+    if (engine == nullptr) {
+        HILOG_ERROR("Engine is nullptr");
+        return nullptr;
+    }
+
+    NativeValue *objValue = engine->CreateObject();
+    NativeObject *object = ConvertNativeValueTo<NativeObject>(objValue);
+    if (object == nullptr) {
+        HILOG_ERROR("Failed to get object");
+        return nullptr;
+    }
+
+    object->SetProperty("DEFAULT", CreateJsValue(*engine,
+        static_cast<int32_t>(ColorSpace::COLOR_SPACE_DEFAULT)));
+    object->SetProperty("WIDE_GAMUT", CreateJsValue(*engine,
+        static_cast<int32_t>(ColorSpace::COLOR_SPACE_WIDE_GAMUT)));
     return objValue;
 }
 

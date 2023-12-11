@@ -160,9 +160,11 @@ bool GetSystemBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProper
 NativeValue* WindowTypeInit(NativeEngine* engine);
 NativeValue* WindowModeInit(NativeEngine* engine);
 NativeValue* OrientationInit(NativeEngine* engine);
+NativeValue* WindowEventTypeInit(NativeEngine* env);
 NativeValue* WindowStageEventTypeInit(NativeEngine* engine);
 NativeValue* WindowErrorCodeInit(NativeEngine* engine);
 NativeValue* WindowErrorInit(NativeEngine* engine);
+NativeValue *WindowColorSpaceInit(NativeEngine *engine);
 template<class T>
 bool ParseJsValue(NativeObject* jsObject, NativeEngine& engine, const std::string& name, T& data)
 {
