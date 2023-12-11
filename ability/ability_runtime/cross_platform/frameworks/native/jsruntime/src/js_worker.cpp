@@ -67,14 +67,15 @@ void InitWorkerFunc(NativeEngine* nativeEngine)
         HILOG_ERROR("Input nativeEngine is nullptr");
         return;
     }
-
-    NativeObject* globalObj = ConvertNativeValueTo<NativeObject>(nativeEngine->GetGlobal());
+    
+    napi_value globalObj = nullptr;
+    napi_get_global(reinterpret_cast<napi_env>(nativeEngine), &globalObj);
     if (globalObj == nullptr) {
         HILOG_ERROR("Failed to get global object");
         return;
     }
-
-    InitConsoleLogModule(*nativeEngine, *globalObj);
+    
+    InitConsoleLogModule(reinterpret_cast<napi_env>(nativeEngine), globalObj);
 
     if (g_debugMode) {
 #ifdef DEBUG_MODE

@@ -23,23 +23,22 @@
 #include "launch_param.h"
 #include "resource_manager.h"
 #include "running_process_info.h"
+#include "napi/native_api.h"
 
-class NativeEngine;
-class NativeValue;
 
 namespace OHOS {
 namespace AbilityRuntime {
-NativeValue* CreateJsAbilityInfo(NativeEngine& engine, const AppExecFwk::AbilityInfo& abilityInfo);
-NativeValue* CreateJsApplicationInfo(NativeEngine& engine, const AppExecFwk::ApplicationInfo& applicationInfo);
-NativeValue* CreateJsHapModuleInfo(NativeEngine& engine, const AppExecFwk::HapModuleInfo& hapModuleInfo);
-NativeValue* CreateJsConfiguration(NativeEngine& engine, const Platform::Configuration& configuration);
-NativeValue* CreateJsResourceManager(NativeEngine& engine,
+napi_value CreateJsAbilityInfo(napi_env env, const AppExecFwk::AbilityInfo& abilityInfo);
+napi_value CreateJsApplicationInfo(napi_env env, const AppExecFwk::ApplicationInfo &applicationInfo);
+napi_value CreateJsHapModuleInfo(napi_env env, const AppExecFwk::HapModuleInfo& hapModuleInfo);
+napi_value CreateJsConfiguration(napi_env env, const Platform::Configuration& configuration);
+napi_value CreateJsResourceManager(napi_env env,
     const std::shared_ptr<Global::Resource::ResourceManager>& resMgr,
     const std::shared_ptr<Platform::Context>& context);
-NativeValue* CreateJsProcessRunningInfoArray(
-    NativeEngine& engine, const std::vector<Platform::RunningProcessInfo>& infos);
-NativeValue* CreateJsProcessRunningInfo(NativeEngine& engine, const Platform::RunningProcessInfo& info);
-NativeValue* CreateJsLaunchParam(NativeEngine& engine, const Platform::LaunchParam& launchParam);
+napi_value CreateJsProcessRunningInfoArray(
+    napi_env env, const std::vector<Platform::RunningProcessInfo>& infos);
+napi_value CreateJsProcessRunningInfo(napi_env env, const Platform::RunningProcessInfo& info);
+napi_value CreateJsLaunchParam(napi_env env, const Platform::LaunchParam& launchParam);
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_JS_DATA_STRUCT_CONVERTER_H

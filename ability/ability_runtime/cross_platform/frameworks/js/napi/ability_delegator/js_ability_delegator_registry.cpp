@@ -34,43 +34,43 @@ public:
     JsAbilityDelegatorRegistry() = default;
     ~JsAbilityDelegatorRegistry() = default;
 
-    static void Finalizer(NativeEngine *engine, void *data, void *hint)
+    static void Finalizer(napi_env env, void *data, void *hint)
     {
         HILOG_INFO("enter");
         reference.reset();
         std::unique_ptr<JsAbilityDelegatorRegistry>(static_cast<JsAbilityDelegatorRegistry *>(data));
     }
 
-    static NativeValue *GetAbilityDelegator(NativeEngine *engine, NativeCallbackInfo *info)
+    static napi_value GetAbilityDelegator(napi_env env, napi_callback_info info)
     {
-        JsAbilityDelegatorRegistry *me = CheckParamsAndGetThis<JsAbilityDelegatorRegistry>(engine, info);
-        return (me != nullptr) ? me->OnGetAbilityDelegator(*engine, *info) : nullptr;
+        GET_CB_INFO_AND_CALL(env, info, JsAbilityDelegatorRegistry, OnGetAbilityDelegator);
     }
 
-    static NativeValue *GetArguments(NativeEngine *engine, NativeCallbackInfo *info)
+    static napi_value GetArguments(napi_env env, napi_callback_info info)
     {
-        JsAbilityDelegatorRegistry *me = CheckParamsAndGetThis<JsAbilityDelegatorRegistry>(engine, info);
-        return (me != nullptr) ? me->OnGetArguments(*engine, *info) : nullptr;
+        GET_CB_INFO_AND_CALL(env, info, JsAbilityDelegatorRegistry, OnGetArguments);
     }
 
 private:
-    NativeValue *OnGetAbilityDelegator(NativeEngine &engine, const NativeCallbackInfo &info)
+    napi_value OnGetAbilityDelegator(napi_env env, size_t argc, napi_value* argv)
     {
         HILOG_INFO("enter");
         if (!AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator()) {
             HILOG_ERROR("Failed to get delegator object");
-            return engine.CreateNull();
+            return CreateJsNull(env);
         }
 
         if (!reference) {
-            auto value = CreateJsAbilityDelegator(engine);
-            reference.reset(engine.CreateReference(value, 1));
+            auto value = CreateJsAbilityDelegator(env);
+            napi_ref ref = nullptr;
+            napi_create_reference(env, value, 1, &ref);
+            reference.reset(reinterpret_cast<NativeReference*>(ref));
         }
 
-        return reference->Get();
+        return reference->GetNapiValue();
     }
 
-    NativeValue *OnGetArguments(NativeEngine &engine, const NativeCallbackInfo &info)
+    napi_value OnGetArguments(napi_env env, size_t argc, napi_value* argv)
     {
         HILOG_INFO("enter");
 
@@ -78,64 +78,62 @@ private:
             AppExecFwk::AbilityDelegatorRegistry::GetArguments();
         if (!abilityDelegatorArgs) {
             HILOG_ERROR("Failed to get delegator args object");
-            return engine.CreateNull();
+            return CreateJsNull(env);
         }
-        return CreateJsAbilityDelegatorArguments(engine, abilityDelegatorArgs);
+        return CreateJsAbilityDelegatorArguments(env, abilityDelegatorArgs);
     }
 };
 } // namespace
 
-NativeValue *JsAbilityDelegatorRegistryInit(NativeEngine *engine, NativeValue *exportObj)
+napi_value JsAbilityDelegatorRegistryInit(napi_env env, napi_value exportObj)
 {
     HILOG_INFO("enter");
-    if (engine == nullptr || exportObj == nullptr) {
+    if (env == nullptr || exportObj == nullptr) {
         HILOG_ERROR("Invalid input parameters");
         return nullptr;
     }
-
-    NativeObject *object = ConvertNativeValueTo<NativeObject>(exportObj);
-    if (object == nullptr) {
-        HILOG_ERROR("Failed to get object");
-        return nullptr;
-    }
-
-    std::unique_ptr<JsAbilityDelegatorRegistry> jsDelegatorManager =
-        std::make_unique<JsAbilityDelegatorRegistry>();
-    object->SetNativePointer(jsDelegatorManager.release(), JsAbilityDelegatorRegistry::Finalizer, nullptr);
+    
+    std::unique_ptr<JsAbilityDelegatorRegistry> jsDelegatorManager = std::make_unique<JsAbilityDelegatorRegistry>();
+    napi_wrap(env, exportObj, jsDelegatorManager.release(), JsAbilityDelegatorRegistry::Finalizer, nullptr, nullptr);
 
     const char *moduleName = "JsAbilityDelegatorRegistry";
-    BindNativeFunction(*engine, *object, "getAbilityDelegator", moduleName,
+    BindNativeFunction(env, exportObj, "getAbilityDelegator", moduleName,
         JsAbilityDelegatorRegistry::GetAbilityDelegator);
-    BindNativeFunction(*engine, *object, "getArguments", moduleName, JsAbilityDelegatorRegistry::GetArguments);
+    BindNativeFunction(env, exportObj, "getArguments", moduleName, JsAbilityDelegatorRegistry::GetArguments);
 
-    object->SetProperty("AbilityLifecycleState", AbilityLifecycleStateInit(engine));
+    napi_set_named_property(env, exportObj, "AbilityLifecycleState",
+        AbilityLifecycleStateInit(env));
 
-    return engine->CreateUndefined();
+    return CreateJsUndefined(env);
 }
 
-NativeValue *AbilityLifecycleStateInit(NativeEngine *engine)
+napi_value AbilityLifecycleStateInit(napi_env env)
 {
     HILOG_INFO("enter");
 
-    if (engine == nullptr) {
+    if (env == nullptr) {
         HILOG_ERROR("Invalid input parameters");
         return nullptr;
     }
 
-    NativeValue *objValue = engine->CreateObject();
-    NativeObject *object = ConvertNativeValueTo<NativeObject>(objValue);
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
 
-    if (object == nullptr) {
+    if (objValue == nullptr) {
         HILOG_ERROR("Failed to get object");
         return nullptr;
     }
 
-    object->SetProperty("UNINITIALIZED", CreateJsValue(*engine,
-        static_cast<int32_t>(AbilityLifecycleState::UNINITIALIZED)));
-    object->SetProperty("CREATE", CreateJsValue(*engine, static_cast<int32_t>(AbilityLifecycleState::CREATE)));
-    object->SetProperty("FOREGROUND", CreateJsValue(*engine, static_cast<int32_t>(AbilityLifecycleState::FOREGROUND)));
-    object->SetProperty("BACKGROUND", CreateJsValue(*engine, static_cast<int32_t>(AbilityLifecycleState::BACKGROUND)));
-    object->SetProperty("DESTROY", CreateJsValue(*engine, static_cast<int32_t>(AbilityLifecycleState::DESTROY)));
+    napi_set_named_property(env, objValue, "UNINITIALIZED",
+        CreateJsValue(env, static_cast<int32_t>(AbilityLifecycleState::UNINITIALIZED)));
+    napi_set_named_property(env, objValue, "CREATE",
+        CreateJsValue(env, static_cast<int32_t>(AbilityLifecycleState::CREATE)));
+    napi_set_named_property(env, objValue, "FOREGROUND",
+        CreateJsValue(env, static_cast<int32_t>(AbilityLifecycleState::FOREGROUND)));
+    napi_set_named_property(env, objValue, "BACKGROUND",
+        CreateJsValue(env, static_cast<int32_t>(AbilityLifecycleState::BACKGROUND)));
+    napi_set_named_property(env, objValue, "DESTROY",
+        CreateJsValue(env, static_cast<int32_t>(AbilityLifecycleState::DESTROY)));
 
     return objValue;
 }

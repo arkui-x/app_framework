@@ -19,10 +19,9 @@
 #include <map>
 #include <memory>
 
-class NativeEngine;
-class NativeValue;
 class NativeReference;
-struct NativeCallbackInfo;
+typedef struct napi_env__* napi_env;
+typedef struct napi_value__* napi_value;
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -98,7 +97,7 @@ public:
 class JsAbilityLifecycleCallback : public AbilityLifecycleCallback,
                                    public std::enable_shared_from_this<JsAbilityLifecycleCallback> {
 public:
-    explicit JsAbilityLifecycleCallback(NativeEngine* engine);
+    explicit JsAbilityLifecycleCallback(napi_env env);
     void OnAbilityCreate(const std::shared_ptr<NativeReference>& ability) override;
     void OnWindowStageCreate(
         const std::shared_ptr<NativeReference>& ability, const std::shared_ptr<NativeReference>& windowStage) override;
@@ -107,13 +106,13 @@ public:
     void OnAbilityDestroy(const std::shared_ptr<NativeReference>& ability) override;
     void OnAbilityForeground(const std::shared_ptr<NativeReference>& ability) override;
     void OnAbilityBackground(const std::shared_ptr<NativeReference>& ability) override;
-    int32_t Register(NativeValue* jsCallback);
+    int32_t Register(napi_value jsCallback);
     bool UnRegister(int32_t callbackId);
     bool IsEmpty() const;
     static int32_t serialNumber_;
 
 private:
-    NativeEngine* engine_ = nullptr;
+    napi_env env_ = nullptr;
     std::shared_ptr<NativeReference> jsCallback_;
     std::map<int32_t, std::shared_ptr<NativeReference>> callbacks_;
     void CallJsMethod(const std::string& methodName, const std::shared_ptr<NativeReference>& ability);

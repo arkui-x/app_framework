@@ -38,7 +38,7 @@ namespace AbilityRuntime {
 class TimerTask;
 class ModSourceMap;
 
-inline void* DetachCallbackFunc(NativeEngine* engine, void* value, void*)
+inline void* DetachCallbackFunc(napi_env env, void* value, void*)
 {
     return value;
 }
@@ -48,14 +48,11 @@ public:
     static std::unique_ptr<Runtime> Create(const Options& options);
 
     static std::unique_ptr<NativeReference> LoadSystemModuleByEngine(
-        NativeEngine* engine, const std::string& moduleName, NativeValue* const* argv, size_t argc);
+        napi_env env, const std::string& moduleName, const napi_value* argv, size_t argc);
 
     ~JsRuntime() override = default;
-
-    NativeEngine& GetNativeEngine() const
-    {
-        return *nativeEngine_;
-    }
+    
+    napi_env GetNapiEnv() const;
 
     Language GetLanguage() const override
     {
@@ -66,7 +63,7 @@ public:
         const std::string& moduleName, const std::string& modulePath, std::vector<uint8_t>& buffer,
         const std::string& srcEntrance, bool esmodule);
     std::unique_ptr<NativeReference> LoadSystemModule(
-        const std::string& moduleName, NativeValue* const* argv = nullptr, size_t argc = 0);
+        const std::string& moduleName, napi_value* const* argv = nullptr, size_t argc = 0);
     void PostTask(const std::function<void()>& task, const std::string& name, int64_t delayTime);
     void RemoveTask(const std::string& name);
     virtual bool RunScript(const std::string& path, const std::string& hapPath, bool useCommonChunk = false) = 0;
@@ -80,15 +77,15 @@ protected:
     virtual bool Initialize(const Options& options);
     void Deinitialize();
 
-    NativeValue* LoadJsBundle(const std::string& path, std::vector<uint8_t>& buffer);
-    virtual NativeValue* LoadJsModule(const std::string& path, std::vector<uint8_t>& buffer) = 0;
+    napi_value LoadJsBundle(const std::string& path, std::vector<uint8_t>& buffer);
+    virtual napi_value LoadJsModule(const std::string& path, std::vector<uint8_t>& buffer) = 0;
     virtual void LoadAotFile(const std::string& moduleName) = 0;
 
     bool isArkEngine_ = false;
     bool preloaded_ = false;
     bool debugMode_ = false;
     bool isBundle_ = true;
-    std::unique_ptr<NativeEngine> nativeEngine_;
+    napi_env env_ = nullptr;
     std::string codePath_;
     std::string appLibPath_;
     std::string moduleName_;

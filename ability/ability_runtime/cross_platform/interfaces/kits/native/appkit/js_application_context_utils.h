@@ -20,7 +20,9 @@
 
 #include "ability_lifecycle_callback.h"
 #include "application_context.h"
+#include "napi/native_api.h"
 #include "native_engine/native_engine.h"
+#include "js_runtime_utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -31,40 +33,40 @@ public:
         : applicationContext_(std::move(applicationContext))
     {}
     virtual ~JsApplicationContextUtils() = default;
-    static void Finalizer(NativeEngine* engine, void* data, void* hint);
+    static void Finalizer(napi_env env, void* data, void* hint);
 
-    static NativeValue* On(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* Off(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetApplicationContext(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetCacheDir(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetTempDir(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetFilesDir(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetDatabaseDir(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetPreferencesDir(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetBundleCodeDir(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetRunningProcessInformation(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* CreateJsApplicationContext(NativeEngine& engine);
-    static NativeValue* CreateModuleContext(NativeEngine* engine, NativeCallbackInfo* info);
+    static napi_value On(napi_env env, napi_callback_info info);
+    static napi_value Off(napi_env env, napi_callback_info info);
+    static napi_value GetApplicationContext(napi_env env, napi_callback_info info);
+    static napi_value GetCacheDir(napi_env env, napi_callback_info info);
+    static napi_value GetTempDir(napi_env env, napi_callback_info info);
+    static napi_value GetFilesDir(napi_env env, napi_callback_info info);
+    static napi_value GetDatabaseDir(napi_env env, napi_callback_info info);
+    static napi_value GetPreferencesDir(napi_env env, napi_callback_info info);
+    static napi_value GetBundleCodeDir(napi_env env, napi_callback_info info);
+    static napi_value GetRunningProcessInformation(napi_env env, napi_callback_info info);
+    static napi_value CreateJsApplicationContext(napi_env env);
+    static napi_value CreateModuleContext(napi_env env, napi_callback_info info);
 
 protected:
     std::weak_ptr<ApplicationContext> applicationContext_;
 
 private:
-    NativeValue* OnOn(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnOff(NativeEngine& engine, const NativeCallbackInfo& info);
-    NativeValue* OnOnAbilityLifecycle(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnOffAbilityLifecycle(NativeEngine& engine, const NativeCallbackInfo& info, int32_t callbackId);
-    NativeValue* OnGetApplicationContext(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetCacheDir(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetTempDir(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetFilesDir(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetDatabaseDir(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetPreferencesDir(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetBundleCodeDir(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetRunningProcessInformation(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnCreateModuleContext(NativeEngine& engine, NativeCallbackInfo& info);
+    napi_value OnOn(napi_env env, NapiCallbackInfo& info);
+    napi_value OnOff(napi_env env, const NapiCallbackInfo& info);
+    napi_value OnOnAbilityLifecycle(napi_env env, NapiCallbackInfo& info);
+    napi_value OnOffAbilityLifecycle(napi_env env, const NapiCallbackInfo& info, int32_t callbackId);
+    napi_value OnGetApplicationContext(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetCacheDir(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetTempDir(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetFilesDir(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetDatabaseDir(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetPreferencesDir(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetBundleCodeDir(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetRunningProcessInformation(napi_env env, NapiCallbackInfo& info);
+    napi_value OnCreateModuleContext(napi_env env, NapiCallbackInfo& info);
 
-    static void BindNativeApplicationContext(NativeEngine& engine, NativeObject* object);
+    static void BindNativeApplicationContext(napi_env env, napi_value object);
 
     std::shared_ptr<JsAbilityLifecycleCallback> callback_;
     std::unique_ptr<NativeReference> systemModule_;

@@ -42,6 +42,8 @@ public:
 private:
     std::shared_ptr<OHOS::AppExecFwk::DelegatorAbilityStageProperty> CreateStageProperty() const;
     std::string GetHapModuleProp(const std::string &propName) const;
+    
+    static bool UseCommonChunk(const AppExecFwk::HapModuleInfo& hapModuleInfo);
 
     JsRuntime& jsRuntime_;
     std::shared_ptr<NativeReference> jsAbilityStageObj_;

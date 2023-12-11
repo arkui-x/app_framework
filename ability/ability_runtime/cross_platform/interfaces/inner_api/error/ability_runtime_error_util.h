@@ -83,30 +83,30 @@ public:
     /**
      * @brief Throw an runtime exception for js.
      *
-     * @param engine js runtime engine.
+     * @param env js runtime env.
      * @param errCode external errorcode.
      * @param errMessage error msg.
      * @return true if success.
      */
-    static bool Throw(NativeEngine &engine, int32_t errCode, const std::string &errMessage = "");
+    static bool Throw(napi_env env, int32_t errCode, const std::string &errMessage = "");
 
     /**
      * @brief Throw an runtime exception for js with internal error code.
      *
-     * @param engine js runtime engine.
+     * @param env js runtime env.
      * @param errCode internal errorcode.
      * @return true if success.
      */
-    static bool ThrowByInternalErrCode(NativeEngine &engine, int32_t errCode);
+    static bool ThrowByInternalErrCode(napi_env env, int32_t errCode);
 
     /**
      * @brief Create a Error By Internal errorCode
      *
-     * @param engine js runtime engine.
+     * @param env js runtime env.
      * @param errCode internal errorcode.
      * @return js error object.
      */
-    static NativeValue *CreateErrorByInternalErrCode(NativeEngine &engine, int32_t errCode);
+    static napi_value CreateErrorByInternalErrCode(napi_env env, int32_t errCode);
 
     /**
      * @brief Get error message By error code

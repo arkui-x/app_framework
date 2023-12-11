@@ -29,11 +29,11 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
-NativeValue* AttachAbilityStageContext(NativeEngine* engine, void* value, void*)
+napi_value AttachAbilityStageContext(napi_env env, void *value, void *)
 {
     HILOG_INFO("AttachAbilityStageContext");
-    if (engine == nullptr || value == nullptr) {
-        HILOG_WARN("invalid parameter, engine or value is nullptr.");
+    if (env == nullptr || value == nullptr) {
+        HILOG_WARN("invalid parameter, env or value is nullptr.");
         return nullptr;
     }
     auto ptr = reinterpret_cast<std::weak_ptr<AbilityContext>*>(value)->lock();
@@ -41,28 +41,41 @@ NativeValue* AttachAbilityStageContext(NativeEngine* engine, void* value, void*)
         HILOG_WARN("invalid context.");
         return nullptr;
     }
-    NativeValue* object = CreateJsAbilityStageContext(*engine, ptr, nullptr, nullptr);
-    auto systemModule = JsRuntime::LoadSystemModuleByEngine(engine, "application.AbilityStageContext", &object, 1);
+    napi_value object = CreateJsAbilityStageContext(env, ptr, nullptr, nullptr);
+    auto systemModule = JsRuntime::LoadSystemModuleByEngine(env, "application.AbilityStageContext", &object, 1);
     if (systemModule == nullptr) {
         HILOG_WARN("invalid systemModule.");
         return nullptr;
     }
-    auto contextObj = systemModule->Get();
-    NativeObject* nObject = ConvertNativeValueTo<NativeObject>(contextObj);
-    if (nObject == nullptr) {
+    auto contextObj = systemModule->GetNapiValue();
+    if (!CheckTypeForNapiValue(env, contextObj, napi_object)) {
         HILOG_WARN("LoadSystemModuleByEngine or ConvertNativeValueTo failed.");
         return nullptr;
     }
-    nObject->ConvertToNativeBindingObject(engine, DetachCallbackFunc, AttachAbilityStageContext, value, nullptr);
+    napi_coerce_to_native_binding_object(
+        env, contextObj, DetachCallbackFunc, AttachAbilityStageContext, value, nullptr);
     auto workContext = new (std::nothrow) std::weak_ptr<Context>(ptr);
-    nObject->SetNativePointer(
-        workContext,
-        [](NativeEngine*, void* data, void*) {
-            HILOG_INFO("Finalizer for weak_ptr ability stage context is called");
-            delete static_cast<std::weak_ptr<Context>*>(data);
+    napi_wrap(env, contextObj, workContext,
+        [](napi_env, void *data, void *) {
+            HILOG_DEBUG("Finalizer for weak_ptr ability stage context is called");
+            delete static_cast<std::weak_ptr<Context> *>(data);
         },
-        nullptr);
+        nullptr, nullptr);
     return contextObj;
+}
+
+bool JsAbilityStage::UseCommonChunk(const AppExecFwk::HapModuleInfo& hapModuleInfo)
+{
+    for (auto &md: hapModuleInfo.metadata) {
+        if (md.name == "USE_COMMON_CHUNK") {
+            if (md.value != "true") {
+                HILOG_WARN("USE_COMMON_CHUNK = %s{public}s", md.value.c_str());
+                return false;
+            }
+            return true;
+        }
+    }
+    return false;
 }
 
 std::shared_ptr<AbilityStage> JsAbilityStage::Create(
@@ -113,21 +126,22 @@ void JsAbilityStage::OnCreate() const
     }
 
     HandleScope handleScope(jsRuntime_);
-    auto& nativeEngine = jsRuntime_.GetNativeEngine();
+    auto env = jsRuntime_.GetNapiEnv();
 
-    NativeValue* value = jsAbilityStageObj_->Get();
-    NativeObject* obj = ConvertNativeValueTo<NativeObject>(value);
-    if (obj == nullptr) {
+    napi_value obj = jsAbilityStageObj_->GetNapiValue();
+    if (!CheckTypeForNapiValue(env, obj, napi_object)) {
         HILOG_ERROR("OnCreate, Failed to get AbilityStage object");
         return;
     }
 
-    NativeValue* methodOnCreate = obj->GetProperty("onCreate");
+    napi_value methodOnCreate = nullptr;
+    napi_get_named_property(env, obj, "onCreate", &methodOnCreate);
     if (methodOnCreate == nullptr) {
         HILOG_ERROR("Failed to get 'onCreate' from AbilityStage object");
         return;
     }
-    nativeEngine.CallFunction(value, methodOnCreate, nullptr, 0);
+    napi_call_function(env, obj, methodOnCreate, 0, nullptr, nullptr);
+    
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
     if (delegator) {
         HILOG_DEBUG("Call AbilityDelegator::PostPerformStageStart");
@@ -150,40 +164,38 @@ void JsAbilityStage::Init(const std::shared_ptr<Context>& context)
     }
 
     HandleScope handleScope(jsRuntime_);
-    auto& engine = jsRuntime_.GetNativeEngine();
+    auto env = jsRuntime_.GetNapiEnv();
 
-    NativeObject* obj = ConvertNativeValueTo<NativeObject>(jsAbilityStageObj_->Get());
-    if (obj == nullptr) {
+    napi_value obj = jsAbilityStageObj_->GetNapiValue();
+    if (!CheckTypeForNapiValue(env, obj, napi_object)) {
         HILOG_ERROR("Failed to get AbilityStage object");
         return;
     }
 
-    NativeValue* contextObj = CreateJsAbilityStageContext(engine, context, nullptr, nullptr);
-    shellContextRef_ = JsRuntime::LoadSystemModuleByEngine(&engine, "application.AbilityStageContext", &contextObj, 1);
+    napi_value contextObj = CreateJsAbilityStageContext(env, context, nullptr, nullptr);
+    shellContextRef_ = JsRuntime::LoadSystemModuleByEngine(env, "application.AbilityStageContext", &contextObj, 1);
     if (shellContextRef_ == nullptr) {
         HILOG_ERROR("Failed to get LoadSystemModuleByEngine");
         return;
     }
-    contextObj = shellContextRef_->Get();
-    NativeObject* nativeObj = ConvertNativeValueTo<NativeObject>(contextObj);
-    if (nativeObj == nullptr) {
+    contextObj = shellContextRef_->GetNapiValue();
+    if (!CheckTypeForNapiValue(env, contextObj, napi_object)) {
         HILOG_ERROR("Failed to get context native object");
         return;
     }
     auto workContext = new (std::nothrow) std::weak_ptr<Context>(context);
-    nativeObj->ConvertToNativeBindingObject(
-        &engine, DetachCallbackFunc, AttachAbilityStageContext, workContext, nullptr);
+    napi_coerce_to_native_binding_object(
+        env, contextObj, DetachCallbackFunc, AttachAbilityStageContext, workContext, nullptr);
     context->Bind(jsRuntime_, shellContextRef_.get());
-    obj->SetProperty("context", contextObj);
+    napi_set_named_property(env, obj, "context", contextObj);
     HILOG_INFO("Set ability stage context");
 
-    nativeObj->SetNativePointer(
-        workContext,
-        [](NativeEngine*, void* data, void*) {
-            HILOG_INFO("Finalizer for weak_ptr ability stage context is called");
+    napi_wrap(env, contextObj, workContext,
+        [](napi_env, void* data, void*) {
+            HILOG_DEBUG("Finalizer for weak_ptr ability stage context is called");
             delete static_cast<std::weak_ptr<Context>*>(data);
         },
-        nullptr);
+        nullptr, nullptr);
 }
 
 void JsAbilityStage::OnConfigurationUpdate(const Configuration& configuration)
@@ -196,7 +208,7 @@ void JsAbilityStage::OnConfigurationUpdate(const Configuration& configuration)
     }
 
     HandleScope handleScope(jsRuntime_);
-    auto& nativeEngine = jsRuntime_.GetNativeEngine();
+    auto env = jsRuntime_.GetNapiEnv();
 
     auto stageContext = GetContext();
     if (stageContext == nullptr) {
@@ -208,26 +220,16 @@ void JsAbilityStage::OnConfigurationUpdate(const Configuration& configuration)
         HILOG_ERROR("Not found config");
         return;
     }
-    JsAbilityStageContext::ConfigurationUpdated(&nativeEngine, shellContextRef_, config);
+    JsAbilityStageContext::ConfigurationUpdated(env, shellContextRef_, config);
 
-    NativeValue* value = jsAbilityStageObj_->Get();
-    if (value == nullptr) {
-        HILOG_ERROR("OnConfigurationUpdate, Failed to get jsAbilityStage object");
-        return;
-    }
-    NativeObject* obj = ConvertNativeValueTo<NativeObject>(value);
-    if (obj == nullptr) {
-        HILOG_ERROR("OnConfigurationUpdate, Failed to ConvertNativeValueTo object");
-        return;
-    }
-    NativeValue* methodOnCreate = obj->GetProperty("onConfigurationUpdate");
-    if (methodOnCreate == nullptr) {
-        HILOG_ERROR("Failed to get 'OnConfigurationUpdate' from AbilityStage object");
-        return;
-    }
+    napi_value value = jsAbilityStageObj_->GetNapiValue();
+    
+    napi_value methodOnCreate = nullptr;
+    napi_get_named_property(env, value, "onConfigurationUpdate", &methodOnCreate);
 
-    NativeValue* argv[] = { CreateJsConfiguration(nativeEngine, *config) };
-    nativeEngine.CallFunction(value, methodOnCreate, argv, ArraySize(argv));
+    napi_value argv[] = { CreateJsConfiguration(env, *config) };
+    napi_value callResult = nullptr;
+    napi_call_function(env, value, methodOnCreate, ArraySize(argv), argv, &callResult);
 }
 
 std::shared_ptr<OHOS::AppExecFwk::DelegatorAbilityStageProperty> JsAbilityStage::CreateStageProperty() const

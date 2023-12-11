@@ -79,7 +79,8 @@ void* GetNativePointerFromCallbackInfo(const NativeEngine* engine, NativeCallbac
     return (object != nullptr) ? object->GetNativePointer() : nullptr;
 }
 
-void SetNamedNativePointer(NativeEngine& engine, NativeObject& object, const char* name, void* ptr, NativeFinalize func)
+void SetNamedNativePointer(NativeEngine& engine, 
+    NativeObject& object, const char* name, void* ptr, NativeFinalize func)
 {
     NativeValue* value = engine.CreateObject();
     NativeObject* newObject = ConvertNativeValueTo<NativeObject>(value);
@@ -241,8 +242,8 @@ std::unique_ptr<AsyncTask> CreateAsyncTaskWithLastParam(NativeEngine& engine, Na
         std::make_unique<AsyncTask::CompleteCallback>(std::move(complete)), result);
 }
 
-std::unique_ptr<AsyncTask> CreateAsyncTaskWithLastParam(
-    NativeEngine& engine, NativeValue* lastParam, AsyncTask::ExecuteCallback&& execute, nullptr_t, NativeValue** result)
+std::unique_ptr<AsyncTask> CreateAsyncTaskWithLastParam(NativeEngine& engine, NativeValue* lastParam,
+    AsyncTask::ExecuteCallback&& execute, nullptr_t, NativeValue** result)
 {
     return CreateAsyncTaskWithLastParam(
         engine, lastParam, std::make_unique<AsyncTask::ExecuteCallback>(std::move(execute)), nullptr, result);
@@ -332,6 +333,28 @@ void* GetNativePointerFromCallbackInfo(napi_env env, napi_callback_info info, co
     return result;
 }
 
+void* GetCbInfoFromCallbackInfo(napi_env env, napi_callback_info info, size_t* argc, napi_value* argv)
+{
+    napi_value thisVar = nullptr;
+    NAPI_CALL_NO_THROW(napi_get_cb_info(env, info, argc, argv, &thisVar, nullptr), nullptr);
+    void* result = nullptr;
+    NAPI_CALL_NO_THROW(napi_unwrap(env, thisVar, &result), nullptr);
+    return result;
+}
+
+void* GetNapiCallbackInfoAndThis(napi_env env, napi_callback_info info, NapiCallbackInfo& napiInfo, const char* name)
+{
+    NAPI_CALL_NO_THROW(napi_get_cb_info(
+        env, info, &napiInfo.argc, napiInfo.argv, &napiInfo.thisVar, nullptr), nullptr);
+    napi_value value = napiInfo.thisVar;
+    if (name != nullptr) {
+        napi_get_named_property(env, value, name, &value);
+    }
+    void* result = nullptr;
+    NAPI_CALL_NO_THROW(napi_unwrap(env, value, &result), nullptr);
+    return result;
+}
+
 void SetNamedNativePointer(napi_env env, napi_value object, const char* name, void* ptr, napi_finalize func)
 {
     napi_value objValue = nullptr;
@@ -349,11 +372,19 @@ void* GetNamedNativePointer(napi_env env, napi_value object, const char* name)
     return result;
 }
 
+bool CheckTypeForNapiValue(napi_env env, napi_value param, napi_valuetype expectType)
+{
+    napi_valuetype valueType = napi_undefined;
+    if (napi_typeof(env, param, &valueType) != napi_ok) {
+        return false;
+    }
+    return valueType == expectType;
+}
+
 // Handle Scope
 HandleScope::HandleScope(JsRuntime& jsRuntime)
 {
-    scope_ =  reinterpret_cast<napi_handle_scope>(jsRuntime.GetNativeEngine().GetScopeManager());
-    env_ = reinterpret_cast<napi_env>(&jsRuntime.GetNativeEngine());
+    env_ = jsRuntime.GetNapiEnv();
     napi_open_handle_scope(env_, &scope_);
 }
 
@@ -379,8 +410,7 @@ HandleScope::HandleScope(NativeEngine& engine)
 // Handle Escape
 HandleEscape::HandleEscape(JsRuntime& jsRuntime)
 {
-    scope_ =  reinterpret_cast<napi_escapable_handle_scope>(jsRuntime.GetNativeEngine().GetScopeManager());
-    env_ =  reinterpret_cast<napi_env>(&jsRuntime.GetNativeEngine());
+    env_ =  jsRuntime.GetNapiEnv();    
     napi_open_escapable_handle_scope(env_, &scope_);
 }
 
@@ -435,6 +465,13 @@ void NapiAsyncTask::Schedule(const std::string &name, napi_env env, std::unique_
     }
 }
 
+void NapiAsyncTask::ScheduleHighQos(const std::string &name, napi_env env, std::unique_ptr<NapiAsyncTask>&& task)
+{
+    if (task && task->StartHighQos(name, env)) {
+        task.release();
+    }
+}
+
 void NapiAsyncTask::Resolve(napi_env env, napi_value value)
 {
     HILOG_INFO("NapiAsyncTask::Resolve is called");
@@ -454,6 +491,23 @@ void NapiAsyncTask::Resolve(napi_env env, napi_value value)
         callbackRef_ = nullptr;
     }
     HILOG_INFO("NapiAsyncTask::Resolve is called end.");
+}
+
+bool NapiAsyncTask::StartHighQos(const std::string &name, napi_env env)
+{
+    if (work_) {
+        napi_delete_async_work(env, work_);
+        work_ = nullptr;
+    }
+    if (env == nullptr) {
+        return false;
+    }
+    NativeEngine* engine = reinterpret_cast<NativeEngine*>(env);
+    work_ = reinterpret_cast<napi_async_work>(engine->CreateAsyncWork(name,
+        reinterpret_cast<NativeAsyncExecuteCallback>(Execute),
+        reinterpret_cast<NativeAsyncCompleteCallback>(Complete), this));
+    napi_queue_async_work_with_qos(env, work_, napi_qos_user_initiated);
+    return true;
 }
 
 void NapiAsyncTask::ResolveWithNoError(napi_env env, napi_value value)

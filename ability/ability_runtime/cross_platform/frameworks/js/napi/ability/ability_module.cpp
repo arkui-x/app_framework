@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 #include "native_engine/native_engine.h"
 
 extern const char _binary_ability_js_start[];
@@ -49,15 +51,15 @@ extern "C" __attribute__((visibility("default"))) void NAPI_app_ability_UIAbilit
     }
 }
 
+static napi_module_with_js _module = {
+    .nm_version = 0,
+    .nm_modname = "app.ability.UIAbility",
+    .nm_filename = "app/ability/libability.so/ability.js",
+    .nm_get_js_code = NAPI_app_ability_UIAbility_GetJSCode,
+    .nm_get_abc_code = NAPI_app_ability_UIAbility_GetABCCode,
+};
+
 extern "C" __attribute__((constructor)) void NAPI_app_ability_UIAbility_AutoRegister()
 {
-    auto moduleManager = NativeModuleManager::GetInstance();
-    NativeModule newModuleInfo = {
-        .name = "app.ability.UIAbility",
-        .fileName = "app/ability/libability.so/ability.js",
-        .getJSCode = (GetJSCodeCallback)NAPI_app_ability_UIAbility_GetJSCode,
-        .getABCCode = (GetJSCodeCallback)NAPI_app_ability_UIAbility_GetABCCode,
-    };
-
-    moduleManager->Register(&newModuleInfo);
+    napi_module_with_js_register(&_module);
 }

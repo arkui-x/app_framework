@@ -28,7 +28,8 @@ extern const char* _binary_delegator_mgmt_abc_end;
 namespace OHOS {
 namespace RunnerRuntime {
 std::unique_ptr<TestRunner> JsTestRunner::Create(const std::unique_ptr<Runtime> &runtime,
-    const std::shared_ptr<AbilityDelegatorArgs> &args, const std::shared_ptr<BundleInfo> &bundleInfo, bool isFaJsModel)
+    const std::shared_ptr<AbilityDelegatorArgs> &args, 
+    const std::shared_ptr<BundleInfo> &bundleInfo, bool isFaJsModel)
 {
     HILOG_INFO("JsTestRunner: Create enter");
     if (!runtime) {
@@ -52,7 +53,7 @@ std::unique_ptr<TestRunner> JsTestRunner::Create(const std::unique_ptr<Runtime> 
 }
 
 JsTestRunner::JsTestRunner(
-    JsRuntime &jsRuntime, const std::shared_ptr<AbilityDelegatorArgs> &args,
+    JsRuntime &jsRuntime, const std::shared_ptr<AbilityDelegatorArgs> &args, 
     const std::shared_ptr<BundleInfo> &bundleInfo, bool isFaJsModel)
     : jsRuntime_(jsRuntime), isFaJsModel_(isFaJsModel)
 {
@@ -100,7 +101,7 @@ JsTestRunner::JsTestRunner(
     } else {
         HILOG_INFO("AbilityDelegator is not isEsModule");
     }
-
+    
     moduleName.append("::").append("TestRunner");
     jsTestRunnerObj_ = jsRuntime_.LoadModule(moduleName, modulePath, abilityBuffer, srcEntrance, isEsModule);
 }
@@ -128,62 +129,53 @@ void JsTestRunner::Run()
     HILOG_INFO("Exit");
 }
 
-void JsTestRunner::CallObjectMethod(const char *name, NativeValue *const *argv, size_t argc)
+void JsTestRunner::CallObjectMethod(const char *name, napi_value const *argv, size_t argc)
 {
     HILOG_INFO("JsTestRunner::CallObjectMethod(%{public}s)", name);
+    auto env = jsRuntime_.GetNapiEnv();
     if (isFaJsModel_) {
-        NativeEngine& engine = jsRuntime_.GetNativeEngine();
-        NativeObject* global = ConvertNativeValueTo<NativeObject>(engine.GetGlobal());
-        if (global == nullptr) {
-            HILOG_ERROR("Failed to get global object");
-            return;
-        }
-
-        NativeObject* exportObject = ConvertNativeValueTo<NativeObject>(global->GetProperty("exports"));
-        if (exportObject == nullptr) {
+        napi_value global = nullptr;
+        napi_get_global(env, &global);
+        napi_value exportObject = nullptr;
+        napi_get_named_property(env, global, "exports", &exportObject);
+        if (!CheckTypeForNapiValue(env, exportObject, napi_object)) {
             HILOG_ERROR("Failed to get exportObject");
             return;
         }
 
-        NativeObject* defaultObject = ConvertNativeValueTo<NativeObject>(exportObject->GetProperty("default"));
-        if (defaultObject == nullptr) {
+        napi_value defaultObject = nullptr;
+        napi_get_named_property(env, exportObject, "default", &defaultObject);
+        if (!CheckTypeForNapiValue(env, defaultObject, napi_object)) {
             HILOG_ERROR("Failed to get defaultObject");
             return;
         }
 
-        NativeValue* func = defaultObject->GetProperty(name);
-        if (func == nullptr || !func->IsCallable()) {
+        napi_value func = nullptr;
+        napi_get_named_property(env, defaultObject, name, &func);
+        if (!CheckTypeForNapiValue(env, func, napi_function)) {
             HILOG_ERROR("CallRequest func is %{public}s", func == nullptr ? "nullptr" : "not func");
             return;
         }
-        engine.CallFunction(engine.CreateUndefined(), func, argv, argc);
-        return;
-    }
-
-    if (!jsTestRunnerObj_) {
-        HILOG_ERROR("Not found %{public}s", srcPath_.c_str());
-        ReportFinished("Not found " + srcPath_);
+        napi_call_function(env, CreateJsUndefined(env), func, argc, argv, nullptr);
         return;
     }
 
     HandleScope handleScope(jsRuntime_);
-    auto &nativeEngine = jsRuntime_.GetNativeEngine();
-
-    NativeValue *value = jsTestRunnerObj_->Get();
-    NativeObject *obj = ConvertNativeValueTo<NativeObject>(value);
-    if (obj == nullptr) {
+    napi_value obj = jsTestRunnerObj_->GetNapiValue();
+    if (!CheckTypeForNapiValue(env, obj, napi_object)) {
         HILOG_ERROR("Failed to get Test Runner object");
         ReportFinished("Failed to get Test Runner object");
         return;
     }
 
-    NativeValue *methodOnCreate = obj->GetProperty(name);
+    napi_value methodOnCreate = nullptr;
+    napi_get_named_property(env, obj, name, &methodOnCreate);
     if (methodOnCreate == nullptr) {
         HILOG_ERROR("Failed to get '%{public}s' from Test Runner object", name);
         ReportStatus("Failed to get " + std::string(name) + " from Test Runner object");
         return;
     }
-    nativeEngine.CallFunction(value, methodOnCreate, argv, argc);
+    napi_call_function(env, obj, methodOnCreate, argc, argv, nullptr);
 }
 
 void JsTestRunner::ReportFinished(const std::string &msg)

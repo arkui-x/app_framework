@@ -16,16 +16,18 @@
 #ifndef OHOS_ABILITY_RUNTIME_JS_ABILITY_DELEGATOR_UTILS_H
 #define OHOS_ABILITY_RUNTIME_JS_ABILITY_DELEGATOR_UTILS_H
 
+#include "js_runtime_utils.h"
 #include "ability_delegator.h"
 #include "ability_delegator_args.h"
 #include "js_ability_delegator.h"
+#include "napi/native_api.h"
 #include "native_engine/native_engine.h"
 
 namespace OHOS {
 namespace AbilityDelegatorJs {
-NativeValue *CreateJsAbilityDelegator(NativeEngine &engine);
-NativeValue *CreateJsAbilityDelegatorArguments(
-    NativeEngine &engine, const std::shared_ptr<AbilityDelegatorArgs> &abilityDelegatorArgs);
+napi_value CreateJsAbilityDelegator(napi_env env);
+napi_value CreateJsAbilityDelegatorArguments(
+    napi_env env, const std::shared_ptr<AbilityDelegatorArgs> &abilityDelegatorArgs);
 }  // namespace AbilityDelegatorJs
 }  // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_JS_ABILITY_DELEGATOR_UTILS_H
