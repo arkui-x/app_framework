@@ -284,6 +284,28 @@ NativeValue* WindowErrorCodeInit(NativeEngine* engine)
     return objValue;
 }
 
+NativeValue* WindowColorSpaceInit(NativeEngine* engine)
+{
+    HILOG_INFO("WindowColorSpaceInit");
+    if (engine == nullptr) {
+        HILOG_ERROR("Engine is nullptr");
+        return nullptr;
+    }
+
+    NativeValue *objValue = engine->CreateObject();
+    NativeObject *object = ConvertNativeValueTo<NativeObject>(objValue);
+    if (object == nullptr) {
+        HILOG_ERROR("Failed to get object");
+        return nullptr;
+    }
+
+    object->SetProperty("DEFAULT", CreateJsValue(*engine,
+        static_cast<int32_t>(ColorSpace::COLOR_SPACE_DEFAULT)));
+    object->SetProperty("WIDE_GAMUT", CreateJsValue(*engine,
+        static_cast<int32_t>(ColorSpace::COLOR_SPACE_WIDE_GAMUT)));
+    return objValue;
+}
+
 NativeValue* GetRectAndConvertToJsValue(NativeEngine& engine, const Rect& rect)
 {
     NativeValue* objValue = engine.CreateObject();

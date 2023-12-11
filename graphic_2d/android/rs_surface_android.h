@@ -32,6 +32,7 @@
 #include "platform/common/rs_surface_ext.h"
 #include "platform/drawing/rs_surface.h"
 #include "platform/drawing/rs_surface_frame.h"
+#include "surface/surface_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -57,7 +58,8 @@ public:
     void ClearBuffer() override;
     void ClearAllBuffer() override;
     void ResetBufferAge() override;
-
+    GraphicColorGamut GetColorSpace() const override;
+    void SetColorSpace(GraphicColorGamut colorSpace) override;
     RSSurfaceExtPtr CreateSurfaceExt(const RSSurfaceExtConfig& config) override;
     RSSurfaceExtPtr GetSurfaceExt(const RSSurfaceExtConfig& config) override;
 private:
@@ -67,6 +69,7 @@ private:
     RenderContext* renderContext_ = nullptr;
     ANativeWindow* nativeWindow_ = nullptr;
     EGLSurface eglSurface_ = EGL_NO_SURFACE;
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     std::shared_ptr<AndroidSurfaceTexture> texture_;
 };
 

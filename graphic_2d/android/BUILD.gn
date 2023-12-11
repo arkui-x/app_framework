@@ -48,6 +48,7 @@ ohos_source_set("android") {
   ]
 
   include_dirs = [
+    "//foundation/graphic/graphic_2d/interfaces/inner_api",
     "//foundation/graphic/graphic_2d/utils/log",
     "$rosen_root/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",

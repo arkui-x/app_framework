@@ -116,6 +116,7 @@ bool RSSurfaceAndroid::SetupGrContext()
     if (renderContext_) {
         renderContext_->InitializeEglContext();
         renderContext_->SetUpGrContext();
+        renderContext_->SetColorSpace(colorSpace_);
     }
     return true;
 }
@@ -136,6 +137,26 @@ void RSSurfaceAndroid::ClearAllBuffer()
 void RSSurfaceAndroid::ResetBufferAge()
 {
     ROSEN_LOGD("RSSurfaceAndroid: Reset Buffer Age!");
+}
+
+GraphicColorGamut RSSurfaceAndroid::GetColorSpace() const
+{
+    if (renderContext_ == nullptr) {
+        ROSEN_LOGE("RSSurfaceAndroid::GetColorSpace, renderContext_ is null  %u", colorSpace_);
+        return colorSpace_;
+    }
+     return renderContext_->GetColorSpace();
+}
+
+void RSSurfaceAndroid::SetColorSpace(GraphicColorGamut colorSpace)
+{
+    ROSEN_LOGD("RSSurfaceAndroid::SetColorSpace colorSpace %u", colorSpace);
+    if (renderContext_ == nullptr) {
+        ROSEN_LOGE("RSSurfaceAndroid::SetColorSpace renderContext_ is null");
+        return;
+    }
+    colorSpace_ = colorSpace;
+    renderContext_->SetColorSpace(colorSpace_);
 }
 
 RSSurfaceExtPtr RSSurfaceAndroid::CreateSurfaceExt(const RSSurfaceExtConfig& config)

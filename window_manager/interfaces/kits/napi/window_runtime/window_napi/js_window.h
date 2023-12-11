@@ -46,6 +46,8 @@ public:
     static NativeValue* SetWindowKeepScreenOn(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* RegisterWindowManagerCallback(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* UnregisterWindowManagerCallback(NativeEngine* engine, NativeCallbackInfo* info);
+    static NativeValue* SetWindowColorSpace(NativeEngine* engine, NativeCallbackInfo* info);
+    static NativeValue* GetWindowColorSpace(NativeEngine* engine, NativeCallbackInfo* info);
     static void Finalizer(NativeEngine* engine, void* data, void* hint);
     static NativeValue* GetUIContext(NativeEngine* engine, NativeCallbackInfo* info);
 
@@ -64,8 +66,10 @@ private:
     NativeValue* OnSetWindowBrightness(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnSetWindowKeepScreenOn(NativeEngine& engine, NativeCallbackInfo& info);
     NativeValue* OnGetUIContext(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue *OnRegisterWindowManagerCallback(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue *OnUnregisterWindowManagerCallback(NativeEngine &engine, NativeCallbackInfo &info);
+    NativeValue* OnRegisterWindowManagerCallback(NativeEngine &engine, NativeCallbackInfo &info);
+    NativeValue* OnUnregisterWindowManagerCallback(NativeEngine &engine, NativeCallbackInfo &info);
+    NativeValue* OnSetWindowColorSpace(NativeEngine &engine, NativeCallbackInfo &info);
+    NativeValue* OnGetWindowColorSpace(NativeEngine &engine, NativeCallbackInfo &info);
 
     std::string GetWindowName();
     std::shared_ptr<Rosen::Window> windowToken_;

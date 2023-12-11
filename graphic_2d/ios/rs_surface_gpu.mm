@@ -113,6 +113,24 @@ uint32_t RSSurfaceGPU::GetQueueSize() const
     return 0x3;
 }
 
+GraphicColorGamut RSSurfaceGPU::GetColorSpace() const
+{
+    if (renderContext_ == nullptr) {
+        ROSEN_LOGE("RSSurfaceGPU::GetColorSpace renderContext_ is nullptr");
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
+    return renderContext_->GetColorSpace();
+}
+
+void RSSurfaceGPU::SetColorSpace(GraphicColorGamut colorSpace)
+{
+    if (renderContext_ == nullptr) {
+        ROSEN_LOGE("RSSurfaceGPU::SetColorSpace renderContext_ is nullptr");
+        return;
+    }
+    renderContext_->SetColorSpace(colorSpace);
+}
+
 RSSurfaceExtPtr RSSurfaceGPU::CreateSurfaceExt(const RSSurfaceExtConfig& config)
 {
     ROSEN_LOGD("RSSurfaceGPU::CreateSurfaceExt");
@@ -138,8 +156,5 @@ RSSurfaceExtPtr RSSurfaceGPU::GetSurfaceExt(const RSSurfaceExtConfig& config)
             return nullptr;
     }
 }
-
-
-
 } // namespace Rosen
 } // namespace OHOS

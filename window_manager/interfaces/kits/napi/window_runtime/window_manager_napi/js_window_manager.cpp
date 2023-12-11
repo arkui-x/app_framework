@@ -306,6 +306,7 @@ NativeValue* JsWindowManagerInit(NativeEngine* engine, NativeValue* exportObj)
     object->SetProperty("WindowStageEventType", WindowStageEventTypeInit(engine));
     object->SetProperty("WmErrorCode", WindowErrorCodeInit(engine));
     object->SetProperty("WMError", WindowErrorInit(engine));
+     object->SetProperty("ColorSpace", WindowColorSpaceInit(engine));
     const char* moduleName = "JsWindowManager";
     BindNativeFunction(*engine, *object, "createWindow", moduleName, JsWindowManager::CreateWindow);
     BindNativeFunction(*engine, *object, "findWindow", moduleName, JsWindowManager::FindWindowSync);
