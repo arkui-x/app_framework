@@ -17,59 +17,58 @@
 #define OHOS_JS_WINDOW_H
 #include <map>
 #include <stdbool.h>
-#include "native_engine/native_engine.h"
-#include "native_engine/native_reference.h"
-#include "native_engine/native_value.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 #include "virtual_rs_window.h"
 
 namespace OHOS {
 namespace Rosen {
-NativeValue* CreateJsWindowObject(NativeEngine& engine, std::shared_ptr<Rosen::Window>& Window);
-std::shared_ptr<NativeReference> FindJsWindowObject(std::string windowName);
-void RemoveJsWindowObject(std::string windowName);
+napi_value CreateJsWindowObject(napi_env env, std::shared_ptr<Rosen::Window>& Window);
+napi_ref FindJsWindowObject(const std::string &windowName);
+void RemoveJsWindowObject(napi_env env, const std::string &windowName);
 class JsWindow {
 public:
     explicit JsWindow(std::shared_ptr<Rosen::Window>& Window);
     ~JsWindow();
-    static NativeValue* ShowWindow(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* DestroyWindow(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* MoveWindowTo(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* Resize(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetWindowPropertiesSync(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* SetWindowSystemBarEnable(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* SetPreferredOrientation(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* LoadContent(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* SetUIContent(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* IsWindowShowingSync(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* SetWindowBackgroundColorSync(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* SetWindowBrightness(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* SetWindowKeepScreenOn(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* RegisterWindowManagerCallback(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* UnregisterWindowManagerCallback(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* SetWindowColorSpace(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetWindowColorSpace(NativeEngine* engine, NativeCallbackInfo* info);
-    static void Finalizer(NativeEngine* engine, void* data, void* hint);
-    static NativeValue* GetUIContext(NativeEngine* engine, NativeCallbackInfo* info);
+    static napi_value ShowWindow(napi_env env, napi_callback_info info);
+    static napi_value DestroyWindow(napi_env env, napi_callback_info info);
+    static napi_value MoveWindowTo(napi_env env, napi_callback_info info);
+    static napi_value Resize(napi_env env, napi_callback_info info);
+    static napi_value GetWindowPropertiesSync(napi_env env, napi_callback_info info);
+    static napi_value SetWindowSystemBarEnable(napi_env env, napi_callback_info info);
+    static napi_value SetPreferredOrientation(napi_env env, napi_callback_info info);
+    static napi_value LoadContent(napi_env env, napi_callback_info info);
+    static napi_value SetUIContent(napi_env env, napi_callback_info info);
+    static napi_value IsWindowShowingSync(napi_env env, napi_callback_info info);
+    static napi_value SetWindowBackgroundColorSync(napi_env env, napi_callback_info info);
+    static napi_value SetWindowBrightness(napi_env env, napi_callback_info info);
+    static napi_value SetWindowKeepScreenOn(napi_env env, napi_callback_info info);
+    static napi_value RegisterWindowManagerCallback(napi_env env, napi_callback_info info);
+    static napi_value UnregisterWindowManagerCallback(napi_env env, napi_callback_info info);
+    static napi_value SetWindowColorSpace(napi_env env, napi_callback_info info);
+    static napi_value GetWindowColorSpace(napi_env env, napi_callback_info info);
+    static void Finalizer(napi_env env, void* data, void* hint);
+    static napi_value GetUIContext(napi_env env, napi_callback_info info);
 
 private:
-    NativeValue* OnShowWindow(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnDestroyWindow(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnMoveWindowTo(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnResize(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetWindowPropertiesSync(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnSetWindowSystemBarEnable(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnSetPreferredOrientation(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnLoadContent(NativeEngine& engine, NativeCallbackInfo&info);
-    NativeValue* OnSetUIContent(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnIsWindowShowingSync(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnSetWindowBackgroundColorSync(NativeEngine& engine, NativeCallbackInfo&info);
-    NativeValue* OnSetWindowBrightness(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnSetWindowKeepScreenOn(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetUIContext(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnRegisterWindowManagerCallback(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue* OnUnregisterWindowManagerCallback(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue* OnSetWindowColorSpace(NativeEngine &engine, NativeCallbackInfo &info);
-    NativeValue* OnGetWindowColorSpace(NativeEngine &engine, NativeCallbackInfo &info);
+    napi_value OnShowWindow(napi_env env, napi_callback_info info);
+    napi_value OnDestroyWindow(napi_env env, napi_callback_info info);
+    napi_value OnMoveWindowTo(napi_env env, napi_callback_info info);
+    napi_value OnResize(napi_env env, napi_callback_info info);
+    napi_value OnGetWindowPropertiesSync(napi_env env, napi_callback_info info);
+    napi_value OnSetWindowSystemBarEnable(napi_env env, napi_callback_info info);
+    napi_value OnSetPreferredOrientation(napi_env env, napi_callback_info info);
+    napi_value OnLoadContent(napi_env env, napi_callback_info info);
+    napi_value OnSetUIContent(napi_env env, napi_callback_info info);
+    napi_value OnIsWindowShowingSync(napi_env env, napi_callback_info info);
+    napi_value OnSetWindowBackgroundColorSync(napi_env env, napi_callback_info info);
+    napi_value OnSetWindowBrightness(napi_env env, napi_callback_info info);
+    napi_value OnSetWindowKeepScreenOn(napi_env env, napi_callback_info info);
+    napi_value OnGetUIContext(napi_env env, napi_callback_info info);
+    napi_value OnRegisterWindowManagerCallback(napi_env env, napi_callback_info info);
+    napi_value OnUnregisterWindowManagerCallback(napi_env env, napi_callback_info info);
+    napi_value OnSetWindowColorSpace(napi_env env, napi_callback_info info);
+    napi_value OnGetWindowColorSpace(napi_env env, napi_callback_info info);
 
     std::string GetWindowName();
     std::shared_ptr<Rosen::Window> windowToken_;

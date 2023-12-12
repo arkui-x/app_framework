@@ -12,9 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "js_window_listener.h"
-#include "js_runtime_utils.h"
+
 #include "hilog.h"
+#include "js_window_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -23,42 +25,48 @@ using namespace AbilityRuntime;
 JsWindowListener::~JsWindowListener()
 {
     HILOG_INFO("[NAPI]~JsWindowListener");
+    if (jsCallBack_) {
+        napi_delete_reference(engine_, jsCallBack_);
+    }
 }
 
-void JsWindowListener::CallJsMethod(const char* methodName, NativeValue* const* argv, size_t argc)
+void JsWindowListener::CallJsMethod(napi_env env, const char* methodName, napi_value const* argv, size_t argc)
 {
     HILOG_INFO("[NAPI]CallJsMethod methodName = %{public}s", methodName);
-    if (engine_ == nullptr || jsCallBack_ == nullptr) {
+    if (env == nullptr || jsCallBack_ == nullptr) {
         HILOG_ERROR("[NAPI]engine_ nullptr or jsCallBack_ is nullptr");
         return;
     }
-    NativeValue* method = jsCallBack_->Get();
+    napi_value method = nullptr;
+    napi_status status = napi_get_reference_value(env, jsCallBack_, &method);
     if (method == nullptr) {
         HILOG_ERROR("[NAPI]Failed to get method callback from object");
         return;
     }
-    engine_->CallFunction(engine_->CreateUndefined(), method, argv, argc);
+    napi_value userRet;
+    status = napi_call_function(env, nullptr, method, argc, argv, &userRet);
+    if (status != napi_ok) {
+        HILOG_ERROR("CallJsMethod failed status=%{public}d", status);
+    }
 }
 
 void JsWindowListener::LifeCycleCallBack(LifeCycleEventType eventType)
 {
     HILOG_INFO("[NAPI]LifeCycleCallBack, envent type: %{public}u", eventType);
-    std::unique_ptr<AsyncTask::CompleteCallback> complete = std::make_unique<AsyncTask::CompleteCallback>(
-        [self = weakRef_, eventType, eng = engine_, caseType = caseType_] (NativeEngine &engine,
-            AsyncTask &task, int32_t status) {
+    NapiAsyncTask::CompleteCallback complete =
+        [self = weakRef_, eventType, eng = engine_, caseType = caseType_]
+            (napi_env env, NapiAsyncTask &task, int32_t status) {
             auto thisListener = self.promote();
             if (thisListener == nullptr || eng == nullptr) {
                 HILOG_ERROR("[NAPI]this listener or engine is nullptr");
                 return;
             }
-            NativeValue* argv[] = {CreateJsValue(*eng, static_cast<uint32_t>(eventType))};
-            thisListener->CallJsMethod(caseType.c_str(), argv, ArraySize(argv));
-        }
-    );
-    NativeReference* callback = nullptr;
-    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
-    AsyncTask::Schedule("JsWindowListener::LifeCycleCallBack",
-        *engine_, std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
+            napi_value argv[] = {CreateJsValue(eng, static_cast<uint32_t>(eventType))};
+            thisListener->CallJsMethod(eng, caseType.c_str(), argv, ArraySize(argv));
+        };
+    napi_value result;
+    NapiAsyncTask::Schedule("JsWindowListener::LifeCycleCallBack",
+        engine_, CreateAsyncTaskWithLastParam(engine_, nullptr, nullptr, std::move(complete), &result));
 }
 
 void JsWindowListener::AfterForeground()

@@ -408,8 +408,7 @@ std::unique_ptr<NativeReference> JsAbility::CreateJsWindowStage()
     }
 
     auto env = jsRuntime_.GetNapiEnv();
-    auto engine = reinterpret_cast<NativeEngine*>(env);
-    auto jsWindowStage = reinterpret_cast<napi_value>(Rosen::CreateJsWindowStage(*engine, windowStage_));
+    auto jsWindowStage = reinterpret_cast<napi_value>(Rosen::CreateJsWindowStage(env, windowStage_));
     if (jsWindowStage == nullptr) {
         HILOG_ERROR("Failed to create jsWindowSatge object");
         return nullptr;

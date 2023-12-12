@@ -19,9 +19,10 @@
 #include <map>
 #include <mutex>
 #include <string>
+
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 #include "js_window_utils.h"
-#include "native_engine/native_engine.h"
-#include "native_engine/native_value.h"
 #include "refbase.h"
 #include "window_interface.h"
 #include "wm_common.h"
@@ -33,21 +34,21 @@ const std::string WINDOW_EVENT_CB = "windowEvent";
 
 class JsWindowListener : public IWindowLifeCycle {
 public:
-    JsWindowListener(const std::string& caseType, NativeEngine* engine, std::shared_ptr<NativeReference> callback)
-        : caseType_(caseType), engine_(engine), jsCallBack_(callback), weakRef_(wptr<JsWindowListener> (this)) {}
+    JsWindowListener(const std::string& caseType, napi_env env, napi_ref callback)
+        : caseType_(caseType), engine_(env), jsCallBack_(callback), weakRef_(wptr<JsWindowListener> (this)) {}
     ~JsWindowListener();
     void AfterForeground() override;
     void AfterBackground() override;
     void AfterFocused() override;
     void AfterUnfocused() override;
-    void CallJsMethod(const char* methodName, NativeValue* const* argv = nullptr, size_t argc = 0);
+    void CallJsMethod(napi_env env, const char* methodName, napi_value const* argv = nullptr, size_t argc = 0);
 private:
     WindowState state_ {WindowState::STATE_INITIAL};
     void LifeCycleCallBack(LifeCycleEventType eventType);
-    NativeEngine* engine_ = nullptr;
-    std::shared_ptr<NativeReference> jsCallBack_ = nullptr;
-    wptr<JsWindowListener> weakRef_  = nullptr;
     std::string caseType_;
+    napi_env engine_ = nullptr;
+    napi_ref jsCallBack_ = nullptr;
+    wptr<JsWindowListener> weakRef_  = nullptr;
 };
 }  // namespace Rosen
 }  // namespace OHOS

@@ -16,10 +16,10 @@
 #define OHOS_JS_WINDOW_REGISTER_MANAGER_H
 #include <map>
 #include <mutex>
+
 #include "js_window_listener.h"
-#include "native_engine/native_engine.h"
-#include "native_engine/native_reference.h"
-#include "native_engine/native_value.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 #include "refbase.h"
 #include "virtual_rs_window.h"
 
@@ -34,13 +34,16 @@ class JsWindowRegisterManager {
 public:
     JsWindowRegisterManager();
     ~JsWindowRegisterManager();
-    WmErrorCode RegisterListener(std::shared_ptr<Window> window, std::string type, CaseType caseType, NativeEngine& engine, NativeValue* value);
-    WmErrorCode UnregisterListener(std::shared_ptr<Window> window, std::string type, CaseType caseType, NativeValue* value);
+    static JsWindowRegisterManager& GetInstance();
+    WmErrorCode RegisterListener(napi_env env, std::shared_ptr<Window> window, std::string type, CaseType caseType, napi_value value);
+    WmErrorCode UnregisterListener(napi_env env, std::shared_ptr<Window> window, std::string type, CaseType caseType, napi_value value);
 private:
-    bool IsCallbackRegistered(std::string type, NativeValue* jsListenerObject);
+    bool IsEqualRegister(napi_env env, napi_value lhs, napi_ref rref);
+    bool IsCallbackRegistered(napi_env env, std::string type, napi_value jsListenerObject);
     WmErrorCode ProcessLifeCycleEventRegister(sptr<JsWindowListener> listener, std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);
+
     using Func_t = WmErrorCode(JsWindowRegisterManager::*)(sptr<JsWindowListener>, std::shared_ptr<OHOS::Rosen::Window> window, bool);
-    std::map<std::string, std::map<std::shared_ptr<NativeReference>, sptr<JsWindowListener>>> jsCbMap_;
+    std::map<std::string, std::map<napi_ref, sptr<JsWindowListener>>> jsCbMap_;
     std::mutex mtx_;
     std::map<CaseType, std::map<std::string, Func_t>> listenerProcess_;
 };
