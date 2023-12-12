@@ -183,7 +183,7 @@ std::unique_ptr<AsyncTask> CreateAsyncTaskWithLastParam(
             return retVal;                       \
         }                                        \
     } while (0)
-    
+
 struct NapiCallbackInfo {
     size_t argc = ARGC_MAX_COUNT;
     napi_value argv[ARGC_MAX_COUNT] = {nullptr};
@@ -196,13 +196,13 @@ struct NapiCallbackInfo {
         T* me = static_cast<T*>(GetNapiCallbackInfoAndThis(env, info, napiInfo, name));    \
         return (me != nullptr) ? me->func(env, napiInfo) : nullptr;                        \
     } while (0)
-    
+
 #define GET_NAPI_INFO_AND_CALL(env, info, T, func)                                         \
     GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, T, func, nullptr)
-    
+
 void* GetNapiCallbackInfoAndThis(
     napi_env env, napi_callback_info info, NapiCallbackInfo& napiInfo, const char* name = nullptr);
-    
+
 inline napi_value CreateJsUndefined(napi_env env)
 {
     napi_value result = nullptr;
@@ -224,6 +224,40 @@ inline napi_value CreateJsNumber(napi_env env, double value)
     return result;
 }
 
+inline napi_value CreateJsNumber(napi_env env, int32_t value)
+{
+    napi_value result = nullptr;
+    napi_create_int32(env, value, &result);
+    return result;
+}
+
+inline napi_value CreateJsNumber(napi_env env, uint32_t value)
+{
+    napi_value result = nullptr;
+    napi_create_uint32(env, value, &result);
+    return result;
+}
+
+inline napi_value CreateJsNumber(napi_env env, float value)
+{
+    napi_value result = nullptr;
+    double tmp = static_cast<double>(value);
+    napi_create_double(env, tmp, &result);
+    return result;
+}
+
+inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, int32_t& value)
+{
+    NAPI_CALL_NO_THROW(napi_get_value_int32(env, jsValue, &value), false);
+    return true;
+}
+
+inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, uint32_t& value)
+{
+    NAPI_CALL_NO_THROW(napi_get_value_uint32(env, jsValue, &value), false);
+    return true;
+}
+
 inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, int64_t& value)
 {
     NAPI_CALL_NO_THROW(napi_get_value_int64(env, jsValue, &value), false);
@@ -236,13 +270,21 @@ inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, double& value)
     return true;
 }
 
+inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, float& value)
+{
+    double tmp = 0;
+    NAPI_CALL_NO_THROW(napi_get_value_double(env, jsValue, &tmp), false);
+    value = static_cast<float>(tmp);
+    return true;
+}
+
 void* GetCbInfoFromCallbackInfo(napi_env env, napi_callback_info info, size_t* argc, napi_value* argv);
 
 template<typename T, size_t N>
 inline constexpr size_t ArraySize(T (&)[N]) noexcept
 {
     return N;
-}    
+}
 
 
 template<class T>
@@ -337,7 +379,7 @@ public:
     HandleScope(HandleScope&&) = delete;
     HandleScope& operator=(const HandleScope&) = delete;
     HandleScope& operator=(HandleScope&&) = delete;
-    
+
     // ---About to be deleted
     explicit HandleScope(NativeEngine& engine);
     // ---
@@ -359,7 +401,7 @@ public:
     HandleEscape(HandleEscape&&) = delete;
     HandleEscape& operator=(const HandleEscape&) = delete;
     HandleEscape& operator=(HandleEscape&&) = delete;
-    
+
     // ---About to be deleted
     explicit HandleEscape(NativeEngine& engine);
     NativeValue* Escape(NativeValue* value);
@@ -396,7 +438,6 @@ private:
 
     bool Start(const std::string &name, napi_env env);
     bool StartHighQos(const std::string &name, napi_env env);
-    
     napi_deferred deferred_ = nullptr;
     napi_ref callbackRef_ = nullptr;
     napi_async_work work_ = nullptr;

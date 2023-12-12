@@ -16,29 +16,26 @@
 #ifndef OHOS_JS_WINDOW_MANAGER_H
 #define OHOS_JS_WINDOW_MANAGER_H
 
-#include "js_runtime_utils.h"
-#include "native_engine/native_engine.h"
-#include "native_engine/native_reference.h"
-#include "native_engine/native_value.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 
 namespace OHOS {
 namespace Rosen {
-class WindowOption;    
-NativeValue* JsWindowManagerInit(NativeEngine* engine, NativeValue* exportObj);
+class WindowOption;
+napi_value JsWindowManagerInit(napi_env env, napi_value exportObj);
 class JsWindowManager {
 public:
     JsWindowManager();
     ~JsWindowManager();
-    static void Finalizer(NativeEngine* engine, void* data, void* hint);
-    static NativeValue* CreateWindow(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* FindWindowSync(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetLastWindow(NativeEngine* engine, NativeCallbackInfo* info);
+    static void Finalizer(napi_env env, void* data, void* hint);
+    static napi_value CreateWindow(napi_env env, napi_callback_info info);
+    static napi_value FindWindowSync(napi_env env, napi_callback_info info);
+    static napi_value GetLastWindow(napi_env env, napi_callback_info info);
 private:
-    static NativeValue* OnCreateWindow(NativeEngine& engine, NativeCallbackInfo& info);
-    static NativeValue* OnFindWindowSync(NativeEngine& engine, NativeCallbackInfo& info);
-    static NativeValue* OnGetLastWindow(NativeEngine& engine, NativeCallbackInfo& info);
-    static bool ParseConfigOption(
-        NativeEngine& engine, NativeObject* jsObject, WindowOption& option, void*& contextPtr);
+    static napi_value OnCreateWindow(napi_env env, napi_callback_info info);
+    static napi_value OnFindWindowSync(napi_env env, napi_callback_info info);
+    static napi_value OnGetLastWindow(napi_env env, napi_callback_info info);
+    static bool ParseConfigOption(napi_env env, napi_value jsObject, WindowOption& option, void*& contextPtr);
 };
 }  // namespace Rosen
 }  // namespace OHOS

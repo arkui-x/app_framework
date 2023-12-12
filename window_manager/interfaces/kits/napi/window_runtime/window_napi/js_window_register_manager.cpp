@@ -12,8 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "js_window_register_manager.h"
+
 #include "hilog.h"
+#include "js_window_listener.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -28,8 +31,13 @@ JsWindowRegisterManager::JsWindowRegisterManager()
     };
     // white register list for window stage
     listenerProcess_[CaseType::CASE_STAGE] = {
-        {WINDOW_STAGE_EVENT_CB,         &JsWindowRegisterManager::ProcessLifeCycleEventRegister    }
+        {"windowStageEvent",         &JsWindowRegisterManager::ProcessLifeCycleEventRegister    },
     };
+}
+
+JsWindowRegisterManager& JsWindowRegisterManager::GetInstance() {
+    static JsWindowRegisterManager instance;
+    return instance;
 }
 
 JsWindowRegisterManager::~JsWindowRegisterManager()
@@ -57,7 +65,19 @@ WmErrorCode JsWindowRegisterManager::ProcessLifeCycleEventRegister(sptr<JsWindow
     return ret;
 }
 
-bool JsWindowRegisterManager::IsCallbackRegistered(std::string type, NativeValue* jsListenerObject)
+bool JsWindowRegisterManager::IsEqualRegister(napi_env env, napi_value lhs, napi_ref rref)
+{
+    napi_value rhs;
+    napi_status status = napi_get_reference_value(env, rref, &rhs);
+    if (status != napi_ok) {
+        return false;
+    }
+    bool result = false;
+    status = napi_strict_equals(env, lhs, rhs, &result);
+    return status == napi_ok && result;
+}
+
+bool JsWindowRegisterManager::IsCallbackRegistered(napi_env env, std::string type, napi_value jsListenerObject)
 {
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
         HILOG_ERROR("[NAPI]Method %{public}s has not been registerted", type.c_str());
@@ -65,7 +85,7 @@ bool JsWindowRegisterManager::IsCallbackRegistered(std::string type, NativeValue
     }
 
     for (auto iter = jsCbMap_[type].begin(); iter != jsCbMap_[type].end(); ++iter) {
-        if (jsListenerObject->StrictEquals(iter->first->Get())) {
+        if (IsEqualRegister(env, jsListenerObject, iter->first)) {
             HILOG_ERROR("[NAPI]Method %{public}s has already been registered", type.c_str());
             return true;
         }
@@ -73,21 +93,26 @@ bool JsWindowRegisterManager::IsCallbackRegistered(std::string type, NativeValue
     return false;
 }
 
-WmErrorCode JsWindowRegisterManager::RegisterListener(std::shared_ptr<Window> window, std::string type,
-    CaseType caseType, NativeEngine& engine, NativeValue* value)
+WmErrorCode JsWindowRegisterManager::RegisterListener(napi_env env, std::shared_ptr<Window> window, std::string type,
+    CaseType caseType, napi_value value)
 {
     HILOG_ERROR("JsWindowRegisterManager RegisterListener%p", this);
     std::lock_guard<std::mutex> lock(mtx_);
-    if (IsCallbackRegistered(type, value)) {
+    if (IsCallbackRegistered(env, type, value)) {
         return WmErrorCode::WM_ERROR_STATE_ABNORMALLY;
     }
     if (listenerProcess_[caseType].count(type) == 0) {
         HILOG_ERROR("JsWindowRegisterManager::RegisterListener : Type %{public}s is not supported", type.c_str());
         return WmErrorCode::WM_ERROR_STATE_ABNORMALLY;
     }
-    std::shared_ptr<NativeReference> callbackRef;
-    callbackRef.reset(engine.CreateReference(value, 1));
-    sptr<JsWindowListener> windowManagerListener = new(std::nothrow) JsWindowListener(type, &engine, callbackRef);
+    napi_ref callbackRef;
+    napi_status status = napi_create_reference(env, value, 1, &callbackRef);
+    if (status != napi_ok) {
+        HILOG_ERROR("JsWindowRegisterManager::RegisterListener : create ref fail");
+        return WmErrorCode::WM_ERROR_STATE_ABNORMALLY;
+    }
+
+    sptr<JsWindowListener> windowManagerListener = new(std::nothrow) JsWindowListener(type, env, callbackRef);
     if (windowManagerListener == nullptr) {
         HILOG_ERROR("JsWindowRegisterManager::RegisterListener : New JsWindowListener failed");
         return WmErrorCode::WM_ERROR_STATE_ABNORMALLY;
@@ -104,8 +129,8 @@ WmErrorCode JsWindowRegisterManager::RegisterListener(std::shared_ptr<Window> wi
     return WmErrorCode::WM_OK;
 }
 
-WmErrorCode JsWindowRegisterManager::UnregisterListener(std::shared_ptr<Window> window, std::string type,
-    CaseType caseType, NativeValue* value)
+WmErrorCode JsWindowRegisterManager::UnregisterListener(napi_env env, std::shared_ptr<Window> window, std::string type,
+    CaseType caseType, napi_value value)
 {
     HILOG_ERROR("JsWindowRegisterManager UnregisterListener%p", this);
     std::lock_guard<std::mutex> lock(mtx_);
@@ -129,24 +154,24 @@ WmErrorCode JsWindowRegisterManager::UnregisterListener(std::shared_ptr<Window> 
     } else {
         bool findFlag = false;
         for (auto it = jsCbMap_[type].begin(); it != jsCbMap_[type].end(); ++it) {
-            if (!value->StrictEquals(it->first->Get())) {
+            if (!IsEqualRegister(env, value, it->first)) {
                 continue;
             }
             findFlag = true;
             WmErrorCode ret = (this->*listenerProcess_[caseType][type])(it->second, window, false);
             if (ret != WmErrorCode::WM_OK) {
-                HILOG_ERROR("JsWindowRegisterManager::RegisterListener : Unregister type %{public}s failed", type.c_str());
+                HILOG_ERROR("JsWindowRegisterManager::UnregisterListener : Unregister type %{public}s failed", type.c_str());
                 return ret;
             }
             jsCbMap_[type].erase(it);
             break;
         }
         if (!findFlag) {
-            HILOG_ERROR("JsWindowRegisterManager::RegisterListener : Unregister type %{public}s failed because not found callback!", type.c_str());
+            HILOG_ERROR("JsWindowRegisterManager::UnregisterListener : Unregister type %{public}s failed because not found callback!", type.c_str());
             return WmErrorCode::WM_ERROR_STATE_ABNORMALLY;
         }
     }
-    HILOG_INFO("JsWindowRegisterManager::RegisterListener : Unregister type %{public}s success! callback map size: %{public}zu",
+    HILOG_INFO("JsWindowRegisterManager::UnregisterListener : Unregister type %{public}s success! callback map size: %{public}zu",
         type.c_str(), jsCbMap_[type].size());
     // erase type when there is no callback in one type
     if (jsCbMap_[type].empty()) {

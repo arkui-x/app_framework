@@ -16,33 +16,26 @@
 #ifndef OHOS_JS_DISPLAY_MANAGER_H
 #define OHOS_JS_DISPLAY_MANAGER_H
 
-#include "native_engine/native_engine.h"
-#include "native_engine/native_value.h"
 #include "display_manager.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 
 namespace OHOS {
 namespace Rosen {
-NativeValue* InitDisplayState(NativeEngine* engine);
-NativeValue* InitOrientation(NativeEngine* engine);
-NativeValue* InitDisplayErrorCode(NativeEngine* engine);
-NativeValue* InitDisplayError(NativeEngine* engine);
-NativeValue* JsDisplayManagerInit(NativeEngine* engine, NativeValue* exportObj);
 
+napi_value JsDisplayManagerInit(napi_env env, napi_value exportObj);
 class JsDisplayManager {
 public:
-    explicit JsDisplayManager(NativeEngine* engine) {
+    explicit JsDisplayManager(napi_env env) {
     }
 
     ~JsDisplayManager() = default;
 
-    static void Finalizer(NativeEngine* engine, void* data, void* hint);
-    static NativeValue* GetDefaultDisplaySync(NativeEngine* engine, NativeCallbackInfo* info);
+    static void Finalizer(napi_env env, void* data, void* hint);
+    static napi_value GetDefaultDisplaySync(napi_env env, napi_callback_info info);
 
 private:
-    NativeValue* OnGetDefaultDisplaySync(NativeEngine& engine, NativeCallbackInfo& info);
-
-private:
-    std::mutex mtx_;
+    napi_value OnGetDefaultDisplaySync(napi_env env, napi_callback_info info);
 };
 }  // namespace Rosen
 }  // namespace OHOS
