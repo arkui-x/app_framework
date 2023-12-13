@@ -51,7 +51,6 @@ struct AbilityInfo;
 } // namespace OHOS
 
 class NativeEngine;
-class NativeValue;
 typedef struct napi_value__* napi_value;
 
 namespace OHOS::Ace::Platform {
@@ -66,7 +65,6 @@ public:
     virtual ~UIContent() = default;
 
     // UI content life-cycles
-    virtual void Initialize(OHOS::Rosen::Window* window, const std::string& url, NativeValue* storage) = 0;
     virtual void Initialize(OHOS::Rosen::Window* window, const std::string& url, napi_value storage) = 0;
     virtual void Foreground() = 0;
     virtual void Background() = 0;
@@ -106,11 +104,6 @@ public:
 
     // Receive memory level notification
     virtual void NotifyMemoryLevel(int32_t level) = 0;
-
-    virtual NativeValue* GetUIContext()
-    {
-        return nullptr;
-    };
 
     virtual napi_value GetUINapiContext()
     {
