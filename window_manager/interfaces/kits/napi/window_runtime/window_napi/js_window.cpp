@@ -952,7 +952,7 @@ napi_value JsWindow::OnGetUIContext(napi_env env, napi_callback_info info)
         return CreateUndefined(env);
     }
 
-    napi_value uiContext = reinterpret_cast<napi_value>(uicontent->GetUIContext());
+    napi_value uiContext = uicontent->GetUINapiContext();
     if (uiContext == nullptr) {
         HILOG_ERROR("uiContext obtained from jsEngine is nullptr");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
