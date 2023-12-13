@@ -1,10 +1,6 @@
 # ArkUI-X应用框架适配层
 
--   [简介](#section722458482)
--   [目录介绍](#section310658660)
--   [框架开发指导](#section475040653)
-
-## 简介<a name="section722458482"></a>
+## 简介
 
 ArkUI-X 应用框架（AppFramework）适配层是在不同平台上模拟OpenHarmony应用框架的运行环境，将应用的生命周期以及开发模型适配到对应的系统平台上，确保应用的开发模式保持兼容。
 
@@ -15,7 +11,7 @@ ArkUI-X 应用框架（AppFramework）适配层是在不同平台上模拟OpenHa
 - ResourceManagement：资源管理
 - WindowManager：窗口管理模块
 
-## 目录介绍<a name="section310658660"></a>
+## 目录介绍
 
 目录结构如下图所示：
 
@@ -29,7 +25,7 @@ ArkUI-X 应用框架（AppFramework）适配层是在不同平台上模拟OpenHa
 └── window_manager                # 窗口管理模块
 ```
 
-## 框架开发指导<a name="section475040653"></a>
+## 框架开发指导
 
 更多框架开发相关内容可参考：
 - [框架开发者文档](https://gitee.com/arkui-x/docs/blob/master/zh-cn/framework-dev/README.md)

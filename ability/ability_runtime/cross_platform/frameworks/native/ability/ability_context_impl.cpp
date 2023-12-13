@@ -141,6 +141,15 @@ void AbilityContextImpl::GetResourcePaths(std::string& hapResPath, std::string& 
     stageContext_->GetResourcePaths(hapResPath, sysResPath);
 }
 
+void AbilityContextImpl::GetResourcePaths(std::vector<std::string>& appResourcePaths, std::string& sysResourcePath)
+{
+    if (stageContext_ == nullptr) {
+        HILOG_ERROR("stageContext_ is nullptr");
+        return;
+    }
+    stageContext_->GetResourcePaths(appResourcePaths, sysResourcePath);
+}
+
 std::shared_ptr<Configuration> AbilityContextImpl::GetConfiguration()
 {
     return stageContext_ ? stageContext_->GetConfiguration() : nullptr;

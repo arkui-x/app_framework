@@ -144,6 +144,8 @@ std::shared_ptr<AppExecFwk::HapModuleInfo> ApplicationContext::GetHapModuleInfo(
 
 void ApplicationContext::GetResourcePaths(std::string& hapResPath, std::string& sysResPath) {}
 
+void ApplicationContext::GetResourcePaths(std::vector<std::string>& appResourcePaths, std::string& sysResourcePath) {}
+
 std::shared_ptr<Configuration> ApplicationContext::GetConfiguration()
 {
     return configuration_;

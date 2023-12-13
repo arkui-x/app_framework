@@ -213,6 +213,12 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(NodeId id, const Buf
     return {};
 }
 
+bool RSRenderServiceClient::RegisterBufferClearListener(
+    NodeId id, const BufferClearCallback &callback)
+{
+    return {};
+}
+
 bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
 {
     return {};
@@ -297,13 +303,19 @@ void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
 {
 }
 
-void RSRenderServiceClient::ReportEventFirstFrame(DataBaseRs info)
-{
-}
-
 std::vector<uint32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
 {
     return {};
 }
+
+void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled)
+{
+}
+
+bool RSRenderServiceClient::GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect)
+{
+    return {};
+}
+
 } // namespace Rosen
 } // namespace OHOS

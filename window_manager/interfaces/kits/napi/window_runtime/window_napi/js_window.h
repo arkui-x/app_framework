@@ -16,6 +16,7 @@
 #ifndef OHOS_JS_WINDOW_H
 #define OHOS_JS_WINDOW_H
 #include <map>
+#include <stdbool.h>
 #include "native_engine/native_engine.h"
 #include "native_engine/native_reference.h"
 #include "native_engine/native_value.h"
@@ -63,7 +64,6 @@ private:
     NativeValue* OnGetUIContext(NativeEngine& engine, NativeCallbackInfo& info);
 
     std::string GetWindowName();
-
     std::shared_ptr<Rosen::Window> windowToken_;
 };
 }  // namespace Rosen

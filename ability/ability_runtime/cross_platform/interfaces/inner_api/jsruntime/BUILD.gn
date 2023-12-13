@@ -54,6 +54,7 @@ template("ability_runtime_jsruntime") {
     configs = [
       ":jsruntime_config",
       "//arkcompiler/ets_runtime:ark_jsruntime_public_config",
+      "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle:bundle_parser_config",
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
     ]
 
@@ -68,16 +69,21 @@ template("ability_runtime_jsruntime") {
 
     sources = [
       "${ability_runtime_cross_platform_path}/frameworks/native/base/error/ability_business_error.cpp",
-      "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/connect_server_manager.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_console_log.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_data_struct_converter.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_error_utils.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_module_reader.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_runtime.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_runtime_utils.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_timer.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_worker.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/runtime.cpp",
     ]
+
+    if (runtime_mode != "release") {
+      sources += [ "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/connect_server_manager.cpp" ]
+      defines += [ "DEBUG_MODE" ]
+    }
 
     deps = [
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle:cross_platform_bundle_parser",

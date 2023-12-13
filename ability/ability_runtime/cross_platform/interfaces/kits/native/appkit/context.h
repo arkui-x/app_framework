@@ -151,6 +151,8 @@ public:
 
     virtual void GetResourcePaths(std::string& hapResPath, std::string& sysResPath) = 0;
 
+    virtual void GetResourcePaths(std::vector<std::string>& appResourcePaths, std::string& sysResourcePath) = 0;
+
     virtual std::shared_ptr<Configuration> GetConfiguration() = 0;
 
     /**

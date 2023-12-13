@@ -80,9 +80,17 @@ void AppMain::ScheduleLaunchApplication()
 
     auto moduleList = StageAssetManager::GetInstance()->GetModuleJsonBufferList();
     HILOG_INFO("module list size: %{public}d", static_cast<int32_t>(moduleList.size()));
-    bundleContainer_->LoadBundleInfos(moduleList);
+    if (!moduleList.empty()) {
+        bundleContainer_->LoadBundleInfos(moduleList);
+    }
     bundleContainer_->SetAppCodePath(StageAssetManager::GetInstance()->GetBundleCodeDir());
     bundleContainer_->SetPidAndUid(pid_, uid_);
+#ifdef ANDROID_PLATFORM
+    auto bundleName = bundleContainer_->GetBundleName();
+    if (!bundleName.empty()) {
+        StageAssetManager::GetInstance()->CopyNativeLibToAppDataModuleDir(bundleName);
+    }
+#endif
     application_ = std::make_shared<Application>();
     if (application_ == nullptr) {
         HILOG_ERROR("application_ is nullptr");
@@ -96,16 +104,7 @@ void AppMain::ScheduleLaunchApplication()
         return;
     }
     applicationContext->SetBundleContainer(bundleContainer_);
-    auto applicationInfo = bundleContainer_->GetApplicationInfo();
-    applicationContext->SetApplicationInfo(applicationInfo);
-    application_->SetApplicationContext(applicationContext);
-
-    auto bundleInfo = bundleContainer_->GetBundleInfo();
-    if (!CreateRuntime(applicationInfo->bundleName, bundleInfo->hapModuleInfos.back().compileMode
-        != AppExecFwk::CompileMode::ES_MODULE)) {
-        HILOG_ERROR("runtime create failed.");
-        return;
-    }
+    ParseBundleComplete();
 
     HILOG_INFO("Launch application success.");
 }
@@ -155,6 +154,9 @@ bool AppMain::CreateRuntime(const std::string& bundleName, bool isBundle)
     options.bundleName = bundleName;
     options.isBundle = isBundle;
     options.appLibPath = StageAssetManager::GetInstance()->GetAppLibDir();
+#ifdef ANDROID_PLATFORM
+    options.appDataLibPath = StageAssetManager::GetInstance()->GetAppDataLibDir();
+#endif
     auto runtime = AbilityRuntime::Runtime::Create(options);
     if (runtime == nullptr) {
         return false;
@@ -162,6 +164,38 @@ bool AppMain::CreateRuntime(const std::string& bundleName, bool isBundle)
 
     application_->SetRuntime(std::move(runtime));
     return true;
+}
+
+void AppMain::ParseBundleComplete()
+{
+    if (bundleContainer_ == nullptr) {
+        HILOG_ERROR("bundleContainer_ is nullptr");
+        return;
+    }
+
+    auto applicationContext = ApplicationContext::GetInstance();
+    if (applicationContext == nullptr) {
+        HILOG_ERROR("applicationContext is nullptr");
+        return;
+    }
+
+    auto applicationInfo = bundleContainer_->GetApplicationInfo();
+    if (applicationInfo != nullptr) {
+        applicationContext->SetApplicationInfo(applicationInfo);
+    }
+    application_->SetApplicationContext(applicationContext);
+
+    auto bundleInfo = bundleContainer_->GetBundleInfo();
+    if (applicationInfo == nullptr || bundleInfo == nullptr) {
+        HILOG_ERROR("applicationInfo or bundleInfo is nullptr.");
+        return;
+    }
+
+    if (!CreateRuntime(applicationInfo->bundleName,
+            bundleInfo->hapModuleInfos.back().compileMode != AppExecFwk::CompileMode::ES_MODULE)) {
+        HILOG_ERROR("runtime create failed.");
+        return;
+    }
 }
 
 void AppMain::DispatchOnCreate(const std::string& instanceName, const std::string& params)
@@ -252,7 +286,37 @@ void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std:
         HILOG_ERROR("application_ is nullptr");
         return;
     }
+    auto want = TransformToWant(instanceName);
+    std::string moduleName = want.GetModuleName();
+    auto hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
+    if (hapModuleInfo == nullptr) {
+        auto moduleList = StageAssetManager::GetInstance()->GetModuleJsonBufferList();
+        auto jsonFile = StageAssetManager::GetInstance()->GetAppDataModuleDir() + '/' + moduleName + "/module.json";
+        auto dynamicModuleJson = StageAssetManager::GetInstance()->GetBufferByAppDataPath(jsonFile);
+        if (dynamicModuleJson.size() > 0) {
+            moduleList.emplace_back(dynamicModuleJson);
+            HILOG_INFO("stage dynamic module list size: %{public}d", static_cast<int32_t>(moduleList.size()));
+            bundleContainer_->LoadBundleInfos(moduleList);
+            if (application_->GetRuntime() == nullptr) {
+                ParseBundleComplete();
+                hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
+            }
+        }
+    }
 
+#ifdef ANDROID_PLATFORM
+    std::vector<std::string> moduleNames { moduleName };
+    if (hapModuleInfo != nullptr) {
+        auto dependencies = hapModuleInfo->dependencies;
+        if (!dependencies.empty()) {
+            for (const auto& dependency : dependencies) {
+                StageAssetManager::GetInstance()->CopyHspResourcePath(dependency);
+                moduleNames.emplace_back(dependency);
+            }
+        }
+    }
+    StageAssetManager::GetInstance()->SetNativeLibPaths(hapModuleInfo->bundleName, moduleNames);
+#endif
     application_->HandleAbilityStage(TransformToWant(instanceName, params));
 }
 
@@ -391,6 +455,27 @@ void AppMain::HandleDispatchOnAbilityResult(
     abilityResultWant.ParseJson(resultWant);
     application_->DispatchOnAbilityResult(
         TransformToWant(instanceName), requestCode, resultCode, abilityResultWant);
+}
+
+void AppMain::ParseHspModuleJson(const std::string& moduleName)
+{
+    if (bundleContainer_ == nullptr) {
+        HILOG_ERROR("bundleContainer_ is nullptr");
+        return;
+    }
+    auto hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
+    if (hapModuleInfo != nullptr) {
+        HILOG_WARN("Module has been parsed");
+        return;
+    }
+    auto jsonFile = StageAssetManager::GetInstance()->GetAppDataModuleDir() + '/' + moduleName + "/module.json";
+    auto dynamicModuleJson = StageAssetManager::GetInstance()->GetBufferByAppDataPath(jsonFile);
+    if (dynamicModuleJson.empty()) {
+        HILOG_ERROR("Get buffer by module path failed.");
+        return;
+    }
+    std::list<std::vector<uint8_t>> moduleList { dynamicModuleJson };
+    bundleContainer_->LoadBundleInfos(moduleList);
 }
 } // namespace Platform
 } // namespace AbilityRuntime

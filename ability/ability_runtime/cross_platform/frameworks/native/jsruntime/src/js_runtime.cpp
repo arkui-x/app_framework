@@ -28,15 +28,20 @@
 #include <unistd.h>
 
 #include "base/log/ace_trace.h"
+#ifdef DEBUG_MODE
 #include "connect_server_manager.h"
+#endif
 #include "ecmascript/napi/include/jsnapi.h"
 #include "event_handler.h"
 #include "hilog.h"
 #include "js_console_log.h"
+#include "js_module_reader.h"
 #include "js_runtime_utils.h"
 #include "js_timer.h"
 #include "js_worker.h"
 #include "native_engine/impl/ark/ark_native_engine.h"
+
+#include "base/log/ace_trace.h"
 
 #ifdef SUPPORT_GRAPHICS
 #include "foundation/appframework/arkui/uicontent/declarative_module_preloader.h"
@@ -134,14 +139,28 @@ private:
         }
 
         auto nativeEngine = std::make_unique<ArkNativeEngine>(vm_, static_cast<JsRuntime*>(this));
+#ifdef ANDROID_PLATFORM
+        std::vector<std::string> paths;
+        if (!options.appLibPath.empty()) {
+            paths.push_back(options.appLibPath);
+        }
+        if (!options.appDataLibPath.empty()) {
+            paths.push_back(options.appDataLibPath);
+        }
+        if (paths.size() != 0) {
+            nativeEngine->SetPackagePath("default", paths);
+        }
+#else
         if (!options.appLibPath.empty()) {
             nativeEngine->SetPackagePath("default", { options.appLibPath });
         }
+#endif
         nativeEngine_ = std::move(nativeEngine);
 
         isBundle_ = options.isBundle;
         panda::JSNApi::SetBundle(vm_, options.isBundle);
         panda::JSNApi::SetBundleName(vm_, options.bundleName);
+        panda::JSNApi::SetHostResolveBufferTracker(vm_, JsModuleReader(options.bundleName));
         return JsRuntime::Initialize(options);
     }
 
@@ -456,8 +475,10 @@ void JsRuntime::StartDebugMode(bool needBreakPoint)
 bool JsRuntime::StartDebugMode(
     const std::string& bundleName, bool needBreakPoint, uint32_t instanceId, const DebuggerPostTask& debuggerPostTask)
 {
+#ifdef DEBUG_MODE
     ConnectServerManager::Get().StartConnectServer(bundleName);
     ConnectServerManager::Get().AddInstance(instanceId);
+#endif
     StartDebuggerInWorkerModule();
     return true;
 }

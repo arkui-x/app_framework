@@ -23,8 +23,10 @@
 #include <unordered_map>
 #include <vector>
 
+#include "js_module_reader.h"
 #include "native_engine/native_engine.h"
 #include "runtime.h"
+#include "js_module_reader.h"
 
 class NativeEngine;
 namespace OHOS {

@@ -184,6 +184,30 @@ void AbilityStageContext::GetResourcePaths(std::string& appResourcePath, std::st
     HILOG_INFO(
         "appResourcePath: %{public}s, sysResourcePath: %{public}s", appResourcePath.c_str(), sysResourcePath.c_str());
 }
+
+void AbilityStageContext::GetResourcePaths(std::vector<std::string>& appResourcePaths, std::string& sysResourcePath)
+{
+    std::string appResourcePath = "";
+    GetResourcePaths(appResourcePath, sysResourcePath);
+    if (!appResourcePath.empty()) {
+        appResourcePaths.emplace_back(appResourcePath);
+    }
+
+    auto dependencies = hapModuleInfo_->dependencies;
+    if (dependencies.empty()) {
+        return;
+    }
+    for (const auto& dependency : dependencies) {
+        std::string appResPath = "";
+        std::string sysResPath = "";
+        StageAssetManager::GetInstance()->GetResIndexPath(dependency, appResPath, sysResPath);
+        auto appFisrtPos = appResPath.find_last_of('/');
+        appResourcePath = appResPath.substr(0, appFisrtPos);
+        if (!appResourcePath.empty()) {
+            appResourcePaths.emplace_back(appResourcePath);
+        }
+    }
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

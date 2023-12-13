@@ -48,10 +48,12 @@ public:
         const std::string& testRunerName, const std::string& timeout);
     void DispatchOnAbilityResult(const std::string& instanceName, int32_t requestCode, int32_t resultCode,
         const std::string& wantParams);
+    void ParseHspModuleJson(const std::string& moduleName);
 
 private:
     void ScheduleLaunchApplication();
     bool CreateRuntime(const std::string& bundleName, bool isBundle);
+    void ParseBundleComplete();
     void HandleDispatchOnCreate(const std::string& instanceName, const std::string& params);
     void HandleDispatchOnNewWant(const std::string& instanceName);
     void HandleDispatchOnForeground(const std::string& instanceName);

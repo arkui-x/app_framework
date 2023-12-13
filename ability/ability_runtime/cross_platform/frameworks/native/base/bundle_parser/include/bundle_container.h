@@ -43,6 +43,7 @@ public:
     void dump(const std::string& pathName);
     void SetAppCodePath(const std::string& codePath);
     void SetPidAndUid(int32_t pid, int32_t uid);
+    std::string GetBundleName() const;
 private:
     std::shared_ptr<InnerBundleInfo> bundleInfo_ = nullptr;
 };

@@ -19,12 +19,42 @@
 
 namespace OHOS {
 namespace Rosen {
+int RSSystemProperties::GetDumpFrameNum()
+{
+    return 0;
+}
+
+bool RSSystemProperties::GetRecordingEnabled()
+{
+    return false;
+}
+
+void RSSystemProperties::SetRecordingDisenabled()
+{
+    return;
+}
+
+std::string RSSystemProperties::GetRecordingFile()
+{
+    return "";
+}
+
 bool RSSystemProperties::GetUniRenderEnabled()
 {
     return isUniRenderEnabled_;
 }
 
 bool RSSystemProperties::GetRenderNodeTraceEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetDrawOpTraceEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::IsSceneBoardEnabled()
 {
     return {};
 }
@@ -64,6 +94,13 @@ bool RSSystemProperties::GetHighContrastStatus()
     return {};
 }
 
+#ifndef NEW_SKIA
+ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
+{
+    return {};
+}
+#endif
+
 uint32_t RSSystemProperties::GetCorrectionMode()
 {
     return {};
@@ -98,6 +135,21 @@ ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
     return {};
 }
 
+HgmRefreshRates RSSystemProperties::GetHgmRefreshRatesEnabled()
+{
+    return {};
+}
+
+void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
+{
+    return;
+}
+
+HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
+{
+    return {};
+}
+
 bool RSSystemProperties::GetColdStartThreadEnabled()
 {
     return {};
@@ -108,19 +160,39 @@ bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
     return {};
 }
 
-bool RSSystemProperties::GetKawaseEnabled()
+bool RSSystemProperties::GetSkipGeometryNotChangeEnabled()
 {
     return {};
-}
-
-bool RSSystemProperties::GetASTCEnabled()
-{
-    return false;
 }
 
 float RSSystemProperties::GetAnimationScale()
 {
     return 1.f;
+}
+
+bool RSSystemProperties::GetProxyNodeDebugEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetFilterCacheEnabled()
+{
+    return false;
+}
+
+int RSSystemProperties::GetFilterCacheUpdateInterval()
+{
+    return 0;
+}
+
+int RSSystemProperties::GetFilterCacheSizeThreshold()
+{
+    return 0;
+}
+
+bool RSSystemProperties::GetKawaseEnabled()
+{
+    return false;
 }
 
 bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
@@ -133,19 +205,29 @@ int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyCh
     return {};
 }
 
-bool RSSystemProperties::GetDrawOpTraceEnabled()
+bool RSSystemProperties::GetAFBCEnabled()
 {
     return {};
 }
 
-bool RSSystemProperties::GetFilterCacheEnabled()
+bool RSSystemProperties::GetASTCEnabled()
 {
     return false;
 }
 
-int RSSystemProperties::GetFilterCacheUpdateInterval()
+bool RSSystemProperties::GetImageGpuResourceCacheEnable(int, int)
 {
-    return 0;
+    return false;
+}
+
+bool RSSystemProperties::GetBlurEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetDebugTraceEnabled()
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

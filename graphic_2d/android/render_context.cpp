@@ -70,25 +70,6 @@ static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* native_display, 
     return eglGetDisplay((EGLNativeDisplayType)native_display);
 }
 
-static void PerfForRender()
-{
-    cpu_set_t set;
-    CPU_ZERO(&set);
-    for (auto i = 4; i < 8; i++) {
-        CPU_SET(i, &set);
-    }
-    if (sched_setaffinity(0, sizeof(set), &set) == -1) {
-        ROSEN_LOGE("sched_setaffinity failed!!!");
-    } else {
-        ROSEN_LOGE("sched_setaffinity succeed!!!");
-    }
-    if (::setpriority(PRIO_PROCESS, gettid(), -20) != 0) {
-        ROSEN_LOGE("setpriority failed!!!");
-    } else {
-        ROSEN_LOGE("setpriority succeed!!!");
-    }
-}
-
 RenderContext::RenderContext()
     : grContext_(nullptr),
       skSurface_(nullptr),
@@ -284,7 +265,12 @@ bool RenderContext::SetUpGrContext()
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
 
+#if defined(NEW_SKIA)
+    sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
+#else
     sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
+#endif
+
     if (grContext == nullptr) {
         ROSEN_LOGE("SetUpGrContext grContext is null");
         return false;
@@ -299,7 +285,6 @@ bool RenderContext::SetUpGrContext()
     } else {
         grContext->setResourceCacheLimits(DEFAULT_SKIA_CACHE_COUNT, DEFAULT_SKIA_CACHE_SIZE);
     }
-    PerfForRender();
     grContext_ = std::move(grContext);
     return true;
 }
@@ -319,7 +304,11 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
     /* sampleCnt and stencilBits for GrBackendRenderTarget */
     const int stencilBufferSize = 8;
     GrBackendRenderTarget backendRenderTarget(width, height, 0, stencilBufferSize, framebufferInfo);
+#if defined(NEW_SKIA)
+    SkSurfaceProps surfaceProps(0, kRGB_H_SkPixelGeometry);
+#else
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
+#endif
     sk_sp<SkColorSpace> skColorSpace = nullptr;
 
     skSurface_ = SkSurface::MakeFromBackendRenderTarget(

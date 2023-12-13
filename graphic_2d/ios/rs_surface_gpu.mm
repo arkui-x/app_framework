@@ -36,10 +36,11 @@ RSSurfaceGPU::RSSurfaceGPU(void* layer)
 
 RSSurfaceGPU::~RSSurfaceGPU()
 {
-    ROSEN_LOGI("RSSurfaceGPU::release");
+    ROSEN_LOGD("RSSurfaceGPU::release");
     if (renderContext_ != nullptr) {
         renderContext_->DestroyEGLSurface(layer_);
     }
+    [static_cast<CAEAGLLayer*>(layer_) release];
     layer_ = nullptr;
 }
 
@@ -81,7 +82,9 @@ bool RSSurfaceGPU::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t u
     renderContext_->MakeCurrent(nullptr, nullptr);
     renderContext_->RenderFrame();
     renderContext_->SwapBuffers(nullptr);
-
+    if (auto grContext = renderContext_->GetGrContext()) {
+        grContext->purgeUnlockedResources(true);
+    }
     return true;
 }
 

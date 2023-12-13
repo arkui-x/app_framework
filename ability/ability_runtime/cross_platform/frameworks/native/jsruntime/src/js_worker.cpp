@@ -22,7 +22,9 @@
 #include <vector>
 #include <unistd.h>
 
+#ifdef DEBUG_MODE
 #include "connect_server_manager.h"
+#endif
 #include "commonlibrary/c_utils/base/include/refbase.h"
 #ifdef SUPPORT_GRAPHICS
 #include "core/common/container_scope.h"
@@ -71,10 +73,11 @@ void InitWorkerFunc(NativeEngine* nativeEngine)
         HILOG_ERROR("Failed to get global object");
         return;
     }
-    
+
     InitConsoleLogModule(*nativeEngine, *globalObj);
 
     if (g_debugMode) {
+#ifdef DEBUG_MODE
         uint64_t instanceId;
 #if !defined(IOS_PLATFORM)
         instanceId = gettid();
@@ -90,6 +93,7 @@ void InitWorkerFunc(NativeEngine* nativeEngine)
         };
         panda::JSNApi::DebugOption debugOption = {ARK_DEBUGGER_LIB_PATH, needBreakPoint};
         panda::JSNApi::StartDebugger(vm, debugOption, instanceId, workerPostTask);
+#endif
     }
 }
 
@@ -102,6 +106,7 @@ void OffWorkerFunc(NativeEngine* nativeEngine)
     }
 
     if (g_debugMode) {
+#ifdef DEBUG_MODE
         uint64_t instanceId;
 #if !defined(IOS_PLATFORM)
         instanceId = gettid();
@@ -109,6 +114,7 @@ void OffWorkerFunc(NativeEngine* nativeEngine)
         pthread_threadid_np(0, &instanceId);
 #endif
         ConnectServerManager::Get().RemoveInstance(instanceId);
+#endif
         auto arkNativeEngine = static_cast<ArkNativeEngine*>(nativeEngine);
         auto vm = const_cast<EcmaVM*>(arkNativeEngine->GetEcmaVm());
         panda::JSNApi::StopDebugger(vm);

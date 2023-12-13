@@ -150,7 +150,7 @@ template("appkit_delegator_appkit_native") {
       "//foundation/appframework/resource_management:global_resmgr",
     ]
 
-    if (is_cross_platform_build) {
+    if (is_arkui_x) {
       include_dirs += [
         "//plugins/hilog/include",
         "//plugins/interfaces",

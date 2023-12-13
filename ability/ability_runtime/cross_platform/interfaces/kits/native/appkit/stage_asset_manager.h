@@ -40,7 +40,16 @@ public:
     std::string GetDatabaseDir() const;
     std::string GetPreferencesDir() const;
     std::string GetAppLibDir() const;
+#ifdef ANDROID_PLATFORM
+    std::string GetAppDataLibDir() const;
+    void CopyHspResourcePath(const std::string& moduleName);
+    void CopyNativeLibToAppDataModuleDir(const std::string& bundleName);
+    void SetNativeLibPaths(const std::string& bundleName, const std::vector<std::string>& moduleNames);
+#endif
     void GetResIndexPath(const std::string& moduleName, std::string& appResIndexPath, std::string& sysResIndexPath);
+    std::string GetAppDataModuleDir() const;
+    bool GetAppDataModuleAssetList(const std::string& path, std::vector<std::string>& fileFullPaths, bool onlyChild);
+    std::vector<uint8_t> GetBufferByAppDataPath(const std::string& fileFullPath);
 
 private:
     static std::shared_ptr<StageAssetManager> instance_;

@@ -86,7 +86,11 @@ void RenderContext::InitializeEglContext()
         UIDisplayGamut displayGamut = [UIScreen mainScreen].traitCollection.displayGamut;
         switch (displayGamut) {
             case UIDisplayGamutP3:
+#if defined(NEW_SKIA)
+                color_space_ = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
+#else
                 color_space_ = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
+#endif
                 break;
             default:
                 break;
@@ -174,8 +178,8 @@ void RenderContext::SwapBuffers(EGLSurface surface) const
 
 void RenderContext::DestroyEGLSurface(EGLSurface surface)
 {
-    ROSEN_LOGI("RenderContext::DestroyEGLSurface");
-    [static_cast<CAEAGLLayer*>(surface) release];
+    ROSEN_LOGD("RenderContext::DestroyEGLSurface");
+    [static_cast<CAEAGLLayer*>(layer_) release];
     layer_ = nullptr;
 }
 
@@ -214,7 +218,12 @@ bool RenderContext::SetUpGrContext()
     options.fAvoidStencilBuffers = true;
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableGpuYUVConversion = true;
+#if defined(NEW_SKIA)
+    sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
+#else
     sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
+#endif
+
     if (grContext == nullptr) {
         ROSEN_LOGE("SetUpGrContext grContext is null");
         return false;
@@ -233,7 +242,11 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
     /* sampleCnt and stencilBits for GrBackendRenderTarget */
     const int stencilBufferSize = 8;
     GrBackendRenderTarget backendRenderTarget(width, height, 0, stencilBufferSize, framebufferInfo);
+#if defined(NEW_SKIA)
+    SkSurfaceProps surfaceProps(0, kRGB_H_SkPixelGeometry);
+#else
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
+#endif
     sk_sp<SkColorSpace> skColorSpace = nullptr;
 
     skSurface_ = SkSurface::MakeFromBackendRenderTarget(
