@@ -34,6 +34,7 @@ template("display_manager_napi") {
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit:appkit_native_config",
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/jsruntime:jsruntime_config",
       "$ace_root:ace_config",
+      "//foundation/arkui/napi:ace_napi_config",
     ]
     defines = []
     if (target_cpu == "arm64") {
@@ -47,6 +48,7 @@ template("display_manager_napi") {
       "//commonlibrary/c_utils/base/include",
       "//foundation/appframework/window_manager/utils/include",
     ]
+    deps = [ "//foundation/appframework/window_manager/utils:wm_utils" ]
     if (current_os == "android") {
       include_dirs +=
           [ "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni" ]
@@ -59,11 +61,6 @@ template("display_manager_napi") {
       "${display_manager_napi_path}/kits/napi/display_runtime/display_manager_module.cpp",
       "${display_manager_napi_path}/kits/napi/display_runtime/js_display.cpp",
       "${display_manager_napi_path}/kits/napi/display_runtime/js_display_manager.cpp",
-    ]
-
-    deps = [
-      "//foundation/appframework/window_manager/utils:wm_utils",
-      "//foundation/arkui/napi:ace_napi",
     ]
   }
 }
