@@ -334,7 +334,7 @@ void LoadContentTask(napi_env env, napi_ref storageRef, const std::string &conte
     }
     HILOG_INFO("LoadContentTask : contextUrl %{public}s", contextUrl.c_str());
     WMError ret = weakWindow->SetUIContent(contextUrl,
-        reinterpret_cast<NativeEngine*>(env), reinterpret_cast<NativeValue *>(nativeStorage), false, nullptr);
+        reinterpret_cast<NativeEngine*>(env), nativeStorage, false, nullptr);
     if (ret == WMError::WM_OK) {
         task.Resolve(env, CreateUndefined(env));
     } else {
