@@ -274,7 +274,9 @@ bool JsAbilityContext::UnWrapAbilityResult(
 
     napi_value jsProNameList = nullptr;
     napi_get_named_property(env, jObj, "resultCode", &jsProNameList);
-    resultCode = int32_t(*ConvertNativeValueTo<NativeNumber>(reinterpret_cast<NativeValue*>(jsProNameList)));
+    ConvertFromJsNumber(env, jsProNameList, resultCode);
+    
+    
     napi_value jWant = nullptr;
     napi_get_named_property(env, jObj, "want", &jWant);
     if (jWant == nullptr) {

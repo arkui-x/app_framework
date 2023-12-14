@@ -119,7 +119,9 @@ napi_value StartTimeoutOrInterval(napi_env env, napi_callback_info info, bool is
     name.append(std::to_string(callbackId));
 
     // create timer task
-    JsRuntime& jsRuntime = *reinterpret_cast<JsRuntime*>(env);
+    NativeEngine* engine = reinterpret_cast<NativeEngine*>(env);
+    JsRuntime& jsRuntime = *reinterpret_cast<JsRuntime*>(engine->GetJsEngine());
+    env = reinterpret_cast<napi_env>(engine);
     JsTimer task(jsRuntime, jsFunction, name, delayTime, isInterval);
     for (size_t index = 2; index < argc; ++index) {
         napi_ref ref = nullptr;
