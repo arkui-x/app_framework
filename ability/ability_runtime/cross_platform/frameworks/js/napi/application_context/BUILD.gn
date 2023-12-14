@@ -1,0 +1,75 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//arkcompiler/ets_frontend/es2panda/es2abc_config.gni")
+import("//build/ohos.gni")
+import("//foundation/arkui/ace_engine/build/ace_gen_obj.gni")
+import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
+
+es2abc_gen_abc("gen_application_context_abc") {
+  src_js = rebase_path("application_context.js")
+  dst_file = rebase_path(target_out_dir + "/application_context.abc")
+  in_puts = [ "application_context.js" ]
+  out_puts = [ target_out_dir + "/application_context.abc" ]
+  extra_args = [ "--module" ]
+}
+
+gen_obj("application_context_js") {
+  input = "application_context.js"
+  if (target_os == "ios") {
+    output = target_out_dir + "/application_context.c"
+  } else {
+    output = target_out_dir + "/application_context.o"
+  }
+  snapshot_dep = []
+}
+
+gen_obj("application_context_abc") {
+  input = get_label_info(":gen_application_context_abc", "target_out_dir") +
+          "/application_context.abc"
+  if (target_os == "ios") {
+    output = target_out_dir + "/application_context_abc.c"
+  } else {
+    output = target_out_dir + "/application_context_abc.o"
+  }
+  snapshot_dep = [ ":gen_application_context_abc" ]
+}
+
+ohos_source_set("application_applicationcontext_source_set") {
+  sources = [ "application_context_module.cpp" ]
+
+  deps = [
+    ":gen_obj_src_application_context_abc",
+    ":gen_obj_src_application_context_js",
+  ]
+
+  if (use_static_napi_libs) {
+    deps += [ "//foundation/arkui/napi:ace_napi" ]
+  } else {
+    deps += ["//plugins/libs/napi:napi_${target_os}"]
+  }
+
+  if (target_os == "ios") {
+    defines = [ "IOS_PLATFORM" ]
+  }
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_shared_library("application_applicationcontext") {
+  deps = [ ":application_applicationcontext_source_set" ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}

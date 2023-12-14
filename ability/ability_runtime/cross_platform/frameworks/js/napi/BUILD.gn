@@ -1,0 +1,45 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
+
+group("napi_packages") {
+  if (use_static_napi_libs) {
+    deps = [
+      "${cross_platform_napi_path}/ability:app_ability_uiability_source_set",
+      "${cross_platform_napi_path}/ability_constant:app_ability_abilityconstant_source_set",
+      "${cross_platform_napi_path}/ability_context:application_abilitycontext_source_set",
+      "${cross_platform_napi_path}/ability_delegator:ability_delegator_source_set",
+      "${cross_platform_napi_path}/ability_stage:app_ability_abilitystage_source_set",
+      "${cross_platform_napi_path}/ability_stage_context:application_abilitystagecontext_source_set",
+      "${cross_platform_napi_path}/application_context:application_applicationcontext_source_set",
+      "${cross_platform_napi_path}/bundle_manager:bundle_bundlemanager_source_set",
+      "${cross_platform_napi_path}/configuration_constant:app_ability_configurationconstant_source_set",
+      "${cross_platform_napi_path}/context:application_context_source_set",
+    ]
+  } else {
+    deps = [
+      "${cross_platform_napi_path}/ability:app_ability_uiability",
+      "${cross_platform_napi_path}/ability_constant:app_ability_abilityconstant",
+      "${cross_platform_napi_path}/ability_context:application_abilitycontext",
+      "${cross_platform_napi_path}/ability_delegator:ability_delegator",
+      "${cross_platform_napi_path}/ability_stage:app_ability_abilitystage",
+      "${cross_platform_napi_path}/ability_stage_context:application_abilitystagecontext",
+      "${cross_platform_napi_path}/application_context:application_applicationcontext",
+      "${cross_platform_napi_path}/bundle_manager:bundle_bundlemanager",
+      "${cross_platform_napi_path}/configuration_constant:app_ability_configurationconstant",
+      "${cross_platform_napi_path}/context:application_context",
+    ]
+  }
+}

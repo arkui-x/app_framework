@@ -1,0 +1,101 @@
+# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//arkcompiler/ets_frontend/es2panda/es2abc_config.gni")
+import("//build/ohos.gni")
+import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
+import("//foundation/appframework/window_manager/window_manager.gni")
+import("//foundation/arkui/ace_engine/build/ace_gen_obj.gni")
+
+config("window_manager_napi_config") {
+  include_dirs = [
+    "${window_manager_napi_path}/wm/include",
+    "${window_manager_napi_path}/innerkits/wm",
+    "${window_manager_napi_path}/kits/kits/napi/window_runtime/window_stage_napi",
+  ]
+}
+
+es2abc_gen_abc("gen_window_stage_abc") {
+  src_js = rebase_path("window_stage.js")
+  dst_file = rebase_path(target_out_dir + "/window_stage.abc")
+  in_puts = [ "window_stage.js" ]
+  out_puts = [ target_out_dir + "/window_stage.abc" ]
+  extra_args = [ "--module" ]
+}
+
+gen_obj("window_stage_js") {
+  input = "window_stage.js"
+  if (target_os == "ios") {
+    output = target_out_dir + "/window_stage.c"
+  } else {
+    output = target_out_dir + "/window_stage.o"
+  }
+  snapshot_dep = []
+}
+
+gen_obj("window_stage_abc") {
+  input = get_label_info(":gen_window_stage_abc", "target_out_dir") +
+          "/window_stage.abc"
+  if (target_os == "ios") {
+    output = target_out_dir + "/window_stage_abc.c"
+  } else {
+    output = target_out_dir + "/window_stage_abc.o"
+  }
+  snapshot_dep = [ ":gen_window_stage_abc" ]
+}
+
+#libapplication_windowstage
+ohos_source_set("application_windowstage_source_set") {
+  sources = [ "${window_manager_napi_path}/kits/napi/window_runtime/window_stage_napi/window_stage_module.cpp" ]
+  sources += [ "${window_manager_napi_path}/kits/napi/window_runtime/window_manager_napi/window_manager_module.cpp" ]
+
+  configs = [ ":window_manager_napi_config" ]
+  configs += [ "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/jsruntime:jsruntime_config" ]
+
+  deps = [
+    ":gen_obj_src_window_stage_abc",
+    ":gen_obj_src_window_stage_js",
+  ]
+
+  if (use_static_napi_libs) {
+    deps += [ "//foundation/arkui/napi:ace_napi" ]
+  } else {
+    deps += [ "//plugins/libs/napi:napi_${target_os}" ]
+  }
+
+  if (target_os == "android") {
+    defines = [ "ANDROID_PLATFORM" ]
+  } else if (target_os == "ios") {
+    defines = [ "IOS_PLATFORM" ]
+  }
+
+  part_name = "window_manager"
+  subsystem_name = "window"
+}
+
+ohos_shared_library("libapplication_windowstage") {
+  deps = [ ":application_windowstage_source_set" ]
+
+  relative_install_dir = "module/application"
+
+  part_name = "window_manager"
+  subsystem_name = "window"
+}
+
+group("windowstage") {
+  if (use_static_napi_libs) {
+    deps = [ ":application_windowstage_source_set" ]
+  } else {
+    deps = [ ":libapplication_windowstage" ]
+  }
+}

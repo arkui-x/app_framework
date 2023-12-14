@@ -1,0 +1,43 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
+
+ohos_source_set("app_ability_abilityconstant_source_set") {
+  include_dirs = [ "${ability_runtime_cross_platform_path}/interfaces/inner_api/ability_manager" ]
+
+  configs = [ "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config" ]
+
+  sources = [ "ability_constant_module.cpp" ]
+
+  if (use_static_napi_libs) {
+    deps = [ "//foundation/arkui/napi:ace_napi" ]
+  } else {
+    deps = [ "//plugins/libs/napi:napi_${target_os}" ]
+  }
+
+  if (target_os == "ios") {
+    defines = [ "IOS_PLATFORM" ]
+  }
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_shared_library("app_ability_abilityconstant") {
+  deps = [ ":app_ability_abilityconstant_source_set" ]
+
+  relative_install_dir = "module/app/ability"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
