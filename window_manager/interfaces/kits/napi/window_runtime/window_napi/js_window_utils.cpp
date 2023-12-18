@@ -16,8 +16,9 @@
 #include "js_window_utils.h"
 
 #include <iomanip>
-#include "hilog.h"
 #include "native_engine/native_engine.h"
+#include "window_hilog.h"
+
 namespace OHOS {
 namespace Rosen {
 using namespace AbilityRuntime;
@@ -26,7 +27,7 @@ constexpr int32_t RGBA_LENGTH = 8;
 
 napi_value WindowTypeInit(napi_env env)
 {
-    HILOG_DEBUG("WindowTypeInit");
+    WLOGD("WindowTypeInit");
     const napi_property_descriptor props[] = {
         DECLARE_NAPI_PROPERTY("TYPE_APP",
             CreateJsValue(env, static_cast<int32_t>(ApiWindowType::TYPE_APP))),
@@ -70,7 +71,7 @@ napi_value WindowTypeInit(napi_env env)
 
 napi_value WindowModeInit(napi_env env)
 {
-    HILOG_DEBUG("WindowModeInit");
+    WLOGD("WindowModeInit");
     const napi_property_descriptor props[] = {
         DECLARE_NAPI_PROPERTY("UNDEFINED", CreateJsValue(env,
             static_cast<int32_t>(ApiWindowMode::UNDEFINED))),
@@ -88,7 +89,7 @@ napi_value WindowModeInit(napi_env env)
 
 napi_value OrientationInit(napi_env env)
 {
-    HILOG_DEBUG("OrientationInit");
+    WLOGD("OrientationInit");
     const napi_property_descriptor props[] = {
         DECLARE_NAPI_PROPERTY("UNSPECIFIED", CreateJsValue(env,
             static_cast<int32_t>(Orientation::UNSPECIFIED))),
@@ -120,7 +121,7 @@ napi_value OrientationInit(napi_env env)
 
 napi_value WindowEventTypeInit(napi_env env)
 {
-    HILOG_DEBUG("WindowEventTypeInit");
+    WLOGD("WindowEventTypeInit");
     const napi_property_descriptor props[] = {
         DECLARE_NAPI_PROPERTY("WINDOW_SHOWN", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::FOREGROUND))),
         DECLARE_NAPI_PROPERTY("WINDOW_ACTIVE", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::ACTIVE))),
@@ -132,7 +133,7 @@ napi_value WindowEventTypeInit(napi_env env)
 
 napi_value WindowStageEventTypeInit(napi_env env)
 {
-    HILOG_DEBUG("WindowStageEventTypeInit");
+    WLOGD("WindowStageEventTypeInit");
     const napi_property_descriptor props[] = {
         DECLARE_NAPI_PROPERTY("SHOWN", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::FOREGROUND))),
         DECLARE_NAPI_PROPERTY("ACTIVE", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::ACTIVE))),
@@ -144,7 +145,7 @@ napi_value WindowStageEventTypeInit(napi_env env)
 
 napi_value WindowErrorInit(napi_env env)
 {
-    HILOG_DEBUG("WindowErrorInit");
+    WLOGD("WindowErrorInit");
     const napi_property_descriptor props[] = {
         DECLARE_NAPI_PROPERTY("WM_DO_NOTHING", CreateJsValue(env,
             static_cast<int32_t>(WMError::WM_DO_NOTHING))),
@@ -182,7 +183,7 @@ napi_value WindowErrorInit(napi_env env)
 
 napi_value WindowErrorCodeInit(napi_env env)
 {
-    HILOG_DEBUG("WindowErrorCodeInit");
+    WLOGD("WindowErrorCodeInit");
     const napi_property_descriptor props[] = {
         DECLARE_NAPI_PROPERTY("WM_ERROR_NO_PERMISSION", CreateJsValue(env,
             static_cast<int32_t>(WmErrorCode::WM_ERROR_NO_PERMISSION))),
@@ -212,7 +213,7 @@ napi_value WindowErrorCodeInit(napi_env env)
 
 napi_value WindowColorSpaceInit(napi_env env)
 {
-    HILOG_DEBUG("WindowColorSpaceInit");
+    WLOGD("WindowColorSpaceInit");
     const napi_property_descriptor props[] = {
         DECLARE_NAPI_PROPERTY("DEFAULT", CreateJsValue(env,
             static_cast<int32_t>(ColorSpace::COLOR_SPACE_DEFAULT))),
@@ -235,11 +236,11 @@ napi_value GetRectAndConvertToJsValue(napi_env env, const Rect& rect)
 
 napi_value CreateJsWindowPropertiesObject(napi_env env, std::shared_ptr<Window>& window)
 {
-    HILOG_DEBUG("CreateJsWindowPropertiesObject");
+    WLOGD("CreateJsWindowPropertiesObject");
     Rect rect = window->GetRect();
     napi_value rectObj = GetRectAndConvertToJsValue(env, rect);
     if (rectObj == nullptr) {
-        HILOG_ERROR("GetRect failed!");
+        WLOGE("GetRect failed!");
         return nullptr;
     }
 
@@ -281,13 +282,13 @@ bool GetSystemBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProper
     bool isArray;
     napi_status status = napi_is_array(env, arg, &isArray);
     if (status != napi_ok || !isArray) {
-        HILOG_ERROR("Failed to convert parameter to SystemBarArray");
+        WLOGE("Failed to convert parameter to SystemBarArray");
         return false;
     }
     uint32_t size = 0;
     status = napi_get_array_length(env, arg, &size);
     if (status != napi_ok) {
-        HILOG_ERROR("Failed to convert parameter to SystemBarArray");
+        WLOGE("Failed to convert parameter to SystemBarArray");
         return false;
     }
 
@@ -302,11 +303,11 @@ bool GetSystemBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProper
         napi_value ele = nullptr;
         status = napi_get_element(env, arg, i, &ele);
         if (status != napi_ok) {
-            HILOG_ERROR("Failed to get element %{public}u", i);
+            WLOGE("Failed to get element %{public}u", i);
             continue;
         }
         if (!ConvertFromJsValue(env, ele, name)) {
-            HILOG_ERROR("Failed to convert parameter to SystemBarName");
+            WLOGE("Failed to convert parameter to SystemBarName");
             return false;
         }
         if (name.compare("status") == 0) {
@@ -327,12 +328,12 @@ void LoadContentTask(napi_env env, napi_ref storageRef, const std::string &conte
         // delete ref
         napi_delete_reference(env, storageRef);
         if (status != napi_ok) {
-            HILOG_ERROR("LoadContentTask : get value fail %{public}d", static_cast<int>(status));
+            WLOGE("LoadContentTask : get value fail %{public}d", static_cast<int>(status));
             task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
             return;
         }
     }
-    HILOG_INFO("LoadContentTask : contextUrl %{public}s", contextUrl.c_str());
+    WLOGI("LoadContentTask : contextUrl %{public}s", contextUrl.c_str());
     WMError ret = weakWindow->SetUIContent(contextUrl,
         reinterpret_cast<NativeEngine*>(env), nativeStorage, false, nullptr);
     if (ret == WMError::WM_OK) {
@@ -349,13 +350,13 @@ bool GetContentArg(napi_env env,
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < 1 || argc > 3) { // 3 max arg
-        HILOG_ERROR("OnLoadContent : invalid param");
+        WLOGE("OnLoadContent : invalid param");
         return false;
     }
     storage = nullptr;
     callback = nullptr;
     if (!ConvertFromJsValue(env, argv[0], contextUrl)) {
-        HILOG_ERROR("OnLoadContent : ConvertFromJsValue to contextUrl fail");
+        WLOGE("OnLoadContent : ConvertFromJsValue to contextUrl fail");
         return false;
     }
 

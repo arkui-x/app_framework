@@ -19,8 +19,8 @@
 #include <map>
 
 #include "display.h"
-#include "hilog.h"
 #include "js_runtime_utils.h"
+#include "window_hilog.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -43,10 +43,10 @@ std::recursive_mutex g_jsDisplayMutex;
 
 static napi_ref FindJsDisplayObject(DisplayId displayId)
 {
-    HILOG_DEBUG("[NAPI]Try to find display %{public}" PRIu64" in g_JsDisplayMap", displayId);
+    WLOGD("[NAPI]Try to find display %{public}" PRIu64" in g_JsDisplayMap", displayId);
     std::lock_guard<std::recursive_mutex> lock(g_jsDisplayMutex);
     if (g_JsDisplayMap.find(displayId) == g_JsDisplayMap.end()) {
-        HILOG_INFO("[NAPI]Can not find display %{public}" PRIu64"", displayId);
+        WLOGI("[NAPI]Can not find display %{public}" PRIu64"", displayId);
         return nullptr;
     }
     return g_JsDisplayMap[displayId];
@@ -58,28 +58,28 @@ JsDisplay::JsDisplay(const sptr<Display>& display) : display_(display)
 
 JsDisplay::~JsDisplay()
 {
-    HILOG_INFO("JsDisplay::~JsDisplay is called");
+    WLOGI("JsDisplay::~JsDisplay is called");
 }
 
 void JsDisplay::Finalizer(napi_env env, void* data, void* hint)
 {
-    HILOG_INFO("JsDisplay::Finalizer is called");
+    WLOGI("JsDisplay::Finalizer is called");
     auto jsDisplay = std::unique_ptr<JsDisplay>(static_cast<JsDisplay*>(data));
     if (jsDisplay == nullptr) {
-        HILOG_ERROR("JsDisplay::Finalizer jsDisplay is null");
+        WLOGE("JsDisplay::Finalizer jsDisplay is null");
         return;
     }
     sptr<Display> display = jsDisplay->display_;
     if (display == nullptr) {
-        HILOG_ERROR("JsDisplay::Finalizer display is null");
+        WLOGE("JsDisplay::Finalizer display is null");
         return;
     }
     DisplayId displayId = display->GetId();
-    HILOG_INFO("JsDisplay::Finalizer displayId : %{public}" PRIu64"", displayId);
+    WLOGI("JsDisplay::Finalizer displayId : %{public}" PRIu64"", displayId);
     std::lock_guard<std::recursive_mutex> lock(g_jsDisplayMutex);
     auto it = g_JsDisplayMap.find(displayId);
     if (it != g_JsDisplayMap.end()) {
-        HILOG_INFO("JsDisplay::Finalizer Display is destroyed: %{public}" PRIu64"", displayId);
+        WLOGI("JsDisplay::Finalizer Display is destroyed: %{public}" PRIu64"", displayId);
         napi_delete_reference(env, it->second);
         g_JsDisplayMap.erase(it);
     }
@@ -90,17 +90,17 @@ napi_value CreateJsDisplayObject(napi_env env, sptr<Display>& display)
     napi_value objValue = nullptr;
     napi_ref jsDisplayRef = FindJsDisplayObject(display->GetId());
     if (jsDisplayRef != nullptr) {
-        HILOG_INFO("[NAPI]FindJsDisplayObject %{public}" PRIu64"", display->GetId());
+        WLOGI("[NAPI]FindJsDisplayObject %{public}" PRIu64"", display->GetId());
         napi_status status = napi_get_reference_value(env, jsDisplayRef, &objValue);
         if (status != napi_ok) {
             return nullptr;
         }
     } else {
-        HILOG_INFO("CreateJsDisplay %{public}" PRIu64"", display->GetId());
+        WLOGI("CreateJsDisplay %{public}" PRIu64"", display->GetId());
         // create new obj
         napi_status status = napi_create_object(env, &objValue);
         if (status != napi_ok) {
-            HILOG_ERROR("Failed to create object for %{public}" PRIu64"", display->GetId());
+            WLOGE("Failed to create object for %{public}" PRIu64"", display->GetId());
             return nullptr;
         }
         std::unique_ptr<JsDisplay> jsDisplay = std::make_unique<JsDisplay>(display);
@@ -109,7 +109,7 @@ napi_value CreateJsDisplayObject(napi_env env, sptr<Display>& display)
         // save
         status = napi_create_reference(env, objValue, 1, &jsDisplayRef);
         if (status != napi_ok) {
-            HILOG_ERROR("Failed to reference for %{public}" PRIu64"", display->GetId());
+            WLOGE("Failed to reference for %{public}" PRIu64"", display->GetId());
             return nullptr;
         }
         std::lock_guard<std::recursive_mutex> lock(g_jsDisplayMutex);
@@ -118,7 +118,7 @@ napi_value CreateJsDisplayObject(napi_env env, sptr<Display>& display)
 
     sptr<DisplayInfo> info = display->GetDisplayInfo();
     if (info == nullptr) {
-        HILOG_ERROR("Failed to GetDisplayInfo for %{public}" PRIu64"", display->GetId());
+        WLOGE("Failed to GetDisplayInfo for %{public}" PRIu64"", display->GetId());
         return nullptr;
     }
     napi_set_named_property(env, objValue, "id", CreateJsValue(env, static_cast<uint32_t>(info->GetDisplayId())));

@@ -15,6 +15,7 @@
 
 #include <android/trace.h>
 #include "platform/common/rs_log.h"
+#include "rs_trace_crossplatform.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,5 +35,20 @@ void RosenTraceEnd()
 {
     ATrace_endSection();
 }
+
+ScopedTrace::ScopedTrace(const char *name) {
+    if (name != nullptr) {
+        ATrace_beginSection(name);
+    }
+}
+
+ScopedTrace::ScopedTrace(std::string name) {
+    ATrace_beginSection(name.c_str());
+}
+
+ScopedTrace::~ScopedTrace() {
+    ATrace_endSection();
+}
+
 } // namespace Rosen
 } // namespace OHOS

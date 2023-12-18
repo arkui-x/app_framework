@@ -20,12 +20,12 @@
 
 #include "display.h"
 #include "display_manager.h"
-#include "hilog.h"
 #include "js_display.h"
 #include "js_runtime_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "singleton_container.h"
+#include "window_hilog.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,23 +36,23 @@ constexpr int32_t INDEX_ONE = 1;
 
 void JsDisplayManager::Finalizer(napi_env env, void* data, void* hint)
 {
-    HILOG_INFO("Finalizer is called");
+    WLOGI("Finalizer is called");
     std::unique_ptr<JsDisplayManager>(static_cast<JsDisplayManager*>(data));
 }
 
 napi_value JsDisplayManager::GetDefaultDisplaySync(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsDisplayManager::GetDefaultDisplaySync");
+    WLOGD("JsDisplayManager::GetDefaultDisplaySync");
     JsDisplayManager* me = CheckParamsAndGetThis<JsDisplayManager>(env, info);
     return (me != nullptr) ? me->OnGetDefaultDisplaySync(env, info) : nullptr;
 }
 
 napi_value JsDisplayManager::OnGetDefaultDisplaySync(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsDisplayManager::OnGetDefaultDisplaySync : Start...");
+    WLOGD("JsDisplayManager::OnGetDefaultDisplaySync : Start...");
     sptr<Display> display = DisplayManager::GetInstance().GetDefaultDisplaySync();
     if (display == nullptr) {
-        HILOG_ERROR("OnGetDefaultDisplaySync, display is nullptr.");
+        WLOGE("OnGetDefaultDisplaySync, display is nullptr.");
         napi_throw(env, CreateJsError(env, static_cast<int32_t>(DmErrorCode::DM_ERROR_INVALID_SCREEN)));
         return CreateJsUndefined(env);
     }
@@ -67,11 +67,11 @@ napi_value JsDisplayManager::OnGetDefaultDisplaySync(napi_env env, napi_callback
 
 static napi_value InitDisplayState(napi_env env)
 {
-    HILOG_DEBUG("InitDisplayState called");
+    WLOGD("InitDisplayState called");
     napi_value objValue = nullptr;
     napi_status status = napi_create_object(env, &objValue);
     if (status != napi_ok) {
-        HILOG_ERROR("Failed to create object");
+        WLOGE("Failed to create object");
         return nullptr;
     }
 
@@ -94,11 +94,11 @@ static napi_value InitDisplayState(napi_env env)
 
 static napi_value InitOrientation(napi_env env)
 {
-    HILOG_DEBUG("InitOrientation called");
+    WLOGD("InitOrientation called");
     napi_value obj = nullptr;
     napi_status status = napi_create_object(env, &obj);
     if (status != napi_ok) {
-        HILOG_ERROR("Failed to create object");
+        WLOGE("Failed to create object");
         return nullptr;
     }
 
@@ -113,11 +113,11 @@ static napi_value InitOrientation(napi_env env)
 
 static napi_value InitDisplayErrorCode(napi_env env)
 {
-    HILOG_DEBUG("InitDisplayErrorCode called");
+    WLOGD("InitDisplayErrorCode called");
     napi_value obj = nullptr;
     napi_status status = napi_create_object(env, &obj);
     if (status != napi_ok) {
-        HILOG_ERROR("Failed to create object");
+        WLOGE("Failed to create object");
         return nullptr;
     }
 
@@ -139,11 +139,11 @@ static napi_value InitDisplayErrorCode(napi_env env)
 
 static napi_value InitDisplayError(napi_env env)
 {
-    HILOG_DEBUG("InitDisplayError called");
+    WLOGD("InitDisplayError called");
     napi_value obj = nullptr;
     napi_status status = napi_create_object(env, &obj);
     if (status != napi_ok) {
-        HILOG_ERROR("Failed to create object");
+        WLOGE("Failed to create object");
         return nullptr;
     }
 
@@ -178,9 +178,9 @@ static napi_value InitDisplayError(napi_env env)
 
 napi_value JsDisplayManagerInit(napi_env env, napi_value exportObj)
 {
-    HILOG_INFO("JsDisplayManagerInit is called");
+    WLOGI("JsDisplayManagerInit is called");
     if (env == nullptr || exportObj == nullptr) {
-        HILOG_ERROR("JsDisplayManagerInit env or exportObj is nullptr");
+        WLOGE("JsDisplayManagerInit env or exportObj is nullptr");
         return nullptr;
     }
 

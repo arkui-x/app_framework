@@ -17,10 +17,10 @@
 
 #include <ability.h>
 
-#include "hilog.h"
 #include "js_window.h"
 #include "js_window_utils.h"
 #include "window_option.h"
+#include "window_hilog.h"
 #include "wm_common.h"
 
 namespace OHOS {
@@ -36,12 +36,12 @@ static void CreateSubWindowTask(
 {
     if (windowOption == nullptr) {
         task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_SYSTEM_ABNORMALLY, "New window option failed"));
-        HILOG_ERROR("CreateSubWindowTask : New window option failed");
+        WLOGE("CreateSubWindowTask : New window option failed");
         return;
     }
     windowOption->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
     if (windowOption->GetParentId() == INVALID_WINDOW_ID) {
-        HILOG_ERROR("CreateSubWindowTask : subwindow option parentid error");
+        WLOGE("CreateSubWindowTask : subwindow option parentid error");
         return;
     }
     auto context = static_cast<std::weak_ptr<OHOS::AbilityRuntime::Platform::AbilityContext>*>(contextPtr);
@@ -49,46 +49,46 @@ static void CreateSubWindowTask(
     if (window != nullptr) {
         task.Resolve(env, CreateJsWindowObject(env, window));
     } else {
-        HILOG_ERROR("CreateSubWindowTask : Create window failed");
+        WLOGE("CreateSubWindowTask : Create window failed");
         task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY, "Create window failed"));
     }
 }
 
 void JsWindowManager::Finalizer(napi_env env, void* data, void* hint)
 {
-    HILOG_INFO("JsWindowManager::Finalizer");
+    WLOGI("JsWindowManager::Finalizer");
     std::unique_ptr<JsWindowManager>(static_cast<JsWindowManager*>(data));
 }
 
 napi_value JsWindowManager::CreateWindow(napi_env env, napi_callback_info info)
 {
-    HILOG_INFO("JsWindowManager::CreateWindow");
+    WLOGI("JsWindowManager::CreateWindow");
     JsWindowManager* me = CheckParamsAndGetThis<JsWindowManager>(env, info);
     return (me != nullptr) ? me->OnCreateWindow(env, info) : nullptr;
 }
 
 napi_value JsWindowManager::FindWindowSync(napi_env env, napi_callback_info info)
 {
-    HILOG_INFO("JsWindowManager::FindWindowSync");
+    WLOGI("JsWindowManager::FindWindowSync");
     JsWindowManager* me = CheckParamsAndGetThis<JsWindowManager>(env, info);
     return (me != nullptr) ? me->OnFindWindowSync(env, info) : nullptr;
 }
 
 napi_value JsWindowManager::GetLastWindow(napi_env env, napi_callback_info info)
 {
-    HILOG_INFO("JsWindowManager::GetLastWindow");
+    WLOGI("JsWindowManager::GetLastWindow");
     JsWindowManager* me = CheckParamsAndGetThis<JsWindowManager>(env, info);
     return (me != nullptr) ? me->OnGetLastWindow(env, info) : nullptr;
 }
 
 napi_value JsWindowManager::OnCreateWindow(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindowManager::OnCreateWindow : Start...");
+    WLOGD("JsWindowManager::OnCreateWindow : Start...");
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < 1) {
-        HILOG_ERROR("JsWindowStage::OnCreateWindow : argc error![%{public}zu]", argc);
+        WLOGE("JsWindowStage::OnCreateWindow : argc error![%{public}zu]", argc);
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return nullptr;
     }
@@ -96,12 +96,12 @@ napi_value JsWindowManager::OnCreateWindow(napi_env env, napi_callback_info info
     WindowOption option;
     void* contextPtr = nullptr;
     if (!ParseConfigOption(env, argv[0], option, contextPtr)) {
-        HILOG_ERROR("JsWindowManager::OnCreateWindow : Failed to parse config");
+        WLOGE("JsWindowManager::OnCreateWindow : Failed to parse config");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return nullptr;
     }
     if (option.GetWindowType() != WindowType::WINDOW_TYPE_APP_SUB_WINDOW) {
-        HILOG_ERROR("JsWindowManager::OnCreateWindow : Invalid Window Type!");
+        WLOGE("JsWindowManager::OnCreateWindow : Invalid Window Type!");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_NOT_SYSTEM_APP));
         return nullptr;
     }
@@ -140,7 +140,7 @@ bool JsWindowManager::ParseConfigOption(napi_env env, napi_value jsObject, Windo
     if (ParseJsValue(env, jsObject, "name", windowName)) {
         option.SetWindowName(windowName);
     } else {
-        HILOG_ERROR("JsWindowManager::ParseConfigOption : Failed to convert parameter to windowName");
+        WLOGE("JsWindowManager::ParseConfigOption : Failed to convert parameter to windowName");
         return false;
     }
 
@@ -153,7 +153,7 @@ bool JsWindowManager::ParseConfigOption(napi_env env, napi_value jsObject, Windo
             option.SetWindowType(static_cast<WindowType>(winType));
         }
     } else {
-        HILOG_ERROR("JsWindowManager::ParseConfigOption : Failed to convert parameter to winType");
+        WLOGE("JsWindowManager::ParseConfigOption : Failed to convert parameter to winType");
         return false;
     }
 
@@ -178,19 +178,19 @@ bool JsWindowManager::ParseConfigOption(napi_env env, napi_value jsObject, Windo
 
 napi_value JsWindowManager::OnFindWindowSync(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindowManager::OnFindWindowSync : Start...");
+    WLOGD("JsWindowManager::OnFindWindowSync : Start...");
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < 1) {
-        HILOG_ERROR("JsWindowStage::OnFindWindowSync : argc error![%{public}zu]", argc);
+        WLOGE("JsWindowStage::OnFindWindowSync : argc error![%{public}zu]", argc);
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return nullptr;
     }
 
     std::string windowName;
     if (!ConvertFromJsValue(env, argv[0], windowName)) {
-        HILOG_ERROR("JsWindowManager::OnFindWindowSync : Failed to convert parameter to windowName");
+        WLOGE("JsWindowManager::OnFindWindowSync : Failed to convert parameter to windowName");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return nullptr;
     }
@@ -201,60 +201,60 @@ napi_value JsWindowManager::OnFindWindowSync(napi_env env, napi_callback_info in
         if (status != napi_ok) {
             return nullptr;
         }
-        HILOG_INFO("JsWindowManager::OnFindWindowSync : Find window: %{public}s, use exist js window", windowName.c_str());
+        WLOGI("JsWindowManager::OnFindWindowSync : Find window: %{public}s, use exist js window", windowName.c_str());
         return object;
     }
 
-    HILOG_INFO("JsWindowManager::OnFindWindowSync : could not find window from js window, call Window::FindWindow");
+    WLOGI("JsWindowManager::OnFindWindowSync : could not find window from js window, call Window::FindWindow");
     std::shared_ptr<Window> window = Window::FindWindow(windowName);
     if (window == nullptr) {
-        HILOG_ERROR("JsWindowManager::OnFindWindowSync : call Window::FindWindow return failed!");
+        WLOGE("JsWindowManager::OnFindWindowSync : call Window::FindWindow return failed!");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
         return nullptr;
     } else {
-        HILOG_ERROR("JsWindowManager::OnFindWindowSync : call Window::FindWindow return success!");
+        WLOGE("JsWindowManager::OnFindWindowSync : call Window::FindWindow return success!");
         return CreateJsWindowObject(env, window);
     }
 }
 
 static void GetTopWindowTask(void* contextPtr, napi_env env, NapiAsyncTask& task, bool newApi)
 {
-    HILOG_INFO("WindowManager:GetTopWindowTask : Start...");
+    WLOGI("WindowManager:GetTopWindowTask : Start...");
     std::string windowName;
     std::shared_ptr<Rosen::Window> window = nullptr;
     auto context = static_cast<std::weak_ptr<AbilityRuntime::Platform::Context>*>(contextPtr);
     if (contextPtr == nullptr || context == nullptr) {
-        HILOG_ERROR("WindowManager:GetTopWindowTask: Stage mode without context");
+        WLOGE("WindowManager:GetTopWindowTask: Stage mode without context");
     }
 
     window = Window::GetTopWindow(context == nullptr ? nullptr : context->lock());
-    HILOG_INFO("WindowManager:GetTopWindowTask: GetTopWindow[%{public}p]", window.get());
+    WLOGI("WindowManager:GetTopWindowTask: GetTopWindow[%{public}p]", window.get());
     if (window == nullptr) {
         task.Reject(env, CreateWindowsJsError(env, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY),
             "Get top window failed"));
-        HILOG_ERROR("WindowManager:GetTopWindowTask : Get top window failed");
+        WLOGE("WindowManager:GetTopWindowTask : Get top window failed");
         return;
     }
     windowName = window->GetWindowName();
     // get and create jsWindow
     task.Resolve(env, CreateJsWindowObject(env, window));
-    HILOG_INFO("WindowManager:GetTopWindowTask : Get top window %{public}s success", windowName.c_str());
+    WLOGI("WindowManager:GetTopWindowTask : Get top window %{public}s success", windowName.c_str());
     return;
 }
 
 napi_value JsWindowManager::OnGetLastWindow(napi_env env, napi_callback_info info)
 {
-    HILOG_INFO("JsWindowManager::OnGetLastWindow : Start...");
+    WLOGI("JsWindowManager::OnGetLastWindow : Start...");
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < 1 || argc > 2) {
-        HILOG_ERROR("JsWindowStage::OnGetLastWindow : argc error![%{public}zu]", argc);
+        WLOGE("JsWindowStage::OnGetLastWindow : argc error![%{public}zu]", argc);
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return nullptr;
     }
 
-    HILOG_INFO("JsWindowManager::OnGetLastWindow : check parameter, argc = %{public}zu", argc);
+    WLOGI("JsWindowManager::OnGetLastWindow : check parameter, argc = %{public}zu", argc);
     napi_value nativeCallback = nullptr;
     void* contextPtr = nullptr;
     status = napi_unwrap(env, argv[0], &contextPtr);
@@ -266,7 +266,7 @@ napi_value JsWindowManager::OnGetLastWindow(napi_env env, napi_callback_info inf
         nativeCallback = argv[1];
     }
 
-    HILOG_INFO("JsWindowManager::OnGetLastWindow : processing...");
+    WLOGI("JsWindowManager::OnGetLastWindow : processing...");
     NapiAsyncTask::CompleteCallback complete = [=](napi_env env, NapiAsyncTask& task, int32_t status) {
         return GetTopWindowTask(contextPtr, env, task, true);
     };
@@ -278,9 +278,9 @@ napi_value JsWindowManager::OnGetLastWindow(napi_env env, napi_callback_info inf
 
 napi_value JsWindowManagerInit(napi_env env, napi_value exportObj)
 {
-    HILOG_INFO("JsWindowManagerInit");
+    WLOGI("JsWindowManagerInit");
     if (env == nullptr || exportObj == nullptr) {
-        HILOG_ERROR("JsWindowManagerInit : env or exportObj is nullptr");
+        WLOGE("JsWindowManagerInit : env or exportObj is nullptr");
         return nullptr;
     }
 
