@@ -78,7 +78,6 @@ template("ability_runtime_abilitykit_native") {
     deps = [
       "${ability_runtime_cross_platform_path}/frameworks/js/napi/napi_common:napi_common",
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/jsruntime:cross_platform_jsruntime",
-      "//foundation/appframework/window_manager/dm:dm",
       "//foundation/appframework/window_manager/wm:wm",
       "//foundation/arkui/napi:ace_napi",
       "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/color_manager:color_space_object_convertor",
