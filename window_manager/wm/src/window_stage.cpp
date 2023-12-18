@@ -16,11 +16,10 @@
 #include "window_stage.h"
 
 #include "foundation/appframework/arkui/uicontent/ui_content.h"
-#include "hilog.h"
 #include "virtual_rs_window.h"
+#include "window_hilog.h"
 #include "window_option.h"
 
-#include "base/log/log.h"
 namespace OHOS {
 namespace Rosen {
 WindowStage::~WindowStage() {}

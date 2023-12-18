@@ -17,7 +17,7 @@
 #define OHOS_WM_INCLUDE_FUTURE_H
 
 #include <condition_variable>
-#include "hilog.h"
+#include "window_hilog.h"
 
 namespace OHOS::Rosen {
 template<class T>
@@ -27,7 +27,7 @@ public:
     {
         std::unique_lock <std::mutex> lock(mutex_);
         if (!conditionVariable_.wait_for(lock, std::chrono::milliseconds(timeOut), [this] { return IsReady(); })) {
-            HILOG_ERROR("wait for %{public}ld, timeout.", timeOut);
+            WLOGE("wait for %{public}ld, timeout.", timeOut);
         }
         return FetchResult();
     }

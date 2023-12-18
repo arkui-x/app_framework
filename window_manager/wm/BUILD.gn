@@ -47,6 +47,7 @@ template("window_manager") {
       "${window_manager_napi_path}/innerkits/wm",
       "${window_manager_napi_path}/kits/kits/napi/window_runtime",
       "//commonlibrary/c_utils/base/include",
+      "../utils/include",
     ]
 
     sources = [

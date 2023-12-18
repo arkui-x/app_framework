@@ -19,11 +19,11 @@
 #include <string>
 #include "color_parser.h"
 #include "foundation/appframework/arkui/uicontent/ui_content.h"
-#include "hilog.h"
+#include "js_window_register_manager.h"
 #include "js_window_utils.h"
 #include "virtual_rs_window.h"
 #include "wm_common.h"
-#include "js_window_register_manager.h"
+#include "window_hilog.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -38,142 +38,142 @@ std::recursive_mutex g_jsWindowMutex;
 
 JsWindow::JsWindow(std::shared_ptr<Rosen::Window>& window) : windowToken_(window)
 {
-    HILOG_INFO("JsWindow::JsWindow");
+    WLOGI("JsWindow::JsWindow");
 }
 
 JsWindow::~JsWindow()
 {
-    HILOG_INFO("JsWindow::~JsWindow");
+    WLOGI("JsWindow::~JsWindow");
 }
 
 napi_value JsWindow::RegisterWindowManagerCallback(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::On");
+    WLOGD("JsWindow::On");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnRegisterWindowManagerCallback(env, info) : nullptr;
 }
 
 napi_value JsWindow::UnregisterWindowManagerCallback(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnUnregisterWindowManagerCallback");
+    WLOGD("JsWindow::OnUnregisterWindowManagerCallback");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnUnregisterWindowManagerCallback(env, info) : nullptr;
 }
 
 napi_value JsWindow::SetWindowColorSpace(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::SetWindowColorSpace");
+    WLOGD("JsWindow::SetWindowColorSpace");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnSetWindowColorSpace(env, info) : nullptr;
 }
 
 napi_value JsWindow::GetWindowColorSpace(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::getWindowColorSpace");
+    WLOGD("JsWindow::getWindowColorSpace");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnGetWindowColorSpace(env, info) : nullptr;
 }
 
 napi_value JsWindow::ShowWindow(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::ShowWindow");
+    WLOGD("JsWindow::ShowWindow");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnShowWindow(env, info) : nullptr;
 }
 
 napi_value JsWindow::DestroyWindow(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::DestroyWindow");
+    WLOGD("JsWindow::DestroyWindow");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnDestroyWindow(env, info) : nullptr;
 }
 
 napi_value JsWindow::MoveWindowTo(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::MoveWindowTo");
+    WLOGD("JsWindow::MoveWindowTo");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnMoveWindowTo(env, info) : nullptr;
 }
 
 napi_value JsWindow::Resize(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::Resize");
+    WLOGD("JsWindow::Resize");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnResize(env, info) : nullptr;
 }
 
 napi_value JsWindow::GetWindowPropertiesSync(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::GetWindowPropertiesSync");
+    WLOGD("JsWindow::GetWindowPropertiesSync");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnGetWindowPropertiesSync(env, info) : nullptr;
 }
 
 napi_value JsWindow::SetWindowSystemBarEnable(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::SetWindowSystemBarEnable");
+    WLOGD("JsWindow::SetWindowSystemBarEnable");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnSetWindowSystemBarEnable(env, info) : nullptr;
 }
 
 napi_value JsWindow::SetPreferredOrientation(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::SetPreferredOrientation");
+    WLOGD("JsWindow::SetPreferredOrientation");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnSetPreferredOrientation(env, info) : nullptr;
 }
 
 napi_value JsWindow::LoadContent(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::LoadContent");
+    WLOGD("JsWindow::LoadContent");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnLoadContent(env, info) : nullptr;
 }
 
 napi_value JsWindow::SetUIContent(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::SetUIContent");
+    WLOGD("JsWindow::SetUIContent");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnSetUIContent(env, info) : nullptr;
 }
 
 napi_value JsWindow::IsWindowShowingSync(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::IsWindowShowingSync");
+    WLOGD("JsWindow::IsWindowShowingSync");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnIsWindowShowingSync(env, info) : nullptr;
 }
 
 napi_value JsWindow::SetWindowBackgroundColorSync(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::SetWindowBackgroundColorSync");
+    WLOGD("JsWindow::SetWindowBackgroundColorSync");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnSetWindowBackgroundColorSync(env, info) : nullptr;
 }
 
 napi_value JsWindow::SetWindowBrightness(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::SetWindowBrightness");
+    WLOGD("JsWindow::SetWindowBrightness");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnSetWindowBrightness(env, info) : nullptr;
 }
 
 napi_value JsWindow::SetWindowKeepScreenOn(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::SetWindowKeepScreenOn");
+    WLOGD("JsWindow::SetWindowKeepScreenOn");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnSetWindowKeepScreenOn(env, info) : nullptr;
 }
 
 napi_value JsWindow::OnShowWindow(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnShowWindow : Start...");
+    WLOGD("JsWindow::OnShowWindow : Start...");
     WmErrorCode errCode = WmErrorCode::WM_OK;
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok) {
-        HILOG_ERROR("JsWindowStage::OnShowWindow : argc error![%{public}zu]", argc);
+        WLOGE("JsWindowStage::OnShowWindow : argc error![%{public}zu]", argc);
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
@@ -185,7 +185,7 @@ napi_value JsWindow::OnShowWindow(napi_env env, napi_callback_info info)
         auto weakWindow = weakToken.lock();
         if (weakWindow == nullptr) {
             task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
-            HILOG_ERROR("JsWindow::OnShowWindow : window is nullptr or get invalid param");
+            WLOGE("JsWindow::OnShowWindow : window is nullptr or get invalid param");
             return;
         }
         WMError ret = weakWindow->ShowWindow();
@@ -195,7 +195,7 @@ napi_value JsWindow::OnShowWindow(napi_env env, napi_callback_info info)
             task.Reject(env,
                 CreateWindowsJsError(env, static_cast<int32_t>(WM_JS_TO_ERROR_CODE_MAP.at(ret)), "Window show failed"));
         }
-        HILOG_INFO("JsWindow::OnShowWindow : Window [%{public}u, %{public}s] show end, ret = %{public}d",
+        WLOGI("JsWindow::OnShowWindow : Window [%{public}u, %{public}s] show end, ret = %{public}d",
             weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), ret);
     };
     napi_value result = nullptr;
@@ -210,13 +210,13 @@ napi_value JsWindow::OnShowWindow(napi_env env, napi_callback_info info)
 
 napi_value JsWindow::OnDestroyWindow(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnDestroyWindow : Start...");
+    WLOGD("JsWindow::OnDestroyWindow : Start...");
     WmErrorCode errCode = WmErrorCode::WM_OK;
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok) {
-        HILOG_ERROR("JsWindowStage::OnShowWindow : argc error![%{public}zu]", argc);
+        WLOGE("JsWindowStage::OnShowWindow : argc error![%{public}zu]", argc);
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
@@ -227,13 +227,13 @@ napi_value JsWindow::OnDestroyWindow(napi_env env, napi_callback_info info)
         [this, weakToken](napi_env env, NapiAsyncTask& task, int32_t status) {
         auto weakWindow = weakToken.lock();
         if (weakWindow == nullptr) {
-            HILOG_ERROR("window is nullptr or get invalid param");
+            WLOGE("window is nullptr or get invalid param");
             task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
             return;
         }
         RemoveJsWindowObject(env, weakWindow->GetWindowName());
         WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->Destroy());
-        HILOG_INFO("JsWindow::OnDestroyWindow : Window [%{public}u, %{public}s] destroy end, ret = %{public}d",
+        WLOGI("JsWindow::OnDestroyWindow : Window [%{public}u, %{public}s] destroy end, ret = %{public}d",
             weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), ret);
         if (ret != WmErrorCode::WM_OK) {
             task.Reject(env, CreateWindowsJsError(env, static_cast<int32_t>(ret), "Window destroy failed"));
@@ -254,23 +254,23 @@ napi_value JsWindow::OnDestroyWindow(napi_env env, napi_callback_info info)
 
 napi_value JsWindow::OnMoveWindowTo(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnMoveWindowTo : Start...");
+    WLOGD("JsWindow::OnMoveWindowTo : Start...");
     WmErrorCode errCode = WmErrorCode::WM_OK;
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < 2) {
-        HILOG_ERROR("JsWindowStage::OnShowWindow : argc error![%{public}zu]", argc);
+        WLOGE("JsWindowStage::OnShowWindow : argc error![%{public}zu]", argc);
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
     int32_t x = 0;
     if (errCode == WmErrorCode::WM_OK && !ConvertFromJsValue(env, argv[0], x)) {
-        HILOG_ERROR("JsWindow::OnMoveWindowTo : Failed to convert parameter to x");
+        WLOGE("JsWindow::OnMoveWindowTo : Failed to convert parameter to x");
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
     int32_t y = 0;
     if (errCode == WmErrorCode::WM_OK && !ConvertFromJsValue(env, argv[1], y)) {
-        HILOG_ERROR("JsWindow::OnMoveWindowTo : Failed to convert parameter to y");
+        WLOGE("JsWindow::OnMoveWindowTo : Failed to convert parameter to y");
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
     if (errCode != WmErrorCode::WM_OK) {
@@ -283,7 +283,7 @@ napi_value JsWindow::OnMoveWindowTo(napi_env env, napi_callback_info info)
         [weakToken, x, y](napi_env env, NapiAsyncTask& task, int32_t status) {
         auto weakWindow = weakToken.lock();
         if (weakWindow == nullptr) {
-            HILOG_ERROR("JsWindow::OnMoveWindowTo : window is nullptr");
+            WLOGE("JsWindow::OnMoveWindowTo : window is nullptr");
             task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
             return;
         }
@@ -293,7 +293,7 @@ napi_value JsWindow::OnMoveWindowTo(napi_env env, napi_callback_info info)
         } else {
             task.Reject(env, CreateWindowsJsError(env, static_cast<int32_t>(ret), "Window move failed"));
         }
-        HILOG_INFO("JsWindow::OnMoveWindowTo : Window [%{public}u, %{public}s] move end, ret = %{public}d",
+        WLOGI("JsWindow::OnMoveWindowTo : Window [%{public}u, %{public}s] move end, ret = %{public}d",
             weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), ret);
     };
 
@@ -309,27 +309,27 @@ napi_value JsWindow::OnMoveWindowTo(napi_env env, napi_callback_info info)
 
 napi_value JsWindow::OnResize(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnResize : Start...");
+    WLOGD("JsWindow::OnResize : Start...");
     WmErrorCode errCode = WmErrorCode::WM_OK;
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < 2 || argc > 3) {
-        HILOG_ERROR("JsWindow::OnResize : Argc is invalid: %{public}zu", argc);
+        WLOGE("JsWindow::OnResize : Argc is invalid: %{public}zu", argc);
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
     int32_t width = 0;
     if (errCode == WmErrorCode::WM_OK && !ConvertFromJsValue(env, argv[0], width)) {
-        HILOG_ERROR("JsWindow::OnResize : Failed to convert parameter to width");
+        WLOGE("JsWindow::OnResize : Failed to convert parameter to width");
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
     int32_t height = 0;
     if (errCode == WmErrorCode::WM_OK && !ConvertFromJsValue(env, argv[1], height)) {
-        HILOG_ERROR("JsWindow::OnResize : Failed to convert parameter to height");
+        WLOGE("JsWindow::OnResize : Failed to convert parameter to height");
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
     if (width <= 0 || height <= 0) {
-        HILOG_ERROR("JsWindow::OnResize : width or height should greater than 0!");
+        WLOGE("JsWindow::OnResize : width or height should greater than 0!");
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
     if (errCode != WmErrorCode::WM_OK) {
@@ -337,14 +337,14 @@ napi_value JsWindow::OnResize(napi_env env, napi_callback_info info)
         return CreateJsUndefined(env);
     }
 
-    HILOG_ERROR("OnResize %p", windowToken_.get());
+    WLOGE("OnResize %p", windowToken_.get());
     std::weak_ptr<Window> weakToken(windowToken_);
     NapiAsyncTask::CompleteCallback complete =
         [weakToken, width, height](napi_env env, NapiAsyncTask& task, int32_t status) {
         auto weakWindow = weakToken.lock();
         if (weakWindow == nullptr) {
             task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
-            HILOG_ERROR("JsWindow::OnResize : window is nullptr");
+            WLOGE("JsWindow::OnResize : window is nullptr");
             return;
         }
         WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(
@@ -354,7 +354,7 @@ napi_value JsWindow::OnResize(napi_env env, napi_callback_info info)
         } else {
             task.Reject(env, CreateWindowsJsError(env, static_cast<int32_t>(ret), "Window resize failed"));
         }
-        HILOG_INFO("JsWindow::OnResize : Window [%{public}u, %{public}s] resize end, ret = %{public}d",
+        WLOGI("JsWindow::OnResize : Window [%{public}u, %{public}s] resize end, ret = %{public}d",
             weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), ret);
     };
 
@@ -370,16 +370,16 @@ napi_value JsWindow::OnResize(napi_env env, napi_callback_info info)
 
 napi_value JsWindow::OnGetWindowPropertiesSync(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnGetWindowPropertiesSync : Start...");
+    WLOGD("JsWindow::OnGetWindowPropertiesSync : Start...");
     std::weak_ptr<Window> weakToken(windowToken_);
     auto window = weakToken.lock();
     if (window == nullptr) {
-        HILOG_ERROR("JsWindow::OnGetWindowPropertiesSync : window is nullptr or get invalid param");
+        WLOGE("JsWindow::OnGetWindowPropertiesSync : window is nullptr or get invalid param");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
         return CreateUndefined(env);
     }
     auto objValue = CreateJsWindowPropertiesObject(env, window);
-    HILOG_INFO("JsWindow::OnGetWindowPropertiesSync : Window [%{public}u, %{public}s] get properties end",
+    WLOGI("JsWindow::OnGetWindowPropertiesSync : Window [%{public}u, %{public}s] get properties end",
         window->GetWindowId(), window->GetWindowName().c_str());
     if (objValue == nullptr) {
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
@@ -390,13 +390,13 @@ napi_value JsWindow::OnGetWindowPropertiesSync(napi_env env, napi_callback_info 
 
 napi_value JsWindow::OnSetWindowSystemBarEnable(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnSetWindowSystemBarEnable : Start...");
+    WLOGD("JsWindow::OnSetWindowSystemBarEnable : Start...");
     WmErrorCode errCode = WmErrorCode::WM_OK;
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < 1) {
-        HILOG_ERROR("JsWindow::OnSetWindowSystemBarEnable : Argc is invalid: %{public}zu", argc);
+        WLOGE("JsWindow::OnSetWindowSystemBarEnable : Argc is invalid: %{public}zu", argc);
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
@@ -446,13 +446,13 @@ napi_value JsWindow::OnSetWindowSystemBarEnable(napi_env env, napi_callback_info
 
 napi_value JsWindow::OnSetPreferredOrientation(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnSetPreferredOrientation : Start...");
+    WLOGD("JsWindow::OnSetPreferredOrientation : Start...");
     WmErrorCode errCode = WmErrorCode::WM_OK;
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < 1) {
-        HILOG_ERROR("JsWindow::OnSetPreferredOrientation : Argc is invalid: %{public}zu", argc);
+        WLOGE("JsWindow::OnSetPreferredOrientation : Argc is invalid: %{public}zu", argc);
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
@@ -461,7 +461,7 @@ napi_value JsWindow::OnSetPreferredOrientation(napi_env env, napi_callback_info 
     if (!ConvertFromJsValue(env, argv[0], type) ||
         !JS_TO_NATIVE_ORIENTATION_MAP.count(static_cast<ApiOrientation>(type))) {
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
-        HILOG_ERROR("JsWindow::OnSetPreferredOrientation : Orientation %{public}u invalid!",
+        WLOGE("JsWindow::OnSetPreferredOrientation : Orientation %{public}u invalid!",
                 static_cast<uint32_t>(type));
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
@@ -469,7 +469,7 @@ napi_value JsWindow::OnSetPreferredOrientation(napi_env env, napi_callback_info 
     Orientation requestedOrientation = JS_TO_NATIVE_ORIENTATION_MAP.at(static_cast<ApiOrientation>(type));
     if (requestedOrientation < Orientation::BEGIN || requestedOrientation > Orientation::END) {
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
-        HILOG_ERROR("JsWindow::OnSetPreferredOrientation : Orientation %{public}u invalid!",
+        WLOGE("JsWindow::OnSetPreferredOrientation : Orientation %{public}u invalid!",
                 static_cast<uint32_t>(requestedOrientation));
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
@@ -480,14 +480,14 @@ napi_value JsWindow::OnSetPreferredOrientation(napi_env env, napi_callback_info 
         [weakToken, requestedOrientation](napi_env env, NapiAsyncTask& task, int32_t status) {
         auto weakWindow = weakToken.lock();
         if (weakWindow == nullptr) {
-            HILOG_ERROR("JsWindow::OnSetPreferredOrientation : Window is nullptr");
+            WLOGE("JsWindow::OnSetPreferredOrientation : Window is nullptr");
             task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY,
                                     "OnSetPreferredOrientation failed"));
             return;
         }
         weakWindow->SetRequestedOrientation(requestedOrientation);
         task.Resolve(env, CreateUndefined(env));
-        HILOG_INFO("JsWindow::OnSetPreferredOrientation : Window [%{public}u, %{public}s] "
+        WLOGI("JsWindow::OnSetPreferredOrientation : Window [%{public}u, %{public}s] "
                    "OnSetPreferredOrientation end, orientation = %{public}u",
             weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(),
             static_cast<uint32_t>(requestedOrientation));
@@ -505,16 +505,16 @@ napi_value JsWindow::OnSetPreferredOrientation(napi_env env, napi_callback_info 
 
 napi_value JsWindow::OnLoadContent(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnLoadContent : Start...");
+    WLOGD("JsWindow::OnLoadContent : Start...");
     WmErrorCode errCode = WmErrorCode::WM_OK;
     napi_value storage = nullptr;
     napi_value callback = nullptr;
     std::string contextUrl;
     if (!GetContentArg(env, info, contextUrl, storage, callback)) {
-        HILOG_ERROR("JsWindow::OnSetPreferredOrientation : Argc is invalid");
+        WLOGE("JsWindow::OnSetPreferredOrientation : Argc is invalid");
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
-    HILOG_DEBUG("JsWindow::OnLoadContent : Processing...");
+    WLOGD("JsWindow::OnLoadContent : Processing...");
     napi_ref contentStorage = nullptr;
     if ((errCode == WmErrorCode::WM_OK) && (storage != nullptr)) {
         napi_status status = napi_create_reference(env, storage, 1, &contentStorage);
@@ -530,7 +530,7 @@ napi_value JsWindow::OnLoadContent(napi_env env, napi_callback_info info)
         [weakToken, contentStorage, contextUrl](napi_env env, NapiAsyncTask& task, int32_t status) {
         auto weakWindow = weakToken.lock();
         if (weakWindow == nullptr) {
-            HILOG_ERROR("JsWindow::OnLoadContent : Window is nullptr or get invalid param");
+            WLOGE("JsWindow::OnLoadContent : Window is nullptr or get invalid param");
             task.Reject(env, CreateWindowsJsError(env,
                 WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
             return;
@@ -545,16 +545,16 @@ napi_value JsWindow::OnLoadContent(napi_env env, napi_callback_info info)
 
 napi_value JsWindow::OnSetUIContent(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnSetUIContent : Start...");
+    WLOGD("JsWindow::OnSetUIContent : Start...");
     WmErrorCode errCode = WmErrorCode::WM_OK;
     napi_value storage = nullptr;
     napi_value callback = nullptr;
     std::string contextUrl;
     if (!GetContentArg(env, info, contextUrl, storage, callback)) {
-        HILOG_ERROR("JsWindow::OnSetUIContent : Argc is invalid");
+        WLOGE("JsWindow::OnSetUIContent : Argc is invalid");
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
-    HILOG_DEBUG("JsWindow::OnSetUIContent : Processing...");
+    WLOGD("JsWindow::OnSetUIContent : Processing...");
     napi_ref contentStorage = nullptr;
     if ((errCode == WmErrorCode::WM_OK) && (storage != nullptr)) {
         napi_status status = napi_create_reference(env, storage, 1, &contentStorage);
@@ -570,7 +570,7 @@ napi_value JsWindow::OnSetUIContent(napi_env env, napi_callback_info info)
         [weakToken, contentStorage, contextUrl](napi_env env, NapiAsyncTask& task, int32_t status) {
         auto weakWindow = weakToken.lock();
         if (weakWindow == nullptr) {
-            HILOG_ERROR("JsWindow::OnSetUIContent : Window is nullptr");
+            WLOGE("JsWindow::OnSetUIContent : Window is nullptr");
             task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
             return;
         }
@@ -584,37 +584,37 @@ napi_value JsWindow::OnSetUIContent(napi_env env, napi_callback_info info)
 
 napi_value JsWindow::OnIsWindowShowingSync(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnIsWindowShowingSync : Start...");
+    WLOGD("JsWindow::OnIsWindowShowingSync : Start...");
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc > 1) {
-        HILOG_ERROR("JsWindow::OnIsWindowShowingSync : Argc is invalid: %{public}zu", argc);
+        WLOGE("JsWindow::OnIsWindowShowingSync : Argc is invalid: %{public}zu", argc);
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
     std::weak_ptr<Rosen::Window> weakToken(windowToken_);
     auto weakWindow = weakToken.lock();
     if (weakWindow == nullptr) {
-        HILOG_ERROR("JsWindow::OnIsWindowShowingSync : window is nullptr");
+        WLOGE("JsWindow::OnIsWindowShowingSync : window is nullptr");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
         return CreateUndefined(env);
     }
     bool state = weakWindow->IsWindowShow();
-    HILOG_DEBUG("JsWindow::OnIsWindowShowingSync : Window [%{public}u, %{public}s] get show state = %{public}u",
+    WLOGD("JsWindow::OnIsWindowShowingSync : Window [%{public}u, %{public}s] get show state = %{public}u",
         weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), state);
     return CreateJsValue(env, state);
 }
 
 napi_value JsWindow::OnSetWindowBackgroundColorSync(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnSetWindowBackgroundColorSync : Start...");
+    WLOGD("JsWindow::OnSetWindowBackgroundColorSync : Start...");
     WmErrorCode errCode = WmErrorCode::WM_OK;
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc != 1) {
-        HILOG_ERROR("JsWindow::OnIsWindowShowingSync : Argc is invalid: %{public}zu", argc);
+        WLOGE("JsWindow::OnIsWindowShowingSync : Argc is invalid: %{public}zu", argc);
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
@@ -622,7 +622,7 @@ napi_value JsWindow::OnSetWindowBackgroundColorSync(napi_env env, napi_callback_
     std::string color;
     uint32_t colorValue;
     if (!ConvertFromJsValue(env, argv[0], color) || !ColorParser::Parse(color, colorValue)) {
-        HILOG_ERROR("JsWindow::OnSetWindowBackgroundColorSync : Failed to convert parameter to background color");
+        WLOGE("JsWindow::OnSetWindowBackgroundColorSync : Failed to convert parameter to background color");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
@@ -630,13 +630,13 @@ napi_value JsWindow::OnSetWindowBackgroundColorSync(napi_env env, napi_callback_
     std::weak_ptr<Window> weakToken(windowToken_);
     auto window = weakToken.lock();
     if (window == nullptr) {
-        HILOG_ERROR("JsWindow::OnSetWindowBackgroundColorSync : window is nullptr");
+        WLOGE("JsWindow::OnSetWindowBackgroundColorSync : window is nullptr");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
         return CreateUndefined(env);
     }
-    HILOG_INFO("JsWindow::OnSetWindowBackgroundColorSync set color %{public}s, %{public}u", color.c_str(), colorValue);
+    WLOGI("JsWindow::OnSetWindowBackgroundColorSync set color %{public}s, %{public}u", color.c_str(), colorValue);
     WMError err = window->SetBackgroundColor(colorValue);
-    HILOG_INFO("JsWindow::OnSetWindowBackgroundColorSync : Window [%{public}u, %{public}s] result %{public}u",
+    WLOGI("JsWindow::OnSetWindowBackgroundColorSync : Window [%{public}u, %{public}s] result %{public}u",
         window->GetWindowId(), window->GetWindowName().c_str(), static_cast<uint32_t>(err));
     errCode = WM_JS_TO_ERROR_CODE_MAP.at(err);
     if (errCode == WmErrorCode::WM_OK) {
@@ -649,20 +649,20 @@ napi_value JsWindow::OnSetWindowBackgroundColorSync(napi_env env, napi_callback_
 
 napi_value JsWindow::OnSetWindowBrightness(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnSetWindowBrightness : Start...");
+    WLOGD("JsWindow::OnSetWindowBrightness : Start...");
     WmErrorCode errCode = WmErrorCode::WM_OK;
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < 1) {
-        HILOG_ERROR("JsWindow::OnSetWindowBrightness : Argc is invalid: %{public}zu", argc);
+        WLOGE("JsWindow::OnSetWindowBrightness : Argc is invalid: %{public}zu", argc);
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
     }
     float brightness = UNDEFINED_BRIGHTNESS;
     if (!ConvertFromJsValue(env, argv[0], brightness)) {
-        HILOG_ERROR("JsWindow::OnSetWindowBrightness : Failed to convert parameter to brightness");
+        WLOGE("JsWindow::OnSetWindowBrightness : Failed to convert parameter to brightness");
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
@@ -683,7 +683,7 @@ napi_value JsWindow::OnSetWindowBrightness(napi_env env, napi_callback_info info
         } else {
             task.Reject(env, CreateWindowsJsError(env, static_cast<int32_t>(ret), "Window set brightness failed"));
         }
-        HILOG_INFO("JsWindow::OnSetWindowBrightness : Window [%{public}u, %{public}s] set brightness end",
+        WLOGI("JsWindow::OnSetWindowBrightness : Window [%{public}u, %{public}s] set brightness end",
             weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str());
     };
 
@@ -699,20 +699,20 @@ napi_value JsWindow::OnSetWindowBrightness(napi_env env, napi_callback_info info
 
 napi_value JsWindow::OnSetWindowKeepScreenOn(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnSetWindowKeepScreenOn : Start...");
+    WLOGD("JsWindow::OnSetWindowKeepScreenOn : Start...");
     WmErrorCode errCode = WmErrorCode::WM_OK;
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < 1) {
-        HILOG_ERROR("JsWindow::OnSetWindowKeepScreenOn : Argc is invalid: %{public}zu", argc);
+        WLOGE("JsWindow::OnSetWindowKeepScreenOn : Argc is invalid: %{public}zu", argc);
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
     }
     bool keepScreenOn = true;
     if (!ConvertFromJsValue(env, argv[0], keepScreenOn)) {
-        HILOG_ERROR("JsWindow::OnSetWindowKeepScreenOn : Failed to convert parameter to keepScreenOn");
+        WLOGE("JsWindow::OnSetWindowKeepScreenOn : Failed to convert parameter to keepScreenOn");
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
@@ -733,7 +733,7 @@ napi_value JsWindow::OnSetWindowKeepScreenOn(napi_env env, napi_callback_info in
         } else {
             task.Reject(env, CreateWindowsJsError(env, static_cast<int32_t>(ret), "Window set keep screen on failed"));
         }
-        HILOG_INFO("JsWindow::OnSetWindowKeepScreenOn : Window [%{public}u, %{public}s] set keep screen on end",
+        WLOGI("JsWindow::OnSetWindowKeepScreenOn : Window [%{public}u, %{public}s] set keep screen on end",
             weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str());
     };
 
@@ -754,13 +754,13 @@ napi_value JsWindow::OnSetWindowColorSpace(napi_env env, napi_callback_info info
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < 1) {
-        HILOG_ERROR("JsWindow::OnSetWindowColorSpace, argc is invalid: %{public}zu", argc);
+        WLOGE("JsWindow::OnSetWindowColorSpace, argc is invalid: %{public}zu", argc);
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
     uint32_t resultValue = 0;
     if (!ConvertFromJsValue(env, argv[0], resultValue) ||
         resultValue >static_cast<uint32_t>(ColorSpace::COLOR_SPACE_WIDE_GAMUT)) {
-        HILOG_ERROR("Failed to convert parameter to callbackType");
+        WLOGE("Failed to convert parameter to callbackType");
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
     }
     if (errCode != WmErrorCode::WM_OK) {
@@ -777,14 +777,14 @@ napi_value JsWindow::OnSetWindowColorSpace(napi_env env, napi_callback_info info
             task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY, "Invalidate params."));
             return;
         }
-        HILOG_INFO("JsWindow::OnSetWindowColorSpace colorSpace..., %{public}d",  colorSpace);
+        WLOGI("JsWindow::OnSetWindowColorSpace colorSpace..., %{public}d",  colorSpace);
         WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->SetColorSpace(colorSpace));
         if (ret == WmErrorCode::WM_OK) {
             task.Resolve(env, CreateUndefined(env));
         } else {
             task.Reject(env, CreateWindowsJsError(env, ret, "Window SetColorSpace failed"));
         }
-        HILOG_INFO("JsWindow::SetColorSpace : Window [%{public}u, %{public}s] set colorSpace end",
+        WLOGI("JsWindow::SetColorSpace : Window [%{public}u, %{public}s] set colorSpace end",
             weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str());
     };
 
@@ -803,31 +803,31 @@ napi_value JsWindow::OnGetWindowColorSpace(napi_env env, napi_callback_info info
     std::weak_ptr<Window> weakToken(windowToken_);
     auto weakWindow = weakToken.lock();
     if (weakWindow == nullptr) {
-        HILOG_ERROR("JsWindow::OnGetWindowColorSpace is nullptr");
+        WLOGE("JsWindow::OnGetWindowColorSpace is nullptr");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
         return CreateUndefined(env);
     }
     ColorSpace colorSpace = weakWindow->GetColorSpace();
-    HILOG_INFO("JsWindow [%{public}u, %{public}s] OnGetColorSpace end, colorSpace = %{public}u",
+    WLOGI("JsWindow [%{public}u, %{public}s] OnGetColorSpace end, colorSpace = %{public}u",
         weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), static_cast<uint32_t>(colorSpace));
     return CreateJsValue(env, static_cast<uint32_t>(colorSpace));
 }
 
 napi_value JsWindow::OnRegisterWindowManagerCallback(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnRegisterWindowManagerCallback : Start...");
+    WLOGD("JsWindow::OnRegisterWindowManagerCallback : Start...");
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < 2 || !IsFunction(env, argv[1])) {
-        HILOG_ERROR("JsWindow::OnRegisterWindowManagerCallback, argc is invalid: %{public}zu", argc);
+        WLOGE("JsWindow::OnRegisterWindowManagerCallback, argc is invalid: %{public}zu", argc);
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
 
     std::string cbType;
     if (!ConvertFromJsValue(env, argv[0], cbType)) {
-        HILOG_ERROR("Failed to convert parameter to callbackType");
+        WLOGE("Failed to convert parameter to callbackType");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
@@ -836,29 +836,29 @@ napi_value JsWindow::OnRegisterWindowManagerCallback(napi_env env, napi_callback
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
-    HILOG_DEBUG("Register end, type = %{public}s", cbType.c_str());
+    WLOGD("Register end, type = %{public}s", cbType.c_str());
     return nullptr;
 }
 
 napi_value JsWindow::OnUnregisterWindowManagerCallback(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindow::OnUnregisterWindowManagerCallback : Start...");
+    WLOGD("JsWindow::OnUnregisterWindowManagerCallback : Start...");
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < 1) {
-        HILOG_ERROR("Argc is invalid: %{public}zu", argc);
+        WLOGE("Argc is invalid: %{public}zu", argc);
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
     std::string cbType;
     if (!ConvertFromJsValue(env, argv[0], cbType)) {
-        HILOG_ERROR("Failed to convert parameter to callbackType");
+        WLOGE("Failed to convert parameter to callbackType");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
     if (cbType.compare("windowEvent") != 0) {
-        HILOG_ERROR("JsWindow::OnUnregisterWindowManagerCallback : Envent %{public}s is invalid", cbType.c_str());
+        WLOGE("JsWindow::OnUnregisterWindowManagerCallback : Envent %{public}s is invalid", cbType.c_str());
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
@@ -868,16 +868,16 @@ napi_value JsWindow::OnUnregisterWindowManagerCallback(napi_env env, napi_callba
     } else {
         g_registerManager->UnregisterListener(env, windowToken_, cbType, CaseType::CASE_WINDOW, nullptr);
     }
-    HILOG_DEBUG("Unregister end, type = %{public}s", cbType.c_str());
+    WLOGD("Unregister end, type = %{public}s", cbType.c_str());
     return nullptr;
 }
 
 napi_ref FindJsWindowObject(const std::string &windowName)
 {
-    HILOG_DEBUG("Try to find window %{public}s in g_jsWindowMap", windowName.c_str());
+    WLOGD("Try to find window %{public}s in g_jsWindowMap", windowName.c_str());
     std::lock_guard<std::recursive_mutex> lock(g_jsWindowMutex);
     if (g_jsWindowMap.find(windowName) == g_jsWindowMap.end()) {
-        HILOG_DEBUG("Can not find window %{public}s in g_jsWindowMap", windowName.c_str());
+        WLOGD("Can not find window %{public}s in g_jsWindowMap", windowName.c_str());
         return nullptr;
     }
     return g_jsWindowMap[windowName];
@@ -888,7 +888,7 @@ void RemoveJsWindowObject(napi_env env, const std::string &windowName)
     std::lock_guard<std::recursive_mutex> lock(g_jsWindowMutex);
     auto iter = g_jsWindowMap.find(windowName);
     if (iter != g_jsWindowMap.end()) {
-        HILOG_INFO("RemoveJsWindowObject %{public}s", windowName.c_str());
+        WLOGI("RemoveJsWindowObject %{public}s", windowName.c_str());
         napi_delete_reference(env, iter->second);
         g_jsWindowMap.erase(iter);
     }
@@ -903,7 +903,7 @@ std::string JsWindow::GetWindowName()
 
 void JsWindow::Finalizer(napi_env env, void* data, void* hint)
 {
-    HILOG_INFO("JsWindow::Finalizer");
+    WLOGI("JsWindow::Finalizer");
 #ifdef IOS_PLATFORM
     if (g_willTerminate) {
         return;
@@ -911,17 +911,17 @@ void JsWindow::Finalizer(napi_env env, void* data, void* hint)
 #endif
     auto jsWin = std::unique_ptr<JsWindow>(static_cast<JsWindow*>(data));
     if (jsWin == nullptr) {
-        HILOG_ERROR("jsWin is nullptr");
+        WLOGE("jsWin is nullptr");
         return;
     }
     std::string windowName = jsWin->GetWindowName();
     RemoveJsWindowObject(env, windowName);
-    HILOG_INFO("Remove window %{public}s from g_jsWindowMap", windowName.c_str());
+    WLOGI("Remove window %{public}s from g_jsWindowMap", windowName.c_str());
 }
 
 napi_value JsWindow::GetUIContext(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("GetUIContext");
+    WLOGD("GetUIContext");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnGetUIContext(env, info) : nullptr;
 }
@@ -932,7 +932,7 @@ napi_value JsWindow::OnGetUIContext(napi_env env, napi_callback_info info)
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc >= 1) {
-        HILOG_ERROR("Argc is invalid: %{public}zu, expect zero params", argc);
+        WLOGE("Argc is invalid: %{public}zu, expect zero params", argc);
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
@@ -940,21 +940,21 @@ napi_value JsWindow::OnGetUIContext(napi_env env, napi_callback_info info)
     std::weak_ptr<Window> weakToken(windowToken_);
     auto window = weakToken.lock();
     if (window == nullptr) {
-        HILOG_ERROR("window is nullptr");
+        WLOGE("window is nullptr");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
         return CreateUndefined(env);
     }
 
     auto uicontent = window->GetUIContent();
     if (uicontent == nullptr) {
-        HILOG_ERROR("uicontent is nullptr");
+        WLOGE("uicontent is nullptr");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
         return CreateUndefined(env);
     }
 
     napi_value uiContext = uicontent->GetUINapiContext();
     if (uiContext == nullptr) {
-        HILOG_ERROR("uiContext obtained from jsEngine is nullptr");
+        WLOGE("uiContext obtained from jsEngine is nullptr");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
         return CreateUndefined(env);
     }
@@ -985,14 +985,14 @@ static const napi_property_descriptor g_props[] = {
 napi_value CreateJsWindowObject(napi_env env, std::shared_ptr<Rosen::Window>& window)
 {
     std::string windowName = window->GetWindowName();
-    HILOG_DEBUG("CreateJsWindowObject windowName %{public}s", windowName.c_str());
+    WLOGD("CreateJsWindowObject windowName %{public}s", windowName.c_str());
     // avoid repeatedly create js window when getWindow
     napi_value object = nullptr;
     napi_ref ref = FindJsWindowObject(windowName);
     if (ref != nullptr) {
         napi_status status = napi_get_reference_value(env, ref, &object);
         if (status != napi_ok) {
-            HILOG_ERROR("Failed to get object for %{public}s", windowName.c_str());
+            WLOGE("Failed to get object for %{public}s", windowName.c_str());
             return nullptr;
         }
         return object;
@@ -1001,13 +1001,13 @@ napi_value CreateJsWindowObject(napi_env env, std::shared_ptr<Rosen::Window>& wi
     std::unique_ptr<JsWindow> jsWindow = std::make_unique<JsWindow>(window);
     object = CreateObject(env, "JsWindow", g_props, sizeof(g_props) / sizeof(g_props[0]));
     if (object == nullptr) {
-        HILOG_ERROR("Create jsWindow fail");
+        WLOGE("Create jsWindow fail");
         return nullptr;
     }
     napi_wrap(env, object, jsWindow.release(), JsWindow::Finalizer, nullptr, nullptr);
 
     NotifyNativeWinDestroyFunc func = [&env](std::string windowName) {
-        HILOG_INFO("Destroy window %{public}s in js window", windowName.c_str());
+        WLOGI("Destroy window %{public}s in js window", windowName.c_str());
         RemoveJsWindowObject(env, windowName);
     };
     window->RegisterWindowDestroyedListener(func);
@@ -1019,7 +1019,7 @@ napi_value CreateJsWindowObject(napi_env env, std::shared_ptr<Rosen::Window>& wi
 #endif
     napi_status status = napi_create_reference(env, object, 1, &ref);
     if (status != napi_ok) {
-        HILOG_ERROR("Failed to reference for %{public}s", windowName.c_str());
+        WLOGE("Failed to reference for %{public}s", windowName.c_str());
         return nullptr;
     }
     std::lock_guard<std::recursive_mutex> lock(g_jsWindowMutex);

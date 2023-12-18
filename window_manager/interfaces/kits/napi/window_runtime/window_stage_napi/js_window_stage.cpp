@@ -17,12 +17,12 @@
 
 #include <string>
 
-#include "hilog.h"
 #include "js_window_utils.h"
 #include "js_window.h"
 #include "js_window_register_manager.h"
 #include "native_engine/native_engine.h"
 #include "virtual_rs_window.h"
+#include "window_hilog.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,7 +36,6 @@ JsWindowStage::~JsWindowStage() {}
 
 napi_value JsWindowStage::LoadContent(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindowStage::LoadContent");
     JsWindowStage* me = CheckParamsAndGetThis<JsWindowStage>(env, info);
     return (me != nullptr) ? me->OnLoadContent(env, info) : nullptr;
 }
@@ -65,7 +64,7 @@ napi_value JsWindowStage::OnLoadContent(napi_env env, napi_callback_info info)
         [weak = windowStage_, storageRef, contextUrl](napi_env env, NapiAsyncTask& task, int32_t status) {
             auto weakStage = weak.lock();
             if (weakStage == nullptr || weakStage->GetMainWindow() == nullptr) {
-                HILOG_ERROR("JsWindowStage::OnLoadContent : no main window");
+                WLOGE("JsWindowStage::OnLoadContent : no main window");
                 task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
                 return;
             }
@@ -78,7 +77,7 @@ napi_value JsWindowStage::OnLoadContent(napi_env env, napi_callback_info info)
 
 napi_value JsWindowStage::GetMainWindow(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindowStage::GetMainWindow");
+    WLOGD("JsWindowStage::GetMainWindow");
     JsWindowStage* me = CheckParamsAndGetThis<JsWindowStage>(env, info);
     return (me != nullptr) ? me->OnGetMainWindow(env, info) : nullptr;
 }
@@ -89,14 +88,14 @@ napi_value JsWindowStage::OnGetMainWindow(napi_env env, napi_callback_info info)
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    HILOG_DEBUG("JsWindowStage::OnGetMainWindow : Start... / argc[%{public}zu]", argc);
+    WLOGD("JsWindowStage::OnGetMainWindow : Start... / argc[%{public}zu]", argc);
     if (status != napi_ok || argc > 1) {
-        HILOG_ERROR("JsWindowStage::OnGetMainWindow : argc error![%{public}zu]", argc);
+        WLOGE("JsWindowStage::OnGetMainWindow : argc error![%{public}zu]", argc);
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
     }
-    HILOG_DEBUG("JsWindowStage::OnGetMainWindow : processing...");
+    WLOGD("JsWindowStage::OnGetMainWindow : processing...");
     napi_value result = nullptr;
     NapiAsyncTask::CompleteCallback complete =
         [weak = windowStage_](napi_env env, NapiAsyncTask& task, int32_t status) {
@@ -107,7 +106,7 @@ napi_value JsWindowStage::OnGetMainWindow(napi_env env, napi_callback_info info)
             }
             auto window = weakStage->GetMainWindow();
             if (window != nullptr) {
-                HILOG_DEBUG("JsWindowStage::OnGetMainWindow : Get main window windowId=%{public}u, "
+                WLOGD("JsWindowStage::OnGetMainWindow : Get main window windowId=%{public}u, "
                             "windowName=%{public}s",
                     window->GetWindowId(), window->GetWindowName().c_str());
                 task.Resolve(env, OHOS::Rosen::CreateJsWindowObject(env, window));
@@ -127,14 +126,14 @@ napi_value JsWindowStage::OnGetMainWindow(napi_env env, napi_callback_info info)
 
 napi_value JsWindowStage::GetMainWindowSync(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindowStage::GetMainWindowSync");
+    WLOGD("JsWindowStage::GetMainWindowSync");
     JsWindowStage* me = CheckParamsAndGetThis<JsWindowStage>(env, info);
     return (me != nullptr) ? me->OnGetMainWindowSync(env, info) : nullptr;
 }
 
 napi_value JsWindowStage::OnGetMainWindowSync(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindowStage::OnGetMainWindowSync : Start...");
+    WLOGD("JsWindowStage::OnGetMainWindowSync : Start...");
     auto weakWindowStage = windowStage_.lock();
     auto win = weakWindowStage->GetMainWindow();
     return (win != nullptr) ? CreateJsWindowObject(env, win) : nullptr;
@@ -142,26 +141,26 @@ napi_value JsWindowStage::OnGetMainWindowSync(napi_env env, napi_callback_info i
 
 napi_value JsWindowStage::On(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindowStage::On");
+    WLOGD("JsWindowStage::On");
     JsWindowStage* me = CheckParamsAndGetThis<JsWindowStage>(env, info);
     return (me != nullptr) ? me->OnEvent(env, info) : nullptr;
 }
 
 napi_value JsWindowStage::OnEvent(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindowStage::OnEvent : Start...");
+    WLOGD("JsWindowStage::OnEvent : Start...");
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc != 2) {
-        HILOG_ERROR("JsWindowStage::OnEvent : argc error![%{public}zu]", argc);
+        WLOGE("JsWindowStage::OnEvent : argc error![%{public}zu]", argc);
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
 
     auto weakStage = windowStage_.lock();
     if (weakStage == nullptr) {
-        HILOG_ERROR("JsWindowStage::OnEvent : Window stage is null");
+        WLOGE("JsWindowStage::OnEvent : Window stage is null");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
         return CreateUndefined(env);
     }
@@ -169,26 +168,26 @@ napi_value JsWindowStage::OnEvent(napi_env env, napi_callback_info info)
     // Parse info->argv[0] as string
     std::string eventString;
     if (!ConvertFromJsValue(env, argv[0], eventString)) {
-        HILOG_ERROR("JsWindowStage::OnEvent : Failed to convert parameter to string");
+        WLOGE("JsWindowStage::OnEvent : Failed to convert parameter to string");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
     napi_valuetype type;
     napi_typeof(env, argv[1], &type);
     if (type != napi_function) {
-        HILOG_ERROR("JsWindowStage::OnEvent : Callback(info->argv[1]) is not callable");
+        WLOGE("JsWindowStage::OnEvent : Callback(info->argv[1]) is not callable");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
 
     auto window = weakStage->GetMainWindow();
     if (window == nullptr) {
-        HILOG_ERROR("JsWindowStage::OnEvent : Get window failed");
+        WLOGE("JsWindowStage::OnEvent : Get window failed");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
         return CreateUndefined(env);
     }
     g_listenerManager->RegisterListener(env, window, eventString, CaseType::CASE_STAGE, argv[1]);
-    HILOG_DEBUG("JsWindowStage::OnEvent : Window [%{public}u, %{public}s] register event %{public}s",
+    WLOGD("JsWindowStage::OnEvent : Window [%{public}u, %{public}s] register event %{public}s",
         window->GetWindowId(), window->GetWindowName().c_str(), eventString.c_str());
 
     return CreateUndefined(env);
@@ -196,26 +195,26 @@ napi_value JsWindowStage::OnEvent(napi_env env, napi_callback_info info)
 
 napi_value JsWindowStage::Off(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindowStage::Off");
+    WLOGD("JsWindowStage::Off");
     JsWindowStage* me = CheckParamsAndGetThis<JsWindowStage>(env, info);
     return (me != nullptr) ? me->OffEvent(env, info) : nullptr;
 }
 
 napi_value JsWindowStage::OffEvent(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindowStage::OffEvent : Start...");
+    WLOGD("JsWindowStage::OffEvent : Start...");
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < 1) {
-        HILOG_ERROR("JsWindowStage::OffEvent : argc error![%{public}zu]", argc);
+        WLOGE("JsWindowStage::OffEvent : argc error![%{public}zu]", argc);
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
 
     auto weakStage = windowStage_.lock();
     if (weakStage == nullptr || weakStage->GetMainWindow() == nullptr) {
-        HILOG_ERROR("[NAPI]Window scene is null");
+        WLOGE("[NAPI]Window scene is null");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
         return CreateUndefined(env);
     }
@@ -223,7 +222,7 @@ napi_value JsWindowStage::OffEvent(napi_env env, napi_callback_info info)
     // Parse info->argv[0] as string
     std::string eventString;
     if (!ConvertFromJsValue(env, argv[0], eventString) || eventString.compare("windowStageEvent") != 0) {
-        HILOG_ERROR("JsWindowStage::OffEvent : Failed to convert parameter to string");
+        WLOGE("JsWindowStage::OffEvent : Failed to convert parameter to string");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
@@ -241,41 +240,41 @@ napi_value JsWindowStage::OffEvent(napi_env env, napi_callback_info info)
         }
     }
 
-    HILOG_INFO("JsWindowStage::OffEvent : Window [%{public}u, %{public}s] unregister event %{public}s",
+    WLOGI("JsWindowStage::OffEvent : Window [%{public}u, %{public}s] unregister event %{public}s",
         window->GetWindowId(), window->GetWindowName().c_str(), eventString.c_str());
     return CreateUndefined(env);
 }
 
 napi_value JsWindowStage::CreateSubWindow(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindowStage::CreateSubWindow");
+    WLOGD("JsWindowStage::CreateSubWindow");
     JsWindowStage* me = CheckParamsAndGetThis<JsWindowStage>(env, info);
     return (me != nullptr) ? me->OnCreateSubWindow(env, info) : nullptr;
 }
 
 napi_value JsWindowStage::GetSubWindow(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindowStage::GetSubWindow");
+    WLOGD("JsWindowStage::GetSubWindow");
     JsWindowStage* me = CheckParamsAndGetThis<JsWindowStage>(env, info);
     return (me != nullptr) ? me->OnGetSubWindow(env, info) : nullptr;
 }
 
 napi_value JsWindowStage::OnCreateSubWindow(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindowStage::OnCreateSubWindow : Start...");
+    WLOGD("JsWindowStage::OnCreateSubWindow : Start...");
     WmErrorCode errCode = WmErrorCode::WM_OK;
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < 1) {
-        HILOG_ERROR("JsWindowStage::OnCreateSubWindow : argc error![%{public}zu]", argc);
+        WLOGE("JsWindowStage::OnCreateSubWindow : argc error![%{public}zu]", argc);
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
     }
     std::string windowName;
     if (!ConvertFromJsValue(env, argv[0], windowName)) {
-        HILOG_ERROR("JsWindowStage::OnCreateSubWindow : Failed to convert parameter to windowName");
+        WLOGE("JsWindowStage::OnCreateSubWindow : Failed to convert parameter to windowName");
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
@@ -285,19 +284,19 @@ napi_value JsWindowStage::OnCreateSubWindow(napi_env env, napi_callback_info inf
         [weak = windowStage_, windowName](napi_env env, NapiAsyncTask& task, int32_t status) {
         auto weakWindowStage = weak.lock();
         if (weakWindowStage == nullptr) {
-            HILOG_ERROR("JsWindowStage::OnCreateSubWindow : Window scene is null");
+            WLOGE("JsWindowStage::OnCreateSubWindow : Window scene is null");
             task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
             return;
         }
         auto window = weakWindowStage->CreateSubWindow(windowName);
         if (window == nullptr) {
-            HILOG_ERROR("JsWindowStage::OnCreateSubWindow : create sub window failed");
+            WLOGE("JsWindowStage::OnCreateSubWindow : create sub window failed");
             task.Reject(env, CreateWindowsJsError(env,
                 WmErrorCode::WM_ERROR_STATE_ABNORMALLY, "Get window failed"));
             return;
         }
         task.Resolve(env, CreateJsWindowObject(env, window));
-        HILOG_INFO("JsWindowStage::OnCreateSubWindow : Create sub window %{public}s end", windowName.c_str());
+        WLOGI("JsWindowStage::OnCreateSubWindow : Create sub window %{public}s end", windowName.c_str());
     };
     napi_value callback = nullptr;
     if (argc > 1 && IsFunction(env, argv[1])) {
@@ -324,13 +323,13 @@ static napi_value CreateJsSubWindowArrayObject(napi_env env, std::vector<std::sh
 
 napi_value JsWindowStage::OnGetSubWindow(napi_env env, napi_callback_info info)
 {
-    HILOG_DEBUG("JsWindowStage::OnGetSubWindow : Start...");
+    WLOGD("JsWindowStage::OnGetSubWindow : Start...");
     WmErrorCode errCode = WmErrorCode::WM_OK;
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok) {
-        HILOG_ERROR("JsWindowStage::OnCreateSubWindow : argc error![%{public}zu]", argc);
+        WLOGE("JsWindowStage::OnCreateSubWindow : argc error![%{public}zu]", argc);
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
@@ -340,13 +339,13 @@ napi_value JsWindowStage::OnGetSubWindow(napi_env env, napi_callback_info info)
         [weak = windowStage_](napi_env env, NapiAsyncTask& task, int32_t status) {
             auto weakWindowStage = weak.lock();
             if (weakWindowStage == nullptr) {
-                HILOG_ERROR("JsWindowStage::OnGetSubWindow : Window scene is nullptr");
+                WLOGE("JsWindowStage::OnGetSubWindow : Window scene is nullptr");
                 task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
                 return;
             }
             std::vector<std::shared_ptr<Window>> subWindowVec = weakWindowStage->GetSubWindow();
             task.Resolve(env, CreateJsSubWindowArrayObject(env, subWindowVec));
-            HILOG_INFO("JsWindowStage::OnGetSubWindow : Get sub windows, size = %{public}zu", subWindowVec.size());
+            WLOGI("JsWindowStage::OnGetSubWindow : Get sub windows, size = %{public}zu", subWindowVec.size());
     };
     napi_value callback = nullptr;
     if (argc >= 1 && IsFunction(env, argv[0])) {
@@ -365,7 +364,7 @@ void JsWindowStage::Finalizer(napi_env env, void* data, void* hint)
 
 napi_value CreateJsWindowStage(napi_env env, std::shared_ptr<Rosen::WindowStage> WindowStage)
 {
-    HILOG_INFO("CreateJsWindowStage");
+    WLOGI("CreateJsWindowStage");
     const napi_property_descriptor props[] = {
         DECLARE_NAPI_FUNCTION("loadContent", JsWindowStage::LoadContent),
         DECLARE_NAPI_FUNCTION("getMainWindow", JsWindowStage::GetMainWindow),
