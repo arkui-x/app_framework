@@ -88,14 +88,3 @@ ohos_source_set("ios") {
     "$rosen_root/modules/platform:utils",
   ]
 }
-config("mock_log_config") {
-  include_dirs = [ "log" ]
-}
-
-ohos_source_set("mock_log") {
-  public_configs = [ ":mock_log_config" ]
-  sources = [ "log/hilog/log_aosp.mm" ]
-  libs = [ "log" ]
-  part_name = "graphic_standard"
-  subsystem_name = "graphic"
-}

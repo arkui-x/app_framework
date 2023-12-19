@@ -18,11 +18,3 @@ group("platform") {
     public_deps = [ "ios:ios" ]
   }
 }
-
-group("log") {
-  if (current_os == "android") {
-    public_deps = [ "android:mock_log" ]
-  } else if (current_os == "ios") {
-    public_deps = [ "ios:mock_log" ]
-  }
-}
