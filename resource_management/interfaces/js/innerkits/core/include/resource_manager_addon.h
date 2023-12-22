@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,9 +16,6 @@
 #ifndef RESOURCE_MANAGER_ADDON_H
 #define RESOURCE_MANAGER_ADDON_H
 
-#include <cstddef>
-#include <memory>
-#include <string>
 #if defined(__ARKUI_CROSS__)
 #include "foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit/context.h"
 #else
@@ -27,11 +24,17 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "resource_manager.h"
-
+#include "resource_manager_napi_context.h"
 namespace OHOS {
 namespace Global {
 namespace Resource {
 class ResourceManagerAddon {
+#define GET_PARAMS(env, info, num)    \
+    size_t argc = num;                \
+    napi_value argv[num] = {nullptr}; \
+    napi_value thisVar = nullptr;     \
+    void *data = nullptr;             \
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, &data)
 public:
 #if defined(__ARKUI_CROSS__)
     static napi_value Create(
@@ -48,17 +51,23 @@ public:
 
 #if defined(__ARKUI_CROSS__)
     ResourceManagerAddon(const std::string& bundleName, const std::shared_ptr<ResourceManager>& resMgr,
-        const std::shared_ptr<AbilityRuntime::Platform::Context>& context);
+        const std::shared_ptr<AbilityRuntime::Platform::Context>& context, bool isSystem = false);
 #else
     ResourceManagerAddon(const std::string& bundleName, const std::shared_ptr<ResourceManager>& resMgr,
-        const std::shared_ptr<AbilityRuntime::Context>& context);
+        const std::shared_ptr<AbilityRuntime::Context>& context, bool isSystem = false);
 #endif
+
+    ResourceManagerAddon(const std::shared_ptr<ResourceManager>& resMgr, bool isSystem = false);
+
+    static napi_value GetSystemResMgr(napi_env env);
+
     ~ResourceManagerAddon();
 
     inline std::shared_ptr<ResourceManager> GetResMgr()
     {
         return resMgr_;
     }
+
 #if defined(__ARKUI_CROSS__)
     inline std::shared_ptr<AbilityRuntime::Platform::Context> GetContext()
 #else
@@ -68,16 +77,13 @@ public:
         return context_;
     }
 
-    std::string GetLocale(std::unique_ptr<ResConfig> &cfg);
-
-    static int GetResId(napi_env env, size_t argc, napi_value *argv);
-
-    static int32_t GetResourceObject(napi_env env, std::shared_ptr<ResourceManager::Resource> &resourcePtr,
-        napi_value &value);
+    inline bool IsSystem()
+    {
+        return isSystem_;
+    }
 private:
-
-    static napi_value ProcessOnlyIdParam(napi_env env, napi_callback_info info, const std::string &name,
-        napi_async_execute_callback execute);
+    static napi_value AddonGetResource(napi_env env, napi_callback_info info, const std::string& name,
+        FunctionType type);
 
     static napi_value GetString(napi_env env, napi_callback_info info);
 
@@ -120,9 +126,6 @@ private:
 
     static napi_value GetPluralStringByName(napi_env env, napi_callback_info info);
 
-    static napi_value ProcessIdNameParam(napi_env env, napi_callback_info info, const std::string& name,
-        napi_async_execute_callback execute);
-
     static napi_value GetNumber(napi_env env, napi_callback_info info);
 
     static napi_value GetNumberByName(napi_env env, napi_callback_info info);
@@ -134,23 +137,6 @@ private:
     static napi_value GetStringSync(napi_env env, napi_callback_info info);
 
     static napi_value GetStringByNameSync(napi_env env, napi_callback_info info);
-
-    static napi_valuetype GetType(napi_env env, napi_value value);
-
-    static bool GetResourceObjectName(napi_env env, std::shared_ptr<ResourceManager::Resource> &resourcePtr,
-        napi_value &value, int32_t type);
-
-    static bool GetResourceObjectId(napi_env env, std::shared_ptr<ResourceManager::Resource> &resourcePtr,
-        napi_value &value);
-
-    static napi_value ProcessIdParamV9(napi_env env, napi_callback_info info, const std::string &name,
-        napi_async_execute_callback execute);
-
-    static napi_value ProcessNameParamV9(napi_env env, napi_callback_info info, const std::string &name,
-        napi_async_execute_callback execute);
-
-    static napi_value ProcessResourceParamV9(napi_env env, napi_callback_info info, const std::string &name,
-        napi_async_execute_callback execute);
 
     static napi_value GetStringValue(napi_env env, napi_callback_info info);
 
@@ -167,17 +153,60 @@ private:
     static napi_value GetRawFd(napi_env env, napi_callback_info info);
 
     static napi_value CloseRawFd(napi_env env, napi_callback_info info);
-#if !defined(__ARKUI_CROSS__)
+
     static napi_value GetDrawableDescriptor(napi_env env, napi_callback_info info);
 
     static napi_value GetDrawableDescriptorByName(napi_env env, napi_callback_info info);
-#endif
 
-    static bool InitParamsFromParamArray(napi_env env, napi_value value,
-        std::vector<std::tuple<ResourceManager::NapiValueType, std::string>> &jsParams);
+    static napi_value GetRawFileList(napi_env env, napi_callback_info info);
 
-    static bool InitNapiParameters(napi_env env, napi_callback_info value,
-        std::vector<std::tuple<ResourceManager::NapiValueType, std::string>> &jsParams);
+    static napi_value GetColorByNameSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetColorSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetColor(napi_env env, napi_callback_info info);
+
+    static napi_value GetColorByName(napi_env env, napi_callback_info info);
+
+    static napi_value WrapResourceManager(napi_env env, std::shared_ptr<ResourceManagerAddon> &addon);
+
+    static napi_value AddResource(napi_env env, napi_callback_info info);
+
+    static napi_value RemoveResource(napi_env env, napi_callback_info info);
+
+    static napi_value GetMediaContentBase64Sync(napi_env env, napi_callback_info info);
+
+    static napi_value GetMediaContentSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetPluralStringValueSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetStringArrayValueSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetRawFileContentSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetRawFdSync(napi_env env, napi_callback_info info);
+
+    static napi_value CloseRawFdSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetRawFileListSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetPluralStringByNameSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetMediaBase64ByNameSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetMediaByNameSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetStringArrayByNameSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetConfigurationSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetDeviceCapabilitySync(napi_env env, napi_callback_info info);
+
+    static napi_value GetLocales(napi_env env, napi_callback_info info);
+
+    static napi_value GetSymbol(napi_env env, napi_callback_info info);
+
+    static napi_value GetSymbolByName(napi_env env, napi_callback_info info);
 
     std::string bundleName_;
     std::shared_ptr<ResourceManager> resMgr_;
@@ -186,60 +215,9 @@ private:
 #else
     std::shared_ptr<AbilityRuntime::Context> context_;
 #endif
-};
-
-struct ResMgrAsyncContext {
-    napi_async_work work_;
-
-    std::string bundleName_;
-    int32_t resId_;
-    int32_t param_;
-
-    std::string path_;
-    std::string resName_;
-    int iValue_;
-    float fValue_;
-    bool bValue_;
-
-    typedef napi_value (*CreateNapiValue)(napi_env env, ResMgrAsyncContext &context);
-    CreateNapiValue createValueFunc_;
-    std::string value_;
-    std::vector<std::string> arrayValue_;
-    std::vector<std::tuple<ResourceManager::NapiValueType, std::string>> jsParams_;
-
-    std::unique_ptr<uint8_t[]> mediaData;
-    size_t len_;
-
-    napi_deferred deferred_;
-    napi_ref callbackRef_;
-
-    std::string errMsg_;
-    int success_;
-    int errCode_;
-    uint32_t density_;
-
-    std::shared_ptr<ResourceManagerAddon> addon_;
-    std::shared_ptr<ResourceManager> resMgr_;
-    std::shared_ptr<ResourceManager::Resource> resource_;
-
-    ResMgrAsyncContext() : work_(nullptr), resId_(0), param_(0), iValue_(0), fValue_(0.0f), bValue_(false),
-        createValueFunc_(nullptr), len_(0), deferred_(nullptr), callbackRef_(nullptr), success_(true), errCode_(0),
-        density_(0) {}
-
-    void SetErrorMsg(const std::string &msg, bool withResId = false, int32_t errCode = 0);
-
-    static void Complete(napi_env env, napi_status status, void* data);
-
-    static bool GetHapResourceManager(const ResMgrAsyncContext* asyncContext, std::shared_ptr<ResourceManager> &resMgr,
-        int32_t &resId);
-
-    static napi_value getResult(napi_env env, std::unique_ptr<ResMgrAsyncContext> &asyncContext,
-        const std::string &name, napi_async_execute_callback &execute);
-    
-    static void NapiThrow(napi_env env, int32_t errCode);
-
-    static int32_t ProcessIdResourceParam(napi_env env, napi_callback_info info,
-        std::unique_ptr<ResMgrAsyncContext> &asyncContext);
+    bool isSystem_;
+    std::shared_ptr<ResourceManagerNapiContext> napiContext_;
+    static napi_property_descriptor properties[];
 };
 } // namespace Resource
 } // namespace Global
