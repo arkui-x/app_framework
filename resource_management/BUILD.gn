@@ -82,11 +82,13 @@ ohos_source_set("global_resmgr") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_pub_config",
   ]
 
-  public_configs = [ ":resmgr_public_config" ]
+  public_configs = [
+    ":resmgr_public_config",
+    "//third_party/cJSON:cJSON_config",
+  ]
 
   deps = [
     "//third_party/bounds_checking_function:libsec_static",
-    "//third_party/cJSON:cjson",
     "//third_party/zlib:libz",
   ]
 
