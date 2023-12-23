@@ -11,8 +11,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
 import("//base/global/resource_management/resmgr.gni")
+import("//build/ohos.gni")
+
 #new  resmgr_napi_core_public_config
 config("rawfile_config") {
   include_dirs = [
@@ -28,15 +29,14 @@ config("rawfile_config") {
 
 ohos_source_set("rawfile") {
   public_configs = [
+    "//third_party/cJSON:cJSON_config",
     ":rawfile_config",
-    "//foundation/appframework/resource_management/interfaces/js/innerkits/core:resmgr_napi_core_public_config"]
+    "//foundation/appframework/resource_management/interfaces/js/innerkits/core:resmgr_napi_core_public_config",
+  ]
   cflags = [ "-Wno-error=inconsistent-missing-override" ]
   sources = [ "//base/global/resource_management/frameworks/resmgr/src/raw_file_manager.cpp" ]
 
-  public_deps = [
-    "//foundation/arkui/napi:ace_napi",
-    "//third_party/cJSON:cjson",
-  ]
+  public_deps = [ "//foundation/arkui/napi:ace_napi" ]
   defines = [ "__ARKUI_CROSS__" ]
   subsystem_name = "global"
   part_name = "resource_management"
