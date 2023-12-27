@@ -41,16 +41,6 @@ bool RSRenderServiceClient::GetUniRenderEnabled()
     return {};
 }
 
-MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
-{
-    return {};
-}
-
-std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
-{
-    return {};
-}
-
 bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 {
     return {};
@@ -155,49 +145,6 @@ void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 int32_t RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
     return 0;
-}
-
-void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
-{
-}
-
-int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
-{
-    return {};
-}
-
-RSVirtualScreenResolution RSRenderServiceClient::GetVirtualScreenResolution(ScreenId id)
-{
-    return {};
-}
-
-void RSRenderServiceClient::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
-{
-}
-
-RSScreenModeInfo RSRenderServiceClient::GetScreenActiveMode(ScreenId id)
-{
-    return {};
-}
-
-std::vector<RSScreenModeInfo> RSRenderServiceClient::GetScreenSupportedModes(ScreenId id)
-{
-    return {};
-}
-
-RSScreenCapability RSRenderServiceClient::GetScreenCapability(ScreenId id)
-{
-    return {};
-}
-
-ScreenPowerStatus RSRenderServiceClient::GetScreenPowerStatus(ScreenId id)
-{
-    return {};
-}
-
-RSScreenData RSRenderServiceClient::GetScreenData(ScreenId id)
-{
-    return {};
 }
 
 int32_t RSRenderServiceClient::GetScreenBacklight(ScreenId id)
