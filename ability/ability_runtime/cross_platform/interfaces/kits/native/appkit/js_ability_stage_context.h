@@ -39,7 +39,7 @@ private:
 };
 
 napi_value CreateJsAbilityStageContext(
-    napi_env env, const std::shared_ptr<Context>& context, DetachCallback detach, AttachCallback attach);
+    napi_env env, const std::shared_ptr<Context>& context, DetachCallback detach, NapiAttachCallback attach);
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS
