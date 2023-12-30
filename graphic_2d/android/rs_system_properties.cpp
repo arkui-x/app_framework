@@ -19,7 +19,7 @@
 
 namespace OHOS {
 namespace Rosen {
-const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::VULKAN;
+const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 
 int RSSystemProperties::GetDumpFrameNum()
 {
