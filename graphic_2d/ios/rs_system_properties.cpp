@@ -19,14 +19,16 @@
 
 namespace OHOS {
 namespace Rosen {
+const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
+
 int RSSystemProperties::GetDumpFrameNum()
 {
     return 0;
 }
 
-bool RSSystemProperties::GetRecordingEnabled()
+int RSSystemProperties::GetRecordingEnabled()
 {
-    return false;
+    return 0;
 }
 
 void RSSystemProperties::SetRecordingDisenabled()
@@ -263,6 +265,40 @@ bool RSSystemProperties::GetSyncTransactionEnabled()
 int RSSystemProperties::GetSyncTransactionWaitDelay()
 {
     return 0;
+}
+
+bool RSSystemProperties::GetSingleFrameComposerEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetUseShadowBatchingEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSubSurfaceEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetColorPickerPartialEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetMaskLinearBlurEnabled(){
+    return false;
+}
+
+bool RSSystemProperties::IsPcType()
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS
