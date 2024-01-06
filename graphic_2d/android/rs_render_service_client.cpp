@@ -110,7 +110,8 @@ private:
 
 std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     const std::string& name,
-    const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper)
+    const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper,
+    uint64_t id)
 {
     return std::make_shared<VSyncReceiverAndroid>(looper);
 }
@@ -233,6 +234,12 @@ int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionCh
 }
 
 int32_t RSRenderServiceClient::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::RegisterHgmRefreshRateModeChangeCallback(
+    const HgmRefreshRateModeChangeCallback& callback)
 {
     return {};
 }

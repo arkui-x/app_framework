@@ -201,7 +201,7 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
     return layer_;
 }
 
-bool RenderContext::SetUpGrContext()
+bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
 {
     if (grContext_ != nullptr) {
         return true;
@@ -229,12 +229,6 @@ bool RenderContext::SetUpGrContext()
     }
     grContext_ = std::move(grContext);
     return true;
-}
-
-void RenderContext::SetColorSpace(GraphicColorGamut colorSpace)
-{
-    ROSEN_LOGD("RenderContext::SetColorSpace %{public}d", colorSpace);
-    colorSpace_ = colorSpace;
 }
 
 sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)

@@ -120,12 +120,6 @@ void RenderContext::CreatePbufferSurface()
     }
 }
 
-void RenderContext::SetColorSpace(GraphicColorGamut colorSpace)
-{
-    ROSEN_LOGD("RenderContext::SetColorSpace %{public}d", colorSpace);
-    colorSpace_ = colorSpace;
-}
-
 void RenderContext::InitializeEglContext()
 {
     if (IsEglContextReady()) {
@@ -253,7 +247,7 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
     return surface;
 }
 
-bool RenderContext::SetUpGrContext()
+bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
 {
     if (grContext_ != nullptr) {
         return true;
