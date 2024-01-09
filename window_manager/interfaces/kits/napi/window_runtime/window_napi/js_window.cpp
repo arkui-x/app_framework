@@ -1006,7 +1006,7 @@ napi_value CreateJsWindowObject(napi_env env, std::shared_ptr<Rosen::Window>& wi
     }
     napi_wrap(env, object, jsWindow.release(), JsWindow::Finalizer, nullptr, nullptr);
 
-    NotifyNativeWinDestroyFunc func = [&env](std::string windowName) {
+    NotifyNativeWinDestroyFunc func = [env](std::string windowName) {
         WLOGI("Destroy window %{public}s in js window", windowName.c_str());
         RemoveJsWindowObject(env, windowName);
     };
