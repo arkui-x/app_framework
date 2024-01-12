@@ -148,10 +148,11 @@ napi_value CreateJsConfiguration(napi_env env, const Platform::Configuration& co
         return nullptr;
     }
     
-    napi_set_named_property(env, object, "language", CreateJsValue(env,
-        configuration.GetItem(Platform::ConfigurationInner::SYSTEM_COLORMODE)));
     napi_set_named_property(env, object, "colorMode", CreateJsValue(env,
+        configuration.ConvertColorMode(configuration.GetItem(Platform::ConfigurationInner::SYSTEM_COLORMODE))));
+    napi_set_named_property(env, object, "direction", CreateJsValue(env,
         configuration.ConvertColorMode(configuration.GetItem(Platform::ConfigurationInner::APPLICATION_DIRECTION))));
+        
     return object;
 }
 
