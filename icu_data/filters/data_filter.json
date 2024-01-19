@@ -26,8 +26,11 @@
     "coll_ucadata":  {
       "includelist":[]
     },
-    "misc_res":  {
-      "includelist":[]
+    "misc":  {
+      "includelist":[
+        "langInfo",
+        "likelySubtags"
+      ]
     },
     "lang_tree": {
       "includelist":[
