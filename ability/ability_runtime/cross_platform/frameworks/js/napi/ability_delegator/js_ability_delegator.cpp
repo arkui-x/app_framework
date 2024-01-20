@@ -661,7 +661,7 @@ napi_value JSAbilityDelegator::OnDoAbilityBackground(napi_env env, NapiCallbackI
 
     std::string fullName;
     if (!ParseAbilityCommonPara(env, info, fullName)) {
-        HILOG_ERROR("Parse doAbilityForeground parameters failed");
+        HILOG_ERROR("Parse doAbilityBackground parameters failed");
         return ThrowJsError(env, INCORRECT_PARAMETERS);
     }
 
