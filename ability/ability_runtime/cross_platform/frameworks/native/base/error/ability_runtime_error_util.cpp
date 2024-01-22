@@ -145,6 +145,7 @@ bool AbilityRuntimeErrorUtil::Throw(napi_env env, int32_t errCode, const std::st
         return false;
     }
     napi_throw(env, error);
+    return true;
 }
 
 bool AbilityRuntimeErrorUtil::ThrowByInternalErrCode(napi_env env, int32_t errCode)

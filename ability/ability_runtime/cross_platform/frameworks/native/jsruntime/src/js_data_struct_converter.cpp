@@ -51,8 +51,8 @@ napi_value CreateJsAbilityInfo(napi_env env, const AppExecFwk::AbilityInfo& abil
     napi_create_array_with_length(env, abilityInfo.metadata.size(), &metadataArray);
 
     uint32_t index = 0;
-    napi_value objVal = nullptr;
     for (const auto& metadata : abilityInfo.metadata) {
+        napi_value objVal = nullptr;
         napi_create_object(env, &objVal);
         if (objVal == nullptr) {
             HILOG_ERROR("Native object value is nullptr.");
@@ -66,8 +66,8 @@ napi_value CreateJsAbilityInfo(napi_env env, const AppExecFwk::AbilityInfo& abil
         napi_set_element(env, metadataArray, index++, objVal);
     }
 
-    napi_set_named_property(env, objVal, "metadata", metadataArray);
-    return objVal;
+    napi_set_named_property(env, object, "metadata", metadataArray);
+    return object;
 }
 
 napi_value CreateJsApplicationInfo(napi_env env, const AppExecFwk::ApplicationInfo &applicationInfo)
@@ -114,7 +114,8 @@ napi_value CreateJsHapModuleInfo(napi_env env, const AppExecFwk::HapModuleInfo& 
     
     uint32_t index = 0;
     for (const auto& abilityInfo : hapModuleInfo.abilityInfos) {
-        napi_set_element(env, abilityInfoArray, index++, object);
+        napi_value abilityObject = CreateJsAbilityInfo(env, abilityInfo);
+        napi_set_element(env, abilityInfoArray, index++, abilityObject);
     }
 
     napi_set_named_property(env, object, "abilitiesInfo", abilityInfoArray);
@@ -129,11 +130,11 @@ napi_value CreateJsHapModuleInfo(napi_env env, const AppExecFwk::HapModuleInfo& 
         if (objVal == nullptr) {
             HILOG_ERROR("Native object is nullptr.");
         } else {
-            napi_set_named_property(env, object, "name", CreateJsValue(env, metadata.name));
-            napi_set_named_property(env, object, "value", CreateJsValue(env, metadata.value));
-            napi_set_named_property(env, object, "resource", CreateJsValue(env, metadata.resource));
+            napi_set_named_property(env, objVal, "name", CreateJsValue(env, metadata.name));
+            napi_set_named_property(env, objVal, "value", CreateJsValue(env, metadata.value));
+            napi_set_named_property(env, objVal, "resource", CreateJsValue(env, metadata.resource));
         }
-        napi_set_element(env, metadataArray, index++, object);
+        napi_set_element(env, metadataArray, index++, objVal);
     }
     napi_set_named_property(env, object, "metadata", metadataArray);
     return object;
@@ -151,7 +152,7 @@ napi_value CreateJsConfiguration(napi_env env, const Platform::Configuration& co
     napi_set_named_property(env, object, "colorMode", CreateJsValue(env,
         configuration.ConvertColorMode(configuration.GetItem(Platform::ConfigurationInner::SYSTEM_COLORMODE))));
     napi_set_named_property(env, object, "direction", CreateJsValue(env,
-        configuration.ConvertColorMode(configuration.GetItem(Platform::ConfigurationInner::APPLICATION_DIRECTION))));
+        configuration.ConvertDirection(configuration.GetItem(Platform::ConfigurationInner::APPLICATION_DIRECTION))));
         
     return object;
 }

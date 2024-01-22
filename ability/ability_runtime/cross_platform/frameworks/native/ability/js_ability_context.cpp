@@ -315,7 +315,7 @@ napi_value CreateJsAbilityContext(napi_env env, const std::shared_ptr<AbilityCon
     }
     auto config = context->GetConfiguration();
     if (config != nullptr) {
-        napi_set_named_property(env, object, "abilityInfo", CreateJsConfiguration(env, *config));
+        napi_set_named_property(env, object, "config", CreateJsConfiguration(env, *config));
     }
 
     const char* moduleName = "JsAbilityContext";

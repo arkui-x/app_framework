@@ -255,6 +255,10 @@ napi_value JsApplicationContextUtils::OnOff(napi_env env, const NapiCallbackInfo
         napi_get_value_int32(env, info.argv[1], &callbackId);
         HILOG_DEBUG("callbackId is %{public}d.", callbackId);
     }
+    
+    if (type == "abilityLifecycle") {
+        return OnOffAbilityLifecycle(env, info, callbackId);
+    }
 
     HILOG_ERROR("off function type not match.");
     AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
