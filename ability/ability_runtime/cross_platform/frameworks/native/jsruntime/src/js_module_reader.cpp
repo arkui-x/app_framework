@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@ JsModuleReader::JsModuleReader(const std::string& bundleName) : bundleName_(bund
 
 bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, size_t* buffSize)
 {
-    HILOG_INFO("JsModuleReader operator start: %{private}s", inputPath.c_str());
+    HILOG_INFO("Begin: %{private}s.", inputPath.c_str());
     if (inputPath.empty() || buff == nullptr || buffSize == nullptr) {
         HILOG_ERROR("Invalid param");
         return false;
@@ -43,6 +43,7 @@ bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, si
 
     *buff = moduleBuffer_.data();
     *buffSize = moduleBuffer_.size();
+    HILOG_INFO("End.");
     return true;
 }
 
