@@ -51,11 +51,6 @@ SkCanvas* RSSurfaceFrameAndroid::GetCanvas()
     }
     return nullptr;
 }
-
-sk_sp<SkSurface> RSSurfaceFrameAndroid::GetSurface()
-{
-    return surface_;
-}
 #else
 Drawing::Canvas* RSSurfaceFrameAndroid::GetCanvas()
 {

@@ -379,9 +379,9 @@ bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawing
     }
     int maxResources = 0;
     size_t maxResourcesSize = 0;
-    int cacheLimitsTimes = 2;
-     drGPUContext->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
+    drGPUContext->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
     if (maxResourcesSize > 0) {
+        int cacheLimitsTimes = 2;
         drGPUContext->SetResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes *
             std::fmin(maxResourcesSize, DEFAULT_SKIA_CACHE_SIZE));
     } else {
