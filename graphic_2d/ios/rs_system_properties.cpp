@@ -96,6 +96,11 @@ bool RSSystemProperties::GetHighContrastStatus()
     return {};
 }
 
+bool RSSystemProperties::IsPhoneType()
+{
+    return true;
+}
+
 #ifndef NEW_SKIA
 ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
 {
@@ -299,6 +304,11 @@ bool RSSystemProperties::GetMaskLinearBlurEnabled(){
 bool RSSystemProperties::IsPcType()
 {
     return false;
+}
+
+bool RSSystemProperties::GetEffectMergeEnabled()
+{
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

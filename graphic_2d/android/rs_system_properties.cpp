@@ -31,6 +31,11 @@ int RSSystemProperties::GetRecordingEnabled()
     return 0;
 }
 
+bool RSSystemProperties::IsPhoneType()
+{
+    return true;
+}
+
 void RSSystemProperties::SetRecordingDisenabled()
 {
     return;
@@ -299,6 +304,11 @@ bool RSSystemProperties::GetMaskLinearBlurEnabled(){
 bool RSSystemProperties::IsPcType()
 {
     return false;
+}
+
+bool RSSystemProperties::GetEffectMergeEnabled()
+{
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

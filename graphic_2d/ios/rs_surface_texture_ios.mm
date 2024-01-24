@@ -107,9 +107,9 @@ void RSSurfaceTextureIOS::DrawTextureImage(RSPaintFilterCanvas& canvas, bool fre
         ROSEN_LOGE("RSSurfaceTextureIOS::texture_ref_ is nullptr");
         return;
     }
+#ifndef USE_ROSEN_DRAWING
     GrGLTextureInfo textureInfo = {CVOpenGLESTextureGetTarget(texture_ref_),
         CVOpenGLESTextureGetName(texture_ref_), GL_RGBA8_OES};
-#ifndef USE_ROSEN_DRAWING
     GrBackendTexture backendTexture(clipRect.width(), clipRect.height(), GrMipMapped::kNo, textureInfo);
 #ifdef NEW_SKIA
     auto image = SkImage::MakeFromTexture(
@@ -124,14 +124,26 @@ void RSSurfaceTextureIOS::DrawTextureImage(RSPaintFilterCanvas& canvas, bool fre
         canvas.drawImage(image, clipRect.x(), clipRect.y());
     }
 #else
-    GrBackendTexture backendTexture(clipRect.GetWidth(),
-        clipRect.GetHeight(), GrMipMapped::kNo, textureInfo);
-    auto image = SkImage::MakeFromTexture(
-        canvas.GetGPUContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-    if (image) {
-        canvas.DrawImage(image, clipRect.GetLeft(), clipRect.GetTop());
+    auto image = std::make_shared<Drawing::Image>();
+    if (image == nullptr) {
+        ROSEN_LOGD("create Drawing image fail");
+        return;
     }
+    Drawing::TextureInfo textureInfo;
+    textureInfo.SetWidth((int)clipRect.GetWidth());
+    textureInfo.SetHeight((int)clipRect.GetHeight());
+    textureInfo.SetIsMipMapped(false);
+    textureInfo.SetTarget(CVOpenGLESTextureGetTarget(texture_ref_));
+    textureInfo.SetID(CVOpenGLESTextureGetName(texture_ref_));
+    textureInfo.SetFormat(GL_RGBA8_OES);
+    Drawing::BitmapFormat fmt =
+        Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bool ret = image->BuildFromTexture(*canvas.GetGPUContext(), textureInfo,
+        Drawing::TextureOrigin::TOP_LEFT, fmt, nullptr);
+    if (!ret) {
+        return;
+    }
+    canvas.DrawImage(*image, clipRect.GetLeft(), clipRect.GetTop(), Drawing::SamplingOptions());
 #endif
 }
 } // namespace Rosen
