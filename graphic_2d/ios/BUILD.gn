@@ -57,7 +57,12 @@ ohos_source_set("ios") {
     "$rosen_root/modules/2d_graphics/src/drawing/engine_adapter",
   ]
 
-  defines += [ "MODULE_RSB", "ACE_ENABLE_GL", "RS_ENABLE_GL", "USE_SURFACE_TEXTURE" ]
+  defines += [
+    "MODULE_RSB",
+    "ACE_ENABLE_GL",
+    "RS_ENABLE_GL",
+    "USE_SURFACE_TEXTURE",
+  ]
   if (rs_enable_gpu) {
     defines += [ "USE_GPU" ]
     sources += [ "rs_surface_gpu.mm" ]
@@ -90,7 +95,7 @@ ohos_source_set("ios") {
     "$rosen_root/modules/platform:ipc_core",
     "$rosen_root/modules/platform:utils",
   ]
-  
+
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
     public_deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
