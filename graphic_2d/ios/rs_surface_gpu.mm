@@ -21,6 +21,7 @@
 #include <UIKit/UIKit.h>
 #include <include/core/SkColorSpace.h>
 #include <include/gpu/gl/GrGLInterface.h>
+#include <include/gpu/GrBackendSurface.h>
 
 #include "platform/common/rs_log.h"
 #include "rs_surface_frame_ios.h"
@@ -82,8 +83,13 @@ bool RSSurfaceGPU::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t u
     renderContext_->MakeCurrent(nullptr, nullptr);
     renderContext_->RenderFrame();
     renderContext_->SwapBuffers(nullptr);
+#ifndef USE_ROSEN_DRAWING
     if (auto grContext = renderContext_->GetGrContext()) {
         grContext->purgeUnlockedResources(true);
+#else
+    if (auto grContext = renderContext_->GetDrGPUContext()) {
+        grContext->PurgeUnlockedResources(true);
+#endif
     }
     return true;
 }
@@ -102,7 +108,11 @@ bool RSSurfaceGPU::SetupGrContext()
 {
     if (renderContext_) {
         renderContext_->InitializeEglContext();
+#ifndef USE_ROSEN_DRAWING
         renderContext_->SetUpGrContext();
+#else
+        renderContext_->SetUpGpuContext();
+#endif
     }
     return true;
 }

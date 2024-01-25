@@ -17,6 +17,7 @@
 
 #include <include/core/SkColorSpace.h>
 #include <include/gpu/gl/GrGLInterface.h>
+#include <include/gpu/GrBackendSurface.h>
 #include <stdint.h>
 #include <securec.h>
 
@@ -72,8 +73,8 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceAndroid::RequestFrame(
     auto frame = std::make_unique<RSSurfaceFrameAndroid>(width, height);
     renderContext_->MakeCurrent(eglSurface_);
 
-    ROSEN_LOGD("RSSurfaceAndroid:RequestFrame, eglsurface is %p, width is %d, height is %d",
-        eglSurface_, width, height);
+    ROSEN_LOGD("RSSurfaceAndroid:RequestFrame, eglsurface is %p, width is %d, height is %d, renderContext_ %p",
+        eglSurface_, width, height, renderContext_);
 
     frame->SetRenderContext(renderContext_);
 
@@ -91,8 +92,8 @@ bool RSSurfaceAndroid::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64
     renderContext_->RenderFrame();
     renderContext_->SwapBuffers(eglSurface_);
     ROSEN_LOGD("RSSurfaceAndroid: FlushFrame, SwapBuffers eglsurface is %p", eglSurface_);
-    if (auto grContext = renderContext_->GetGrContext()) {
-        grContext->purgeUnlockedResources(true);
+    if (auto grContext = renderContext_->GetDrGPUContext()) {
+        grContext->PurgeUnlockedResources(true);
     }
     return true;
 }
@@ -115,7 +116,7 @@ bool RSSurfaceAndroid::SetupGrContext()
 {
     if (renderContext_) {
         renderContext_->InitializeEglContext();
-        renderContext_->SetUpGrContext();
+        renderContext_->SetUpGpuContext();
         renderContext_->SetColorSpace(colorSpace_);
     }
     return true;
@@ -269,21 +270,38 @@ void AndroidSurfaceTexture::DrawTextureImage(RSPaintFilterCanvas& canvas, bool f
 
     ROSEN_LOGD("AndroidSurfaceTexture::textureId_ %{public}d %{public}d %{public}d",
         textureId_, bufferAvailable, transform_.isIdentity());
+#ifndef USE_ROSEN_DRAWING
     GrGLTextureInfo textureInfo = {GL_TEXTURE_EXTERNAL_OES, textureId_, GL_RGBA8_OES};
     GrBackendTexture backendTexture((int)width_, (int)height_, GrMipMapped::kNo, textureInfo);
-#ifdef NEW_SKIA
     auto image = SkImage::MakeFromTexture(
         canvas.recordingContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
         kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-#else
-    auto image = SkImage::MakeFromTexture(
-        canvas.getGrContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-#endif
     if (!image) {
         return;
     }
     canvas.drawImage(image, x, y);
+#else
+    auto image = std::make_shared<Drawing::Image>();
+    if (image == nullptr) {
+        ROSEN_LOGD("create Drawing image fail");
+        return;
+    }
+    Drawing::TextureInfo textureInfo;
+    textureInfo.SetWidth((int)width_);
+    textureInfo.SetHeight((int)height_);
+    textureInfo.SetIsMipMapped(false);
+    textureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
+    textureInfo.SetID(textureId_);
+    textureInfo.SetFormat(GL_RGBA8_OES);
+    Drawing::BitmapFormat fmt =
+        Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bool ret = image->BuildFromTexture(*canvas.GetGPUContext(), textureInfo,
+        Drawing::TextureOrigin::TOP_LEFT, fmt, nullptr);
+    if (!ret) {
+        return;
+    }
+    canvas.DrawImage(*image, x, y, Drawing::SamplingOptions());
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

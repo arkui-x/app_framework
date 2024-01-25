@@ -49,7 +49,10 @@ ohos_source_set("android") {
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/interfaces/inner_api",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface/",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
     "//foundation/graphic/graphic_2d/utils/log",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$rosen_root/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
   ]
@@ -81,4 +84,9 @@ ohos_source_set("android") {
     "$rosen_root/modules/platform:ipc_core",
     "$rosen_root/modules/platform:utils",
   ]
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+    public_deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
+  }
 }

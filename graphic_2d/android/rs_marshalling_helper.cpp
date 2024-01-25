@@ -42,7 +42,6 @@
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
 #include "src/image/SkImage_Base.h"
-#include "include/core/SkHMSymbol.h"
 #else
 #include "recording/recording_shader_effect.h"
 #include "recording/recording_path.h"
@@ -113,6 +112,7 @@ static inline sk_sp<T> sk_reinterpret_cast(sk_sp<P> ptr)
 }
 } // namespace
 
+#ifndef USE_ROSEN_DRAWING
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const GroupInfo& val)
 {
     return {};
@@ -169,6 +169,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SColor& val)
 {
     return {};
 }
+#endif
 
 #ifndef USE_ROSEN_DRAWING
 // SkData

@@ -35,6 +35,7 @@ int32_t RSSurfaceFrameIOS::GetBufferAge() const
     return -1;
 }
 
+#ifndef USE_ROSEN_DRAWING
 SkCanvas* RSSurfaceFrameIOS::GetCanvas()
 {
     if (surface_ == nullptr) {
@@ -51,6 +52,27 @@ sk_sp<SkSurface> RSSurfaceFrameIOS::GetSurface()
 {
     return surface_;
 }
+#else
+Drawing::Canvas* RSSurfaceFrameIOS::GetCanvas()
+{
+    if (surface_ == nullptr) {
+        CreateSurface();
+    }
+
+    if (surface_ != nullptr) {
+        return surface_->GetCanvas().get();
+    }
+    return nullptr;
+}
+
+std::shared_ptr<Drawing::Surface> RSSurfaceFrameIOS::GetSurface()
+{
+    if (surface_ == nullptr) {
+        CreateSurface();
+    }
+    return surface_;
+}
+#endif
 
 void RSSurfaceFrameIOS::SetRenderContext(RenderContext* context)
 {

@@ -39,7 +39,6 @@ public:
     void OnCreate() const override;
     void OnConfigurationUpdate(const Configuration& configuration) override;
 
-private:
     std::shared_ptr<OHOS::AppExecFwk::DelegatorAbilityStageProperty> CreateStageProperty() const;
     std::string GetHapModuleProp(const std::string &propName) const;
     
