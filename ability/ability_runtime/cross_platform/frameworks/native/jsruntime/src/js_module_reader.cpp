@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <chrono>
 
 #include "js_module_reader.h"
 
@@ -21,12 +22,18 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-
+namespace {
+uint64_t GetNowTime()
+{
+    auto now = std::chrono::system_clock::now();
+    return std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
+}
+}
 JsModuleReader::JsModuleReader(const std::string& bundleName) : bundleName_(bundleName) {}
 
 bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, size_t* buffSize)
 {
-    HILOG_INFO("Begin: %{private}s.", inputPath.c_str());
+    HILOG_INFO("Begin: %{private}s, time is: %{public}ld.", inputPath.c_str(), GetNowTime());
     if (inputPath.empty() || buff == nullptr || buffSize == nullptr) {
         HILOG_ERROR("Invalid param");
         return false;
@@ -43,7 +50,7 @@ bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, si
 
     *buff = moduleBuffer_.data();
     *buffSize = moduleBuffer_.size();
-    HILOG_INFO("End.");
+    HILOG_INFO("End, time is: %{public}ld.", GetNowTime());
     return true;
 }
 
