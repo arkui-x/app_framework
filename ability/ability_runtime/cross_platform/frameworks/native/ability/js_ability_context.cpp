@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -324,6 +324,7 @@ napi_value CreateJsAbilityContext(napi_env env, const std::shared_ptr<AbilityCon
     BindNativeFunction(env, object, "startAbilityForResult", moduleName, JsAbilityContext::StartAbilityForResult);
     BindNativeFunction(
         env, object, "terminateSelfWithResult", moduleName, JsAbilityContext::TerminateSelfWithResult);
+    BindNativeFunction(env, object, "reportDrawnCompleted", moduleName, JsAbilityContext::ReportDrawnCompleted);
     return object;
 }
 
@@ -352,6 +353,46 @@ void JsAbilityContext::ConfigurationUpdated(
     HILOG_INFO("JsAbilityContext call onUpdateConfiguration.");
     napi_value argv[] = { CreateJsConfiguration(env, *config) };
     napi_call_function(env, object, method, 1, argv, nullptr);
+}
+
+napi_value JsAbilityContext::ReportDrawnCompleted(napi_env env, napi_callback_info info)
+{
+    JsAbilityContext* me = CheckParamsAndGetThis<JsAbilityContext>(env, info);
+    return (me != nullptr) ? me->OnReportDrawnCompleted(env, info) : nullptr;
+}
+
+napi_value JsAbilityContext::OnReportDrawnCompleted(napi_env env, napi_callback_info info)
+{
+    HILOG_INFO("Called.");
+    size_t argc = ARGC_MAX_COUNT;
+    napi_value argv[ARGC_MAX_COUNT] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+
+    auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [weak = context_, innerErrorCode]() {
+        auto context = weak.lock();
+        if (context == nullptr) {
+            HILOG_ERROR("Context is released.");
+            *innerErrorCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+            return;
+        }
+
+        *innerErrorCode = context->ReportDrawnCompleted();
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrorCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+        if (*innerErrorCode == ERR_OK) {
+            task.Resolve(env, CreateJsUndefined(env));
+        } else {
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
+        }
+    };
+
+    napi_value lastParam = (argc > ARGC_ZERO) ? argv[ARGC_ZERO] : nullptr;
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsAbilityContext::OnReportDrawnCompleted", env,
+        CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
+    return result;
 }
 } // namespace Platform
 } // namespace AbilityRuntime

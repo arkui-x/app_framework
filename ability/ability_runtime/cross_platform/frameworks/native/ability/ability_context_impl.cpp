@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -195,6 +195,12 @@ void AbilityContextImpl::HandleOnAbilityResult(int32_t requestCode, int32_t resu
         }
         resultCallbacks_.erase(requestCode);
     }
+}
+
+ErrCode AbilityContextImpl::ReportDrawnCompleted()
+{
+    HILOG_INFO("Called.");
+    return Platform::AbilityContextAdapter::GetInstance()->ReportDrawnCompleted(instanceName_);
 }
 } // namespace Platform
 } // namespace AbilityRuntime

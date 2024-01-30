@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,6 +50,7 @@ public:
     std::shared_ptr<Context> CreateModuleContext(const std::string &moduleName) override;
     ErrCode StartAbilityForResult(const AAFwk::Want& want, int32_t requestCode, RuntimeTask&& task) override;
     ErrCode TerminateAbilityWithResult(const AAFwk::Want& resultWant, int32_t resultCode) override;
+    ErrCode ReportDrawnCompleted() override;
     void OnAbilityResult(int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant) override;
     /**
      * @brief Set the Ability Info object
