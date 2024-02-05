@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,12 +40,14 @@ public:
         const std::shared_ptr<Configuration>& config);
     static napi_value StartAbilityForResult(napi_env env, napi_callback_info info);
     static napi_value TerminateSelfWithResult(napi_env env, napi_callback_info info);
+    static napi_value ReportDrawnCompleted(napi_env env, napi_callback_info info);
 
 private:
     napi_value OnStartAbility(napi_env env, napi_callback_info info);
     napi_value OnTerminateSelf(napi_env env, napi_callback_info info);
     napi_value OnStartAbilityForResult(napi_env env, napi_callback_info info);
     napi_value OnTerminateSelfWithResult(napi_env env, napi_callback_info info);
+    napi_value OnReportDrawnCompleted(napi_env env, napi_callback_info info);
     static napi_value WrapAbilityResult(napi_env env, int32_t resultCode, const AAFwk::Want& resultWant);
     bool UnWrapAbilityResult(napi_env env, napi_value argv, int32_t& resultCode, AAFwk::Want& want);
     std::weak_ptr<AbilityContext> context_;
