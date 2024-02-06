@@ -77,10 +77,7 @@ ohos_source_set("global_resmgr") {
 
   sources = manager_sources
 
-  configs = [
-    ":resmgr_config",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_pub_config",
-  ]
+  configs = [ ":resmgr_config" ]
 
   public_configs = [
     ":resmgr_public_config",
@@ -88,6 +85,7 @@ ohos_source_set("global_resmgr") {
   ]
 
   deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
     "//third_party/bounds_checking_function:libsec_static",
     "//third_party/zlib:libz",
   ]

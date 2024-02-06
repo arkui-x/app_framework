@@ -35,7 +35,6 @@ template("display_manager") {
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit:appkit_native_config",
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/jsruntime:jsruntime_config",
-      "//foundation/appframework/arkui/uicontent:uicontent_config",
       "$ace_root:ace_config",
     ]
     defines = []
@@ -56,7 +55,10 @@ template("display_manager") {
       "${app_framework_window_manager_path}/dm/src/display_manager.cpp",
     ]
 
-    deps = [ "${display_manager_napi_path}/kits/napi/display_runtime:dm_napi" ]
+    deps = [
+      "${display_manager_napi_path}/kits/napi/display_runtime:dm_napi",
+      "//foundation/appframework/arkui/uicontent:ace_uicontent_interface",
+    ]
 
     if (current_os == "android") {
       include_dirs +=
