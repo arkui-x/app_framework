@@ -34,7 +34,6 @@ template("window_manager") {
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit:appkit_native_config",
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/jsruntime:jsruntime_config",
-      "//foundation/appframework/arkui/uicontent:uicontent_config",
       "$ace_root:ace_config",
     ]
     defines = []
@@ -69,7 +68,10 @@ template("window_manager") {
       ]
     }
 
-    deps += [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client_static" ]
+    deps += [
+      "//foundation/appframework/arkui/uicontent:ace_uicontent_interface",
+      "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client_static",
+    ]
   }
 }
 

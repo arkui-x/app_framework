@@ -43,9 +43,6 @@
 #include "src/core/SkWriteBuffer.h"
 #include "src/image/SkImage_Base.h"
 #include "include/core/SkHMSymbol.h"
-#else
-#include "recording/recording_shader_effect.h"
-#include "recording/recording_path.h"
 #endif
 
 #include "animation/rs_render_curve_animation.h"
