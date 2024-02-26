@@ -11,7 +11,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//arkcompiler/ets_frontend/ts2panda/ts2abc_config.gni")
+if (!is_arkui_x) {
+  import("//arkcompiler/ets_frontend/ts2panda/ts2abc_config.gni")
+}
 import("//build/ohos.gni")
 import("//foundation/appframework/window_manager/window_manager.gni")
 
