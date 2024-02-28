@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 #include <functional>
 #include <string>
 #include <typeinfo>
+#include <variant>
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -28,6 +29,7 @@ class HiTraceId;
 }
 
 namespace AppExecFwk {
+constexpr static uint32_t TYPE_U32_INDEX = 0u;
 using HiTraceId = OHOS::HiviewDFX::HiTraceId;
 
 class EventHandler;
@@ -40,6 +42,7 @@ public:
     using TimePoint = std::chrono::time_point<Clock>;
     using Callback = std::function<void()>;
     using Pointer = std::unique_ptr<InnerEvent, void (*)(InnerEvent*)>;
+    using EventId = std::variant<uint32_t, std::string>;
 
     class Waiter {
     public:
@@ -58,6 +61,15 @@ public:
      * @return Returns the pointer of InnerEvent instance.
      */
     static Pointer Get(uint32_t innerEventId, int64_t param = 0);
+
+    /**
+     * Get InnerEvent instance from pool.
+     *
+     * @param innerEventId The id of the event.
+     * @param param Basic parameter of the event, default is 0.
+     * @return Returns the pointer of InnerEvent instance.
+     */
+    static Pointer Get(const EventId& innerEventId, int64_t param = 0);
 
     /**
      * Get InnerEvent instance from pool.
@@ -116,7 +128,39 @@ public:
      * @return Returns the pointer of InnerEvent instance.
      */
     template<typename T, typename D>
+    static inline Pointer Get(const EventId& innerEventId, std::unique_ptr<T, D>&& object, int64_t param = 0)
+    {
+        auto event = Get(innerEventId, param);
+        event->SaveUniquePtr(object);
+        return event;
+    }
+
+    /**
+     * Get InnerEvent instance from pool.
+     *
+     * @param innerEventId The id of the event.
+     * @param object Unique pointer of the object.
+     * @param param Basic parameter of the event, default is 0.
+     * @return Returns the pointer of InnerEvent instance.
+     */
+    template<typename T, typename D>
     static inline Pointer Get(uint32_t innerEventId, std::unique_ptr<T, D>& object, int64_t param = 0)
+    {
+        auto event = Get(innerEventId, param);
+        event->SaveUniquePtr(object);
+        return event;
+    }
+
+    /**
+     * Get InnerEvent instance from pool.
+     *
+     * @param innerEventId The id of the event.
+     * @param object Unique pointer of the object.
+     * @param param Basic parameter of the event, default is 0.
+     * @return Returns the pointer of InnerEvent instance.
+     */
+    template<typename T, typename D>
+    static inline Pointer Get(const EventId& innerEventId, std::unique_ptr<T, D>& object, int64_t param = 0)
     {
         auto event = Get(innerEventId, param);
         event->SaveUniquePtr(object);
@@ -269,7 +313,15 @@ public:
      *
      * @return Returns id of the event after it has been sent.
      */
-    inline uint32_t GetInnerEventId() const
+    uint32_t GetInnerEventId() const;
+
+    /**
+     * Get id of the event.
+     * Make sure {@link #hasTask} returns false.
+     *
+     * @return Returns id of the event after it has been sent.
+     */
+    inline EventId GetInnerEventIdEx() const
     {
         return innerEventId_;
     }
@@ -490,7 +542,7 @@ private:
     TimePoint sendTime_;
 
     // Event id of the event, if it is not a task object
-    uint32_t innerEventId_ { 0 };
+    EventId innerEventId_ = { 0u };
 
     // Simple parameter for the event.
     int64_t param_ { 0 };
