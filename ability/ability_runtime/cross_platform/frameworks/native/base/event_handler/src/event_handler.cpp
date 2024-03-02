@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -347,7 +347,13 @@ std::string EventHandler::GetEventName(const InnerEvent::Pointer& event)
     if (event->HasTask()) {
         eventName = event->GetTaskName();
     } else {
-        eventName = std::to_string(event->GetInnerEventId());
+        InnerEvent::EventId eventId = event->GetInnerEventIdEx();
+        if (eventId.index() == TYPE_U32_INDEX) {
+            eventName = std::to_string(std::get<uint32_t>(eventId));
+        } else {
+            eventName = std::get<std::string>(eventId);
+        }
+
     }
     return eventName;
 }
