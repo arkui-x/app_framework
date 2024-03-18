@@ -167,11 +167,6 @@ bool RSSystemProperties::GetSkipGeometryNotChangeEnabled()
     return {};
 }
 
-bool RSSystemProperties::GetPropertyDrawableEnable()
-{
-    return {};
-}
-
 bool RSSystemProperties::GetAnimationCacheEnabled()
 {
     return {};
@@ -280,11 +275,6 @@ int RSSystemProperties::GetSyncTransactionWaitDelay()
 }
 
 bool RSSystemProperties::GetSingleFrameComposerEnabled()
-{
-    return false;
-}
-
-bool RSSystemProperties::GetUseShadowBatchingEnabled()
 {
     return false;
 }
