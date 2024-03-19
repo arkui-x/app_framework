@@ -1,77 +1,95 @@
 {
   "strategy": "additive",
-  "localeFilter" : {
-    "filterType" : "locale",
+  "localeFilter": {
+    "filterType": "locale",
     "includeChildren": false,
-    "includelist":[
-      "root"
+    "includelist": [
+      "en",
+      "zh"
     ]
   },
   "featureFilters": {
-    "conversion_mappings" : {
-      "includelist":[]
-    },
-    "brkitr_tree": "include",
-    "brkitr_rules": "include",
-    "uemoji": "include",
-    "ulayout": "include",
-    "cnvalias": "include",
-    "zone_supplemental": "include",
-    "lstm_res":  {
-      "includelist":[]
-    },
-    "dictionaries":  {
-      "includelist":[]
-    },
-    "coll_ucadata":  {
-      "includelist":[]
-    },
-    "misc":  {
-      "includelist":[
-        "langInfo",
-        "likelySubtags"
+    "locales_tree": "include",
+    "normalization": {
+      "whitelist": [
+        "nfkc"
       ]
     },
     "lang_tree": {
-      "includelist":[
-        "root"
+      "whitelist": [
+        "root",
+        "en",
+        "zh"
       ]
     },
     "unit_tree": {
-      "includelist":[
+      "whitelist": [
+        "root",
+        "en",
+        "zh"
+      ]
+    },
+    "brkitr_rules": {
+      "whitelist": [
+        "char",
+        "line",
+        "line_loose",
+        "line_loose_cj",
+        "line_cj",
+        "line_normal",
+        "line_normal_cj",
+        "sent",
+        "title",
+        "word"
+      ]
+    },
+    "brkitr_tree": {
+      "whitelist": [
         "root"
       ]
     },
+    "cnvalias": "include",
+    "ulayout": "include",
+    "zone_supplemental": "include",
     "rbnf_tree": {
-      "includelist":[
-        "root"
+      "whitelist": [
+        "root",
+        "en",
+        "zh"
+      ]
+    },
+    "misc": {
+      "whitelist": [
+        "icustd",
+        "likelySubtags",
+        "icuver",
+        "supplementalData",
+        "numberingSystems",
+        "keyTypeData"
       ]
     },
     "zone_tree": {
-      "includelist":[
-        "root"
+      "whitelist": [
+        "root",
+        "en",
+        "zh"
       ]
     },
     "curr_tree": {
-      "includelist":[
-        "root"
+      "whitelist": [
+        "root",
+        "en",
+        "zh"
       ]
-    },
-    "locales_tree": {
-      "includelist":[
-        "root"
-      ]
-    },
-    "coll_tree": {
-      "includelist":[
-        "root"
-      ]
-    },
-    "conversion_mappings": {
-      "includelist":[]
-    },
-    "confusables": {
-      "includelist":[]
     }
+  },
+  "fileReplacements": {
+    "directory": "$SRC",
+    "replacements": [
+      {
+        "src": "../../../../../foundation/appframework/icu_data/filters/data/brkitr/root.txt",
+        "dest": "brkitr/root.txt"
+      }
+    ]
   }
 }
