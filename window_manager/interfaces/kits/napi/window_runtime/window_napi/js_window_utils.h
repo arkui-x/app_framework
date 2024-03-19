@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -155,9 +155,19 @@ const std::map<ApiOrientation, Orientation> JS_TO_NATIVE_ORIENTATION_MAP {
     {ApiOrientation::LOCKED,                                Orientation::LOCKED                             },
 };
 
+struct SystemBarPropertyFlag {
+    bool enableFlag;
+    bool backgroundColorFlag;
+    bool contentColorFlag;
+    SystemBarPropertyFlag() : enableFlag(false), backgroundColorFlag(false), contentColorFlag(false) {}
+};
+
 napi_value CreateJsWindowPropertiesObject(napi_env env, std::shared_ptr<Window>& window);
 bool GetSystemBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProperties,
     napi_env env, size_t argc, const napi_value arg, std::shared_ptr<Window>& window);
+bool GetSpecificBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProperties,
+    napi_env env, napi_callback_info info, std::shared_ptr<Window>& window);
+napi_value ConvertAvoidAreaToJsValue(napi_env env, const AvoidArea& avoidArea, AvoidAreaType type);    
 napi_value WindowTypeInit(napi_env env);
 napi_value WindowModeInit(napi_env env);
 napi_value OrientationInit(napi_env env);
@@ -169,6 +179,7 @@ napi_value WindowColorSpaceInit(napi_env env);
 bool SetWindowObjectProperties(napi_env env,
     napi_value object, const char *moduleName, const napi_property_descriptor *props, size_t size);
 napi_value CreateObject(napi_env env, const char *moduleName, const napi_property_descriptor *props, size_t size);
+napi_value AvoidAreaTypeInit(napi_env env);
 
 inline napi_value CreateUndefined(napi_env env)
 {
