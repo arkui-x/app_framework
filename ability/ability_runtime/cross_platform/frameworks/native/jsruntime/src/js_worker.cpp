@@ -122,11 +122,13 @@ void OffWorkerFunc(NativeEngine* nativeEngine)
     }
 }
 
-bool ReadAssetData(const std::string& filePath, std::vector<uint8_t>& content, bool isDebugVersion)
+bool ReadAssetData(const std::string& filePath, uint8_t** buff, size_t* buffSize, bool isDebugVersion)
 {
     char path[PATH_MAX];
 #if defined(ANDROID_PLATFORM)
-    content =  Platform::StageAssetProvider::GetInstance()->GetAbcPathBuffer(filePath);
+    auto content = Platform::StageAssetProvider::GetInstance()->GetAbcPathBuffer(filePath);
+    *buff = content.data();
+    *buffSize = content.size();
     return true;
 #else
     if (realpath(filePath.c_str(), path) == nullptr) {
@@ -146,10 +148,12 @@ bool ReadAssetData(const std::string& filePath, std::vector<uint8_t>& content, b
         return false;
     }
 
-    content.resize(fileLen);
+    auto temp = std::make_unique<uint8_t[]>(fileLen);
+    stream.seekg(0, std::ios::beg);
+    stream.read(reinterpret_cast<char*>(temp.get()), fileLen);
 
-    stream.seekg(0);
-    stream.read(reinterpret_cast<char*>(content.data()), content.size());
+    *buff = temp.get();
+    *buffSize = fileLen;
     return true;
 }
 
@@ -179,8 +183,8 @@ struct AssetHelper final {
         return normalizedFilePath;
     }
 
-    void operator()(const std::string& uri,
-        std::vector<uint8_t>& content, std::string &ami) const
+    void operator()(const std::string& uri, uint8_t** buff, size_t* buffSize, std::string &ami,
+        bool& useSecureMem, bool isRestricted = false) const
     {
         if (uri.empty()) {
             HILOG_ERROR("Uri is empty.");
@@ -243,8 +247,9 @@ struct AssetHelper final {
         ami = codePath_ + filePath;
 #endif
         HILOG_INFO("Get asset, ami: %{private}s", ami.c_str());
-        if (!ReadAssetData(ami, content, isDebugVersion_)) {
-            HILOG_ERROR("Get asset content failed.");
+        useSecureMem = false;
+        if (!ReadAssetData(ami, buff, buffSize, isDebugVersion_)) {
+            HILOG_ERROR("Get asset buff failed.");
             return;
         }
     }
