@@ -22,8 +22,8 @@
 #include "js_window_register_manager.h"
 #include "js_window_utils.h"
 #include "virtual_rs_window.h"
-#include "wm_common.h"
 #include "window_hilog.h"
+#include "wm_common.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -127,7 +127,14 @@ napi_value JsWindow::LoadContent(napi_env env, napi_callback_info info)
 {
     WLOGD("JsWindow::LoadContent");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
-    return (me != nullptr) ? me->OnLoadContent(env, info) : nullptr;
+    return (me != nullptr) ? me->OnLoadContent(env, info, false) : nullptr;
+}
+
+napi_value JsWindow::LoadContentByName(napi_env env, napi_callback_info info)
+{
+    WLOGD("JsWindow::LoadContentByName");
+    JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
+    return (me != nullptr) ? me->OnLoadContent(env, info, true) : nullptr;
 }
 
 napi_value JsWindow::SetUIContent(napi_env env, napi_callback_info info)
@@ -503,7 +510,7 @@ napi_value JsWindow::OnSetPreferredOrientation(napi_env env, napi_callback_info 
     return result;
 }
 
-napi_value JsWindow::OnLoadContent(napi_env env, napi_callback_info info)
+napi_value JsWindow::OnLoadContent(napi_env env, napi_callback_info info, bool isLoadedByName)
 {
     WLOGD("JsWindow::OnLoadContent : Start...");
     WmErrorCode errCode = WmErrorCode::WM_OK;
@@ -526,8 +533,8 @@ napi_value JsWindow::OnLoadContent(napi_env env, napi_callback_info info)
     }
 
     std::weak_ptr<Rosen::Window> weakToken(windowToken_);
-    NapiAsyncTask::CompleteCallback complete =
-        [weakToken, contentStorage, contextUrl](napi_env env, NapiAsyncTask& task, int32_t status) {
+    NapiAsyncTask::CompleteCallback complete = [weakToken, contentStorage, contextUrl, isLoadedByName](
+        napi_env env, NapiAsyncTask& task, int32_t status) {
         auto weakWindow = weakToken.lock();
         if (weakWindow == nullptr) {
             WLOGE("JsWindow::OnLoadContent : Window is nullptr or get invalid param");
@@ -535,7 +542,7 @@ napi_value JsWindow::OnLoadContent(napi_env env, napi_callback_info info)
                 WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
             return;
         }
-        LoadContentTask(env, contentStorage, contextUrl, weakWindow, task);
+        LoadContentTask(env, contentStorage, contextUrl, weakWindow, task, isLoadedByName);
     };
     napi_value result = nullptr;
     NapiAsyncTask::Schedule("JsWindow::OnLoadContent", env,
@@ -574,7 +581,7 @@ napi_value JsWindow::OnSetUIContent(napi_env env, napi_callback_info info)
             task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
             return;
         }
-        LoadContentTask(env, contentStorage, contextUrl, weakWindow, task);
+        LoadContentTask(env, contentStorage, contextUrl, weakWindow, task, false);
     };
     napi_value result = nullptr;
     NapiAsyncTask::Schedule("JsWindow::OnSetUIContent", env,
@@ -857,12 +864,7 @@ napi_value JsWindow::OnUnregisterWindowManagerCallback(napi_env env, napi_callba
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
-    if (cbType.compare("windowEvent") != 0) {
-        WLOGE("JsWindow::OnUnregisterWindowManagerCallback : Envent %{public}s is invalid", cbType.c_str());
-        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
-        return CreateUndefined(env);
-    }
-
+    
     if (argc > 1 && IsFunction(env, argv[1])) {
         g_registerManager->UnregisterListener(env, windowToken_, cbType, CaseType::CASE_WINDOW, argv[1]);
     } else {
@@ -877,7 +879,7 @@ napi_ref FindJsWindowObject(const std::string &windowName)
     WLOGD("Try to find window %{public}s in g_jsWindowMap", windowName.c_str());
     std::lock_guard<std::recursive_mutex> lock(g_jsWindowMutex);
     if (g_jsWindowMap.find(windowName) == g_jsWindowMap.end()) {
-        WLOGD("Can not find window %{public}s in g_jsWindowMap", windowName.c_str());
+        WLOGI("Can not find window %{public}s in g_jsWindowMap", windowName.c_str());
         return nullptr;
     }
     return g_jsWindowMap[windowName];
@@ -970,6 +972,7 @@ static const napi_property_descriptor g_props[] = {
     DECLARE_NAPI_FUNCTION("setWindowSystemBarEnable", JsWindow::SetWindowSystemBarEnable),
     DECLARE_NAPI_FUNCTION("setPreferredOrientation", JsWindow::SetPreferredOrientation),
     DECLARE_NAPI_FUNCTION("loadContent", JsWindow::LoadContent),
+    DECLARE_NAPI_FUNCTION("loadContentByName", JsWindow::LoadContentByName),
     DECLARE_NAPI_FUNCTION("getUIContext", JsWindow::GetUIContext),
     DECLARE_NAPI_FUNCTION("setUIContent", JsWindow::SetUIContent),
     DECLARE_NAPI_FUNCTION("isWindowShowing", JsWindow::IsWindowShowingSync),

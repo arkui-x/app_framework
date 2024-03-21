@@ -32,6 +32,7 @@ public:
     static napi_value On(napi_env env, napi_callback_info info);
     static napi_value Off(napi_env env, napi_callback_info info);
     static napi_value LoadContent(napi_env env, napi_callback_info info);
+    static napi_value LoadContentByName(napi_env env, napi_callback_info info);
     static napi_value CreateSubWindow(napi_env env, napi_callback_info info);
     static napi_value GetSubWindow(napi_env env, napi_callback_info info);
     static void Finalizer(napi_env env, void* data, void* hint);
@@ -41,7 +42,7 @@ private:
     napi_value OnGetMainWindowSync(napi_env env, napi_callback_info info);
     napi_value OnEvent(napi_env env, napi_callback_info info);
     napi_value OffEvent(napi_env env, napi_callback_info info);
-    napi_value OnLoadContent(napi_env env, napi_callback_info info);
+    napi_value OnLoadContent(napi_env env, napi_callback_info info, bool isLoadedByName);
     napi_value OnCreateSubWindow(napi_env env, napi_callback_info info);
     napi_value OnGetSubWindow(napi_env env, napi_callback_info info);
     std::weak_ptr<Rosen::WindowStage> windowStage_;

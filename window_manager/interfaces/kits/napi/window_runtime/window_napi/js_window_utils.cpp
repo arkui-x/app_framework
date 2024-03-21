@@ -320,7 +320,7 @@ bool GetSystemBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProper
 }
 
 void LoadContentTask(napi_env env, napi_ref storageRef, const std::string &contextUrl,
-    std::shared_ptr<Window> weakWindow, NapiAsyncTask& task)
+    std::shared_ptr<Window> weakWindow, NapiAsyncTask& task, bool isLoadedByName)
 {
     napi_value nativeStorage = nullptr;
     if (storageRef != nullptr) {
@@ -335,7 +335,7 @@ void LoadContentTask(napi_env env, napi_ref storageRef, const std::string &conte
     }
     WLOGI("LoadContentTask : contextUrl %{public}s", contextUrl.c_str());
     WMError ret = weakWindow->SetUIContent(contextUrl,
-        reinterpret_cast<NativeEngine*>(env), nativeStorage, false, nullptr);
+        reinterpret_cast<NativeEngine*>(env), nativeStorage, false, nullptr, isLoadedByName);
     if (ret == WMError::WM_OK) {
         task.Resolve(env, CreateUndefined(env));
     } else {
