@@ -36,11 +36,6 @@ bool RSSystemProperties::IsPhoneType()
     return true;
 }
 
-bool RSSystemProperties::GetPropertyDrawableEnable()
-{
-    return {};
-}
-
 void RSSystemProperties::SetRecordingDisenabled()
 {
     return;
