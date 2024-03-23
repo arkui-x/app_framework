@@ -38,6 +38,7 @@ public:
     static napi_value SetWindowSystemBarEnable(napi_env env, napi_callback_info info);
     static napi_value SetPreferredOrientation(napi_env env, napi_callback_info info);
     static napi_value LoadContent(napi_env env, napi_callback_info info);
+    static napi_value LoadContentByName(napi_env env, napi_callback_info info);
     static napi_value SetUIContent(napi_env env, napi_callback_info info);
     static napi_value IsWindowShowingSync(napi_env env, napi_callback_info info);
     static napi_value SetWindowBackgroundColorSync(napi_env env, napi_callback_info info);
@@ -58,7 +59,7 @@ private:
     napi_value OnGetWindowPropertiesSync(napi_env env, napi_callback_info info);
     napi_value OnSetWindowSystemBarEnable(napi_env env, napi_callback_info info);
     napi_value OnSetPreferredOrientation(napi_env env, napi_callback_info info);
-    napi_value OnLoadContent(napi_env env, napi_callback_info info);
+    napi_value OnLoadContent(napi_env env, napi_callback_info info, bool isLoadedByName);
     napi_value OnSetUIContent(napi_env env, napi_callback_info info);
     napi_value OnIsWindowShowingSync(napi_env env, napi_callback_info info);
     napi_value OnSetWindowBackgroundColorSync(napi_env env, napi_callback_info info);

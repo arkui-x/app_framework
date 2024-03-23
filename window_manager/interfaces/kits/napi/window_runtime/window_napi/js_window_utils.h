@@ -205,7 +205,7 @@ inline napi_value CreateWindowsJsError(napi_env env, int32_t errCode, const std:
 }
 
 void LoadContentTask(napi_env env, napi_ref storageRef, const std::string &contextUrl,
-    std::shared_ptr<Window> weakWindow, AbilityRuntime::NapiAsyncTask& task);
+    std::shared_ptr<Window> weakWindow, AbilityRuntime::NapiAsyncTask& task, bool isLoadedByName);
 bool GetContentArg(napi_env env,
     napi_callback_info info, std::string &contextUrl, napi_value &storage, napi_value &callback);
 }

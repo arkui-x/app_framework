@@ -26,6 +26,10 @@ class WindowStage {
       return this.__window_stage__.loadContent(url, storage, asyncCallback);
     }
 
+    loadContentByName(name, storage, asyncCallback) {
+      return this.__window_stage__.loadContentByName(name, storage, asyncCallback);
+    }
+
     getWindowMode(asyncCallback) {
       return this.__window_stage__.getWindowMode(asyncCallback);
     }
