@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,6 +50,9 @@ public:
     static napi_value GetWindowColorSpace(napi_env env, napi_callback_info info);
     static void Finalizer(napi_env env, void* data, void* hint);
     static napi_value GetUIContext(napi_env env, napi_callback_info info);
+    static napi_value SetSpecificSystemBarEnabled(napi_env env, napi_callback_info info);
+    static napi_value SetWindowLayoutFullScreen(napi_env env, napi_callback_info info);
+    static napi_value GetWindowAvoidAreaSync(napi_env env, napi_callback_info info);
 
 private:
     napi_value OnShowWindow(napi_env env, napi_callback_info info);
@@ -70,6 +73,9 @@ private:
     napi_value OnUnregisterWindowManagerCallback(napi_env env, napi_callback_info info);
     napi_value OnSetWindowColorSpace(napi_env env, napi_callback_info info);
     napi_value OnGetWindowColorSpace(napi_env env, napi_callback_info info);
+    napi_value OnSetSpecificSystemBarEnabled(napi_env env, napi_callback_info info);
+    napi_value OnSetWindowLayoutFullScreen(napi_env env, napi_callback_info info);
+    napi_value OnGetWindowAvoidAreaSync(napi_env env, napi_callback_info info);
 
     std::string GetWindowName();
     std::shared_ptr<Rosen::Window> windowToken_;

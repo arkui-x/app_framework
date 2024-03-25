@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #ifndef OHOS_ROSEN_WM_COMMON_H
 #define OHOS_ROSEN_WM_COMMON_H
 #include <map>
+#include <parcel.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -67,6 +68,7 @@ enum class WindowType : uint32_t {
     WINDOW_TYPE_PLACEHOLDER,
     WINDOW_TYPE_DIALOG,
     WINDOW_TYPE_SCREENSHOT,
+    WINDOW_TYPE_NAVIGATION_INDICATOR,
     ABOVE_APP_SYSTEM_WINDOW_END,
 
     SYSTEM_SUB_WINDOW_BASE = 2500,
@@ -261,6 +263,8 @@ struct Rect {
     uint32_t width_;
     uint32_t height_;
 
+    Rect& operator=(const Rect& a) = default;
+    
     bool operator==(const Rect& a) const
     {
         return (posX_ == a.posX_ && posY_ == a.posY_ && width_ == a.width_ && height_ == a.height_);
@@ -280,6 +284,47 @@ struct Rect {
     {
         return (posX_ >= a.posX_ && posY_ >= a.posY_ &&
             posX_ + width_ <= a.posX_ + a.width_ && posY_ + height_ <= a.posY_ + a.height_);
+    }
+};
+
+/**
+ * @brief Enumerates avoid area type.
+ */
+enum class AvoidAreaType : uint32_t {
+    TYPE_SYSTEM,           // area of SystemUI
+    TYPE_CUTOUT,           // cutout of screen
+    TYPE_SYSTEM_GESTURE,   // area for system gesture
+    TYPE_KEYBOARD,         // area for soft input keyboard
+    TYPE_NAVIGATION_INDICATOR, // area for navigation indicator
+};
+
+/**
+ * @class AvoidArea
+ *
+ * @brief Area needed to avoid.
+ */
+class AvoidArea {
+public:
+    Rect topRect_ { 0, 0, 0, 0 };
+    Rect leftRect_ { 0, 0, 0, 0 };
+    Rect rightRect_ { 0, 0, 0, 0 };
+    Rect bottomRect_ { 0, 0, 0, 0 };
+
+    bool operator==(const AvoidArea& a) const
+    {
+        return (leftRect_ == a.leftRect_ && topRect_ == a.topRect_ &&
+            rightRect_ == a.rightRect_ && bottomRect_ == a.bottomRect_);
+    }
+
+    bool operator!=(const AvoidArea& a) const
+    {
+        return !this->operator==(a);
+    }
+
+    bool isEmptyAvoidArea() const
+    {
+        return topRect_.IsUninitializedRect() && leftRect_.IsUninitializedRect() &&
+            rightRect_.IsUninitializedRect() && bottomRect_.IsUninitializedRect();
     }
 };
 }
