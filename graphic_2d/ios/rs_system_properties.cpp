@@ -41,11 +41,6 @@ std::string RSSystemProperties::GetRecordingFile()
     return "";
 }
 
-bool RSSystemProperties::GetPropertyDrawableEnable()
-{
-    return {};
-}
-
 bool RSSystemProperties::GetUniRenderEnabled()
 {
     return isUniRenderEnabled_;
