@@ -287,9 +287,7 @@ void InitWorkerModule(NativeEngine& engine, const std::string& codePath, bool is
 {
     engine.SetInitWorkerFunc(InitWorkerFunc);
     engine.SetOffWorkerFunc(OffWorkerFunc);
-#if !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
     engine.SetGetAssetFunc(AssetHelper(codePath, isDebugVersion, isBundle));
-#endif
     engine.SetGetContainerScopeIdFunc(GetContainerId);
     engine.SetInitContainerScopeFunc(UpdateContainerScope);
     engine.SetFinishContainerScopeFunc(RestoreContainerScope);
