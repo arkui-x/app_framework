@@ -17,6 +17,7 @@
 #define OHOS_JS_WINDOW_H
 #include <map>
 #include <stdbool.h>
+#include "js_window_register_manager.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "virtual_rs_window.h"
@@ -79,6 +80,7 @@ private:
 
     std::string GetWindowName();
     std::shared_ptr<Rosen::Window> windowToken_;
+    std::unique_ptr<JsWindowRegisterManager> registerManager_ = nullptr;
 };
 }  // namespace Rosen
 }  // namespace OHOS

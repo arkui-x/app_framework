@@ -30,14 +30,14 @@ namespace Rosen {
 using namespace AbilityRuntime;
 
 static thread_local std::map<std::string, napi_ref> g_jsWindowMap;
-std::unique_ptr<JsWindowRegisterManager> g_registerManager =  std::make_unique<JsWindowRegisterManager>();
 #ifdef IOS_PLATFORM
 static bool g_willTerminate;
 #endif
 std::recursive_mutex g_jsWindowMutex;
 static constexpr Rect EMPTY_RECT = {0, 0, 0, 0};
 
-JsWindow::JsWindow(std::shared_ptr<Rosen::Window>& window) : windowToken_(window)
+JsWindow::JsWindow(std::shared_ptr<Rosen::Window>& window)
+    : windowToken_(window), registerManager_(std::make_unique<JsWindowRegisterManager>())
 {
     WLOGI("JsWindow::JsWindow");
 }
@@ -839,7 +839,7 @@ napi_value JsWindow::OnRegisterWindowManagerCallback(napi_env env, napi_callback
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
-    WmErrorCode ret = g_registerManager->RegisterListener(env, windowToken_, cbType, CaseType::CASE_WINDOW, argv[1]);
+    WmErrorCode ret = registerManager_->RegisterListener(env, windowToken_, cbType, CaseType::CASE_WINDOW, argv[1]);
     if (ret != WmErrorCode::WM_OK) {
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
@@ -867,9 +867,9 @@ napi_value JsWindow::OnUnregisterWindowManagerCallback(napi_env env, napi_callba
     }
     
     if (argc > 1 && IsFunction(env, argv[1])) {
-        g_registerManager->UnregisterListener(env, windowToken_, cbType, CaseType::CASE_WINDOW, argv[1]);
+        registerManager_->UnregisterListener(env, windowToken_, cbType, CaseType::CASE_WINDOW, argv[1]);
     } else {
-        g_registerManager->UnregisterListener(env, windowToken_, cbType, CaseType::CASE_WINDOW, nullptr);
+        registerManager_->UnregisterListener(env, windowToken_, cbType, CaseType::CASE_WINDOW, nullptr);
     }
     WLOGD("Unregister end, type = %{public}s", cbType.c_str());
     return nullptr;
@@ -1222,12 +1222,12 @@ napi_value CreateJsWindowObject(napi_env env, std::shared_ptr<Rosen::Window>& wi
         return nullptr;
     }
     napi_wrap(env, object, jsWindow.release(), JsWindow::Finalizer, nullptr, nullptr);
-
     NotifyNativeWinDestroyFunc func = [env](std::string windowName) {
         WLOGI("Destroy window %{public}s in js window", windowName.c_str());
         RemoveJsWindowObject(env, windowName);
     };
     window->RegisterWindowDestroyedListener(func);
+
 #ifdef IOS_PLATFORM
     NotifyWillTerminateFunc terminamteFunc = []() {
         g_willTerminate = true;

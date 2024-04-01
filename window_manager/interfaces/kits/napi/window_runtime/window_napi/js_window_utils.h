@@ -20,7 +20,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "js_runtime_utils.h"
-#include "js_window.h"
+#include "virtual_rs_window.h"
 #include "window_option.h"
 #include "wm_common.h"
 
