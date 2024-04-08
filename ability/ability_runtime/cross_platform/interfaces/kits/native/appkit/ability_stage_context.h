@@ -30,6 +30,7 @@ public:
     std::string GetBundleName() const override;
     std::shared_ptr<AppExecFwk::ApplicationInfo> GetApplicationInfo() const override;
     std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager() const override;
+    void SetResourceManager(std::shared_ptr<Global::Resource::ResourceManager> rmg);
     std::string GetBundleCodePath() const override;
     std::string GetBundleCodeDir() override;
     std::string GetCacheDir() override;

@@ -36,6 +36,11 @@ std::shared_ptr<Global::Resource::ResourceManager> AbilityStageContext::GetResou
     return resourceManager_;
 }
 
+void AbilityStageContext::SetResourceManager(std::shared_ptr<Global::Resource::ResourceManager> rmg)
+{
+    resourceManager_ = rmg;
+}
+
 std::string AbilityStageContext::GetBundleCodePath() const
 {
     return applicationContext_ ? applicationContext_->GetBundleCodePath() : "";
@@ -116,7 +121,10 @@ std::shared_ptr<Configuration> AbilityStageContext::GetConfiguration()
 
 void AbilityStageContext::InitResourceManeger()
 {
-    resourceManager_ = std::shared_ptr<Global::Resource::ResourceManager>(Global::Resource::CreateResourceManager());
+    if (resourceManager_ == nullptr) {
+        resourceManager_ = std::shared_ptr<Global::Resource::ResourceManager>(
+            Global::Resource::CreateResourceManager());
+    }
     if (resourceManager_ == nullptr) {
         HILOG_ERROR("resourceManager_ is nullptr");
         return;
