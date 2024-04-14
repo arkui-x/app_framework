@@ -173,6 +173,13 @@ napi_value JsWindow::SetWindowKeepScreenOn(napi_env env, napi_callback_info info
     return (me != nullptr) ? me->OnSetWindowKeepScreenOn(env, info) : nullptr;
 }
 
+napi_value JsWindow::SetWindowFocusable(napi_env env, napi_callback_info info)
+{
+    WLOGD("SetWindowFocusable");
+    JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
+    return (me != nullptr) ? me->OnSetWindowFocusable(env, info) : nullptr;
+}
+
 napi_value JsWindow::OnShowWindow(napi_env env, napi_callback_info info)
 {
     WLOGD("JsWindow::OnShowWindow : Start...");
@@ -875,6 +882,57 @@ napi_value JsWindow::OnUnregisterWindowManagerCallback(napi_env env, napi_callba
     return nullptr;
 }
 
+napi_value JsWindow::OnSetWindowFocusable(napi_env env, napi_callback_info info)
+{
+    WLOGI("JsWindow::OnSetWindowFocusable : Start...");
+    WmErrorCode errCode = WmErrorCode::WM_OK;
+    size_t argc = WINDOW_ARGC_MAX_COUNT;
+    napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < 1) {
+        WLOGE("JsWindowStage::OnSetWindowFocusable : argc error![%{public}zu]", argc);
+        errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
+        napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
+        return CreateJsUndefined(env);
+    }
+
+    bool isFocusable = false;
+    if (!ConvertFromJsValue(env, argv[0], isFocusable)) {
+        WLOGE("JsWindow::OnSetWindowFocusable : Failed to convert parameter to isFocusable");
+        errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
+        napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
+        return CreateJsUndefined(env);
+    }
+
+    std::weak_ptr<Window> weakToken(windowToken_);
+    NapiAsyncTask::CompleteCallback complete =
+        [weakToken, isFocusable](napi_env env, NapiAsyncTask& task, int32_t status) {
+        auto weakWindow = weakToken.lock();
+        if (weakWindow == nullptr) {
+            task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
+            WLOGE("JsWindow::OnSetWindowFocusable : window is nullptr or get invalid param");
+            return;
+        }
+        WMError ret = weakWindow->SetFocusable(isFocusable);
+        if (ret == WMError::WM_OK) {
+            task.Resolve(env, CreateUndefined(env));
+        } else {
+            task.Reject(env,
+                CreateWindowsJsError(env, static_cast<int32_t>(WM_JS_TO_ERROR_CODE_MAP.at(ret)), "SetFocusable"));
+        }
+        WLOGI("JsWindow::OnSetWindowFocusable : SetWindowFocusable [%{public}u, %{public}s] end, ret = %{public}d",
+            weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), ret);
+    };
+    napi_value result = nullptr;
+    napi_value callback = nullptr;
+    if (argc >= 1 && IsFunction(env, argv[1])) {
+        callback = argv[1];
+    }
+    NapiAsyncTask::Schedule("JsWindow::OnSetWindowFocusable", env,
+        CreateAsyncTaskWithLastParam(env, callback, nullptr, std::move(complete), &result));
+    return result;
+}
+
 napi_ref FindJsWindowObject(const std::string &windowName)
 {
     WLOGD("Try to find window %{public}s in g_jsWindowMap", windowName.c_str());
@@ -1197,6 +1255,7 @@ static const napi_property_descriptor g_props[] = {
     DECLARE_NAPI_FUNCTION("setSpecificSystemBarEnabled", JsWindow::SetSpecificSystemBarEnabled),
     DECLARE_NAPI_FUNCTION("setWindowLayoutFullScreen", JsWindow::SetWindowLayoutFullScreen),
     DECLARE_NAPI_FUNCTION("getWindowAvoidArea", JsWindow::GetWindowAvoidAreaSync),
+    DECLARE_NAPI_FUNCTION("setWindowFocusable", JsWindow::SetWindowFocusable),
 };
 
 napi_value CreateJsWindowObject(napi_env env, std::shared_ptr<Rosen::Window>& window)

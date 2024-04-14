@@ -54,6 +54,7 @@ public:
     static napi_value SetSpecificSystemBarEnabled(napi_env env, napi_callback_info info);
     static napi_value SetWindowLayoutFullScreen(napi_env env, napi_callback_info info);
     static napi_value GetWindowAvoidAreaSync(napi_env env, napi_callback_info info);
+    static napi_value SetWindowFocusable(napi_env env, napi_callback_info info);
 
 private:
     napi_value OnShowWindow(napi_env env, napi_callback_info info);
@@ -77,6 +78,7 @@ private:
     napi_value OnSetSpecificSystemBarEnabled(napi_env env, napi_callback_info info);
     napi_value OnSetWindowLayoutFullScreen(napi_env env, napi_callback_info info);
     napi_value OnGetWindowAvoidAreaSync(napi_env env, napi_callback_info info);
+    napi_value OnSetWindowFocusable(napi_env env, napi_callback_info info);
 
     std::string GetWindowName();
     std::shared_ptr<Rosen::Window> windowToken_;

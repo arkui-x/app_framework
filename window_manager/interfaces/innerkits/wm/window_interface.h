@@ -74,6 +74,20 @@ public:
      */
     virtual void OnSizeChange(Rect rect) {}
 };
+
+/**
+ * @class ITouchOutsideListener
+ *
+ * @brief ITouchOutsideListener is used to observe touch outside event.
+ */
+class ITouchOutsideListener : virtual public RefBase {
+public:
+    /**
+     * @brief Notify caller that window is on the forground.
+     */
+    virtual void OnTouchOutside() {}
+};
+
 }
 }
 #endif // OHOS_ROSEN_WINDOW_INTERFACE_H
