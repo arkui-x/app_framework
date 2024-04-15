@@ -76,6 +76,8 @@ enum class WindowType : uint32_t {
     SYSTEM_SUB_WINDOW_END,
 
     SYSTEM_WINDOW_END = SYSTEM_SUB_WINDOW_END,
+
+    WINDOW_TYPE_SCENE_BOARD
 };
 
 /**
