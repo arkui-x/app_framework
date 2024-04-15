@@ -20,13 +20,13 @@
 #if defined RUNTIME_MODE_RELEASE
 #define WLOGD(fmt, ...)
 #define WLOGI(fmt, ...)
-#define WLOGW(fmt, ...) PRINT_LOG(WARN, OHOS::Ace::AceLogTag::DEFAULT, fmt, ##__VA_ARGS__)
-#define WLOGE(fmt, ...) PRINT_LOG(ERROR, OHOS::Ace::AceLogTag::DEFAULT, fmt, ##__VA_ARGS__)
+#define WLOGW(fmt, ...) PRINT_LOG(WARN, OHOS::Ace::AceLogTag::ACE_DEFAULT_DOMAIN, fmt, ##__VA_ARGS__)
+#define WLOGE(fmt, ...) PRINT_LOG(ERROR, OHOS::Ace::AceLogTag::ACE_DEFAULT_DOMAIN, fmt, ##__VA_ARGS__)
 
 #else
-#define WLOGD(fmt, ...) PRINT_LOG(DEBUG, OHOS::Ace::AceLogTag::DEFAULT, fmt, ##__VA_ARGS__)
-#define WLOGI(fmt, ...) PRINT_LOG(INFO, OHOS::Ace::AceLogTag::DEFAULT, fmt, ##__VA_ARGS__)
-#define WLOGW(fmt, ...) PRINT_LOG(WARN, OHOS::Ace::AceLogTag::DEFAULT, fmt, ##__VA_ARGS__)
-#define WLOGE(fmt, ...) PRINT_LOG(ERROR, OHOS::Ace::AceLogTag::DEFAULT, fmt, ##__VA_ARGS__)
+#define WLOGD(fmt, ...) PRINT_LOG(DEBUG, OHOS::Ace::AceLogTag::ACE_DEFAULT_DOMAIN, fmt, ##__VA_ARGS__)
+#define WLOGI(fmt, ...) PRINT_LOG(INFO, OHOS::Ace::AceLogTag::ACE_DEFAULT_DOMAIN, fmt, ##__VA_ARGS__)
+#define WLOGW(fmt, ...) PRINT_LOG(WARN, OHOS::Ace::AceLogTag::ACE_DEFAULT_DOMAIN, fmt, ##__VA_ARGS__)
+#define WLOGE(fmt, ...) PRINT_LOG(ERROR, OHOS::Ace::AceLogTag::ACE_DEFAULT_DOMAIN, fmt, ##__VA_ARGS__)
 #endif
 #endif // FRAMEWORKS_WM_INCLUDE_WINDOW_HILOG_H

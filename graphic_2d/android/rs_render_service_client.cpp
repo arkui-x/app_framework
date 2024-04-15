@@ -118,7 +118,7 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
 
 bool RSRenderServiceClient::TakeSurfaceCapture(
     NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
-    SurfaceCaptureType surfaceCaptureType)
+    SurfaceCaptureType surfaceCaptureType, bool isSync)
 {
     return false;
 }
@@ -229,6 +229,16 @@ bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelM
 bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 #endif
+{
+    return {};
+}
+
+bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    return {};
+}
+
+bool RSRenderServiceClient::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
     return {};
 }
