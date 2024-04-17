@@ -36,6 +36,11 @@ bool RSSystemProperties::IsPhoneType()
     return true;
 }
 
+bool RSSystemProperties::GetCacheEnabledForRotation()
+{
+    return {};
+}
+
 void RSSystemProperties::SetRecordingDisenabled()
 {
     return;
