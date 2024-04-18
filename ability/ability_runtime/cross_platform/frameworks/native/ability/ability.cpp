@@ -19,6 +19,7 @@
 #include "js_ability.h"
 #include "runtime.h"
 #include "window_view_adapter.h"
+#include "stage_application_info_adapter.h"
 
 using namespace OHOS::AppExecFwk;
 namespace OHOS {
@@ -168,6 +169,38 @@ AbilityLifecycleExecutor::LifecycleState Ability::GetState()
 void Ability::OnConfigurationUpdate(const Configuration& configuration)
 {
     HILOG_INFO("OnConfigurationUpdate begin.");
+    if (abilityContext_ == nullptr) {
+        HILOG_ERROR("abilityContext_ is nullptr");
+        return;
+    }
+    auto resourceManager = abilityContext_->GetResourceManager();
+    if (resourceManager == nullptr) {
+        HILOG_ERROR("resourceManager is nullptr");
+        return;
+    }
+    std::unique_ptr<Global::Resource::ResConfig> resConfig(Global::Resource::CreateResConfig());
+    if (resConfig == nullptr) {
+        HILOG_ERROR("resConfig is nullptr");
+        return;
+    }
+    std::string language { "" };
+    std::string country { "" };
+    std::string script { "" };
+    StageApplicationInfoAdapter::GetInstance()->GetLocale(language, country, script);
+    resConfig->SetLocaleInfo(language.c_str(), script.c_str(), country.c_str());
+    auto colorMode = configuration.GetItem(ConfigurationInner::SYSTEM_COLORMODE);
+    if (colorMode != "") {
+        Global::Resource::ColorMode mode;
+        if (colorMode == ConfigurationInner::COLOR_MODE_LIGHT) {
+            mode = Global::Resource::ColorMode::LIGHT;
+        } else if (colorMode == ConfigurationInner::COLOR_MODE_DARK) {
+            mode = Global::Resource::ColorMode::DARK;
+        } else {
+            mode = Global::Resource::ColorMode::COLOR_MODE_NOT_SET;
+        }
+        resConfig->SetColorMode(mode);
+    }
+    resourceManager->UpdateResConfig(*resConfig);
 }
 
 const LaunchParam& Ability::GetLaunchParam() const
