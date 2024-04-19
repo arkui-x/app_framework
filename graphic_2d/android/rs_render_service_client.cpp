@@ -111,7 +111,8 @@ private:
 std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     const std::string& name,
     const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper,
-    uint64_t id)
+    uint64_t id,
+    NodeId windowNodeId)
 {
     return std::make_shared<VSyncReceiverAndroid>(looper);
 }

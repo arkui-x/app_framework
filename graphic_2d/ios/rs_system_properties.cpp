@@ -101,6 +101,11 @@ bool RSSystemProperties::IsPhoneType()
     return true;
 }
 
+bool RSSystemProperties::GetCacheEnabledForRotation()
+{
+    return {};
+}
+
 #ifndef NEW_SKIA
 ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
 {
