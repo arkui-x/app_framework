@@ -51,6 +51,13 @@ template("window_manager_napi") {
       "//commonlibrary/c_utils/base/include",
       "../../../../utils/include",
     ]
+
+    if (is_arkui_x) {
+      include_dirs += [
+        "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
+      ]
+    }
+
     if (current_os == "android") {
       include_dirs +=
           [ "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni" ]
