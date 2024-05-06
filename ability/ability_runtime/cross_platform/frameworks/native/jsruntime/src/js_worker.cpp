@@ -67,14 +67,14 @@ void InitWorkerFunc(NativeEngine* nativeEngine)
         HILOG_ERROR("Input nativeEngine is nullptr");
         return;
     }
-    
+
     napi_value globalObj = nullptr;
     napi_get_global(reinterpret_cast<napi_env>(nativeEngine), &globalObj);
     if (globalObj == nullptr) {
         HILOG_ERROR("Failed to get global object");
         return;
     }
-    
+
     InitConsoleLogModule(reinterpret_cast<napi_env>(nativeEngine), globalObj);
 
     if (g_debugMode) {
@@ -122,13 +122,11 @@ void OffWorkerFunc(NativeEngine* nativeEngine)
     }
 }
 
-bool ReadAssetData(const std::string& filePath, uint8_t** buff, size_t* buffSize, bool isDebugVersion)
+bool ReadAssetData(const std::string& filePath, std::vector<uint8_t>& content, bool isDebugVersion)
 {
     char path[PATH_MAX];
 #if defined(ANDROID_PLATFORM)
-    auto content = Platform::StageAssetProvider::GetInstance()->GetAbcPathBuffer(filePath);
-    *buff = content.data();
-    *buffSize = content.size();
+    content = Platform::StageAssetProvider::GetInstance()->GetAbcPathBuffer(filePath);
     return true;
 #else
     if (realpath(filePath.c_str(), path) == nullptr) {
@@ -148,12 +146,9 @@ bool ReadAssetData(const std::string& filePath, uint8_t** buff, size_t* buffSize
         return false;
     }
 
-    auto temp = std::make_unique<uint8_t[]>(fileLen);
-    stream.seekg(0, std::ios::beg);
-    stream.read(reinterpret_cast<char*>(temp.get()), fileLen);
-
-    *buff = temp.get();
-    *buffSize = fileLen;
+    content.resize(fileLen);
+    stream.seekg(0);
+    stream.read(reinterpret_cast<char*>(content.data()), content.size());
     return true;
 }
 
@@ -183,8 +178,8 @@ struct AssetHelper final {
         return normalizedFilePath;
     }
 
-    void operator()(const std::string& uri, uint8_t** buff, size_t* buffSize, std::string &ami,
-        bool& useSecureMem, bool isRestricted = false) const
+    void operator()(const std::string& uri, uint8_t** buff, size_t* buffSize, std::vector<uint8_t>& content,
+        std::string &ami, bool& useSecureMem, bool isRestricted = false) const
     {
         if (uri.empty()) {
             HILOG_ERROR("Uri is empty.");
@@ -248,7 +243,7 @@ struct AssetHelper final {
 #endif
         HILOG_INFO("Get asset, ami: %{private}s", ami.c_str());
         useSecureMem = false;
-        if (!ReadAssetData(ami, buff, buffSize, isDebugVersion_)) {
+        if (!ReadAssetData(ami, content, isDebugVersion_)) {
             HILOG_ERROR("Get asset buff failed.");
             return;
         }
