@@ -40,7 +40,6 @@ typedef struct objc_object CAEAGLLayer;
 namespace OHOS {
 namespace Rosen {
 class RenderContext;
-class RSSurfaceTextureIOS;
 class RSSurfaceGPU : public RSSurface {
 public:
     RSSurfaceGPU(void* layer);
@@ -78,7 +77,7 @@ private:
     sk_sp<SkColorSpace> skColorSpace_ = nullptr;
     CAEAGLLayer* layer_ = nullptr;
     RenderContext *renderContext_ = nullptr;
-    std::shared_ptr<RSSurfaceTextureIOS> texture_;
+    RSSurfaceExtPtr texture_;
 };
 
 } // namespace Rosen
