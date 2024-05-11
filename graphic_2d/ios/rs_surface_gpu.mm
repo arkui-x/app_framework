@@ -52,7 +52,7 @@ bool RSSurfaceGPU::IsValid() const
 }
 
 std::unique_ptr<RSSurfaceFrame> RSSurfaceGPU::RequestFrame(
-    int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC)
+    int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
     if (!IsValid()) {
         ROSEN_LOGE("RSSurfaceGPU::RequestFrame, layer_ is nullptr");

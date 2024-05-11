@@ -202,12 +202,12 @@ int RSSystemProperties::GetFilterCacheSizeThreshold()
     return 0;
 }
 
-bool RSSystemProperties::GetFilterPartialRenderEnabled()
+bool RSSystemProperties::GetKawaseEnabled()
 {
     return false;
 }
 
-bool RSSystemProperties::GetKawaseEnabled()
+bool RSSystemProperties::GetHpsBlurEnabled()
 {
     return false;
 }
@@ -303,6 +303,11 @@ bool RSSystemProperties::GetMaskLinearBlurEnabled(){
     return false;
 }
 
+bool RSSystemProperties::GetMotionBlurEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::IsPcType()
 {
     return false;
@@ -319,6 +324,16 @@ bool RSSystemProperties::GetDumpUICaptureEnabled()
 }
 
 bool RSSystemProperties::GetDumpUIPixelmapEnabled()
+{
+    return false;
+}
+
+SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
+{
+    return SubTreePrepareCheckType::ENABLED;
+}
+
+bool RSSystemProperties::GetRenderParallelEnabled()
 {
     return false;
 }

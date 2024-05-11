@@ -52,7 +52,7 @@ public:
     }
 
     std::unique_ptr<RSSurfaceFrame> RequestFrame(
-        int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC = true) override;
+        int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC = true, bool isProtected = false) override;
 
     bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
     uint32_t GetQueueSize() const override;
