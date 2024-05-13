@@ -52,7 +52,7 @@ void RSSurfaceAndroid::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& fra
 }
 
 std::unique_ptr<RSSurfaceFrame> RSSurfaceAndroid::RequestFrame(
-    int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC)
+    int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
     if (nativeWindow_ == nullptr) {
         ROSEN_LOGE("RSSurfaceAndroid::RequestFrame, producer is nullptr");
