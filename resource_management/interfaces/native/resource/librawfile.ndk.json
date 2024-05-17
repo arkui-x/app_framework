@@ -70,5 +70,8 @@
     },
     {
         "name": "OH_ResourceManager_ReleaseRawFileDescriptor64"
+    },
+    {
+        "name": "OH_ResourceManager_IsRawDir"
     }
 ]
