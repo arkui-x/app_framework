@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +35,13 @@ napi_value ResourceManagerAddon::Create(
 #endif
 {
     std::shared_ptr<ResourceManagerAddon> addon = std::make_shared<ResourceManagerAddon>(bundleName, resMgr, context);
+    return WrapResourceManager(env, addon);
+}
+
+napi_value ResourceManagerAddon::CreateOverrideAddon(napi_env env, const std::shared_ptr<ResourceManager>& resMgr)
+{
+    std::shared_ptr<ResourceManagerAddon> addon = std::make_shared<ResourceManagerAddon>(bundleName_, resMgr, context_);
+    addon->isOverrideAddon_ = true;
     return WrapResourceManager(env, addon);
 }
 
@@ -149,10 +156,8 @@ napi_property_descriptor ResourceManagerAddon::properties[] = {
     DECLARE_NAPI_FUNCTION("getRawFileContent", GetRawFileContent),
     DECLARE_NAPI_FUNCTION("getRawFd", GetRawFd),
     DECLARE_NAPI_FUNCTION("closeRawFd", CloseRawFd),
-#if !defined(__ARKUI_CROSS__)
     DECLARE_NAPI_FUNCTION("getDrawableDescriptor", GetDrawableDescriptor),
     DECLARE_NAPI_FUNCTION("getDrawableDescriptorByName", GetDrawableDescriptorByName),
-#endif
     DECLARE_NAPI_FUNCTION("getRawFileList", GetRawFileList),
     DECLARE_NAPI_FUNCTION("getColor", GetColor),
     DECLARE_NAPI_FUNCTION("getColorByName", GetColorByName),
@@ -176,7 +181,11 @@ napi_property_descriptor ResourceManagerAddon::properties[] = {
     DECLARE_NAPI_FUNCTION("getDeviceCapabilitySync", GetDeviceCapabilitySync),
     DECLARE_NAPI_FUNCTION("getLocales", GetLocales),
     DECLARE_NAPI_FUNCTION("getSymbol", GetSymbol),
-    DECLARE_NAPI_FUNCTION("getSymbolByName", GetSymbolByName)
+    DECLARE_NAPI_FUNCTION("getSymbolByName", GetSymbolByName),
+    DECLARE_NAPI_FUNCTION("isRawDir", IsRawDir),
+    DECLARE_NAPI_FUNCTION("getOverrideResourceManager", GetOverrideResourceManager),
+    DECLARE_NAPI_FUNCTION("getOverrideConfiguration", GetOverrideConfiguration),
+    DECLARE_NAPI_FUNCTION("updateOverrideConfiguration", UpdateOverrideConfiguration)
 };
 
 bool ResourceManagerAddon::Init(napi_env env)
@@ -395,7 +404,6 @@ napi_value ResourceManagerAddon::GetBooleanByName(napi_env env, napi_callback_in
     return AddonGetResource(env, info, "GetBooleanByName", FunctionType::SYNC);
 }
 
-#if !defined(__ARKUI_CROSS__)
 napi_value ResourceManagerAddon::GetDrawableDescriptor(napi_env env, napi_callback_info info)
 {
     return AddonGetResource(env, info, "GetDrawableDescriptor", FunctionType::SYNC);
@@ -405,7 +413,6 @@ napi_value ResourceManagerAddon::GetDrawableDescriptorByName(napi_env env, napi_
 {
     return AddonGetResource(env, info, "GetDrawableDescriptorByName", FunctionType::SYNC);
 }
-#endif
 
 napi_value ResourceManagerAddon::GetColorSync(napi_env env, napi_callback_info info)
 {
@@ -510,6 +517,26 @@ napi_value ResourceManagerAddon::GetSymbol(napi_env env, napi_callback_info info
 napi_value ResourceManagerAddon::GetSymbolByName(napi_env env, napi_callback_info info)
 {
     return AddonGetResource(env, info, "GetSymbolByName", FunctionType::SYNC);
+}
+
+napi_value ResourceManagerAddon::IsRawDir(napi_env env, napi_callback_info info)
+{
+    return AddonGetResource(env, info, "IsRawDir", FunctionType::SYNC);
+}
+
+napi_value ResourceManagerAddon::GetOverrideResourceManager(napi_env env, napi_callback_info info)
+{
+    return AddonGetResource(env, info, "GetOverrideResourceManager", FunctionType::SYNC);
+}
+
+napi_value ResourceManagerAddon::GetOverrideConfiguration(napi_env env, napi_callback_info info)
+{
+    return AddonGetResource(env, info, "GetOverrideConfiguration", FunctionType::SYNC);
+}
+
+napi_value ResourceManagerAddon::UpdateOverrideConfiguration(napi_env env, napi_callback_info info)
+{
+    return AddonGetResource(env, info, "UpdateOverrideConfiguration", FunctionType::SYNC);
 }
 } // namespace Resource
 } // namespace Global

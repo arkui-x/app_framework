@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -98,6 +98,14 @@ private:
 
     static napi_value GetSymbolByName(napi_env env, napi_callback_info info);
 
+    static napi_value IsRawDir(napi_env env, napi_callback_info info);
+
+    static napi_value GetOverrideResourceManager(napi_env env, napi_callback_info info);
+
+    static napi_value GetOverrideConfiguration(napi_env env, napi_callback_info info);
+
+    static napi_value UpdateOverrideConfiguration(napi_env env, napi_callback_info info);
+
     static int32_t InitIdResourceAddon(napi_env env, napi_callback_info info,
         std::unique_ptr<ResMgrDataContext> &dataContext);
 
@@ -162,6 +170,9 @@ private:
         std::unique_ptr<ResMgrDataContext> &dataContext);
 
     static int32_t ProcessSymbolResourceByName(napi_env env, napi_callback_info info,
+        std::unique_ptr<ResMgrDataContext> &dataContext);
+
+    static RState getAddonAndConfig(napi_env env, napi_callback_info info,
         std::unique_ptr<ResMgrDataContext> &dataContext);
 };
 } // namespace Resource

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -401,6 +401,10 @@ bool ResourceManagerNapiUtils::GetHapResourceManager(const ResMgrDataContext* da
     }
 
     resId = resource->id;
+    if (dataContext->addon_->isOverrideAddon()) {
+        resMgr = dataContext->addon_->GetResMgr();
+        return true;
+    }
     auto context = dataContext->addon_->GetContext();
     if (context == nullptr) {
         HiLog::Error(LABEL, "GetHapResourceManager context == nullptr");
@@ -490,7 +494,19 @@ napi_value ResourceManagerNapiUtils::CreateJsConfig(napi_env env, ResMgrDataCont
 {
     std::unique_ptr<ResConfig> cfg(CreateResConfig());
     context.addon_->GetResMgr()->GetResConfig(*cfg);
+    return CreateConfig(env, context, cfg);
+}
 
+napi_value ResourceManagerNapiUtils::CreateOverrideJsConfig(napi_env env, ResMgrDataContext& context)
+{
+    std::unique_ptr<ResConfig> cfg(CreateResConfig());
+    context.addon_->GetResMgr()->GetOverrideResConfig(*cfg);
+    return CreateConfig(env, context, cfg);
+}
+
+napi_value ResourceManagerNapiUtils::CreateConfig(napi_env env,
+    ResMgrDataContext& context, std::unique_ptr<ResConfig> &cfg)
+{
     napi_value result;
     napi_status status = napi_create_object(env, &result);
     if (status != napi_ok) {
@@ -498,18 +514,7 @@ napi_value ResourceManagerNapiUtils::CreateJsConfig(napi_env env, ResMgrDataCont
         return nullptr;
     }
 
-    napi_value direction;
-    status = napi_create_int32(env, static_cast<int>(cfg->GetDirection()), &direction);
-    if (status != napi_ok) {
-        context.SetErrorMsg("Failed to create direction");
-        return nullptr;
-    }
-    status = napi_set_named_property(env, result, "direction", direction);
-    if (status != napi_ok) {
-        context.SetErrorMsg("Failed to set direction property");
-        return nullptr;
-    }
-
+    // write locale
     napi_value locale;
     status = napi_create_string_utf8(env, ResourceManagerNapiUtils::GetLocale(cfg).c_str(), NAPI_AUTO_LENGTH, &locale);
     if (status != napi_ok) {
@@ -521,7 +526,146 @@ napi_value ResourceManagerNapiUtils::CreateJsConfig(napi_env env, ResMgrDataCont
         context.SetErrorMsg("Failed to set locale property");
         return nullptr;
     }
+
+    // write other int properties
+    SetIntProperty(env, context, result, "direction", static_cast<int>(cfg->GetDirection()));
+    SetIntProperty(env, context, result, "deviceType", static_cast<int>(cfg->GetDeviceType()));
+    SetIntProperty(env, context, result, "screenDensity", static_cast<int>(cfg->GetScreenDensityDpi()));
+    SetIntProperty(env, context, result, "colorMode", static_cast<int>(cfg->GetColorMode()));
+    SetIntProperty(env, context, result, "mcc", static_cast<int>(cfg->GetMcc()));
+    SetIntProperty(env, context, result, "mnc", static_cast<int>(cfg->GetMnc()));
+
     return result;
+}
+
+bool ResourceManagerNapiUtils::SetIntProperty(napi_env env,
+    ResMgrDataContext& context, napi_value &object, const std::string &property, const int &value)
+{
+    napi_value napi_val;
+    napi_status status = napi_create_int32(env, value, &napi_val);
+    if (status != napi_ok) {
+        context.SetErrorMsg("Failed to create %{public}s", property.c_str());
+        return false;
+    }
+    status = napi_set_named_property(env, object, property.c_str(), napi_val);
+    if (status != napi_ok) {
+        context.SetErrorMsg("Failed to set %{public}s property", property.c_str());
+        return false;
+    }
+    return true;
+}
+
+RState ResourceManagerNapiUtils::GetConfigObject(napi_env env,
+    napi_value object, std::unique_ptr<ResMgrDataContext> &dataContext)
+{
+    napi_valuetype valueType;
+    napi_typeof(env, object, &valueType);
+    if (valueType == napi_undefined || valueType == napi_null) {
+        HiLog::Debug(LABEL, "GetConfigObject, no config");
+        return SUCCESS;
+    }
+    if (valueType != napi_object) {
+        HiLog::Error(LABEL, "GetConfigObject, param not object");
+        return ERROR_CODE_INVALID_INPUT_PARAMETER;
+    }
+
+    dataContext->overrideResConfig_.reset(CreateResConfig());
+    if (!GetEnumParamOfConfig(env, dataContext->overrideResConfig_, object)) {
+        return ERROR_CODE_INVALID_INPUT_PARAMETER;
+    }
+    if (!GetLocaleOfConfig(env, dataContext->overrideResConfig_, object)) {
+        return ERROR_CODE_INVALID_INPUT_PARAMETER;
+    }
+    return SUCCESS;
+}
+
+bool ResourceManagerNapiUtils::GetEnumParamOfConfig(napi_env env,
+    std::shared_ptr<ResConfig> configPtr, napi_value &object)
+{
+    std::vector<std::string> properties = {"direction", "deviceType", "screenDensity", "colorMode", "mcc", "mnc"};
+    for (const auto& property : properties) {
+        napi_value napi_val;
+        napi_status status = napi_get_named_property(env, object, property.c_str(), &napi_val);
+        if (status != napi_ok) {
+            HiLog::Error(LABEL, "GetEnumParamOfConfig failed to get property %{public}s", property.c_str());
+            return false;
+        }
+        if (napi_val == nullptr) {
+            HiLog::Debug(LABEL, "GetEnumParamOfConfig property %{public}s not set", property.c_str());
+            continue;
+        }
+        if (ResourceManagerNapiUtils::GetType(env, napi_val) != napi_number) {
+            HiLog::Error(LABEL, "GetEnumParamOfConfig type of property %{public}s is not number", property.c_str());
+            return false;
+        }
+        int value;
+        status = napi_get_value_int32(env, napi_val, &value);
+        if (status != napi_ok) {
+            HiLog::Error(LABEL, "GetEnumParamOfConfig failed to get value of property %{public}s", property.c_str());
+            return false;
+        }
+
+        HiLog::Debug(LABEL, "GetEnumParamOfConfig, %{public}s = %{public}d", property.c_str(), value);
+        if (property == "direction") {
+            configPtr->SetDirection(static_cast<Direction>(value));
+        } else if (property == "deviceType") {
+            configPtr->SetDeviceType(static_cast<DeviceType>(value));
+        } else if (property == "screenDensity") {
+            configPtr->SetScreenDensityDpi(static_cast<ScreenDensity>(value));
+        } else if (property == "colorMode") {
+            configPtr->SetColorMode(static_cast<ColorMode>(value));
+        } else if (property == "mcc") {
+            configPtr->SetMcc(value);
+        } else if (property == "mnc") {
+            configPtr->SetMnc(value);
+        }
+    }
+    return true;
+}
+
+bool ResourceManagerNapiUtils::GetLocaleOfConfig(
+    napi_env env, std::shared_ptr<ResConfig> configPtr, napi_value &object)
+{
+#ifdef SUPPORT_GRAPHICS
+    napi_value locale;
+    napi_status status = napi_get_named_property(env, object, "locale", &locale);
+    if (status != napi_ok) {
+        HiLog::Error(LABEL, "GetLocaleOfConfig failed to get property locale");
+        return false;
+    }
+    if (locale == nullptr) {
+        HiLog::Debug(LABEL, "GetLocaleOfConfig property locale not set");
+        return true;
+    }
+    if (ResourceManagerNapiUtils::GetType(env, locale) != napi_string) {
+        HiLog::Error(LABEL, "GetLocaleOfConfig type of property locale is not string");
+        return false;
+    }
+
+    size_t len = 0;
+    status = napi_get_value_string_utf8(env, locale, nullptr, 0, &len);
+    if (status != napi_ok) {
+        HiLog::Error(LABEL, "GetLocaleOfConfig failed to get locale len");
+        return false;
+    }
+    if (len == 0) {
+        HiLog::Debug(LABEL, "GetLocaleOfConfig locale not set or empty");
+        return true;
+    }
+
+    std::vector<char> buf(len + 1);
+    status = napi_get_value_string_utf8(env, locale, buf.data(), len + 1, &len);
+    if (status != napi_ok) {
+        HiLog::Error(LABEL, "GetLocaleOfConfig failed to get locale value");
+        return false;
+    }
+
+    if (configPtr->SetLocaleInfo(buf.data()) != SUCCESS) {
+        HiLog::Error(LABEL, "GetLocaleOfConfig failed to SetLocaleInfo");
+        return false;
+    }
+#endif
+    return true;
 }
 
 napi_value ResourceManagerNapiUtils::CreateJsColor(napi_env env, ResMgrDataContext& context)
