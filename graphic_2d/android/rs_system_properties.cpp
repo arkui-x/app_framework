@@ -262,6 +262,12 @@ bool RSSystemProperties::GetBlurEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetForegroundFilterEnabled()
+{
+    return true;
+}
+
+
 const std::vector<float>& RSSystemProperties::GetAiInvertCoef()
 {
     // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
@@ -351,6 +357,16 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
 bool RSSystemProperties::GetRenderParallelEnabled()
 {
     return false;
+}
+
+bool RSSystemProperties::GetUnmarshParallelFlag()
+{
+    return false;
+}
+
+uint32_t RSSystemProperties::GetUnMarshParallelSize()
+{
+    return UINT32_MAX;
 }
 } // namespace Rosen
 } // namespace OHOS
