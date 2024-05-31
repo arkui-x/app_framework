@@ -16,18 +16,19 @@
 #define OHOS_ABILITY_RUNTIME_JS_ERROR_UTILS_H
 
 #include "ability_business_error.h"
+#include "napi/native_api.h"
 #include "native_engine/native_engine.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-void ThrowError(NativeEngine& engine, int32_t errCode, const std::string& errorMsg = "");
-void ThrowTooFewParametersError(NativeEngine& engine);
-void ThrowNoPermissionError(NativeEngine& engine, const std::string& permission);
-void ThrowErrorByNativeErr(NativeEngine& engine, int32_t err);
+void ThrowError(napi_env env, int32_t errCode, const std::string& errorMsg = "");
+void ThrowTooFewParametersError(napi_env env);
+void ThrowNoPermissionError(napi_env env, const std::string& permission);
+void ThrowErrorByNativeErr(napi_env env, int32_t err);
 
-NativeValue* CreateJsError(NativeEngine& engine, const AbilityErrorCode& err);
-NativeValue* CreateNoPermissionError(NativeEngine& engine, const std::string& permission);
-NativeValue* CreateJsErrorByNativeErr(NativeEngine& engine, int32_t err, const std::string& permission = "");
+napi_value CreateJsError(napi_env env, const AbilityErrorCode& err);
+napi_value CreateNoPermissionError(napi_env env, const std::string& permission);
+napi_value CreateJsErrorByNativeErr(napi_env env, int32_t err, const std::string& permission = "");
 }  // namespace AbilityRuntime
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_JS_ERROR_UTILS_H

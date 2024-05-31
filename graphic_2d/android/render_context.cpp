@@ -23,6 +23,9 @@
 #include "rs_trace.h"
 
 #include "platform/common/rs_log.h"
+#ifdef RS_ENABLE_GL
+#include "platform/common/rs_system_properties.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -71,8 +74,13 @@ static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* native_display, 
 }
 
 RenderContext::RenderContext()
+#ifndef USE_ROSEN_DRAWING
     : grContext_(nullptr),
       skSurface_(nullptr),
+#else
+    : drGPUContext_(nullptr),
+      surface_(nullptr),
+#endif
       nativeWindow_(nullptr),
       eglDisplay_(EGL_NO_DISPLAY),
       eglContext_(EGL_NO_CONTEXT),
@@ -99,8 +107,13 @@ RenderContext::~RenderContext()
     eglContext_ = EGL_NO_CONTEXT;
     eglSurface_ = EGL_NO_SURFACE;
     pbufferSurface_ = EGL_NO_SURFACE;
+#ifndef USE_ROSEN_DRAWING
     grContext_ = nullptr;
     skSurface_ = nullptr;
+#else
+    drGPUContext_ = nullptr;
+    surface_ = nullptr;
+#endif
     mHandler_ = nullptr;
 }
 
@@ -247,10 +260,10 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
     return surface;
 }
 
-bool RenderContext::SetUpGrContext()
+#ifndef USE_ROSEN_DRAWING
+bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
 {
     if (grContext_ != nullptr) {
-        ROSEN_LOGD("grContext has already created!!");
         return true;
     }
 
@@ -301,6 +314,25 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
     framebufferInfo.fFormat = GL_RGBA8;
 
     SkColorType colorType = kRGBA_8888_SkColorType;
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+
+    ROSEN_LOGD("RenderContext::AcquireSurface, colorSpace_ =  (%d)", colorSpace_ );
+    switch (colorSpace_) {
+        // [planning] in order to stay consistant with the colorspace used before, we disabled
+        // GRAPHIC_COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+        case GRAPHIC_COLOR_GAMUT_DCI_P3:
+#if defined(NEW_SKIA)
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
+#else
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
+#endif
+            framebufferInfo.fFormat = GL_RGBA16F;
+            colorType = kRGBA_F16_SkColorType;
+            break;
+        default:
+            break;
+    }
     /* sampleCnt and stencilBits for GrBackendRenderTarget */
     const int stencilBufferSize = 8;
     GrBackendRenderTarget backendRenderTarget(width, height, 0, stencilBufferSize, framebufferInfo);
@@ -309,7 +341,6 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
 #else
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
 #endif
-    sk_sp<SkColorSpace> skColorSpace = nullptr;
 
     skSurface_ = SkSurface::MakeFromBackendRenderTarget(
         GetGrContext(), backendRenderTarget, kBottomLeft_GrSurfaceOrigin, colorType, skColorSpace, &surfaceProps);
@@ -333,6 +364,85 @@ void RenderContext::RenderFrame()
         ROSEN_LOGW("canvas is nullptr!!!");
     }
 }
+#else
+bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext)
+{
+    if (drGPUContext_ != nullptr) {
+        ROSEN_LOGE("Drawing GPUContext has already created!!");
+        return true;
+    }
+    Drawing::GPUContextOptions options;
+    auto drGPUContext = std::make_shared<Drawing::GPUContext>();
+    if (!drGPUContext->BuildFromGL(options)) {
+        ROSEN_LOGE("SetUpGpuContext drGPUContext is null");
+        return false;
+    }
+    int maxResources = 0;
+    size_t maxResourcesSize = 0;
+    drGPUContext->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
+    if (maxResourcesSize > 0) {
+        int cacheLimitsTimes = 2;
+        drGPUContext->SetResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes *
+            std::fmin(maxResourcesSize, DEFAULT_SKIA_CACHE_SIZE));
+    } else {
+        drGPUContext->SetResourceCacheLimits(DEFAULT_SKIA_CACHE_COUNT, DEFAULT_SKIA_CACHE_SIZE);
+    }
+    drGPUContext_ = std::move(drGPUContext);
+    return true;
+}
+
+std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int height)
+{
+    if (!SetUpGpuContext()) {
+        ROSEN_LOGE("GPUContext is not ready!!!");
+        return nullptr;
+    }
+    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
+    struct Drawing::FrameBuffer bufferInfo;
+    bufferInfo.width = width;
+    bufferInfo.height = height;
+    bufferInfo.FBOID = 0;
+    bufferInfo.Format = GL_RGBA8;
+    bufferInfo.gpuContext = drGPUContext_;
+    bufferInfo.colorType = Drawing::COLORTYPE_RGBA_8888;
+    switch (colorSpace_) {
+        // [planning] in order to stay consistant with the colorspace used before, we disabled
+        // COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+        case GRAPHIC_COLOR_GAMUT_DCI_P3:
+            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
+                Drawing::CMSMatrixType::DCIP3);
+            bufferInfo.Format = GL_RGBA16F;
+            bufferInfo.colorType = Drawing::COLORTYPE_RGBA_F16;
+            break;
+        default:
+            break;
+    }
+
+    bufferInfo.colorSpace = colorSpace;
+    surface_ = std::make_shared<Drawing::Surface>();
+    if (!surface_->Bind(bufferInfo)) {
+        ROSEN_LOGW("Drawing::Surface surface_ is nullptr");
+        surface_ = nullptr;
+        return nullptr;
+    }
+
+    ROSEN_LOGD("CreateCanvas successfully!!!");
+    return surface_;
+}
+
+void RenderContext::RenderFrame()
+{
+    RS_TRACE_FUNC();
+    // flush commands
+    if (surface_ != nullptr && surface_->GetCanvas() != nullptr) {
+        ROSEN_LOGI("RenderFrame: Canvas");
+        surface_->GetCanvas()->Flush();
+    } else {
+        ROSEN_LOGW("canvas is nullptr!!!");
+    }
+}
+#endif
 
 EGLint RenderContext::QueryEglBufferAge()
 {
@@ -376,12 +486,21 @@ void RenderContext::DamageFrame(const std::vector<RectI> &rects)
 void RenderContext::ClearRedundantResources()
 {
     RS_TRACE_FUNC();
+#ifndef USE_ROSEN_DRAWING
     if (grContext_ != nullptr) {
         ROSEN_LOGD("grContext clear redundant resources");
         grContext_->flush();
         // GPU resources that haven't been used in the past 10 seconds
         grContext_->purgeResourcesNotUsedInMs(std::chrono::seconds(10));
     }
+#else
+    if (drGPUContext_ != nullptr) {
+        ROSEN_LOGD("grContext clear redundant resources");
+        drGPUContext_->Flush();
+        // GPU resources that haven't been used in the past 10 seconds
+        drGPUContext_->PerformDeferredCleanup(std::chrono::seconds(10));
+    }
+#endif
 }
 
 RenderContextFactory& RenderContextFactory::GetInstance()

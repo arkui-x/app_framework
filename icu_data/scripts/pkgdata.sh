@@ -310,7 +310,7 @@ gen_icu_data_res() {
     --seqmode sequential \
     --mode unix-exec \
     --tool_dir $tool_bin_dir \
-    --out_dir $res_out_root_dir/out/build/icudt69l \
+    --out_dir $res_out_root_dir/out/build/icudt72l \
     --tmp_dir $res_out_root_dir/out/tmp \
     # --verbose
 }
@@ -333,8 +333,8 @@ echo "[ICUData] gen icudata res success."
 # -c Use the standard ICU copyright.
 # -d Specify the destination directory for files
 cd "$icu_bin_root_out_dir/.."
-PKGDATA="$tool_bin_dir/pkgdata -O $pkg_inc_path -v -s $res_out_root_dir/out/build/icudt69l -d $res_out_root_dir/out/lib"
-echo `$PKGDATA -e icudt69 -T $res_out_root_dir/out/tmp -p icudt69l -m dll -L icudata $res_out_root_dir/out/tmp/icudata.lst`
-cp -r $res_out_root_dir/out/tmp/icudt69l_dat.S $res_out_root_dir/res/
+PKGDATA="$tool_bin_dir/pkgdata -O $pkg_inc_path -v -s $res_out_root_dir/out/build/icudt72l -d $res_out_root_dir/out/lib"
+echo `$PKGDATA -e icudt72 -T $res_out_root_dir/out/tmp -p icudt72l -m dll -L icudata $res_out_root_dir/out/tmp/icudata.lst`
+cp -r $res_out_root_dir/out/tmp/icudt72l_dat.S $res_out_root_dir/res/
 
 exit 0

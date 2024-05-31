@@ -16,15 +16,18 @@
 #ifndef OHOS_JS_WINDOW_UTILS_H
 #define OHOS_JS_WINDOW_UTILS_H
 #include <map>
+
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 #include "js_runtime_utils.h"
-#include "native_engine/native_engine.h"
-#include "native_engine/native_value.h"
 #include "js_window.h"
 #include "window_option.h"
 #include "wm_common.h"
 
 namespace OHOS {
 namespace Rosen {
+constexpr size_t WINDOW_ARGC_MAX_COUNT = 4;
+
 enum class ApiWindowType : uint32_t {
     TYPE_BASE,
     TYPE_APP = TYPE_BASE,
@@ -152,46 +155,59 @@ const std::map<ApiOrientation, Orientation> JS_TO_NATIVE_ORIENTATION_MAP {
     {ApiOrientation::LOCKED,                                Orientation::LOCKED                             },
 };
 
-NativeValue* CreateJsWindowPropertiesObject(NativeEngine& engine, std::shared_ptr<Window>& window);
-bool SetSystemBarPropertiesFromJs(NativeEngine& engine, NativeObject* jsObject,
-    std::map<WindowType, SystemBarProperty>& properties, std::shared_ptr<Window>& window);
+napi_value CreateJsWindowPropertiesObject(napi_env env, std::shared_ptr<Window>& window);
 bool GetSystemBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProperties,
-    NativeEngine& engine, NativeCallbackInfo& info, std::shared_ptr<Window>& window);
-NativeValue* WindowTypeInit(NativeEngine* engine);
-NativeValue* WindowModeInit(NativeEngine* engine);
-NativeValue* OrientationInit(NativeEngine* engine);
-NativeValue* WindowStageEventTypeInit(NativeEngine* engine);
-NativeValue* WindowErrorCodeInit(NativeEngine* engine);
-NativeValue* WindowErrorInit(NativeEngine* engine);
-template<class T>
-bool ParseJsValue(NativeObject* jsObject, NativeEngine& engine, const std::string& name, T& data)
+    napi_env env, size_t argc, const napi_value arg, std::shared_ptr<Window>& window);
+napi_value WindowTypeInit(napi_env env);
+napi_value WindowModeInit(napi_env env);
+napi_value OrientationInit(napi_env env);
+napi_value WindowEventTypeInit(napi_env env);
+napi_value WindowStageEventTypeInit(napi_env env);
+napi_value WindowErrorCodeInit(napi_env env);
+napi_value WindowErrorInit(napi_env env);
+napi_value WindowColorSpaceInit(napi_env env);
+bool SetWindowObjectProperties(napi_env env,
+    napi_value object, const char *moduleName, const napi_property_descriptor *props, size_t size);
+napi_value CreateObject(napi_env env, const char *moduleName, const napi_property_descriptor *props, size_t size);
+
+inline napi_value CreateUndefined(napi_env env)
 {
-    NativeValue* value = jsObject->GetProperty(name.c_str());
-    if (value->TypeOf() != NATIVE_UNDEFINED) {
-        if (!AbilityRuntime::ConvertFromJsValue(engine, value, data)) {
-            return false;
-        }
-    } else {
+    napi_value undefValue;
+    napi_get_undefined(env, &undefValue);
+    return undefValue;
+}
+
+inline bool IsFunction(napi_env env, napi_value value)
+{
+    if (value == nullptr) {
         return false;
     }
-    return true;
+    napi_valuetype type;
+    napi_typeof(env, value, &type);
+    return (type == napi_function);
 }
-template<class T>
-inline bool ConvertNativeValueToVector(NativeEngine& engine, NativeValue* nativeValue, std::vector<T>& out)
+
+inline napi_value CreateWindowsJsError(napi_env env, WmErrorCode errCode, const std::string& message = std::string())
 {
-    NativeArray* nativeArray = AbilityRuntime::ConvertNativeValueTo<NativeArray>(nativeValue);
-    if (nativeArray == nullptr) {
-        return false;
-    }
-    T value;
-    for (uint32_t i = 0; i < nativeArray->GetLength(); i++) {
-        if (!AbilityRuntime::ConvertFromJsValue(engine, nativeArray->GetElement(i), value)) {
-            return false;
-        }
-        out.emplace_back(value);
-    }
-    return true;
+    napi_value result = nullptr;
+    int32_t code = static_cast<int32_t>(errCode);
+    napi_create_error(env,
+        AbilityRuntime::CreateJsValue(env, code), AbilityRuntime::CreateJsValue(env, message), &result);
+    return result;
 }
+
+inline napi_value CreateWindowsJsError(napi_env env, int32_t errCode, const std::string& message = std::string())
+{
+    napi_value result = nullptr;
+    napi_create_error(env,
+        AbilityRuntime::CreateJsValue(env, errCode), AbilityRuntime::CreateJsValue(env, message), &result);
+    return result;
+}
+
+void LoadContentTask(napi_env env, napi_ref storageRef, const std::string &contextUrl,
+    std::shared_ptr<Window> weakWindow, AbilityRuntime::NapiAsyncTask& task);
+bool GetContentArg(napi_env env,
+    napi_callback_info info, std::string &contextUrl, napi_value &storage, napi_value &callback);
 }
 }
 #endif

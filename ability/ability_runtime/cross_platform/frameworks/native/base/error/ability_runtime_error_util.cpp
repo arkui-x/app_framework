@@ -132,37 +132,39 @@ const std::map<int32_t, std::string> ERROR_MSG_MAP = {
 };
 }
 
-bool AbilityRuntimeErrorUtil::Throw(NativeEngine &engine, int32_t errCode, const std::string &errMessage)
+bool AbilityRuntimeErrorUtil::Throw(napi_env env, int32_t errCode, const std::string &errMessage)
 {
     std::string eMes = errMessage;
     if (eMes.empty()) {
         eMes = ERROR_MSG_MAP.at(errCode);
     }
-    NativeValue *error = engine.CreateError(CreateJsValue(engine, errCode), CreateJsValue(engine, eMes));
+    napi_value error = nullptr;
+    napi_create_error(env, CreateJsValue(env, errCode), CreateJsValue(env, eMes), &error);
     if (error == nullptr) {
         HILOG_ERROR("Failed to create error.");
         return false;
     }
-    return engine.Throw(error);
+    napi_throw(env, error);
+    return true;
 }
 
-bool AbilityRuntimeErrorUtil::ThrowByInternalErrCode(NativeEngine &engine, int32_t errCode)
+bool AbilityRuntimeErrorUtil::ThrowByInternalErrCode(napi_env env, int32_t errCode)
 {
     if (ERROR_CODE_MAP.find(errCode) == ERROR_CODE_MAP.end()) {
         HILOG_ERROR("Invalid inner errCode, check ERROR_CODE_MAP");
         return false;
     }
-    return Throw(engine, ERROR_CODE_MAP.at(errCode));
+    return Throw(env, ERROR_CODE_MAP.at(errCode));
 }
 
-NativeValue *AbilityRuntimeErrorUtil::CreateErrorByInternalErrCode(NativeEngine &engine, int32_t errCode)
+napi_value AbilityRuntimeErrorUtil::CreateErrorByInternalErrCode(napi_env env, int32_t errCode)
 {
     if (ERROR_CODE_MAP.find(errCode) == ERROR_CODE_MAP.end()) {
         HILOG_ERROR("Invalid inner errCode, check ERROR_CODE_MAP");
         return nullptr;
     }
     int32_t externalErrCode = ERROR_CODE_MAP.at(errCode);
-    return CreateJsError(engine, externalErrCode, ERROR_MSG_MAP.at(externalErrCode));
+    return CreateJsError(env, externalErrCode, ERROR_MSG_MAP.at(externalErrCode));
 }
 
 std::string AbilityRuntimeErrorUtil::GetErrMessage(int32_t errCode)

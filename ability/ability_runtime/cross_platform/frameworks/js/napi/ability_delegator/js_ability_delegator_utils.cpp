@@ -24,76 +24,80 @@
 namespace OHOS {
 namespace AbilityDelegatorJs {
 using namespace OHOS::AbilityRuntime;
-NativeValue *CreateJsAbilityDelegator(NativeEngine &engine)
+napi_value CreateJsAbilityDelegator(napi_env env)
 {
     HILOG_INFO("enter");
 
-    NativeValue *objValue = engine.CreateObject();
-    NativeObject *object = ConvertNativeValueTo<NativeObject>(objValue);
-    if (object == nullptr) {
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue == nullptr) {
         HILOG_ERROR("Failed to get object");
-        return engine.CreateNull();
+        return nullptr;
     }
 
     std::unique_ptr<JSAbilityDelegator> jsAbilityDelegator = std::make_unique<JSAbilityDelegator>();
-    object->SetNativePointer(jsAbilityDelegator.release(), JSAbilityDelegator::Finalizer, nullptr);
+    napi_wrap(env, objValue, jsAbilityDelegator.release(), JSAbilityDelegator::Finalizer, nullptr, nullptr);
 
     const char *moduleName = "JSAbilityDelegator";
-    BindNativeFunction(engine, *object, "addAbilityMonitor", moduleName, JSAbilityDelegator::AddAbilityMonitor);
-    BindNativeFunction(engine, *object, "addAbilityStageMonitor",
+    BindNativeFunction(env, objValue, "addAbilityMonitor", moduleName, JSAbilityDelegator::AddAbilityMonitor);
+    BindNativeFunction(env, objValue, "addAbilityStageMonitor",
         moduleName, JSAbilityDelegator::AddAbilityStageMonitor);
-    BindNativeFunction(engine, *object, "removeAbilityMonitor", moduleName, JSAbilityDelegator::RemoveAbilityMonitor);
-    BindNativeFunction(engine, *object, "removeAbilityStageMonitor",
+    BindNativeFunction(env, objValue, "removeAbilityMonitor", moduleName, JSAbilityDelegator::RemoveAbilityMonitor);
+    BindNativeFunction(env, objValue, "removeAbilityStageMonitor",
         moduleName, JSAbilityDelegator::RemoveAbilityStageMonitor);
-    BindNativeFunction(engine, *object, "waitAbilityMonitor", moduleName, JSAbilityDelegator::WaitAbilityMonitor);
-    BindNativeFunction(engine, *object, "waitAbilityStageMonitor",
+    BindNativeFunction(env, objValue, "waitAbilityMonitor", moduleName, JSAbilityDelegator::WaitAbilityMonitor);
+    BindNativeFunction(env, objValue, "waitAbilityStageMonitor",
         moduleName, JSAbilityDelegator::WaitAbilityStageMonitor);
-    BindNativeFunction(engine, *object, "getAppContext", moduleName, JSAbilityDelegator::GetAppContext);
-    BindNativeFunction(engine, *object, "getAbilityState", moduleName, JSAbilityDelegator::GetAbilityState);
-    BindNativeFunction(engine, *object, "getCurrentTopAbility", moduleName, JSAbilityDelegator::GetCurrentTopAbility);
-    BindNativeFunction(engine, *object, "startAbility", moduleName, JSAbilityDelegator::StartAbility);
-    BindNativeFunction(engine, *object, "doAbilityForeground", moduleName, JSAbilityDelegator::DoAbilityForeground);
-    BindNativeFunction(engine, *object, "doAbilityBackground", moduleName, JSAbilityDelegator::DoAbilityBackground);
-    BindNativeFunction(engine, *object, "print", moduleName, JSAbilityDelegator::Print);
-    BindNativeFunction(engine, *object, "printSync", moduleName, JSAbilityDelegator::PrintSync);
-    BindNativeFunction(engine, *object, "finishTest", moduleName, JSAbilityDelegator::FinishTest);
+    BindNativeFunction(env, objValue, "getAppContext", moduleName, JSAbilityDelegator::GetAppContext);
+    BindNativeFunction(env, objValue, "getAbilityState", moduleName, JSAbilityDelegator::GetAbilityState);
+    BindNativeFunction(env, objValue, "getCurrentTopAbility", moduleName, JSAbilityDelegator::GetCurrentTopAbility);
+    BindNativeFunction(env, objValue, "startAbility", moduleName, JSAbilityDelegator::StartAbility);
+    BindNativeFunction(env, objValue, "doAbilityForeground", moduleName, JSAbilityDelegator::DoAbilityForeground);
+    BindNativeFunction(env, objValue, "doAbilityBackground", moduleName, JSAbilityDelegator::DoAbilityBackground);
+    BindNativeFunction(env, objValue, "print", moduleName, JSAbilityDelegator::Print);
+    BindNativeFunction(env, objValue, "printSync", moduleName, JSAbilityDelegator::PrintSync);
+    BindNativeFunction(env, objValue, "finishTest", moduleName, JSAbilityDelegator::FinishTest);
     return objValue;
 }
 
-NativeValue *SetAbilityDelegatorArgumentsPara(NativeEngine &engine, const std::map<std::string, std::string> &paras)
+napi_value SetAbilityDelegatorArgumentsPara(napi_env env, const std::map<std::string, std::string> &paras)
 {
     HILOG_INFO("enter");
-    NativeValue *objValue = engine.CreateObject();
-    NativeObject *object = ConvertNativeValueTo<NativeObject>(objValue);
-    if (object == nullptr) {
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue == nullptr) {
         HILOG_ERROR("Failed to get object");
         return nullptr;
     }
 
     auto iter = paras.begin();
     for (; iter != paras.end(); ++iter) {
-        object->SetProperty(iter->first.c_str(), CreateJsValue(engine, iter->second));
+        napi_set_named_property(env, objValue, iter->first.c_str(),
+            CreateJsValue(env, iter->second));
     }
     return objValue;
 }
 
-NativeValue *CreateJsAbilityDelegatorArguments(
-    NativeEngine &engine, const std::shared_ptr<AbilityDelegatorArgs> &abilityDelegatorArgs)
+napi_value CreateJsAbilityDelegatorArguments(
+    napi_env env, const std::shared_ptr<AbilityDelegatorArgs> &abilityDelegatorArgs)
 {
     HILOG_INFO("enter");
 
-    NativeValue *objValue = engine.CreateObject();
-    NativeObject *object = ConvertNativeValueTo<NativeObject>(objValue);
-    if (object == nullptr) {
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue == nullptr) {
         HILOG_ERROR("Failed to get object");
-        return engine.CreateNull();
+        return CreateJsNull(env);
     }
 
-    object->SetProperty("bundleName", CreateJsValue(engine, abilityDelegatorArgs->GetTestBundleName()));
-    object->SetProperty("parameters",
-        SetAbilityDelegatorArgumentsPara(engine, abilityDelegatorArgs->GetTestParam()));
-    object->SetProperty("testCaseNames", CreateJsValue(engine, abilityDelegatorArgs->GetTestCaseName()));
-    object->SetProperty("testRunnerClassName", CreateJsValue(engine, abilityDelegatorArgs->GetTestRunnerClassName()));
+    napi_set_named_property(env, objValue, "bundleName",
+        CreateJsValue(env, abilityDelegatorArgs->GetTestBundleName()));
+    napi_set_named_property(env, objValue, "parameters",
+        SetAbilityDelegatorArgumentsPara(env, abilityDelegatorArgs->GetTestParam()));
+    napi_set_named_property(env, objValue, "testCaseNames",
+        CreateJsValue(env, abilityDelegatorArgs->GetTestCaseName()));
+    napi_set_named_property(env, objValue, "testRunnerClassName",
+        CreateJsValue(env, abilityDelegatorArgs->GetTestRunnerClassName()));
 
     return objValue;
 }

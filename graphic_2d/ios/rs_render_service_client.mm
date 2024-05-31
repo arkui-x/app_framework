@@ -44,12 +44,7 @@ void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>
 {
 }
 
-MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
-{
-    return {};
-}
-
-std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
+bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
     return {};
 }
@@ -134,13 +129,15 @@ private:
 
 std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     const std::string& name,
-    const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper)
+    const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper,
+    uint64_t id)
 {
     return std::make_shared<VSyncReceiverIOS>(looper);
 }
 
-bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    float scaleX, float scaleY)
+bool RSRenderServiceClient::TakeSurfaceCapture(
+    NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
+    SurfaceCaptureType surfaceCaptureType)
 {
     return false;
 }
@@ -168,49 +165,6 @@ void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 int32_t RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
     return 0;
-}
-
-void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
-{
-}
-
-int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
-{
-    return {};
-}
-
-RSVirtualScreenResolution RSRenderServiceClient::GetVirtualScreenResolution(ScreenId id)
-{
-    return {};
-}
-
-void RSRenderServiceClient::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
-{
-}
-
-RSScreenModeInfo RSRenderServiceClient::GetScreenActiveMode(ScreenId id)
-{
-    return {};
-}
-
-std::vector<RSScreenModeInfo> RSRenderServiceClient::GetScreenSupportedModes(ScreenId id)
-{
-    return {};
-}
-
-RSScreenCapability RSRenderServiceClient::GetScreenCapability(ScreenId id)
-{
-    return {};
-}
-
-ScreenPowerStatus RSRenderServiceClient::GetScreenPowerStatus(ScreenId id)
-{
-    return {};
-}
-
-RSScreenData RSRenderServiceClient::GetScreenData(ScreenId id)
-{
-    return {};
 }
 
 int32_t RSRenderServiceClient::GetScreenBacklight(ScreenId id)
@@ -279,7 +233,18 @@ int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenTy
     return {};
 }
 
-bool RSRenderServiceClient::GetBitmap(NodeId id, SkBitmap& bitmap)
+bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
+{
+    return {};
+}
+
+#ifndef USE_ROSEN_DRAWING
+bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+    const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList)
+#else
+bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+    const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
+#endif
 {
     return {};
 }
@@ -289,7 +254,29 @@ int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t 
     return {};
 }
 
+int32_t RSRenderServiceClient::RegisterSurfaceOcclusionChangeCallback(
+    NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::RegisterHgmRefreshRateModeChangeCallback(
+    const HgmRefreshRateModeChangeCallback& callback)
 {
     return {};
 }
@@ -318,18 +305,21 @@ void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
 {
 }
 
-std::vector<uint32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
+std::vector<int32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
 {
     return {};
 }
 
-void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled)
+void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
 {
 }
 
-bool RSRenderServiceClient::GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect)
+void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
-    return {};
+}
+
+int32_t RSRenderServiceClient::GetCurrentRefreshRateMode()
+{
 }
 } // namespace Rosen
 } // namespace OHOS

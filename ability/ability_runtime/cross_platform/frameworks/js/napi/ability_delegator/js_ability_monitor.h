@@ -111,16 +111,16 @@ public:
      *
      * @param jsAbilityMonitor Indicates the js object.
      */
-    void SetJsAbilityMonitor(NativeValue *jsAbilityMonitor);
+    void SetJsAbilityMonitor(napi_value jsAbilityMonitor);
 
     /**
-     * Sets the native engine.
+     * Sets the native env.
      *
-     * @param engine Indicates the native engine.
+     * @param env Indicates the native env.
      */
-    void SetJsAbilityMonitorEnv(NativeEngine *engine)
+    void SetJsAbilityMonitorEnv(napi_env env)
     {
-        engine_ = engine;
+        env_ = env;
     }
 
     /**
@@ -134,13 +134,13 @@ public:
     }
 
 private:
-    NativeValue *CallLifecycleCBFunction(const std::string &functionName,
+    napi_value CallLifecycleCBFunction(const std::string &functionName,
         const std::weak_ptr<NativeReference> &abilityObj);
 
 private:
     std::string abilityName_ = "";
     std::string moduleName_ = "";
-    NativeEngine* engine_ = nullptr;
+    napi_env env_ = nullptr;
     std::unique_ptr<NativeReference> jsAbilityMonitor_ = nullptr;
 };
 }  // namespace AbilityDelegatorJs

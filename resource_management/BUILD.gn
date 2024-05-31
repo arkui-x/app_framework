@@ -13,6 +13,7 @@
 
 import("//base/global/resource_management/resmgr.gni")
 import("//build/ohos.gni")
+import("//foundation/arkui/ace_engine/ace_config.gni")
 
 config("resmgr_config") {
   include_dirs = [
@@ -43,6 +44,9 @@ manager_sources = [
   "//base/global/resource_management/frameworks/resmgr/src/resource_manager.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/resource_manager_impl.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/system_resource_manager.cpp",
+  "//base/global/resource_management/frameworks/resmgr/src/theme_pack_config.cpp",
+  "//base/global/resource_management/frameworks/resmgr/src/theme_pack_manager.cpp",
+  "//base/global/resource_management/frameworks/resmgr/src/theme_pack_resource.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/utils/hap_parser.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/utils/psue_manager.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/utils/string_utils.cpp",
@@ -62,7 +66,10 @@ config("resmgr_public_config") {
 }
 
 ohos_source_set("global_resmgr") {
-  defines = [ "__ARKUI_CROSS__" ]
+  defines = [
+    "__ARKUI_CROSS__",
+    "CONFIG_HILOG",
+  ]
   cflags = [
     "-std=c++17",
     "-Wno-ignored-attributes",
@@ -72,9 +79,13 @@ ohos_source_set("global_resmgr") {
 
   configs = [ ":resmgr_config" ]
 
-  public_configs = [ ":resmgr_public_config" ]
+  public_configs = [
+    ":resmgr_public_config",
+    "//third_party/cJSON:cJSON_config",
+  ]
 
   deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
     "//third_party/bounds_checking_function:libsec_static",
     "//third_party/zlib:libz",
   ]

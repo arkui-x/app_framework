@@ -19,6 +19,7 @@
 #include <native_engine/native_engine.h>
 
 #include "context.h"
+#include "js_runtime_utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -28,34 +29,33 @@ public:
     explicit JsBaseContext(std::weak_ptr<Context>&& context) : context_(std::move(context)) {}
     virtual ~JsBaseContext() = default;
 
-    static void Finalizer(NativeEngine* engine, void* data, void* hint);
+    static void Finalizer(napi_env env, void* data, void* hint);
 
-    static NativeValue* GetCacheDir(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetTempDir(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetFilesDir(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetDatabaseDir(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetPreferencesDir(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetBundleCodeDir(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetApplicationContext(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* CreateModuleContext(NativeEngine* engine, NativeCallbackInfo* info);
+    static napi_value GetCacheDir(napi_env env, napi_callback_info info);
+    static napi_value GetTempDir(napi_env env, napi_callback_info info);
+    static napi_value GetFilesDir(napi_env env, napi_callback_info info);
+    static napi_value GetDatabaseDir(napi_env env, napi_callback_info info);
+    static napi_value GetPreferencesDir(napi_env env, napi_callback_info info);
+    static napi_value GetBundleCodeDir(napi_env env, napi_callback_info info);
+    static napi_value GetApplicationContext(napi_env env, napi_callback_info info);
+    static napi_value CreateModuleContext(napi_env env, napi_callback_info info);
 
 protected:
-    NativeValue* OnGetCacheDir(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetTempDir(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetFilesDir(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetDatabaseDir(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetPreferencesDir(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetBundleCodeDir(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetApplicationContext(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnCreateModuleContext(NativeEngine& engine, NativeCallbackInfo& info);
+    napi_value OnGetCacheDir(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetTempDir(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetFilesDir(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetDatabaseDir(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetPreferencesDir(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetBundleCodeDir(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetApplicationContext(napi_env env, NapiCallbackInfo& info);
+    napi_value OnCreateModuleContext(napi_env env, NapiCallbackInfo& info);
     std::weak_ptr<Context> context_;
     std::unique_ptr<NativeReference> systemModule_;
 };
 
-NativeValue* CreateJsBaseContext(
-    NativeEngine& engine, const std::shared_ptr<Context>& context, bool keepContext = false);
-NativeValue* AttachApplicationContext(NativeEngine* engine, void* value, void* hint);
-NativeValue* AttachBaseContext(NativeEngine* engine, void* value, void* hint);
+napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, bool keepContext = false);
+napi_value AttachApplicationContext(napi_env env, void* value, void* hint);
+napi_value AttachBaseContext(napi_env env, void* value, void* hint);
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

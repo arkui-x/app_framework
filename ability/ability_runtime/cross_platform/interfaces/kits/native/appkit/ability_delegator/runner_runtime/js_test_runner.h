@@ -64,7 +64,7 @@ private:
         const std::shared_ptr<AbilityDelegatorArgs> &args, const std::shared_ptr<BundleInfo> &bundleInfo,
         bool isFaJsModel);
 
-    void CallObjectMethod(const char *name, NativeValue *const *argv = nullptr, size_t argc = 0);
+    void CallObjectMethod(const char *name, napi_value const *argv = nullptr, size_t argc = 0);
     void ReportFinished(const std::string &msg);
     void ReportStatus(const std::string &msg);
 

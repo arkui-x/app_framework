@@ -21,7 +21,7 @@
 #include "dm_common.h"
 #include "display_info.h"
 #include "singleton_delegator.h"
-#include "hilog.h"
+#include "window_hilog.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -65,7 +65,7 @@ DisplayManager::~DisplayManager()
 
 sptr<Display> DisplayManager::Impl::GetDefaultDisplaySync()
 {
-    HILOG_INFO("DisplayManager::Impl::GetDefaultDisplaySync : Start...");
+    WLOGI("DisplayManager::Impl::GetDefaultDisplaySync : Start...");
     static std::chrono::steady_clock::time_point lastRequestTime = std::chrono::steady_clock::now();
     auto currentTime = std::chrono::steady_clock::now();
     auto interval = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - lastRequestTime).count();
@@ -73,21 +73,21 @@ sptr<Display> DisplayManager::Impl::GetDefaultDisplaySync()
         std::lock_guard<std::recursive_mutex> lock(mutex_);
         auto iter = displayMap_.find(defaultDisplayId_);
         if (iter != displayMap_.end()) {
-            HILOG_INFO("DisplayManager::Impl::GetDefaultDisplaySync : Get display from display map");
+            WLOGI("DisplayManager::Impl::GetDefaultDisplaySync : Get display from display map");
             return displayMap_[defaultDisplayId_];
         }
     }
 
-    HILOG_INFO("DisplayManager::Impl::GetDefaultDisplaySync : allocate new display info");
+    WLOGI("DisplayManager::Impl::GetDefaultDisplaySync : allocate new display info");
   
     DisplayInfo *displayInfo = new DisplayInfo();
     if (displayInfo == nullptr) {
-        HILOG_INFO("DisplayManager::Impl::GetDefaultDisplaySync : allocate new display info failed!");
+        WLOGI("DisplayManager::Impl::GetDefaultDisplaySync : allocate new display info failed!");
         return nullptr;
     }
     
     auto displayId = displayInfo->GetDisplayId();
-    HILOG_INFO("DisplayManager::Impl::GetDefaultDisplaySync : get displayId = %{public}d", displayId);
+    WLOGI("DisplayManager::Impl::GetDefaultDisplaySync : get displayId = %{public}d", displayId);
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!UpdateDisplayInfoLocked(displayInfo)) {
         displayMap_.erase(displayId);
@@ -105,20 +105,20 @@ sptr<Display> DisplayManager::GetDefaultDisplaySync()
 
 bool DisplayManager::Impl::UpdateDisplayInfoLocked(sptr<DisplayInfo> displayInfo)
 {
-    HILOG_INFO("DisplayManager::Impl::UpdateDisplayInfoLocked : Start...");
+    WLOGI("DisplayManager::Impl::UpdateDisplayInfoLocked : Start...");
     if (displayInfo == nullptr) {
-        HILOG_ERROR("DisplayManager::Impl::UpdateDisplayInfoLocked : displayInfo is null");
+        WLOGE("DisplayManager::Impl::UpdateDisplayInfoLocked : displayInfo is null");
         return false;
     }
     DisplayId displayId = displayInfo->GetDisplayId();
-    HILOG_DEBUG("DisplayManager::Impl::UpdateDisplayInfoLocked : displayId=%{public}d", displayId);
+    WLOGD("DisplayManager::Impl::UpdateDisplayInfoLocked : displayId=%{public}d", displayId);
     if (displayId == DISPLAY_ID_INVALID) {
-        HILOG_ERROR("DisplayManager::Impl::UpdateDisplayInfoLocked : displayId is invalid.");
+        WLOGE("DisplayManager::Impl::UpdateDisplayInfoLocked : displayId is invalid.");
         return false;
     }
     auto iter = displayMap_.find(displayId);
     if (iter != displayMap_.end() && iter->second != nullptr) {
-        HILOG_DEBUG("get screen in screen map");
+        WLOGD("get screen in screen map");
         iter->second->UpdateDisplayInfo(displayInfo);
         return true;
     }

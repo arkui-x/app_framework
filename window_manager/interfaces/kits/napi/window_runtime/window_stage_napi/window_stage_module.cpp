@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-#include "native_engine/native_engine.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 
 extern const char _binary_window_stage_js_start[];
 extern const char _binary_window_stage_abc_start[];
@@ -50,16 +51,16 @@ void NAPI_application_WindowStage_GetABCCode(const char **buf, int *buflen)
     }
 }
 
-extern "C" __attribute__((constructor)) void NAPI_application_WindowStage_AutoRegister()
-{
-    auto moduleManager = NativeModuleManager::GetInstance();
-    NativeModule newModuleInfo = {
-        .name = "application.WindowStage",
-        .fileName = "application/libwindowstage.so/window_stage.js",
-        .getJSCode = (GetJSCodeCallback)NAPI_application_WindowStage_GetJSCode,
-        .getABCCode = (GetJSCodeCallback)NAPI_application_WindowStage_GetABCCode,
-    };
-    
-    moduleManager->Register(&newModuleInfo);
-}
+static napi_module_with_js _module = {
+    .nm_version = 0,
+    .nm_register_func = nullptr,
+    .nm_modname = "application.WindowStage",
+    .nm_filename = "application/libwindowstage.so/window_stage.js",
+    .nm_get_abc_code = (NAPIGetJSCode)NAPI_application_WindowStage_GetABCCode,
+    .nm_get_js_code = (NAPIGetJSCode)NAPI_application_WindowStage_GetJSCode,
+};
 
+extern "C" __attribute__((constructor)) void NAPI_application_WindowStage_AutoRegister(void)
+{
+    napi_module_with_js_register(&_module);
+}

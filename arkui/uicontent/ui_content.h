@@ -51,7 +51,7 @@ struct AbilityInfo;
 } // namespace OHOS
 
 class NativeEngine;
-class NativeValue;
+typedef struct napi_value__* napi_value;
 
 namespace OHOS::Ace::Platform {
 class UIContent {
@@ -65,7 +65,7 @@ public:
     virtual ~UIContent() = default;
 
     // UI content life-cycles
-    virtual void Initialize(OHOS::Rosen::Window* window, const std::string& url, NativeValue* storage) = 0;
+    virtual void Initialize(OHOS::Rosen::Window* window, const std::string& url, napi_value storage) = 0;
     virtual void Foreground() = 0;
     virtual void Background() = 0;
     virtual void Focus() = 0;
@@ -78,8 +78,10 @@ public:
     virtual bool ProcessBackPressed() = 0;
     virtual bool ProcessBasicEvent(const std::vector<TouchEvent>& touchEvents) = 0;
     virtual bool ProcessPointerEvent(const std::vector<uint8_t>& data) = 0;
+    virtual bool ProcessMouseEvent(const std::vector<uint8_t>& data) = 0;
     virtual bool ProcessKeyEvent(int32_t keyCode, int32_t keyAction, int32_t repeatTime, int64_t timeStamp = 0,
-        int64_t timeStampStart = 0, int32_t metaKey = 0, int32_t sourceDevice = 0, int32_t deviceId = 0) = 0;
+        int64_t timeStampStart = 0, int32_t metaKey = 0, int32_t sourceDevice = 0, int32_t deviceId = 0,
+        std::string msg = "") = 0;
 
     // surface and resregister
     virtual void NotifySurfaceCreated() = 0;
@@ -104,10 +106,11 @@ public:
     // Receive memory level notification
     virtual void NotifyMemoryLevel(int32_t level) = 0;
 
-    virtual NativeValue* GetUIContext()
+    virtual napi_value GetUINapiContext()
     {
-        return nullptr;
-    };
+        napi_value result = nullptr;
+        return result;
+    }
 };
 } // namespace OHOS::Ace::Platform
 #endif // FOUNDATION_APPFRAMEWORK_UICONTENT_ACE_UI_CONTENT_H

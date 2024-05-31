@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_SRC_PLATFORM_IOS_RS_SURFACE_CPU_H
-#define RENDER_SERVICE_BASE_SRC_PLATFORM_IOS_RS_SURFACE_CPU_H
+#ifndef RENDER_SERVICE_BASE_SRC_PLATFORM_IOS_RS_SURFACE_GPU_H
+#define RENDER_SERVICE_BASE_SRC_PLATFORM_IOS_RS_SURFACE_GPU_H
 
 #include <memory>
 
@@ -25,8 +25,10 @@
 #endif
 
 #include "common/rs_common_def.h"
+#include "platform/common/rs_surface_ext.h"
 #include "platform/drawing/rs_surface.h"
 #include "platform/drawing/rs_surface_frame.h"
+#include "platform/ios/cf_ref.h"
 #include "render_context/render_context.h"
 
 #ifdef __OBJC__
@@ -38,6 +40,7 @@ typedef struct objc_object CAEAGLLayer;
 namespace OHOS {
 namespace Rosen {
 class RenderContext;
+class RSSurfaceTextureIOS;
 class RSSurfaceGPU : public RSSurface {
 public:
     RSSurfaceGPU(void* layer);
@@ -65,14 +68,20 @@ public:
     void ResetBufferAge() override
     {
     }
+    GraphicColorGamut GetColorSpace() const override;
+    void SetColorSpace(GraphicColorGamut colorSpace) override;
+    RSSurfaceExtPtr CreateSurfaceExt(const RSSurfaceExtConfig& config) override;
+    RSSurfaceExtPtr GetSurfaceExt(const RSSurfaceExtConfig& config) override;  
 private:
     bool SetupGrContext();
 
     sk_sp<SkColorSpace> skColorSpace_ = nullptr;
     CAEAGLLayer* layer_ = nullptr;
     RenderContext *renderContext_ = nullptr;
+    std::shared_ptr<RSSurfaceTextureIOS> texture_;
 };
+
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_BASE_SRC_PLATFORM_DARWIN_RS_SURFACE_DARWIN_H
+#endif // RENDER_SERVICE_BASE_SRC_PLATFORM_IOS_RS_SURFACE_GPU_H

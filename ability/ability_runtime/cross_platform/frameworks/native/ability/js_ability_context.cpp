@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@
 #include "js_error_utils.h"
 #include "js_runtime_utils.h"
 #include "napi_common_want.h"
+#include "napi/native_common.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -32,35 +33,39 @@ constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 } // namespace
 
-void JsAbilityContext::Finalizer(NativeEngine* engine, void* data, void* hint)
+void JsAbilityContext::Finalizer(napi_env env, void* data, void* hint)
 {
     HILOG_INFO("JsAbilityContext::Finalizer is called");
     std::unique_ptr<JsAbilityContext>(static_cast<JsAbilityContext*>(data));
 }
 
-NativeValue* JsAbilityContext::StartAbility(NativeEngine* engine, NativeCallbackInfo* info)
+napi_value JsAbilityContext::StartAbility(napi_env env, napi_callback_info info)
 {
     HILOG_INFO("OnStartAbility is called.");
-    JsAbilityContext* me = CheckParamsAndGetThis<JsAbilityContext>(engine, info);
-    return (me != nullptr) ? me->OnStartAbility(*engine, *info) : nullptr;
+    NapiCallbackInfo napiInfo;
+    JsAbilityContext* me = static_cast<JsAbilityContext*>(GetNapiCallbackInfoAndThis(env, info, napiInfo, nullptr));
+    return (me != nullptr) ? me->OnStartAbility(env, info) : nullptr;  
 }
 
-NativeValue* JsAbilityContext::OnStartAbility(NativeEngine& engine, NativeCallbackInfo& info)
+napi_value JsAbilityContext::OnStartAbility(napi_env env, napi_callback_info info)
 {
     HILOG_INFO("OnStartAbility is called.");
+    size_t argc = ARGC_MAX_COUNT;
+    napi_value argv[ARGC_MAX_COUNT] = {nullptr};
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
 
-    if (info.argc == ARGC_ZERO) {
+    if (argc == ARGC_ZERO) {
         HILOG_ERROR("Not enough params");
-        ThrowTooFewParametersError(engine);
-        return engine.CreateUndefined();
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
     }
 
     AAFwk::Want want;
-    OHOS::AppExecFwk::UnwrapWant(reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[0]), want);
-    decltype(info.argc) unwrapArgc = 1;
+    OHOS::AppExecFwk::UnwrapWant(env, argv[0], want);
+    decltype(argc) unwrapArgc = 1;
 
     auto innerErrorCode = std::make_shared<int>(ERR_OK);
-    AsyncTask::ExecuteCallback execute = [weak = context_, cpWant = want, unwrapArgc, innerErrorCode]() {
+    NapiAsyncTask::ExecuteCallback execute = [weak = context_, cpWant = want, unwrapArgc, innerErrorCode]() {
         auto context = weak.lock();
         if (!context) {
             HILOG_WARN("context is released");
@@ -82,35 +87,35 @@ NativeValue* JsAbilityContext::OnStartAbility(NativeEngine& engine, NativeCallba
         *innerErrorCode = context->StartAbility(cpWant, -1);
     };
 
-    AsyncTask::CompleteCallback complete = [innerErrorCode](NativeEngine& engine, AsyncTask& task, int32_t status) {
+    NapiAsyncTask::CompleteCallback complete = [innerErrorCode](napi_env env, NapiAsyncTask &task, int32_t status) {
         if (*innerErrorCode == 0) {
-            task.Resolve(engine, engine.CreateUndefined());
+            task.Resolve(env, CreateJsUndefined(env));
         } else {
-            task.Reject(engine, CreateJsErrorByNativeErr(engine, *innerErrorCode));
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
         }
     };
 
-    NativeValue* lastParam = (info.argc > unwrapArgc) ? info.argv[unwrapArgc] : nullptr;
-    NativeValue* result = nullptr;
+    napi_value lastParam = (argc > unwrapArgc) ? argv[unwrapArgc] : nullptr;
+    napi_value result = nullptr;
 
-    AsyncTask::Schedule("JsAbilityContext::OnStartAbility", engine,
-        CreateAsyncTaskWithLastParam(engine, lastParam, std::move(execute), std::move(complete), &result));
+    NapiAsyncTask::Schedule("JsAbilityContext::OnStartAbility", env,
+        CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
 
     return result;
 }
 
-NativeValue* JsAbilityContext::TerminateSelf(NativeEngine* engine, NativeCallbackInfo* info)
+napi_value JsAbilityContext::TerminateSelf(napi_env env, napi_callback_info info)
 {
-    JsAbilityContext* me = CheckParamsAndGetThis<JsAbilityContext>(engine, info);
-    return (me != nullptr) ? me->OnTerminateSelf(*engine, *info) : nullptr;
+    JsAbilityContext* me = CheckParamsAndGetThis<JsAbilityContext>(env, info);
+    return (me != nullptr) ? me->OnTerminateSelf(env, info) : nullptr;
 }
 
-NativeValue* JsAbilityContext::OnTerminateSelf(NativeEngine& engine, NativeCallbackInfo& info)
+napi_value JsAbilityContext::OnTerminateSelf(napi_env env, napi_callback_info info)
 {
     HILOG_INFO("OnTerminateSelf is called");
 
     auto innerErrorCode = std::make_shared<int>(ERR_OK);
-    AsyncTask::ExecuteCallback execute = [weak = context_, innerErrorCode]() {
+    NapiAsyncTask::ExecuteCallback execute = [weak = context_, innerErrorCode]() {
         auto context = weak.lock();
         if (!context) {
             HILOG_WARN("context is released");
@@ -121,57 +126,64 @@ NativeValue* JsAbilityContext::OnTerminateSelf(NativeEngine& engine, NativeCallb
         *innerErrorCode = context->TerminateSelf();
     };
 
-    AsyncTask::CompleteCallback complete = [innerErrorCode](NativeEngine& engine, AsyncTask& task, int32_t status) {
+    NapiAsyncTask::CompleteCallback complete = [innerErrorCode](napi_env env, NapiAsyncTask &task, int32_t status) {
         if (*innerErrorCode == 0) {
-            task.Resolve(engine, engine.CreateUndefined());
+            task.Resolve(env, CreateJsUndefined(env));
         } else {
-            task.Reject(engine, CreateJsErrorByNativeErr(engine, *innerErrorCode));
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
         }
     };
+    
+    size_t argc = ARGC_MAX_COUNT;
+    napi_value argv[ARGC_MAX_COUNT] = {nullptr};
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
 
-    NativeValue* lastParam = (info.argc > ARGC_ZERO) ? info.argv[ARGC_ZERO] : nullptr;
-    NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsAbilityContext::OnTerminateSelf", engine,
-        CreateAsyncTaskWithLastParam(engine, lastParam, std::move(execute), std::move(complete), &result));
+    napi_value lastParam = (argc > ARGC_ZERO) ? argv[ARGC_ZERO] : nullptr;
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsAbilityContext::OnTerminateSelf", env,
+        CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
     return result;
 }
 
-NativeValue* JsAbilityContext::StartAbilityForResult(NativeEngine* engine, NativeCallbackInfo* info)
+napi_value JsAbilityContext::StartAbilityForResult(napi_env env, napi_callback_info info)
 {
-    JsAbilityContext* me = CheckParamsAndGetThis<JsAbilityContext>(engine, info);
-    return (me != nullptr) ? me->OnStartAbilityForResult(*engine, *info) : nullptr;
+    JsAbilityContext* me = CheckParamsAndGetThis<JsAbilityContext>(env, info);
+    return (me != nullptr) ? me->OnStartAbilityForResult(env, info) : nullptr;
 }
 
-NativeValue* JsAbilityContext::OnStartAbilityForResult(NativeEngine& engine, NativeCallbackInfo& info)
+napi_value JsAbilityContext::OnStartAbilityForResult(napi_env env, napi_callback_info info)
 {
     HILOG_INFO("called.");
-    if (info.argc == ARGC_ZERO) {
+    size_t argc = ARGC_MAX_COUNT;
+    napi_value argv[ARGC_MAX_COUNT] = {nullptr};
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    if (argc == ARGC_ZERO) {
         HILOG_ERROR("Not enough params");
-        ThrowTooFewParametersError(engine);
-        return engine.CreateUndefined();
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
     }
     AAFwk::Want want;
-    AppExecFwk::UnwrapWant(reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[0]), want);
-    decltype(info.argc) unwrapArgc = 1;
+    AppExecFwk::UnwrapWant(env, argv[ARGC_ZERO], want);
+    decltype(argc) unwrapArgc = 1;
 
-    auto lastParam = (info.argc > unwrapArgc) ? info.argv[unwrapArgc] : nullptr;
-    NativeValue* result = nullptr;
-    auto uasyncTask = CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, nullptr, &result);
-    std::shared_ptr<AsyncTask> asyncTask = std::move(uasyncTask);
-    RuntimeTask task = [&engine, asyncTask](int32_t resultCode, const AAFwk::Want& resultWant) {
+    auto lastParam = (argc > unwrapArgc) ? argv[unwrapArgc] : nullptr;
+    napi_value result = nullptr;
+    auto uasyncTask = CreateAsyncTaskWithLastParam(env, lastParam, nullptr, nullptr, &result);
+    std::shared_ptr<NapiAsyncTask> asyncTask = std::move(uasyncTask);
+    RuntimeTask task = [env, asyncTask](int32_t resultCode, const AAFwk::Want& resultWant) {
         HILOG_INFO("OnStartAbilityForResult async callback is called");
-        NativeValue* abilityResult = JsAbilityContext::WrapAbilityResult(engine, resultCode, resultWant);
+        napi_value abilityResult = JsAbilityContext::WrapAbilityResult(env, resultCode, resultWant);
         if (abilityResult == nullptr) {
             HILOG_WARN("wrap abilityResult failed");
-            asyncTask->Reject(engine, CreateJsError(engine, AbilityErrorCode::ERROR_CODE_INNER));
+            asyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
         } else {
-            asyncTask->Resolve(engine, abilityResult);
+            asyncTask->Resolve(env, abilityResult);
         }
     };
     auto context = context_.lock();
     if (context == nullptr) {
         HILOG_WARN("context is released");
-        asyncTask->Reject(engine, CreateJsError(engine, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+        asyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
     } else {
         curRequestCode_ = (curRequestCode_ == INT_MAX) ? 0 : (curRequestCode_ + 1);
         context->StartAbilityForResult(want, curRequestCode_, std::move(task));
@@ -179,30 +191,33 @@ NativeValue* JsAbilityContext::OnStartAbilityForResult(NativeEngine& engine, Nat
     return result;
 }
 
-NativeValue* JsAbilityContext::TerminateSelfWithResult(NativeEngine* engine, NativeCallbackInfo* info)
+napi_value JsAbilityContext::TerminateSelfWithResult(napi_env env, napi_callback_info info)
 {
-    JsAbilityContext* me = CheckParamsAndGetThis<JsAbilityContext>(engine, info);
-    return (me != nullptr) ? me->OnTerminateSelfWithResult(*engine, *info) : nullptr;
+    JsAbilityContext* me = CheckParamsAndGetThis<JsAbilityContext>(env, info);
+    return (me != nullptr) ? me->OnTerminateSelfWithResult(env, info) : nullptr;
 }
 
-NativeValue* JsAbilityContext::OnTerminateSelfWithResult(NativeEngine& engine, NativeCallbackInfo& info)
+napi_value JsAbilityContext::OnTerminateSelfWithResult(napi_env env, napi_callback_info info)
 {
     HILOG_INFO("called.");
-    if (info.argc == 0) {
+    size_t argc = ARGC_MAX_COUNT;
+    napi_value argv[ARGC_MAX_COUNT] = {nullptr};
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    if (argc == 0) {
         HILOG_ERROR("Not enough params");
-        ThrowTooFewParametersError(engine);
-        return engine.CreateUndefined();
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
     }
     int32_t resultCode = 0;
     AAFwk::Want resultWant;
-    if (!JsAbilityContext::UnWrapAbilityResult(engine, info.argv[0], resultCode, resultWant)) {
+    if (!JsAbilityContext::UnWrapAbilityResult(env, argv[0], resultCode, resultWant)) {
         HILOG_ERROR("Failed to parse ability result!");
-        ThrowError(engine, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
-        return engine.CreateUndefined();
+        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+        return CreateJsUndefined(env);
     }
 
     auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
-    AsyncTask::ExecuteCallback execute = [weak = context_, resultWant, resultCode, innerErrorCode]() {
+    NapiAsyncTask::ExecuteCallback execute = [weak = context_, resultWant, resultCode, innerErrorCode]() {
         auto context = weak.lock();
         if (!context) {
             HILOG_WARN("context is released");
@@ -213,123 +228,108 @@ NativeValue* JsAbilityContext::OnTerminateSelfWithResult(NativeEngine& engine, N
         *innerErrorCode = context->TerminateAbilityWithResult(resultWant, resultCode);
     };
 
-    AsyncTask::CompleteCallback complete = [innerErrorCode](NativeEngine& engine, AsyncTask& task, int32_t status) {
+    NapiAsyncTask::CompleteCallback complete = [innerErrorCode](napi_env env, NapiAsyncTask &task, int32_t status) {
         if (*innerErrorCode == ERR_OK) {
-            task.Resolve(engine, engine.CreateUndefined());
+            task.Resolve(env,CreateJsUndefined(env));
         } else {
-            task.Reject(engine, CreateJsErrorByNativeErr(engine, *innerErrorCode));
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
         }
     };
 
-    NativeValue* lastParam = (info.argc > ARGC_ONE) ? info.argv[ARGC_ONE] : nullptr;
-    NativeValue* result = nullptr;
-    AsyncTask::Schedule("JsAbilityContext::OnTerminateSelfWithResult", engine,
-        CreateAsyncTaskWithLastParam(engine, lastParam, std::move(execute), std::move(complete), &result));
+    napi_value lastParam = (argc > ARGC_ONE) ? argv[ARGC_ONE] : nullptr;
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsAbilityContext::OnTerminateSelfWithResult", env,
+        CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
     return result;
 }
 
-NativeValue* JsAbilityContext::WrapAbilityResult(
-    NativeEngine& engine, int32_t resultCode, const AAFwk::Want& resultWant)
+napi_value JsAbilityContext::WrapAbilityResult(
+    napi_env env, int32_t resultCode, const AAFwk::Want& resultWant)
 {
-    NativeValue* jAbilityResult = engine.CreateObject();
-    NativeObject* abilityResult = ConvertNativeValueTo<NativeObject>(jAbilityResult);
-    if (abilityResult == nullptr) {
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue == nullptr) {
         HILOG_ERROR("abilityResult is nullptr");
-        return jAbilityResult;
+        return objValue;
     }
-    abilityResult->SetProperty("resultCode", engine.CreateNumber(resultCode));
-    abilityResult->SetProperty("want", AppExecFwk::CreateJsWant(engine, resultWant));
-    return jAbilityResult;
+    napi_set_named_property(env, objValue, "resultCode", CreateJsValue(env, resultCode));
+    napi_set_named_property(env, objValue, "want", AppExecFwk::CreateJsWant(env, resultWant));
+    return objValue;
 }
 
 bool JsAbilityContext::UnWrapAbilityResult(
-    NativeEngine& engine, NativeValue* argv, int32_t& resultCode, AAFwk::Want& resultWant)
+    napi_env env, napi_value jObj, int32_t& resultCode, AAFwk::Want& resultWant)
 {
-    if (argv == nullptr) {
-        HILOG_ERROR("argv is nullptr");
-        return false;
-    }
-    if (argv->TypeOf() != NativeValueType::NATIVE_OBJECT) {
-        HILOG_ERROR("invalid type of abilityResult");
-        return false;
-    }
-    NativeObject* jObj = ConvertNativeValueTo<NativeObject>(argv);
+
     if (jObj == nullptr) {
         HILOG_ERROR("jObj is nullptr");
         return false;
     }
-    NativeValue* jResultCode = jObj->GetProperty("resultCode");
+    napi_value jResultCode = nullptr;
+    napi_get_named_property(env, jObj, "resultCode", &jResultCode);
     if (jResultCode == nullptr) {
         HILOG_ERROR("jResultCode is nullptr");
         return false;
     }
-    if (jResultCode->TypeOf() != NativeValueType::NATIVE_NUMBER) {
-        HILOG_ERROR("invalid type of resultCode");
-        return false;
-    }
-    resultCode = int32_t(*ConvertNativeValueTo<NativeNumber>(jObj->GetProperty("resultCode")));
-    NativeValue* jWant = jObj->GetProperty("want");
+
+    napi_value jsProNameList = nullptr;
+    napi_get_named_property(env, jObj, "resultCode", &jsProNameList);
+    ConvertFromJsNumber(env, jsProNameList, resultCode);
+    
+    
+    napi_value jWant = nullptr;
+    napi_get_named_property(env, jObj, "want", &jWant);
     if (jWant == nullptr) {
         HILOG_ERROR("jWant is nullptr");
         return false;
     }
-    if (jWant->TypeOf() == NativeValueType::NATIVE_UNDEFINED) {
-        HILOG_ERROR("want is undefined");
-        return true;
-    }
-    if (jWant->TypeOf() != NativeValueType::NATIVE_OBJECT) {
-        HILOG_ERROR("invalid type of want");
-        return false;
-    }
-    return AppExecFwk::UnwrapWant(reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(jWant), resultWant);
+
+    return AppExecFwk::UnwrapWant(env, jWant, resultWant);
 }
 
-NativeValue* CreateJsAbilityContext(NativeEngine& engine, const std::shared_ptr<AbilityContext>& context)
+napi_value CreateJsAbilityContext(napi_env env, const std::shared_ptr<AbilityContext> &context)
 {
     if (context == nullptr) {
         HILOG_ERROR("context is nullptr");
         return nullptr;
     }
 
-    NativeValue* objValue = CreateJsBaseContext(engine, context);
-    if (objValue == nullptr) {
-        HILOG_ERROR("objValue is nullptr");
-        return objValue;
-    }
+    napi_value object = CreateJsBaseContext(env, context);
 
-    NativeObject* object = ConvertNativeValueTo<NativeObject>(objValue);
     if (object == nullptr) {
         HILOG_ERROR("object is nullptr");
-        return objValue;
+        return object;
     }
 
     std::unique_ptr<JsAbilityContext> jsContext = std::make_unique<JsAbilityContext>(context);
     if (jsContext == nullptr) {
         HILOG_ERROR("jsContext is nullptr");
-        return objValue;
+        return object;
     }
-    object->SetNativePointer(jsContext.release(), JsAbilityContext::Finalizer, nullptr);
+
+    napi_wrap(env, object, jsContext.release(), JsAbilityContext::Finalizer, nullptr, nullptr);
 
     auto abilityInfo = context->GetAbilityInfo();
     if (abilityInfo != nullptr) {
-        object->SetProperty("abilityInfo", CreateJsAbilityInfo(engine, *abilityInfo));
+        napi_set_named_property(env, object, "abilityInfo", CreateJsAbilityInfo(env, *abilityInfo));
     }
     auto config = context->GetConfiguration();
     if (config != nullptr) {
-        object->SetProperty("config", CreateJsConfiguration(engine, *config));
+        napi_set_named_property(env, object, "config", CreateJsConfiguration(env, *config));
     }
 
     const char* moduleName = "JsAbilityContext";
-    BindNativeFunction(engine, *object, "startAbility", moduleName, JsAbilityContext::StartAbility);
-    BindNativeFunction(engine, *object, "terminateSelf", moduleName, JsAbilityContext::TerminateSelf);
-    BindNativeFunction(engine, *object, "startAbilityForResult", moduleName, JsAbilityContext::StartAbilityForResult);
+    BindNativeFunction(env, object, "startAbility", moduleName, JsAbilityContext::StartAbility);
+    BindNativeFunction(env, object, "terminateSelf", moduleName, JsAbilityContext::TerminateSelf);
+    BindNativeFunction(env, object, "startAbilityForResult", moduleName, JsAbilityContext::StartAbilityForResult);
     BindNativeFunction(
-        engine, *object, "terminateSelfWithResult", moduleName, JsAbilityContext::TerminateSelfWithResult);
-    return objValue;
+        env, object, "terminateSelfWithResult", moduleName, JsAbilityContext::TerminateSelfWithResult);
+    BindNativeFunction(env, object, "reportDrawnCompleted", moduleName, JsAbilityContext::ReportDrawnCompleted);
+    return object;
 }
 
 void JsAbilityContext::ConfigurationUpdated(
-    NativeEngine* engine, std::shared_ptr<NativeReference>& jsContext, const std::shared_ptr<Configuration>& config)
+    napi_env env, std::shared_ptr<NativeReference>& jsContext, const std::shared_ptr<Configuration>& config)
 {
     HILOG_INFO("ConfigurationUpdated called.");
     if ((jsContext == nullptr) || (config == nullptr)) {
@@ -337,26 +337,62 @@ void JsAbilityContext::ConfigurationUpdated(
         return;
     }
 
-    NativeValue* value = jsContext->Get();
-    if (value == nullptr) {
-        HILOG_ERROR("value is nullptr.");
-        return;
-    }
-    NativeObject* object = ConvertNativeValueTo<NativeObject>(value);
+    napi_value object = jsContext->GetNapiValue();
     if (object == nullptr) {
         HILOG_ERROR("object is nullptr.");
         return;
     }
 
-    NativeValue* method = object->GetProperty("onUpdateConfiguration");
+    napi_value method = nullptr;
+    napi_get_named_property(env, object, "onUpdateConfiguration", &method);
     if (method == nullptr) {
         HILOG_ERROR("Failed to get onUpdateConfiguration from object");
         return;
     }
 
     HILOG_INFO("JsAbilityContext call onUpdateConfiguration.");
-    NativeValue* argv[] = { CreateJsConfiguration(*engine, *config) };
-    engine->CallFunction(value, method, argv, 1);
+    napi_value argv[] = { CreateJsConfiguration(env, *config) };
+    napi_call_function(env, object, method, 1, argv, nullptr);
+}
+
+napi_value JsAbilityContext::ReportDrawnCompleted(napi_env env, napi_callback_info info)
+{
+    JsAbilityContext* me = CheckParamsAndGetThis<JsAbilityContext>(env, info);
+    return (me != nullptr) ? me->OnReportDrawnCompleted(env, info) : nullptr;
+}
+
+napi_value JsAbilityContext::OnReportDrawnCompleted(napi_env env, napi_callback_info info)
+{
+    HILOG_INFO("Called.");
+    size_t argc = ARGC_MAX_COUNT;
+    napi_value argv[ARGC_MAX_COUNT] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+
+    auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [weak = context_, innerErrorCode]() {
+        auto context = weak.lock();
+        if (context == nullptr) {
+            HILOG_ERROR("Context is released.");
+            *innerErrorCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+            return;
+        }
+
+        *innerErrorCode = context->ReportDrawnCompleted();
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrorCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+        if (*innerErrorCode == ERR_OK) {
+            task.Resolve(env, CreateJsUndefined(env));
+        } else {
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
+        }
+    };
+
+    napi_value lastParam = (argc > ARGC_ZERO) ? argv[ARGC_ZERO] : nullptr;
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsAbilityContext::OnReportDrawnCompleted", env,
+        CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
+    return result;
 }
 } // namespace Platform
 } // namespace AbilityRuntime

@@ -13,11 +13,14 @@
  * limitations under the License.
  */
 
+#include "js_display.h"
+
 #include <cinttypes>
 #include <map>
-#include "js_display.h"
+
 #include "display.h"
-#include "hilog.h"
+#include "js_runtime_utils.h"
+#include "window_hilog.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,8 +38,19 @@ namespace {
     };
 }
 
-static thread_local std::map<DisplayId, std::shared_ptr<NativeReference>> g_JsDisplayMap;
+static thread_local std::map<DisplayId, napi_ref> g_JsDisplayMap;
 std::recursive_mutex g_jsDisplayMutex;
+
+static napi_ref FindJsDisplayObject(DisplayId displayId)
+{
+    WLOGD("[NAPI]Try to find display %{public}" PRIu64" in g_JsDisplayMap", displayId);
+    std::lock_guard<std::recursive_mutex> lock(g_jsDisplayMutex);
+    if (g_JsDisplayMap.find(displayId) == g_JsDisplayMap.end()) {
+        WLOGI("[NAPI]Can not find display %{public}" PRIu64"", displayId);
+        return nullptr;
+    }
+    return g_JsDisplayMap[displayId];
+}
 
 JsDisplay::JsDisplay(const sptr<Display>& display) : display_(display)
 {
@@ -44,77 +58,76 @@ JsDisplay::JsDisplay(const sptr<Display>& display) : display_(display)
 
 JsDisplay::~JsDisplay()
 {
-    HILOG_INFO("JsDisplay::~JsDisplay is called");
+    WLOGI("JsDisplay::~JsDisplay is called");
 }
 
-void JsDisplay::Finalizer(NativeEngine* engine, void* data, void* hint)
+void JsDisplay::Finalizer(napi_env env, void* data, void* hint)
 {
-    HILOG_INFO("JsDisplay::Finalizer is called");
+    WLOGI("JsDisplay::Finalizer is called");
     auto jsDisplay = std::unique_ptr<JsDisplay>(static_cast<JsDisplay*>(data));
     if (jsDisplay == nullptr) {
-        HILOG_ERROR("JsDisplay::Finalizer jsDisplay is null");
+        WLOGE("JsDisplay::Finalizer jsDisplay is null");
         return;
     }
     sptr<Display> display = jsDisplay->display_;
     if (display == nullptr) {
-        HILOG_ERROR("JsDisplay::Finalizer display is null");
+        WLOGE("JsDisplay::Finalizer display is null");
         return;
     }
     DisplayId displayId = display->GetId();
-    HILOG_INFO("JsDisplay::Finalizer displayId : %{public}" PRIu64"", displayId);
+    WLOGI("JsDisplay::Finalizer displayId : %{public}" PRIu64"", displayId);
     std::lock_guard<std::recursive_mutex> lock(g_jsDisplayMutex);
-    if (g_JsDisplayMap.find(displayId) != g_JsDisplayMap.end()) {
-        HILOG_INFO("JsDisplay::Finalizer Display is destroyed: %{public}" PRIu64"", displayId);
-        g_JsDisplayMap.erase(displayId);
+    auto it = g_JsDisplayMap.find(displayId);
+    if (it != g_JsDisplayMap.end()) {
+        WLOGI("JsDisplay::Finalizer Display is destroyed: %{public}" PRIu64"", displayId);
+        napi_delete_reference(env, it->second);
+        g_JsDisplayMap.erase(it);
     }
 }
 
-std::shared_ptr<NativeReference> FindJsDisplayObject(DisplayId displayId)
+napi_value CreateJsDisplayObject(napi_env env, sptr<Display>& display)
 {
-    HILOG_INFO("[NAPI]Try to find display %{public}" PRIu64" in g_JsDisplayMap", displayId);
-    std::lock_guard<std::recursive_mutex> lock(g_jsDisplayMutex);
-    if (g_JsDisplayMap.find(displayId) == g_JsDisplayMap.end()) {
-        HILOG_INFO("[NAPI]Can not find display %{public}" PRIu64" in g_JsDisplayMap", displayId);
-        return nullptr;
-    }
-    return g_JsDisplayMap[displayId];
-}
+    napi_value objValue = nullptr;
+    napi_ref jsDisplayRef = FindJsDisplayObject(display->GetId());
+    if (jsDisplayRef != nullptr) {
+        WLOGI("[NAPI]FindJsDisplayObject %{public}" PRIu64"", display->GetId());
+        napi_status status = napi_get_reference_value(env, jsDisplayRef, &objValue);
+        if (status != napi_ok) {
+            return nullptr;
+        }
+    } else {
+        WLOGI("CreateJsDisplay %{public}" PRIu64"", display->GetId());
+        // create new obj
+        napi_status status = napi_create_object(env, &objValue);
+        if (status != napi_ok) {
+            WLOGE("Failed to create object for %{public}" PRIu64"", display->GetId());
+            return nullptr;
+        }
+        std::unique_ptr<JsDisplay> jsDisplay = std::make_unique<JsDisplay>(display);
+        napi_wrap(env, objValue, jsDisplay.release(), JsDisplay::Finalizer, nullptr, nullptr);
 
-NativeValue* CreateJsDisplayObject(NativeEngine& engine, sptr<Display>& display)
-{
-    HILOG_INFO("CreateJsDisplay is called");
-    NativeValue* objValue = nullptr;
-    std::shared_ptr<NativeReference> jsDisplayObj = FindJsDisplayObject(display->GetId());
-    if (jsDisplayObj != nullptr && jsDisplayObj->Get() != nullptr) {
-        HILOG_INFO("[NAPI]FindJsDisplayObject %{public}" PRIu64"", display->GetId());
-        objValue = jsDisplayObj->Get();
+        // save
+        status = napi_create_reference(env, objValue, 1, &jsDisplayRef);
+        if (status != napi_ok) {
+            WLOGE("Failed to reference for %{public}" PRIu64"", display->GetId());
+            return nullptr;
+        }
+        std::lock_guard<std::recursive_mutex> lock(g_jsDisplayMutex);
+        g_JsDisplayMap[display->GetId()] = jsDisplayRef;
     }
-    if (objValue == nullptr) {
-        objValue = engine.CreateObject();
-    }
-    NativeObject* object = ConvertNativeValueTo<NativeObject>(objValue);
-    if (object == nullptr) {
-        HILOG_ERROR("Failed to convert prop to jsObject");
-        return engine.CreateUndefined();
-    }
+
     sptr<DisplayInfo> info = display->GetDisplayInfo();
     if (info == nullptr) {
-        HILOG_ERROR("Failed to GetDisplayInfo");
-        return engine.CreateUndefined();
+        WLOGE("Failed to GetDisplayInfo for %{public}" PRIu64"", display->GetId());
+        return nullptr;
     }
-    object->SetProperty("id", CreateJsValue(engine, static_cast<uint32_t>(info->GetDisplayId())));
-    object->SetProperty("width", CreateJsValue(engine, info->GetWidth()));
-    object->SetProperty("height", CreateJsValue(engine, info->GetHeight()));
-    object->SetProperty("orientation", CreateJsValue(engine, info->GetDisplayOrientation()));
-    if (jsDisplayObj == nullptr || jsDisplayObj->Get() == nullptr) {
-        std::unique_ptr<JsDisplay> jsDisplay = std::make_unique<JsDisplay>(display);
-        object->SetNativePointer(jsDisplay.release(), JsDisplay::Finalizer, nullptr);
-        std::shared_ptr<NativeReference> jsDisplayRef;
-        jsDisplayRef.reset(engine.CreateReference(objValue, 1));
-        DisplayId displayId = display->GetId();
-        std::lock_guard<std::recursive_mutex> lock(g_jsDisplayMutex);
-        g_JsDisplayMap[displayId] = jsDisplayRef;
-    }
+    napi_set_named_property(env, objValue, "id", CreateJsValue(env, static_cast<uint32_t>(info->GetDisplayId())));
+    napi_set_named_property(env, objValue, "width", CreateJsValue(env, info->GetWidth()));
+    napi_set_named_property(env, objValue, "height", CreateJsValue(env, info->GetHeight()));
+    napi_set_named_property(env, objValue, "orientation", CreateJsValue(env, info->GetDisplayOrientation()));
+    napi_set_named_property(env, objValue, "densityPixels", CreateJsValue(env, info->GetDensityPixels()));
+    napi_set_named_property(env, objValue, "scaledDensity", CreateJsValue(env, info->GetScaledDensity()));
+    napi_set_named_property(env, objValue, "densityDPI", CreateJsValue(env, info->GetDensityDpi()));
     return objValue;
 }
 }  // namespace Rosen

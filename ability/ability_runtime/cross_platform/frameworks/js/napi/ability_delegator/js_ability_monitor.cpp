@@ -91,14 +91,16 @@ void JSAbilityMonitor::OnWindowStageDestroy(const std::weak_ptr<NativeReference>
     HILOG_INFO("exit");
 }
 
-void JSAbilityMonitor::SetJsAbilityMonitor(NativeValue *jsAbilityMonitor)
+void JSAbilityMonitor::SetJsAbilityMonitor(napi_value jsAbilityMonitor)
 {
     HILOG_INFO("enter");
 
-    jsAbilityMonitor_ = std::unique_ptr<NativeReference>(engine_->CreateReference(jsAbilityMonitor, 1));
+    napi_ref ref = nullptr;
+    napi_create_reference(env_, jsAbilityMonitor, 1, &ref);
+    jsAbilityMonitor_ = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref));
 }
 
-NativeValue *JSAbilityMonitor::CallLifecycleCBFunction(const std::string &functionName,
+napi_value JSAbilityMonitor::CallLifecycleCBFunction(const std::string &functionName,
     const std::weak_ptr<NativeReference> &abilityObj)
 {
     if (functionName.empty()) {
@@ -111,26 +113,28 @@ NativeValue *JSAbilityMonitor::CallLifecycleCBFunction(const std::string &functi
         return nullptr;
     }
 
-    auto value = jsAbilityMonitor_->Get();
-    auto obj = ConvertNativeValueTo<NativeObject>(value);
+    napi_value obj = jsAbilityMonitor_->GetNapiValue();
     if (obj == nullptr) {
         HILOG_ERROR("Failed to get object");
         return nullptr;
     }
 
-    auto method = obj->GetProperty(functionName.data());
+    napi_value method = nullptr;
+    napi_get_named_property(env_, obj, functionName.data(), &method);
     if (method == nullptr) {
         HILOG_ERROR("Failed to get %{public}s from object", functionName.data());
         return nullptr;
     }
 
-    auto nativeAbilityObj = engine_->CreateNull();
+    auto nativeAbilityObj = CreateJsNull(env_);
     if (!abilityObj.expired()) {
-        nativeAbilityObj = abilityObj.lock()->Get();
+        nativeAbilityObj = abilityObj.lock()->GetNapiValue();
     }
 
-    NativeValue* argv[] = { nativeAbilityObj };
-    return engine_->CallFunction(value, method, argv, ArraySize(argv));
+    napi_value argv[] = { nativeAbilityObj };
+    napi_value callResult = nullptr;
+    napi_call_function(env_, obj, method, ArraySize(argv), argv, &callResult);
+    return callResult;
 }
 }  // namespace AbilityDelegatorJs
 }  // namespace OHOS

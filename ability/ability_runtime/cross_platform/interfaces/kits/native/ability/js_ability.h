@@ -22,6 +22,7 @@
 #include "ability_delegator_infos.h"
 #include "ability_info.h"
 #include "application.h"
+#include "napi/native_api.h"
 
 class NativeReference;
 class NativeValue;
@@ -52,7 +53,7 @@ public:
     void OnAbilityResult(int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant) override;
 
 private:
-    void CallObjectMethod(const char* name, NativeValue* const* argv = nullptr, size_t argc = 0);
+    void CallObjectMethod(const char* name, napi_value const* argv = nullptr, size_t argc = 0);
     void CallPostPerformStart();
     std::shared_ptr<AppExecFwk::ADelegatorAbilityProperty> CreateADelegatorAbilityProperty();
     JsRuntime& jsRuntime_;

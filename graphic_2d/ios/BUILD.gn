@@ -41,17 +41,28 @@ ohos_source_set("ios") {
     "rs_marshalling_helper.cpp",
     "rs_render_service_client.mm",
     "rs_surface_frame_ios.cpp",
+    "rs_surface_texture_ios.mm",
     "rs_system_properties.cpp",
     "rs_vsync_client_ios.mm",
   ]
 
   include_dirs = [
+    "//foundation/appframework/utils",
     "//foundation/graphic/graphic_2d/utils/log",
     "$rosen_root/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/interfaces/inner_api/surface/",
+    "$rosen_root/modules/2d_graphics/include",
+    "$graphic_2d_root/utils/log",
+    "$rosen_root/modules/2d_graphics/src/drawing/engine_adapter",
   ]
 
-  defines += [ "MODULE_RSB" ]
+  defines += [
+    "MODULE_RSB",
+    "ACE_ENABLE_GL",
+    "RS_ENABLE_GL",
+    "USE_SURFACE_TEXTURE",
+  ]
   if (rs_enable_gpu) {
     defines += [ "USE_GPU" ]
     sources += [ "rs_surface_gpu.mm" ]
@@ -84,15 +95,9 @@ ohos_source_set("ios") {
     "$rosen_root/modules/platform:ipc_core",
     "$rosen_root/modules/platform:utils",
   ]
-}
-config("mock_log_config") {
-  include_dirs = [ "log" ]
-}
 
-ohos_source_set("mock_log") {
-  public_configs = [ ":mock_log_config" ]
-  sources = [ "log/hilog/log_aosp.mm" ]
-  libs = [ "log" ]
-  part_name = "graphic_standard"
-  subsystem_name = "graphic"
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+    public_deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
+  }
 }

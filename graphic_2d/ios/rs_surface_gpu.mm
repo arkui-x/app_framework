@@ -21,10 +21,11 @@
 #include <UIKit/UIKit.h>
 #include <include/core/SkColorSpace.h>
 #include <include/gpu/gl/GrGLInterface.h>
+#include <include/gpu/GrBackendSurface.h>
 
 #include "platform/common/rs_log.h"
 #include "rs_surface_frame_ios.h"
-
+#include "rs_surface_texture_ios.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -82,8 +83,13 @@ bool RSSurfaceGPU::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t u
     renderContext_->MakeCurrent(nullptr, nullptr);
     renderContext_->RenderFrame();
     renderContext_->SwapBuffers(nullptr);
+#ifndef USE_ROSEN_DRAWING
     if (auto grContext = renderContext_->GetGrContext()) {
         grContext->purgeUnlockedResources(true);
+#else
+    if (auto grContext = renderContext_->GetDrGPUContext()) {
+        grContext->PurgeUnlockedResources(true);
+#endif
     }
     return true;
 }
@@ -102,7 +108,11 @@ bool RSSurfaceGPU::SetupGrContext()
 {
     if (renderContext_) {
         renderContext_->InitializeEglContext();
+#ifndef USE_ROSEN_DRAWING
         renderContext_->SetUpGrContext();
+#else
+        renderContext_->SetUpGpuContext();
+#endif
     }
     return true;
 }
@@ -111,6 +121,50 @@ uint32_t RSSurfaceGPU::GetQueueSize() const
 {
     /* cache buffer count */
     return 0x3;
+}
+
+GraphicColorGamut RSSurfaceGPU::GetColorSpace() const
+{
+    if (renderContext_ == nullptr) {
+        ROSEN_LOGE("RSSurfaceGPU::GetColorSpace renderContext_ is nullptr");
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
+    return renderContext_->GetColorSpace();
+}
+
+void RSSurfaceGPU::SetColorSpace(GraphicColorGamut colorSpace)
+{
+    if (renderContext_ == nullptr) {
+        ROSEN_LOGE("RSSurfaceGPU::SetColorSpace renderContext_ is nullptr");
+        return;
+    }
+    renderContext_->SetColorSpace(colorSpace);
+}
+
+RSSurfaceExtPtr RSSurfaceGPU::CreateSurfaceExt(const RSSurfaceExtConfig& config)
+{
+    ROSEN_LOGD("RSSurfaceGPU::CreateSurfaceExt");
+    switch(config.type) {
+        case RSSurfaceExtType::SURFACE_TEXTURE: {
+            if (texture_ == nullptr) {
+                texture_ = std::make_shared<RSSurfaceTextureIOS>(config);
+            }
+            return texture_;
+        }
+        default:
+            return nullptr;
+    }
+}
+
+RSSurfaceExtPtr RSSurfaceGPU::GetSurfaceExt(const RSSurfaceExtConfig& config)
+{
+    switch(config.type) {
+        case RSSurfaceExtType::SURFACE_TEXTURE: {
+            return texture_;
+        }
+        default:
+            return nullptr;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

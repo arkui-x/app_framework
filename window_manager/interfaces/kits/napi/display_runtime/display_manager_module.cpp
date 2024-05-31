@@ -13,17 +13,16 @@
  * limitations under the License.
  */
 
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 #include "js_display_manager.h"
-#include "native_engine/native_engine.h"
 
+static napi_module g_displayModule = {
+    .nm_filename = "module/libdisplaymanager_napi.so/display.js",
+    .nm_register_func = OHOS::Rosen::JsDisplayManagerInit,
+    .nm_modname = "display",
+};
 extern "C" __attribute__((constructor)) void NAPI_application_displaymanager_AutoRegister()
 {
-    auto moduleManager = NativeModuleManager::GetInstance();
-    NativeModule newModuleInfo = {
-        .name = "display",
-        .fileName = "module/libdisplaymanager_napi.so/display.js",
-        .registerCallback = OHOS::Rosen::JsDisplayManagerInit,
-    };
-
-    moduleManager->Register(&newModuleInfo);
+    napi_module_register(&g_displayModule);
 }

@@ -21,48 +21,48 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-NativeValue* CreateJsWant(NativeEngine& engine, const Want& want)
+napi_value CreateJsWant(napi_env env, const Want &want)
 {
-    NativeValue* objValue = engine.CreateObject();
-    NativeObject* object = AbilityRuntime::ConvertNativeValueTo<NativeObject>(objValue);
-    if (object == nullptr) {
-        HILOG_ERROR("object is nullptr");
-        return objValue;
-    }
+    napi_value object = nullptr;
+    napi_create_object(env, &object);
 
-    object->SetProperty("bundleName", AbilityRuntime::CreateJsValue(engine, want.GetBundleName()));
-    object->SetProperty("abilityName", AbilityRuntime::CreateJsValue(engine, want.GetAbilityName()));
-    object->SetProperty("moduleName", AbilityRuntime::CreateJsValue(engine, want.GetModuleName()));
-    object->SetProperty("parameters", CreateJsWantParams(engine, want));
-    return objValue;
+    napi_set_named_property(env, object, "bundleName", 
+    AbilityRuntime::CreateJsValue(env, want.GetBundleName()));
+    napi_set_named_property(env, object, "abilityName", 
+    AbilityRuntime::CreateJsValue(env, want.GetAbilityName()));
+    napi_set_named_property(env, object, "moduleName", 
+    AbilityRuntime::CreateJsValue(env, want.GetModuleName()));
+    napi_set_named_property(env, object, "parameters", 
+    CreateJsWantParams(env, want));
+    return object;
 }
 
-NativeValue* CreateJsWantParams(NativeEngine& engine, const Want& want)
+napi_value CreateJsWantParams(napi_env env, const Want& want)
 {
-    NativeValue* objValue = engine.CreateObject();
-    NativeObject* object = AbilityRuntime::ConvertNativeValueTo<NativeObject>(objValue);
-    if (object == nullptr) {
-        HILOG_ERROR("object is nullptr");
-        return objValue;
-    }
+    napi_value object = nullptr;
+    napi_create_object(env, &object);
 
     std::map<std::string, int> types = want.GetTypes();
     for (auto iter = types.begin(); iter != types.end(); iter++) {
         if (iter->second == AAFwk::VALUE_TYPE_BOOLEAN) {
             auto natValue = want.GetBoolParam(iter->first, false);
-            object->SetProperty(iter->first.c_str(), OHOS::AbilityRuntime::CreateJsValue(engine, natValue));
+            napi_set_named_property(env, object, iter->first.c_str(), 
+            OHOS::AbilityRuntime::CreateJsValue(env, natValue));
         } else if (iter->second == AAFwk::VALUE_TYPE_INT) {
             auto natValue = want.GetIntParam(iter->first, 0);
-            object->SetProperty(iter->first.c_str(), OHOS::AbilityRuntime::CreateJsValue(engine, natValue));
+            napi_set_named_property(env, object, iter->first.c_str(), 
+            OHOS::AbilityRuntime::CreateJsValue(env, natValue));
         } else if (iter->second == AAFwk::VALUE_TYPE_DOUBLE) {
             auto natValue = want.GetDoubleParam(iter->first, 0);
-            object->SetProperty(iter->first.c_str(), OHOS::AbilityRuntime::CreateJsValue(engine, natValue));
+            napi_set_named_property(env, object, iter->first.c_str(), 
+            OHOS::AbilityRuntime::CreateJsValue(env, natValue));
         } else if (iter->second == AAFwk::VALUE_TYPE_STRING) {
             auto natValue = want.GetStringParam(iter->first);
-            object->SetProperty(iter->first.c_str(), OHOS::AbilityRuntime::CreateJsValue(engine, natValue));
+            napi_set_named_property(env, object, iter->first.c_str(), 
+            OHOS::AbilityRuntime::CreateJsValue(env, natValue));
         }
     }
-    return objValue;
+    return object;
 }
 
 bool UnwrapWant(napi_env env, napi_value param, Want& want)

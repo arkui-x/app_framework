@@ -19,14 +19,21 @@
 
 namespace OHOS {
 namespace Rosen {
+const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
+
 int RSSystemProperties::GetDumpFrameNum()
 {
     return 0;
 }
 
-bool RSSystemProperties::GetRecordingEnabled()
+int RSSystemProperties::GetRecordingEnabled()
 {
-    return false;
+    return 0;
+}
+
+bool RSSystemProperties::IsPhoneType()
+{
+    return true;
 }
 
 void RSSystemProperties::SetRecordingDisenabled()
@@ -150,17 +157,22 @@ HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
     return {};
 }
 
-bool RSSystemProperties::GetColdStartThreadEnabled()
-{
-    return {};
-}
-
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 {
     return {};
 }
 
 bool RSSystemProperties::GetSkipGeometryNotChangeEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetPropertyDrawableEnable()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetAnimationCacheEnabled()
 {
     return {};
 }
@@ -188,6 +200,11 @@ int RSSystemProperties::GetFilterCacheUpdateInterval()
 int RSSystemProperties::GetFilterCacheSizeThreshold()
 {
     return 0;
+}
+
+bool RSSystemProperties::GetFilterPartialRenderEnabled()
+{
+    return false;
 }
 
 bool RSSystemProperties::GetKawaseEnabled()
@@ -220,12 +237,93 @@ bool RSSystemProperties::GetImageGpuResourceCacheEnable(int, int)
     return false;
 }
 
+float RSSystemProperties::GetKawaseRandomColorFactor()
+{
+    return 0.f;
+}
+
+bool RSSystemProperties::GetRandomColorEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetKawaseOriginalEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetBlurEnabled()
 {
     return true;
 }
 
+const std::vector<float>& RSSystemProperties::GetAiInvertCoef()
+{
+    // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
+    std::vector<float> aiInvertCoef = {0.0, 1.0, 0.55, 0.4, 1.6, 45.0};
+    return aiInvertCoef;
+}
+
 bool RSSystemProperties::GetDebugTraceEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSyncTransactionEnabled()
+{
+    return false;
+}
+
+int RSSystemProperties::GetSyncTransactionWaitDelay()
+{
+    return 0;
+}
+
+bool RSSystemProperties::GetSingleFrameComposerEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetUseShadowBatchingEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSubSurfaceEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetColorPickerPartialEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetMaskLinearBlurEnabled(){
+    return false;
+}
+
+bool RSSystemProperties::IsPcType()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetEffectMergeEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetDumpUICaptureEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetDumpUIPixelmapEnabled()
 {
     return false;
 }

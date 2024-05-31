@@ -56,18 +56,18 @@ std::shared_ptr<AppMain> AppMain::GetInstance()
     return instance_;
 }
 
-void AppMain::LaunchApplication()
+void AppMain::LaunchApplication(bool isCopyNativeLibs)
 {
     if (!eventHandler_) {
         HILOG_ERROR("eventHandler_ is nullptr");
         return;
     }
 
-    auto task = []() { AppMain::GetInstance()->ScheduleLaunchApplication(); };
+    auto task = [isCopyNativeLibs]() { AppMain::GetInstance()->ScheduleLaunchApplication(isCopyNativeLibs); };
     eventHandler_->PostTask(task);
 }
 
-void AppMain::ScheduleLaunchApplication()
+void AppMain::ScheduleLaunchApplication(bool isCopyNativeLibs)
 {
     HILOG_INFO("AppMain schedule launch application.");
     Ace::AceScopedTrace trace("ScheduleLaunchApplication");
@@ -87,7 +87,7 @@ void AppMain::ScheduleLaunchApplication()
     bundleContainer_->SetPidAndUid(pid_, uid_);
 #ifdef ANDROID_PLATFORM
     auto bundleName = bundleContainer_->GetBundleName();
-    if (!bundleName.empty()) {
+    if (isCopyNativeLibs && !bundleName.empty()) {
         StageAssetManager::GetInstance()->CopyNativeLibToAppDataModuleDir(bundleName);
     }
 #endif

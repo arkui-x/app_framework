@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 #include "native_engine/native_engine.h"
 
 extern const char _binary_context_js_start[];
@@ -25,7 +27,8 @@ extern const char* _binary_context_js_end;
 extern const char* _binary_context_abc_end;
 #endif
 
-extern "C" __attribute__((visibility("default"))) void NAPI_application_Context_GetJSCode(const char** buf, int* bufLen)
+extern "C" __attribute__((visibility("default"))) void NAPI_application_Context_GetJSCode(
+    const char** buf, int* bufLen)
 {
     if (buf != nullptr) {
         *buf = _binary_context_js_start;
@@ -48,15 +51,16 @@ extern "C" __attribute__((visibility("default"))) void NAPI_application_Context_
     }
 }
 
+static napi_module_with_js _module = {
+    .nm_version = 0,
+    .nm_filename = "application/libcontext_napi.so/context.js",
+    .nm_modname = "application.Context",
+    .nm_get_js_code = (GetJSCodeCallback)NAPI_application_Context_GetJSCode,
+    .nm_get_abc_code = (GetJSCodeCallback)NAPI_application_Context_GetABCCode,
+};
+
+
 extern "C" __attribute__((constructor)) void NAPI_application_Context_AutoRegister()
 {
-    auto moduleManager = NativeModuleManager::GetInstance();
-    NativeModule newModuleInfo = {
-        .name = "application.Context",
-        .fileName = "application/libcontext_napi.so/context.js",
-        .getJSCode = (GetJSCodeCallback)NAPI_application_Context_GetJSCode,
-        .getABCCode = (GetJSCodeCallback)NAPI_application_Context_GetABCCode,
-    };
-
-    moduleManager->Register(&newModuleInfo);
+    napi_module_with_js_register(&_module);
 }

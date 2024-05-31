@@ -15,7 +15,7 @@
 
 #include "singleton_container.h"
 #include <mutex>
-#include "hilog.h"
+#include "window_hilog.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -41,7 +41,7 @@ SingletonContainer::~SingletonContainer()
 
             for (const auto &[k, v] : stringMap) {
                 if (v == it->first) {
-                    HILOG_DEBUG("remove %{public}s", k.c_str());
+                    WLOGD("remove %{public}s", k.c_str());
                     break;
                 }
             }
@@ -56,10 +56,10 @@ void SingletonContainer::AddSingleton(const std::string& name, void* instance)
         static int32_t nextId = 0;
         singletonMap[nextId].value = instance;
         singletonMap[nextId].refCount = 0;
-        HILOG_INFO("add %{public}s", name.c_str());
+        WLOGI("add %{public}s", name.c_str());
         stringMap[name] = nextId++;
     } else {
-        HILOG_ERROR("add failed: %{public}s", name.c_str());
+        WLOGE("add failed: %{public}s", name.c_str());
     }
 }
 
@@ -68,7 +68,7 @@ void SingletonContainer::SetSingleton(const std::string& name, void* instance)
     if (stringMap.find(name) == stringMap.end()) {
         AddSingleton(name, instance);
     } else {
-        HILOG_INFO("set %{public}s", name.c_str());
+        WLOGI("set %{public}s", name.c_str());
         singletonMap[stringMap[name]].value = instance;
     }
 }
@@ -76,7 +76,7 @@ void SingletonContainer::SetSingleton(const std::string& name, void* instance)
 void* SingletonContainer::GetSingleton(const std::string& name)
 {
     if (stringMap.find(name) == stringMap.end()) {
-        HILOG_ERROR("can not get %{public}s", name.c_str());
+        WLOGE("can not get %{public}s", name.c_str());
         return nullptr;
     }
     return singletonMap[stringMap[name]].value;
@@ -86,7 +86,7 @@ void* SingletonContainer::DependOn(const std::string& instance, const std::strin
 {
     auto& instanceDependencySet = dependencySetMap[stringMap[instance]];
     if (instanceDependencySet.find(stringMap[name]) == instanceDependencySet.end()) {
-        HILOG_DEBUG("%{public}s DependOn %{public}s", instance.c_str(), name.c_str());
+        WLOGD("%{public}s DependOn %{public}s", instance.c_str(), name.c_str());
         instanceDependencySet.insert(stringMap[name]);
         singletonMap[stringMap[name]].refCount++;
     }

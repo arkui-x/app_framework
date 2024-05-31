@@ -94,8 +94,10 @@ template("ability_runtime_appkit_native") {
 
     if (target_os == "android") {
       defines += [ "ANDROID_PLATFORM" ]
+      deps += [ "//foundation/arkui/napi:ace_napi" ]
     } else if (target_os == "ios") {
       defines += [ "IOS_PLATFORM" ]
+      deps += [ "//foundation/arkui/napi:ace_napi" ]
     }
     deps += [ "//foundation/appframework/resource_management:global_resmgr" ]
   }
@@ -155,7 +157,7 @@ template("appkit_delegator_appkit_native") {
         "//plugins/hilog/include",
         "//plugins/interfaces",
       ]
-
+      deps += [ "//foundation/arkui/napi:ace_napi" ]
       if (target_os == "android") {
         defines += [ "ANDROID_PLATFORM" ]
       }

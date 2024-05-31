@@ -16,11 +16,12 @@
 #ifndef OHOS_ABILITY_RUNTIME_JS_TIMER_H
 #define OHOS_ABILITY_RUNTIME_JS_TIMER_H
 
+#include "napi/native_api.h"
 #include "native_engine/native_engine.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-void InitTimerModule(NativeEngine& engine, NativeObject& globalObject);
+void InitTimerModule(napi_env env, napi_value globalObject);
 } // namespace AbilityRuntime
 } // namespace OHOS
 

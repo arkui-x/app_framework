@@ -85,6 +85,10 @@ void Application::HandleAbilityStage(const AAFwk::Want& want)
     }
     abilityStageContext->SetHapModuleInfo(hapModuleInfo);
     abilityStageContext->SetConfiguration(configuration_);
+    auto rmg = applicationContext_->GetResourceManager();
+    if (rmg != nullptr) {
+        abilityStageContext->SetResourceManager(rmg);
+    }
     abilityStageContext->InitResourceManeger();
     applicationContext_->SetResourceManager(abilityStageContext->GetResourceManager());
 

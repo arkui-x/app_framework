@@ -20,7 +20,7 @@
 
 #include "class_var_definition.h"
 #include "singleton_container.h"
-#include "hilog.h"
+#include "window_hilog.h"
 
 namespace OHOS::Rosen {
 
@@ -53,7 +53,7 @@ DisplayId Display::GetId() const
 void Display::UpdateDisplayInfo(sptr<DisplayInfo> displayInfo) const
 {
     if (displayInfo == nullptr) {
-        HILOG_ERROR("displayInfo is invalid");
+        WLOGE("displayInfo is invalid");
         return;
     }
     pImpl_->SetDisplayInfo(displayInfo);

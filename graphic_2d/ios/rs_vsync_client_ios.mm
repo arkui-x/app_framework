@@ -23,6 +23,9 @@
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
 
+/* the coefficient of converting seconds to nanoseconds */
+constexpr int64_t SEC_TO_NANOSEC = 1000000000;
+
 @interface RSVsyncIOS : NSObject
 
 - (instancetype)init;
@@ -74,7 +77,7 @@ void RSVsyncClientIOS::SetVsyncCallback(VsyncCallback callback)
         displayLink_ = [[CADisplayLink displayLinkWithTarget:self selector:@selector(onDisplayLink:)] retain];
         displayLink_.paused = YES;
         [displayLink_ addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
-        lock_ = [[[NSLock alloc] init] retain];
+        lock_ = [[NSLock alloc] init];
     }
     return self;
 }
@@ -91,8 +94,9 @@ void RSVsyncClientIOS::SetVsyncCallback(VsyncCallback callback)
 
 - (void)onDisplayLink:(CADisplayLink*)link {
     displayLink_.paused = YES;
-    int64_t now = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count();
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    int64_t now = ts.tv_sec * SEC_TO_NANOSEC + ts.tv_nsec;
     [lock_ lock];
     callback_(now);
     [lock_ unlock];

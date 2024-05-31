@@ -15,21 +15,20 @@
 
 #ifndef OHOS_JS_DISPLAY_H
 #define OHOS_JS_DISPLAY_H
-#include <js_runtime_utils.h>
-#include <native_engine/native_engine.h>
-#include <native_engine/native_value.h>
-#include <refbase.h>
+
 #include "display.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
+#include "js_runtime_utils.h"
 
 namespace OHOS {
 namespace Rosen {
-std::shared_ptr<NativeReference> FindJsDisplayObject(DisplayId displayId);
-NativeValue* CreateJsDisplayObject(NativeEngine& engine, sptr<Display>& display);
+napi_value CreateJsDisplayObject(napi_env env, sptr<Display>& display);
 class JsDisplay final {
 public:
     explicit JsDisplay(const sptr<Display>& display);
     ~JsDisplay();
-    static void Finalizer(NativeEngine* engine, void* data, void* hint);
+    static void Finalizer(napi_env env, void* data, void* hint);
 private:
     sptr<Display> display_ = nullptr;
 };
