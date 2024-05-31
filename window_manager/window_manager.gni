@@ -1,0 +1,45 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//foundation/arkui/ace_engine/ace_config.gni")
+
+wm_is_ohos = current_os == "ohos"
+wm_is_android = current_os == "android"
+wm_is_ios = current_os == "ios" || current_os == "tvos"
+wm_is_mac = current_os == "mac"
+wm_is_win = current_os == "win" || current_os == "mingw"
+wm_is_linux = current_os == "linux"
+
+wm_common_define = []
+
+if (wm_is_ohos) {
+  wm_common_define += [ "WM_OHOS" ]
+}
+
+if (wm_is_android) {
+  wm_common_define += [ "WM_ANDROID" ]
+}
+
+if (wm_is_ios) {
+  wm_common_define += [ "WM_IOS" ]
+}
+
+app_framework_window_manager_path = "//foundation/appframework/window_manager"
+
+window_manager_napi_path = "${app_framework_window_manager_path}/interfaces"
+window_manager_subsystem_name = "window"
+window_manager_part_name = "window_manager"
+
+display_manager_napi_path = "${app_framework_window_manager_path}/interfaces"
+display_manager_subsystem_name = "display"
+display_manager_part_name = "display_manager"
