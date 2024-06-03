@@ -98,7 +98,7 @@ void RSVsyncClientIOS::SetVsyncCallback(VsyncCallback callback)
     clock_gettime(CLOCK_MONOTONIC, &ts);
     int64_t now = ts.tv_sec * SEC_TO_NANOSEC + ts.tv_nsec;
     [lock_ lock];
-    callback_(now);
+    callback_(now, 0);
     [lock_ unlock];
 }
 
