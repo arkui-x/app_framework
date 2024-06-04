@@ -54,7 +54,7 @@ void RSVsyncClientAndroid::OnVsync(long frameTimeNanos, void* data)
         client->having_ = false;
         int64_t now = static_cast<int64_t>(frameTimeNanos);
         std::unique_lock lock(client->mutex_);
-        client->vsyncCallback_(now);
+        client->vsyncCallback_(now, 0);
     }
 }
 

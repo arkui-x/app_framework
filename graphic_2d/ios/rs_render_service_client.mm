@@ -103,9 +103,13 @@ public:
             return GSERROR_NOT_INIT;
         }
 
-        auto func = [callback, this](int64_t time) {
-            handler_->PostTask([callback, time]() {
-                callback.callback_(time, callback.userData_);
+        auto func = [callback, this](int64_t time, int64_t frameCount) {
+            handler_->PostTask([callback, time, frameCount]() {
+                if (callback.callbackWithId_) {
+                    callback.callbackWithId_(time, frameCount, callback.userData_);
+                } else {
+                    callback.callback_(time, callback.userData_);
+                }
             });
         };
         client_->SetVsyncCallback(func);

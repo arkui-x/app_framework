@@ -32,12 +32,12 @@ DelegatorThread::DelegatorThread(bool isMain)
 bool DelegatorThread::Run(const DTask &task)
 {
     if (!task) {
-        HILOG_WARN("Invalid input parameter");
+        RESMGR_HILOGW(RESMGR_TAG, "Invalid input parameter");
         return false;
     }
 
     if (!handler_) {
-        HILOG_WARN("Invalid EventHandler");
+        RESMGR_HILOGW(RESMGR_TAG, "Invalid EventHandler");
         return false;
     }
 

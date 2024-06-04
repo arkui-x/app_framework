@@ -280,6 +280,11 @@ bool RSSystemProperties::GetDebugTraceEnabled()
     return false;
 }
 
+int RSSystemProperties::GetDebugTraceLevel()
+{
+    return 0;
+}
+
 bool RSSystemProperties::GetSyncTransactionEnabled()
 {
     return false;
