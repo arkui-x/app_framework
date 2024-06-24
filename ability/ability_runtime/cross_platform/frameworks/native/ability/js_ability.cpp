@@ -131,11 +131,6 @@ void JsAbility::Init(const std::shared_ptr<AppExecFwk::AbilityInfo>& abilityInfo
         HILOG_ERROR("contextObj is nullptr");
         return;
     }
-
-    if (contextObj == nullptr) {
-        HILOG_ERROR("Failed to get ability native object");
-        return;
-    }
     auto workContext = new (std::nothrow) std::weak_ptr<AbilityContext>(abilityContext);
     napi_coerce_to_native_binding_object(
         env, contextObj, DetachCallbackFunc, AttachJsAbilityContext, workContext, nullptr);

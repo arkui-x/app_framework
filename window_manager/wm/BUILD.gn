@@ -49,6 +49,12 @@ template("window_manager") {
       "../utils/include",
     ]
 
+    if (is_arkui_x) {
+      include_dirs += [
+        "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
+      ]
+    }
+
     sources = [
       "${app_framework_window_manager_path}/wm/src/window_option.cpp",
       "${app_framework_window_manager_path}/wm/src/window_stage.cpp",

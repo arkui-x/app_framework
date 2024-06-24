@@ -32,17 +32,21 @@ namespace Rosen {
 const std::string WINDOW_STAGE_EVENT_CB = "windowStageEvent";
 const std::string WINDOW_EVENT_CB = "windowEvent";
 
-class JsWindowListener : public IWindowLifeCycle {
+class JsWindowListener : public IWindowChangeListener,
+                         public IWindowLifeCycle {
 public:
     JsWindowListener(const std::string& caseType, napi_env env, napi_ref callback)
         : caseType_(caseType), engine_(env), jsCallBack_(callback), weakRef_(wptr<JsWindowListener> (this)) {}
     ~JsWindowListener();
+    void OnSizeChange(Rect rect) override;
     void AfterForeground() override;
     void AfterBackground() override;
     void AfterFocused() override;
     void AfterUnfocused() override;
     void CallJsMethod(napi_env env, const char* methodName, napi_value const* argv = nullptr, size_t argc = 0);
 private:
+    uint32_t currentWidth_ = 0;
+    uint32_t currentHeight_ = 0;
     WindowState state_ {WindowState::STATE_INITIAL};
     void LifeCycleCallBack(LifeCycleEventType eventType);
     std::string caseType_;

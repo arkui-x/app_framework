@@ -27,6 +27,7 @@ JsWindowRegisterManager::JsWindowRegisterManager()
     };
     // white register list for window
     listenerProcess_[CaseType::CASE_WINDOW] = {
+        { "windowSizeChange",              &JsWindowRegisterManager::ProcessSizeChangeRegister    },
         { "windowEvent",              &JsWindowRegisterManager::ProcessLifeCycleEventRegister    },
     };
     // white register list for window stage
@@ -42,6 +43,23 @@ JsWindowRegisterManager& JsWindowRegisterManager::GetInstance() {
 
 JsWindowRegisterManager::~JsWindowRegisterManager()
 {
+}
+
+WmErrorCode JsWindowRegisterManager::ProcessSizeChangeRegister(sptr<JsWindowListener> listener,
+    std::shared_ptr<Window> window, bool isRegister)
+{
+    if (window == nullptr) {
+        WLOGE("JsWindowRegisterManager::ProcessSizeChangeRegister : [NAPI]Window is nullptr");
+        return WmErrorCode::WM_ERROR_STATE_ABNORMALLY;
+    }
+    sptr<IWindowChangeListener> thisListener(listener);
+    WmErrorCode ret = WmErrorCode::WM_OK;
+    if (isRegister) {
+        ret = WM_JS_TO_ERROR_CODE_MAP.at(window->RegisterWindowChangeListener(thisListener));
+    } else {
+        ret = WM_JS_TO_ERROR_CODE_MAP.at(window->UnregisterWindowChangeListener(thisListener));
+    }
+    return ret;
 }
 
 WmErrorCode JsWindowRegisterManager::ProcessLifeCycleEventRegister(sptr<JsWindowListener> listener,

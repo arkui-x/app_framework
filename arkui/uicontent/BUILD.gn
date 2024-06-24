@@ -26,6 +26,7 @@ config("uicontent_config") {
     "//arkcompiler/runtime_core",
     "//third_party/libuv/include",
     "$root_out_dir/arkui/framework",
+    "//third_party/node/src",
   ]
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -81,6 +81,14 @@ public:
     {
         return isSystem_;
     }
+
+    napi_value CreateOverrideAddon(napi_env env, const std::shared_ptr<ResourceManager>& resMgr);
+
+    bool isOverrideAddon()
+    {
+        return isOverrideAddon_;
+    }
+
 private:
     static napi_value AddonGetResource(napi_env env, napi_callback_info info, const std::string& name,
         FunctionType type);
@@ -208,6 +216,14 @@ private:
 
     static napi_value GetSymbolByName(napi_env env, napi_callback_info info);
 
+    static napi_value IsRawDir(napi_env env, napi_callback_info info);
+
+    static napi_value GetOverrideResourceManager(napi_env env, napi_callback_info info);
+
+    static napi_value GetOverrideConfiguration(napi_env env, napi_callback_info info);
+
+    static napi_value UpdateOverrideConfiguration(napi_env env, napi_callback_info info);
+
     std::string bundleName_;
     std::shared_ptr<ResourceManager> resMgr_;
 #if defined(__ARKUI_CROSS__)
@@ -218,6 +234,7 @@ private:
     bool isSystem_;
     std::shared_ptr<ResourceManagerNapiContext> napiContext_;
     static napi_property_descriptor properties[];
+    bool isOverrideAddon_ = false;
 };
 } // namespace Resource
 } // namespace Global

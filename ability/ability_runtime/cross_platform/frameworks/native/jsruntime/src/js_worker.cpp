@@ -67,14 +67,14 @@ void InitWorkerFunc(NativeEngine* nativeEngine)
         HILOG_ERROR("Input nativeEngine is nullptr");
         return;
     }
-    
+
     napi_value globalObj = nullptr;
     napi_get_global(reinterpret_cast<napi_env>(nativeEngine), &globalObj);
     if (globalObj == nullptr) {
         HILOG_ERROR("Failed to get global object");
         return;
     }
-    
+
     InitConsoleLogModule(reinterpret_cast<napi_env>(nativeEngine), globalObj);
 
     if (g_debugMode) {
@@ -126,7 +126,7 @@ bool ReadAssetData(const std::string& filePath, std::vector<uint8_t>& content, b
 {
     char path[PATH_MAX];
 #if defined(ANDROID_PLATFORM)
-    content =  Platform::StageAssetProvider::GetInstance()->GetAbcPathBuffer(filePath);
+    content = Platform::StageAssetProvider::GetInstance()->GetAbcPathBuffer(filePath);
     return true;
 #else
     if (realpath(filePath.c_str(), path) == nullptr) {
@@ -147,7 +147,6 @@ bool ReadAssetData(const std::string& filePath, std::vector<uint8_t>& content, b
     }
 
     content.resize(fileLen);
-
     stream.seekg(0);
     stream.read(reinterpret_cast<char*>(content.data()), content.size());
     return true;
@@ -179,8 +178,8 @@ struct AssetHelper final {
         return normalizedFilePath;
     }
 
-    void operator()(const std::string& uri,
-        std::vector<uint8_t>& content, std::string &ami) const
+    void operator()(const std::string& uri, uint8_t** buff, size_t* buffSize, std::vector<uint8_t>& content,
+        std::string &ami, bool& useSecureMem, bool isRestricted = false) const
     {
         if (uri.empty()) {
             HILOG_ERROR("Uri is empty.");
@@ -243,8 +242,9 @@ struct AssetHelper final {
         ami = codePath_ + filePath;
 #endif
         HILOG_INFO("Get asset, ami: %{private}s", ami.c_str());
+        useSecureMem = false;
         if (!ReadAssetData(ami, content, isDebugVersion_)) {
-            HILOG_ERROR("Get asset content failed.");
+            HILOG_ERROR("Get asset buff failed.");
             return;
         }
     }

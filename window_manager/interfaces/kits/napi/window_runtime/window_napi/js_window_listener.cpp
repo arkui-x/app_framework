@@ -50,6 +50,41 @@ void JsWindowListener::CallJsMethod(napi_env env, const char* methodName, napi_v
     }
 }
 
+void JsWindowListener::OnSizeChange(Rect rect)
+{
+    WLOGI("[NAPI]OnSizeChange, wh[%{public}u, %{public}u]", rect.width_, rect.height_);
+    if (currentWidth_ == rect.width_ && currentHeight_ == rect.height_) {
+        WLOGI("[NAPI]no need to change size");
+        return;
+    }
+    // js callback should run in js thread
+    NapiAsyncTask::CompleteCallback jsCallback = 
+        [self = weakRef_, rect, eng = engine_, caseType = caseType_] 
+            (napi_env env, NapiAsyncTask &task, int32_t status) {
+            auto thisListener = self.promote();
+            if (thisListener == nullptr || eng == nullptr) {
+                WLOGE("[NAPI]this listener or eng is nullptr");
+                return;
+            }
+            napi_value objValue = nullptr;
+            napi_create_object(eng, &objValue);
+            if (objValue == nullptr) {
+                WLOGE("Failed to convert rect to jsObject");
+                return;
+            }
+            napi_set_named_property(eng, objValue, "width", CreateJsValue(eng, rect.width_));
+            napi_set_named_property(eng, objValue, "height", CreateJsValue(eng, rect.height_));
+            napi_value argv[] = {objValue};
+            thisListener->CallJsMethod(eng, caseType.c_str(), argv, ArraySize(argv));
+    };
+    napi_value result;
+    NapiAsyncTask::ScheduleHighQos("JsWindowListener::OnSizeChange",
+        engine_, CreateAsyncTaskWithLastParam(engine_, nullptr, nullptr, std::move(jsCallback), &result));
+    currentWidth_ = rect.width_;
+    currentHeight_ = rect.height_;
+
+}
+
 void JsWindowListener::LifeCycleCallBack(LifeCycleEventType eventType)
 {
     WLOGI("[NAPI]LifeCycleCallBack, envent type: %{public}u", eventType);

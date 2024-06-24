@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_frame_report.h"
+#include "rs_frame_report.h"
 
 namespace OHOS::Rosen {
 RsFrameReport& RsFrameReport::GetInstance()

@@ -381,6 +381,18 @@ void RenderContext::ClearRedundantResources()
 {
 }
 
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+std::string RenderContext::GetShaderCacheSize() const
+{
+    return "";
+}
+
+std::string RenderContext::CleanAllShaderCache() const
+{
+    return "";
+}
+#endif
+
 RenderContextFactory& RenderContextFactory::GetInstance()
 {
     static RenderContextFactory rf;

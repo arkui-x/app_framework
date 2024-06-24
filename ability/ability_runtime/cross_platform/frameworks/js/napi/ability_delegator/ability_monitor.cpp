@@ -28,7 +28,7 @@ AbilityMonitor::AbilityMonitor(const std::string &name, const std::shared_ptr<JS
 
 void AbilityMonitor::OnAbilityStart(const std::weak_ptr<NativeReference> &abilityObj)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     if (jsMonitor_ == nullptr) {
         return;
@@ -36,12 +36,12 @@ void AbilityMonitor::OnAbilityStart(const std::weak_ptr<NativeReference> &abilit
 
     jsMonitor_->OnAbilityCreate(abilityObj);
 
-    HILOG_INFO("exit");
+    RESMGR_HILOGI(RESMGR_TAG, "exit");
 }
 
 void AbilityMonitor::OnAbilityForeground(const std::weak_ptr<NativeReference> &abilityObj)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     if (jsMonitor_ == nullptr) {
         return;
@@ -49,12 +49,12 @@ void AbilityMonitor::OnAbilityForeground(const std::weak_ptr<NativeReference> &a
 
     jsMonitor_->OnAbilityForeground(abilityObj);
 
-    HILOG_INFO("exit");
+    RESMGR_HILOGI(RESMGR_TAG, "exit");
 }
 
 void AbilityMonitor::OnAbilityBackground(const std::weak_ptr<NativeReference> &abilityObj)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     if (jsMonitor_ == nullptr) {
         return;
@@ -62,12 +62,12 @@ void AbilityMonitor::OnAbilityBackground(const std::weak_ptr<NativeReference> &a
 
     jsMonitor_->OnAbilityBackground(abilityObj);
 
-    HILOG_INFO("exit");
+    RESMGR_HILOGI(RESMGR_TAG, "exit");
 }
 
 void AbilityMonitor::OnAbilityStop(const std::weak_ptr<NativeReference> &abilityObj)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     if (jsMonitor_ == nullptr) {
         return;
@@ -75,12 +75,12 @@ void AbilityMonitor::OnAbilityStop(const std::weak_ptr<NativeReference> &ability
 
     jsMonitor_->OnAbilityDestroy(abilityObj);
 
-    HILOG_INFO("exit");
+    RESMGR_HILOGI(RESMGR_TAG, "exit");
 }
 
 void AbilityMonitor::OnWindowStageCreate(const std::weak_ptr<NativeReference> &abilityObj)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     if (jsMonitor_ == nullptr) {
         return;
@@ -88,12 +88,12 @@ void AbilityMonitor::OnWindowStageCreate(const std::weak_ptr<NativeReference> &a
 
     jsMonitor_->OnWindowStageCreate(abilityObj);
 
-    HILOG_INFO("exit");
+    RESMGR_HILOGI(RESMGR_TAG, "exit");
 }
 
 void AbilityMonitor::OnWindowStageRestore(const std::weak_ptr<NativeReference> &abilityObj)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     if (jsMonitor_ == nullptr) {
         return;
@@ -101,12 +101,12 @@ void AbilityMonitor::OnWindowStageRestore(const std::weak_ptr<NativeReference> &
 
     jsMonitor_->OnWindowStageRestore(abilityObj);
 
-    HILOG_INFO("exit");
+    RESMGR_HILOGI(RESMGR_TAG, "exit");
 }
 
 void AbilityMonitor::OnWindowStageDestroy(const std::weak_ptr<NativeReference> &abilityObj)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     if (jsMonitor_ == nullptr) {
         return;
@@ -114,7 +114,7 @@ void AbilityMonitor::OnWindowStageDestroy(const std::weak_ptr<NativeReference> &
 
     jsMonitor_->OnWindowStageDestroy(abilityObj);
 
-    HILOG_INFO("exit");
+    RESMGR_HILOGI(RESMGR_TAG, "exit");
 }
 }  // namespace AbilityDelegatorJs
 }  // namespace OHOS

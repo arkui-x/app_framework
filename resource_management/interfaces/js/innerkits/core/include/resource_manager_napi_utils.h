@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -42,6 +42,8 @@ public:
 
     static napi_value CreateJsConfig(napi_env env, ResMgrDataContext& context);
 
+    static napi_value CreateOverrideJsConfig(napi_env env, ResMgrDataContext& context);
+
     static napi_value CreateJsNumber(napi_env env, ResMgrDataContext& context);
 
     static napi_value CreateJsBool(napi_env env, ResMgrDataContext& context);
@@ -68,6 +70,8 @@ public:
 
     static RState GetIncludeSystem(napi_env env, napi_value value, bool &includeSystem);
 
+    static RState GetConfigObject(napi_env env, napi_value object, std::unique_ptr<ResMgrDataContext> &dataContext);
+
 private:
 
     static const std::unordered_map<int32_t, std::string> ErrorCodeToMsg;
@@ -81,6 +85,15 @@ private:
         napi_value &value, int32_t type);
 
     static std::string GetLocale(std::unique_ptr<ResConfig> &cfg);
+
+    static napi_value CreateConfig(napi_env env, ResMgrDataContext& context, std::unique_ptr<ResConfig> &cfg);
+
+    static bool SetIntProperty(napi_env env, ResMgrDataContext& context,
+        napi_value &object, const std::string &property, const int &value);
+
+    static bool GetEnumParamOfConfig(napi_env env, std::shared_ptr<ResConfig> configPtr, napi_value &object);
+
+    static bool GetLocaleOfConfig(napi_env env, std::shared_ptr<ResConfig> configPtr, napi_value &object);
 };
 } // namespace Resource
 } // namespace Global

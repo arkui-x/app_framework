@@ -36,7 +36,7 @@ public:
 
     static void Finalizer(napi_env env, void *data, void *hint)
     {
-        HILOG_INFO("enter");
+        RESMGR_HILOGI(RESMGR_TAG, "enter");
         reference.reset();
         std::unique_ptr<JsAbilityDelegatorRegistry>(static_cast<JsAbilityDelegatorRegistry *>(data));
     }
@@ -54,9 +54,9 @@ public:
 private:
     napi_value OnGetAbilityDelegator(napi_env env, size_t argc, napi_value* argv)
     {
-        HILOG_INFO("enter");
+        RESMGR_HILOGI(RESMGR_TAG, "enter");
         if (!AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator()) {
-            HILOG_ERROR("Failed to get delegator object");
+            RESMGR_HILOGE(RESMGR_TAG, "Failed to get delegator object");
             return CreateJsNull(env);
         }
 
@@ -72,12 +72,12 @@ private:
 
     napi_value OnGetArguments(napi_env env, size_t argc, napi_value* argv)
     {
-        HILOG_INFO("enter");
+        RESMGR_HILOGI(RESMGR_TAG, "enter");
 
         std::shared_ptr<AppExecFwk::AbilityDelegatorArgs> abilityDelegatorArgs =
             AppExecFwk::AbilityDelegatorRegistry::GetArguments();
         if (!abilityDelegatorArgs) {
-            HILOG_ERROR("Failed to get delegator args object");
+            RESMGR_HILOGE(RESMGR_TAG, "Failed to get delegator args object");
             return CreateJsNull(env);
         }
         return CreateJsAbilityDelegatorArguments(env, abilityDelegatorArgs);
@@ -87,9 +87,9 @@ private:
 
 napi_value JsAbilityDelegatorRegistryInit(napi_env env, napi_value exportObj)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
     if (env == nullptr || exportObj == nullptr) {
-        HILOG_ERROR("Invalid input parameters");
+        RESMGR_HILOGE(RESMGR_TAG, "Invalid input parameters");
         return nullptr;
     }
     
@@ -109,10 +109,10 @@ napi_value JsAbilityDelegatorRegistryInit(napi_env env, napi_value exportObj)
 
 napi_value AbilityLifecycleStateInit(napi_env env)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     if (env == nullptr) {
-        HILOG_ERROR("Invalid input parameters");
+        RESMGR_HILOGE(RESMGR_TAG, "Invalid input parameters");
         return nullptr;
     }
 
@@ -120,7 +120,7 @@ napi_value AbilityLifecycleStateInit(napi_env env)
     napi_create_object(env, &objValue);
 
     if (objValue == nullptr) {
-        HILOG_ERROR("Failed to get object");
+        RESMGR_HILOGE(RESMGR_TAG, "Failed to get object");
         return nullptr;
     }
 

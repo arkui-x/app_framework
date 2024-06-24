@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,10 +16,10 @@
 #include "resource_manager_napi_sync_impl.h"
 
 #include <unordered_map>
-#if !defined(__ARKUI_CROSS__)
+
 #include "drawable_descriptor.h"
 #include "js_drawable_descriptor.h"
-#endif
+#include "resource_manager_addon.h"
 #include "resource_manager_napi_utils.h"
 namespace OHOS {
 namespace Global {
@@ -44,10 +44,8 @@ std::unordered_map<std::string, std::function<napi_value(napi_env&, napi_callbac
     {"GetBooleanByName", std::bind(&ResourceManagerNapiSyncImpl::GetBooleanByName, _1, _2)},
     {"GetNumber", std::bind(&ResourceManagerNapiSyncImpl::GetNumber, _1, _2)},
     {"GetNumberByName", std::bind(&ResourceManagerNapiSyncImpl::GetNumberByName, _1, _2)},
-#if !defined(__ARKUI_CROSS__)
     {"GetDrawableDescriptor", std::bind(&ResourceManagerNapiSyncImpl::GetDrawableDescriptor, _1, _2)},
     {"GetDrawableDescriptorByName", std::bind(&ResourceManagerNapiSyncImpl::GetDrawableDescriptorByName, _1, _2)},
-#endif
     {"GetColorSync", std::bind(&ResourceManagerNapiSyncImpl::GetColorSync, _1, _2)},
     {"GetColorByNameSync", std::bind(&ResourceManagerNapiSyncImpl::GetColorByNameSync, _1, _2)},
     {"AddResource", std::bind(&ResourceManagerNapiSyncImpl::AddResource, _1, _2)},
@@ -68,7 +66,11 @@ std::unordered_map<std::string, std::function<napi_value(napi_env&, napi_callbac
     {"GetDeviceCapabilitySync", std::bind(&ResourceManagerNapiSyncImpl::GetDeviceCapabilitySync, _1, _2)},
     {"GetLocales", std::bind(&ResourceManagerNapiSyncImpl::GetLocales, _1, _2)},
     {"GetSymbol", std::bind(&ResourceManagerNapiSyncImpl::GetSymbol, _1, _2)},
-    {"GetSymbolByName", std::bind(&ResourceManagerNapiSyncImpl::GetSymbolByName, _1, _2)}
+    {"GetSymbolByName", std::bind(&ResourceManagerNapiSyncImpl::GetSymbolByName, _1, _2)},
+    {"IsRawDir", std::bind(&ResourceManagerNapiSyncImpl::IsRawDir, _1, _2)},
+    {"GetOverrideResourceManager", std::bind(&ResourceManagerNapiSyncImpl::GetOverrideResourceManager, _1, _2)},
+    {"GetOverrideConfiguration", std::bind(&ResourceManagerNapiSyncImpl::GetOverrideConfiguration, _1, _2)},
+    {"UpdateOverrideConfiguration", std::bind(&ResourceManagerNapiSyncImpl::UpdateOverrideConfiguration, _1, _2)}
 };
 
 napi_value ResourceManagerNapiSyncImpl::GetResource(napi_env env, napi_callback_info info,
@@ -665,7 +667,7 @@ napi_value ResourceManagerNapiSyncImpl::GetStringArrayValueSync(napi_env env, na
 
     return ResourceManagerNapiUtils::CreateJsArray(env, *dataContext);
 }
-#if !defined(__ARKUI_CROSS__)
+
 napi_value ResourceManagerNapiSyncImpl::GetDrawableDescriptor(napi_env env, napi_callback_info info)
 {
     GET_PARAMS(env, info, PARAMS_NUM_THREE);
@@ -697,15 +699,15 @@ napi_value ResourceManagerNapiSyncImpl::GetDrawableDescriptor(napi_env env, napi
     RState state = SUCCESS;
     Ace::Napi::DrawableDescriptor::DrawableType drawableType;
     if (dataContext->iconType_ == 1) {
-        std::tuple<int32_t, uint32_t, uint32_t> drawableInfo(resId, dataContext->iconType_, dataContext->density_);
-        auto drawableDescriptor = Ace::Napi::DrawableDescriptorFactory::Create(drawableInfo, resMgr,
-            state, drawableType);
-        if (state != SUCCESS) {
-            dataContext->SetErrorMsg("Failed to Create drawableDescriptor", true);
-            ResourceManagerNapiUtils::NapiThrow(env, state);
-            return nullptr;
+        std::string themeMask = resMgr->GetThemeMask();
+        std::pair<std::unique_ptr<uint8_t[]>, size_t> foregroundInfo;
+        std::pair<std::unique_ptr<uint8_t[]>, size_t> backgroundInfo;
+        state = resMgr->GetThemeIcons(resId, foregroundInfo, backgroundInfo, dataContext->density_);
+        if (state == SUCCESS) {
+            auto drawableDescriptor = Ace::Napi::DrawableDescriptorFactory::Create(foregroundInfo, backgroundInfo,
+                themeMask, drawableType, resMgr);
+            return Ace::Napi::JsDrawableDescriptor::ToNapi(env, drawableDescriptor.release(), drawableType);
         }
-        return Ace::Napi::JsDrawableDescriptor::ToNapi(env, drawableDescriptor.release(), drawableType);
     }
     auto drawableDescriptor = Ace::Napi::DrawableDescriptorFactory::Create(resId, resMgr,
         state, drawableType, dataContext->density_);
@@ -716,7 +718,6 @@ napi_value ResourceManagerNapiSyncImpl::GetDrawableDescriptor(napi_env env, napi
     }
     return Ace::Napi::JsDrawableDescriptor::ToNapi(env, drawableDescriptor.release(), drawableType);
 }
-#endif
 
 int32_t ResourceManagerNapiSyncImpl::InitNameAddon(napi_env env, napi_callback_info info,
     std::unique_ptr<ResMgrDataContext> &dataContext)
@@ -904,7 +905,7 @@ napi_value ResourceManagerNapiSyncImpl::GetBooleanByName(napi_env env, napi_call
 
     return ResourceManagerNapiUtils::CreateJsBool(env, *dataContext);
 }
-#if !defined(__ARKUI_CROSS__)
+
 napi_value ResourceManagerNapiSyncImpl::GetDrawableDescriptorByName(napi_env env, napi_callback_info info)
 {
     GET_PARAMS(env, info, PARAMS_NUM_THREE);
@@ -954,7 +955,6 @@ napi_value ResourceManagerNapiSyncImpl::GetDrawableDescriptorByName(napi_env env
     }
     return Ace::Napi::JsDrawableDescriptor::ToNapi(env, drawableDescriptor.release(), drawableType);
 }
-#endif
 
 std::shared_ptr<ResourceManager> GetNativeResoruceManager(napi_env env, napi_callback_info info)
 {
@@ -1196,6 +1196,98 @@ napi_value ResourceManagerNapiSyncImpl::GetLocales(napi_env env, napi_callback_i
     }
     dataContext->addon_->GetResMgr()->GetLocales(dataContext->arrayValue_, dataContext->bValue_);
     return ResourceManagerNapiUtils::CreateJsArray(env, *dataContext);
+}
+
+napi_value ResourceManagerNapiSyncImpl::IsRawDir(napi_env env, napi_callback_info info)
+{
+    GET_PARAMS(env, info, PARAMS_NUM_TWO);
+    auto dataContext = std::make_unique<ResMgrDataContext>();
+
+    int32_t ret = InitPathAddon(env, info, dataContext);
+    if (ret != RState::SUCCESS) {
+        HiLog::Error(LABEL, "Failed to init para in IsRawDir by %{public}s", dataContext->path_.c_str());
+        ResourceManagerNapiUtils::NapiThrow(env, ret);
+        return nullptr;
+    }
+
+    RState state = dataContext->addon_->GetResMgr()->IsRawDirFromHap(dataContext->path_,
+        dataContext->bValue_);
+    if (state != RState::SUCCESS) {
+        HiLog::Error(LABEL, "Failed to determine the raw file is directory by %{public}s", dataContext->path_.c_str());
+        ResourceManagerNapiUtils::NapiThrow(env, state);
+        return nullptr;
+    }
+    return ResourceManagerNapiUtils::CreateJsBool(env, *dataContext);
+}
+
+napi_value ResourceManagerNapiSyncImpl::GetOverrideResourceManager(napi_env env, napi_callback_info info)
+{
+    auto dataContext = std::make_unique<ResMgrDataContext>();
+    int32_t state = getAddonAndConfig(env, info, dataContext);
+    if (state != RState::SUCCESS) {
+        dataContext->SetErrorMsg("Failed to get param in GetOverrideResourceManager", false);
+        ResourceManagerNapiUtils::NapiThrow(env, state);
+        return nullptr;
+    }
+
+    std::shared_ptr<ResourceManager> resMgr = dataContext->addon_->GetResMgr();
+    std::shared_ptr<ResourceManager> overrideResMgr = resMgr->GetOverrideResourceManager(
+        dataContext->overrideResConfig_);
+    if (overrideResMgr == nullptr) {
+        dataContext->SetErrorMsg("GetOverrideResourceManager, overrideResMgr is null", false);
+        HiLog::Error(LABEL, "GetOverrideResourceManager, overrideResMgr is null");
+        ResourceManagerNapiUtils::NapiThrow(env, ERROR_CODE_INVALID_INPUT_PARAMETER);
+        return nullptr;
+    }
+    return dataContext->addon_->CreateOverrideAddon(env, overrideResMgr);
+}
+
+RState ResourceManagerNapiSyncImpl::getAddonAndConfig(napi_env env, napi_callback_info info,
+    std::unique_ptr<ResMgrDataContext> &dataContext)
+{
+    GET_PARAMS(env, info, PARAMS_NUM_TWO);
+    dataContext->addon_ = ResMgrDataContext::GetResourceManagerAddon(env, info);
+    if (dataContext->addon_ == nullptr) {
+        HiLog::Error(LABEL, "getAddonAndConfig failed to get addon");
+        return ERROR_CODE_INVALID_INPUT_PARAMETER;
+    }
+    if (ResourceManagerNapiUtils::GetConfigObject(env, argv[ARRAY_SUBCRIPTOR_ZERO], dataContext) != SUCCESS) {
+        HiLog::Error(LABEL, "getAddonAndConfig failed to get resConfig");
+        return ERROR_CODE_INVALID_INPUT_PARAMETER;
+    }
+    return SUCCESS;
+}
+
+napi_value ResourceManagerNapiSyncImpl::GetOverrideConfiguration(napi_env env, napi_callback_info info)
+{
+    auto dataContext = std::make_unique<ResMgrDataContext>();
+    dataContext->addon_ = ResMgrDataContext::GetResourceManagerAddon(env, info);
+    if (dataContext->addon_ == nullptr) {
+        HiLog::Error(LABEL, "GetOverrideConfiguration failed to get addon");
+        return nullptr;
+    }
+    return ResourceManagerNapiUtils::CreateOverrideJsConfig(env, *dataContext);
+}
+
+napi_value ResourceManagerNapiSyncImpl::UpdateOverrideConfiguration(napi_env env, napi_callback_info info)
+{
+    auto dataContext = std::make_unique<ResMgrDataContext>();
+    int32_t state = getAddonAndConfig(env, info, dataContext);
+    if (state != RState::SUCCESS) {
+        dataContext->SetErrorMsg("Failed to get param in GetOverrideResourceManager", false);
+        HiLog::Error(LABEL, "Failed to get param in GetOverrideResourceManager");
+        ResourceManagerNapiUtils::NapiThrow(env, state);
+        return nullptr;
+    }
+
+    std::shared_ptr<ResourceManager> resMgr = dataContext->addon_->GetResMgr();
+    state = resMgr->UpdateOverrideResConfig(*dataContext->overrideResConfig_);
+    if (state != RState::SUCCESS) {
+        dataContext->SetErrorMsg("UpdateOverrideConfiguration failed due to invalid config", false);
+        HiLog::Error(LABEL, "UpdateOverrideConfiguration failed due to invalid config");
+        ResourceManagerNapiUtils::NapiThrow(env, ERROR_CODE_INVALID_INPUT_PARAMETER);
+    }
+    return nullptr;
 }
 } // namespace Resource
 } // namespace Global

@@ -11,7 +11,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//arkcompiler/ets_frontend/ts2panda/ts2abc_config.gni")
 import("//build/ohos.gni")
 import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
 import("//foundation/arkui/ace_engine/build/ace_gen_obj.gni")

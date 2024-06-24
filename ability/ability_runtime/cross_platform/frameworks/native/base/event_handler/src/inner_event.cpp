@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,7 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+constexpr static uint32_t DEFAULT_INDEX = 0u;
 namespace {
 class WaiterImp final : public InnerEvent::Waiter {
 public:
@@ -167,6 +168,23 @@ InnerEvent::Pointer InnerEvent::Get(uint32_t innerEventId, int64_t param)
     return event;
 }
 
+InnerEvent::Pointer InnerEvent::Get(const EventId& innerEventId, int64_t param)
+{
+    auto event = InnerEventPool::GetInstance().Get();
+    if (event != nullptr) {
+        event->innerEventId_ = innerEventId;
+        event->param_ = param;
+        if (innerEventId.index() == TYPE_U32_INDEX) {
+            HILOG_INFO("InnerEventId is %{public}u",
+                std::get<uint32_t>(innerEventId));
+        } else {
+            HILOG_INFO("InnerEventId is %{public}s",
+                std::get<std::string>(innerEventId).c_str());
+        }
+    }
+    return event;
+}
+
 InnerEvent::Pointer InnerEvent::Get(const Callback& callback, const std::string& name)
 {
     // Returns nullptr while callback is invalid.
@@ -234,6 +252,14 @@ const std::shared_ptr<HiTraceId> InnerEvent::GetTraceId()
     return hiTraceId_;
 }
 
+uint32_t InnerEvent::GetInnerEventId() const
+{
+    if (innerEventId_.index() != TYPE_U32_INDEX) {
+        return DEFAULT_INDEX;
+    }
+    return std::get<uint32_t>(innerEventId_);
+}
+
 std::string InnerEvent::Dump()
 {
     std::string content;
@@ -243,7 +269,11 @@ std::string InnerEvent::Dump()
         if (HasTask()) {
             content.append("task name = " + taskName_);
         } else {
-            content.append("id = " + std::to_string(innerEventId_));
+            if (innerEventId_.index() == TYPE_U32_INDEX) {
+                content.append(", id = " + std::to_string(std::get<uint32_t>(innerEventId_)));
+            } else {
+                content.append(", id = " + std::get<std::string>(innerEventId_));
+            }
         }
         if (param_ != 0) {
             content.append(", param = " + std::to_string(param_));

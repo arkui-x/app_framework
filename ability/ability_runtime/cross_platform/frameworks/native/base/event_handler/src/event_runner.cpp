@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -318,7 +318,13 @@ public:
                 std::shared_ptr<Logger> logging = logger_;
                 if (logging != nullptr) {
                     if (!event->HasTask()) {
-                        logging->Log("Dispatching to handler event id = " + std::to_string(event->GetInnerEventId()));
+                        InnerEvent::EventId eventId = event->GetInnerEventIdEx();
+                        if (eventId.index() == TYPE_U32_INDEX) {
+                            logging->Log(
+                                "Dispatching to handler event id = " + std::to_string(std::get<uint32_t>(eventId)));
+                        } else {
+                            logging->Log("Dispatching to handler event id = " + std::get<std::string>(eventId));
+                        }
                     } else {
                         logging->Log("Dispatching to handler event task name = " + event->GetTaskName());
                     }

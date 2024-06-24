@@ -40,7 +40,6 @@ typedef struct objc_object CAEAGLLayer;
 namespace OHOS {
 namespace Rosen {
 class RenderContext;
-class RSSurfaceTextureIOS;
 class RSSurfaceGPU : public RSSurface {
 public:
     RSSurfaceGPU(void* layer);
@@ -53,7 +52,7 @@ public:
     }
 
     std::unique_ptr<RSSurfaceFrame> RequestFrame(
-        int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC = true) override;
+        int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC = true, bool isProtected = false) override;
 
     bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
     uint32_t GetQueueSize() const override;
@@ -78,7 +77,7 @@ private:
     sk_sp<SkColorSpace> skColorSpace_ = nullptr;
     CAEAGLLayer* layer_ = nullptr;
     RenderContext *renderContext_ = nullptr;
-    std::shared_ptr<RSSurfaceTextureIOS> texture_;
+    RSSurfaceExtPtr texture_;
 };
 
 } // namespace Rosen

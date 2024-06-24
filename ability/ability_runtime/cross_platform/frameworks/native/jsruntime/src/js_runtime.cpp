@@ -121,8 +121,6 @@ public:
         postOption.SetBundleName(bundleName_);
         postOption.SetAnDir(appLibPath_ + "/aot/");
         postOption.SetEnableProfile(false);
-        panda::JSNApi::PostFork(vm_, postOption);
-        panda::JSNApi::LoadAotFile(vm_, moduleName);
     }
 
 private:
