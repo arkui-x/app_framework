@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,14 +26,14 @@ napi_value CreateJsWant(napi_env env, const Want &want)
     napi_value object = nullptr;
     napi_create_object(env, &object);
 
-    napi_set_named_property(env, object, "bundleName", 
-    AbilityRuntime::CreateJsValue(env, want.GetBundleName()));
-    napi_set_named_property(env, object, "abilityName", 
-    AbilityRuntime::CreateJsValue(env, want.GetAbilityName()));
-    napi_set_named_property(env, object, "moduleName", 
-    AbilityRuntime::CreateJsValue(env, want.GetModuleName()));
-    napi_set_named_property(env, object, "parameters", 
-    CreateJsWantParams(env, want));
+    napi_set_named_property(env, object, "bundleName",
+        AbilityRuntime::CreateJsValue(env, want.GetBundleName()));
+    napi_set_named_property(env, object, "abilityName",
+        AbilityRuntime::CreateJsValue(env, want.GetAbilityName()));
+    napi_set_named_property(env, object, "moduleName",
+        AbilityRuntime::CreateJsValue(env, want.GetModuleName()));
+    napi_set_named_property(env, object, "parameters",
+        CreateJsWantParams(env, want));
     return object;
 }
 
@@ -46,23 +46,128 @@ napi_value CreateJsWantParams(napi_env env, const Want& want)
     for (auto iter = types.begin(); iter != types.end(); iter++) {
         if (iter->second == AAFwk::VALUE_TYPE_BOOLEAN) {
             auto natValue = want.GetBoolParam(iter->first, false);
-            napi_set_named_property(env, object, iter->first.c_str(), 
-            OHOS::AbilityRuntime::CreateJsValue(env, natValue));
+            napi_set_named_property(env, object, iter->first.c_str(),
+                OHOS::AbilityRuntime::CreateJsValue(env, natValue));
         } else if (iter->second == AAFwk::VALUE_TYPE_INT) {
             auto natValue = want.GetIntParam(iter->first, 0);
-            napi_set_named_property(env, object, iter->first.c_str(), 
-            OHOS::AbilityRuntime::CreateJsValue(env, natValue));
+            napi_set_named_property(env, object, iter->first.c_str(),
+                OHOS::AbilityRuntime::CreateJsValue(env, natValue));
         } else if (iter->second == AAFwk::VALUE_TYPE_DOUBLE) {
             auto natValue = want.GetDoubleParam(iter->first, 0);
-            napi_set_named_property(env, object, iter->first.c_str(), 
-            OHOS::AbilityRuntime::CreateJsValue(env, natValue));
+            napi_set_named_property(env, object, iter->first.c_str(),
+                OHOS::AbilityRuntime::CreateJsValue(env, natValue));
         } else if (iter->second == AAFwk::VALUE_TYPE_STRING) {
             auto natValue = want.GetStringParam(iter->first);
-            napi_set_named_property(env, object, iter->first.c_str(), 
-            OHOS::AbilityRuntime::CreateJsValue(env, natValue));
+            napi_set_named_property(env, object, iter->first.c_str(),
+                OHOS::AbilityRuntime::CreateJsValue(env, natValue));
         }
     }
     return object;
+}
+
+bool InnerWrapWantParamsStringByWant(
+    napi_env env, napi_value jsObject, const std::string &key, const Want &want)
+{
+    auto natValue = want.GetStringParam(key);
+    napi_value jsValue = WantStringToJSValue(env, natValue);
+    if (jsValue == nullptr) {
+        return false;
+    }
+
+    NAPI_CALL_BASE(env, napi_set_named_property(env, jsObject, key.c_str(), jsValue), false);
+    return true;
+}
+
+bool InnerWrapWantParamsBoolByWant(
+    napi_env env, napi_value jsObject, const std::string &key, const Want &want)
+{
+    auto natValue = want.GetBoolParam(key, false);
+    napi_value jsValue = WantBoolToJSValue(env, natValue);
+    if (jsValue == nullptr) {
+        return false;
+    }
+
+    NAPI_CALL_BASE(env, napi_set_named_property(env, jsObject, key.c_str(), jsValue), false);
+    return true;
+}
+
+bool InnerWrapWantParamsDoubleByWant(
+    napi_env env, napi_value jsObject, const std::string &key, const Want &want)
+{
+    auto natValue = want.GetDoubleParam(key, 0);
+    napi_value jsValue = WantDoubleToJSValue(env, natValue);
+    if (jsValue == nullptr) {
+        return false;
+    }
+
+    NAPI_CALL_BASE(env, napi_set_named_property(env, jsObject, key.c_str(), jsValue), false);
+    return true;
+}
+
+bool InnerWrapWantParamsInt32ByWant(
+    napi_env env, napi_value jsObject, const std::string &key, const Want &want)
+{
+    auto natValue = want.GetIntParam(key, 0);
+    napi_value jsValue = WantInt32ToJSValue(env, natValue);
+    if (jsValue == nullptr) {
+        return false;
+    }
+
+    NAPI_CALL_BASE(env, napi_set_named_property(env, jsObject, key.c_str(), jsValue), false);
+    return true;
+}
+
+napi_value WrapWantParamsByWant(napi_env env, const Want &want)
+{
+    napi_value jsObject = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &jsObject));
+
+    const std::map<std::string, std::shared_ptr<void>> paramList = want.GetParams();
+    std::map<std::string, int> paramTypes = want.GetTypes();
+
+    for (auto iter = paramList.begin(); iter != paramList.end(); iter++) {
+        auto key = iter->first;
+        auto it = paramTypes.find(key);
+        if (it != paramTypes.end()) {
+            if (it->second == AAFwk::VALUE_TYPE_BOOLEAN) {
+                InnerWrapWantParamsBoolByWant(env, jsObject, iter->first, want);
+            } else if (it->second == AAFwk::VALUE_TYPE_INT) {
+                InnerWrapWantParamsInt32ByWant(env, jsObject, iter->first, want);
+            } else if (it->second == AAFwk::VALUE_TYPE_DOUBLE) {
+                InnerWrapWantParamsDoubleByWant(env, jsObject, iter->first, want);
+            }  else if (it->second == AAFwk::VALUE_TYPE_STRING) {
+                InnerWrapWantParamsStringByWant(env, jsObject, iter->first, want);
+            }
+        }
+    }
+
+    return jsObject;
+}
+
+napi_value WrapWant(napi_env env, const Want &want)
+{
+    napi_value jsObject = nullptr;
+    napi_value jsValue = nullptr;
+
+    NAPI_CALL(env, napi_create_object(env, &jsObject));
+
+    jsValue = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, want.GetBundleName().c_str(), NAPI_AUTO_LENGTH, &jsValue));
+    NAPI_CALL(env, napi_set_named_property(env, jsObject, "bundleName", jsValue));
+
+    jsValue = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, want.GetAbilityName().c_str(), NAPI_AUTO_LENGTH, &jsValue));
+    NAPI_CALL(env, napi_set_named_property(env, jsObject, "abilityName", jsValue));
+
+    jsValue = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, want.GetModuleName().c_str(), NAPI_AUTO_LENGTH, &jsValue));
+    NAPI_CALL(env, napi_set_named_property(env, jsObject, "moduleName", jsValue));
+
+    jsValue = nullptr;
+    jsValue = WrapWantParamsByWant(env, want);
+    SetPropertyValueByPropertyName(env, jsObject, "parameters", jsValue);
+
+    return jsObject;
 }
 
 bool UnwrapWant(napi_env env, napi_value param, Want& want)
@@ -166,6 +271,34 @@ void InnerUnwrapWantParamsNumber(napi_env env, const std::string& key, napi_valu
     } else if (isReadDouble) {
         want.SetParam(key, natValueDouble);
     }
+}
+
+napi_value WantStringToJSValue(napi_env env, const std::string &value)
+{
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, value.c_str(), NAPI_AUTO_LENGTH, &result));
+    return result;
+}
+
+napi_value WantBoolToJSValue(napi_env env, bool value)
+{
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_get_boolean(env, value, &result));
+    return result;
+}
+
+napi_value WantInt32ToJSValue(napi_env env, int32_t value)
+{
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, value, &result));
+    return result;
+}
+
+napi_value WantDoubleToJSValue(napi_env env, double value)
+{
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_double(env, value, &result));
+    return result;
 }
 } // namespace AppExecFwk
 } // namespace OHOS

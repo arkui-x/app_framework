@@ -17,6 +17,7 @@
 #define OHOS_ROSEN_WINDOW_INTERFACE_H
 
 #include <refbase.h>
+#include "wm_common.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -58,6 +59,56 @@ public:
      */
     virtual void AfterInactive() {}
 };
+
+/**
+ * @class IWindowChangeListener
+ *
+ * @brief IWindowChangeListener is used to observe the window size or window mode when window changed.
+ */
+class IWindowChangeListener : virtual public RefBase {
+public:
+    /**
+     * @brief Notify caller when window size changed.
+     *
+     * @param Rect Rect of the current window.
+     */
+    virtual void OnSizeChange(Rect rect) {}
+};
+
+/**
+ * @class ITouchOutsideListener
+ *
+ * @brief ITouchOutsideListener is used to observe touch outside event.
+ */
+class ITouchOutsideListener : virtual public RefBase {
+public:
+    /**
+     * @brief Notify caller that window is on the forground.
+     */
+    virtual void OnTouchOutside() {}
+};
+
+/**
+ * @class IWindowSurfaceNodeListener
+ *
+ * @brief IWindowSurfaceNodeListener is used to observe the window SurfaceNode event.
+ */
+class IWindowSurfaceNodeListener : virtual public RefBase {
+public:
+    /**
+     * @brief Notify caller when window size changed.
+     */
+    virtual void OnSurfaceNodeCreated() {}
+    /**
+     * @brief Notify caller when window size changed.
+     */
+    virtual void OnSurfaceNodeChanged(int32_t width, int32_t height, float density) {}
+    /**
+     * @brief Notify caller when window size changed.
+     */
+    virtual void OnSurfaceNodeDestroyed() {}
+};
+
 }
 }
 #endif // OHOS_ROSEN_WINDOW_INTERFACE_H

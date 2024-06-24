@@ -102,8 +102,10 @@ static napi_value InitOrientation(napi_env env)
         return nullptr;
     }
 
-    napi_set_named_property(env, obj, "PORTRAIT", CreateJsValue(env, static_cast<uint32_t>(DisplayOrientation::PORTRAIT)));
-    napi_set_named_property(env, obj, "LANDSCAPE", CreateJsValue(env, static_cast<uint32_t>(DisplayOrientation::LANDSCAPE)));
+    napi_set_named_property(env, obj, "PORTRAIT",
+        CreateJsValue(env, static_cast<uint32_t>(DisplayOrientation::PORTRAIT)));
+    napi_set_named_property(env, obj, "LANDSCAPE",
+        CreateJsValue(env, static_cast<uint32_t>(DisplayOrientation::LANDSCAPE)));
     napi_set_named_property(env, obj, "PORTRAIT_INVERTED",
         CreateJsValue(env, static_cast<uint32_t>(DisplayOrientation::PORTRAIT_INVERTED)));
     napi_set_named_property(env, obj, "LANDSCAPE_INVERTED",

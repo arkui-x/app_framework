@@ -35,8 +35,10 @@ class EventQueue final {
 public:
     // Priority for the events
     enum class Priority : uint32_t {
+        // The highest priority queue, should be distributed until the tasks in the queue are completed.
+        VIP = 0,
         // Event that should be distributed at once if possible.
-        IMMEDIATE = 0,
+        IMMEDIATE,
         // High priority event, sorted by handle time, should be distributed before low priority event.
         HIGH,
         // Normal event, sorted by handle time.

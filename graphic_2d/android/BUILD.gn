@@ -55,6 +55,9 @@ ohos_source_set("android") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$rosen_root/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$rosen_root/modules/frame_report/include",
+    "//foundation/graphic/graphic_surface/interfaces/inner_api",
+    "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
   ]
 
   defines += [ "MODULE_RSB" ]

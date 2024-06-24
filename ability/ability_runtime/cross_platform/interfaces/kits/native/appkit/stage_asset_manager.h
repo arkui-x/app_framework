@@ -50,6 +50,7 @@ public:
     std::string GetAppDataModuleDir() const;
     bool GetAppDataModuleAssetList(const std::string& path, std::vector<std::string>& fileFullPaths, bool onlyChild);
     std::vector<uint8_t> GetBufferByAppDataPath(const std::string& fileFullPath);
+    std::vector<uint8_t> GetAotBuffer(const std::string &fileName);
 
 private:
     static std::shared_ptr<StageAssetManager> instance_;

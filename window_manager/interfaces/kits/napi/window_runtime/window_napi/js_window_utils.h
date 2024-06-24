@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "js_runtime_utils.h"
-#include "js_window.h"
+#include "virtual_rs_window.h"
 #include "window_option.h"
 #include "wm_common.h"
 
@@ -155,9 +155,19 @@ const std::map<ApiOrientation, Orientation> JS_TO_NATIVE_ORIENTATION_MAP {
     {ApiOrientation::LOCKED,                                Orientation::LOCKED                             },
 };
 
+struct SystemBarPropertyFlag {
+    bool enableFlag;
+    bool backgroundColorFlag;
+    bool contentColorFlag;
+    SystemBarPropertyFlag() : enableFlag(false), backgroundColorFlag(false), contentColorFlag(false) {}
+};
+
 napi_value CreateJsWindowPropertiesObject(napi_env env, std::shared_ptr<Window>& window);
 bool GetSystemBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProperties,
     napi_env env, size_t argc, const napi_value arg, std::shared_ptr<Window>& window);
+bool GetSpecificBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProperties,
+    napi_env env, napi_callback_info info, std::shared_ptr<Window>& window);
+napi_value ConvertAvoidAreaToJsValue(napi_env env, const AvoidArea& avoidArea, AvoidAreaType type);
 napi_value WindowTypeInit(napi_env env);
 napi_value WindowModeInit(napi_env env);
 napi_value OrientationInit(napi_env env);
@@ -169,6 +179,7 @@ napi_value WindowColorSpaceInit(napi_env env);
 bool SetWindowObjectProperties(napi_env env,
     napi_value object, const char *moduleName, const napi_property_descriptor *props, size_t size);
 napi_value CreateObject(napi_env env, const char *moduleName, const napi_property_descriptor *props, size_t size);
+napi_value AvoidAreaTypeInit(napi_env env);
 
 inline napi_value CreateUndefined(napi_env env)
 {
@@ -205,7 +216,7 @@ inline napi_value CreateWindowsJsError(napi_env env, int32_t errCode, const std:
 }
 
 void LoadContentTask(napi_env env, napi_ref storageRef, const std::string &contextUrl,
-    std::shared_ptr<Window> weakWindow, AbilityRuntime::NapiAsyncTask& task);
+    std::shared_ptr<Window> weakWindow, AbilityRuntime::NapiAsyncTask& task, bool isLoadedByName);
 bool GetContentArg(napi_env env,
     napi_callback_info info, std::string &contextUrl, napi_value &storage, napi_value &callback);
 }

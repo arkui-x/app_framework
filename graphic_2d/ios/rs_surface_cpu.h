@@ -27,10 +27,10 @@
 #include "common/rs_common_def.h"
 #include "platform/drawing/rs_surface.h"
 #include "platform/drawing/rs_surface_frame.h"
-#ifdef __OBJC__  
-@class CALayer;  
-#else  
-typedef struct objc_object CALayer;  
+#ifdef __OBJC__
+@class CALayer;
+#else
+typedef struct objc_object CALayer;
 #endif
 namespace OHOS {
 namespace Rosen {
@@ -45,7 +45,7 @@ public:
     void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp = 0) override;
 
     std::unique_ptr<RSSurfaceFrame> RequestFrame(
-        int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC = true) override;
+        int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC = true, bool isProtected = false) override;
 
     bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
     uint32_t GetQueueSize() const override;

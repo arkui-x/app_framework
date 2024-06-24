@@ -31,7 +31,7 @@ uint64_t GetNowTime()
 }
 JsModuleReader::JsModuleReader(const std::string& bundleName) : bundleName_(bundleName) {}
 
-bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, size_t* buffSize)
+bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, size_t* buffSize, std::string& errorMsg)
 {
     HILOG_INFO("Begin: %{private}s, time is: %{public}ld.", inputPath.c_str(), GetNowTime());
     if (inputPath.empty() || buff == nullptr || buffSize == nullptr) {
@@ -43,6 +43,7 @@ bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, si
     std::string modulePath;
     moduleBuffer_ = Platform::StageAssetManager::GetInstance()->GetModuleBuffer(moduleName, modulePath, true);
     if (moduleBuffer_.empty()) {
+        errorMsg = "modulePath:" + modulePath;
         HILOG_ERROR("GetModuleBuffer failed.");
         return false;
     }

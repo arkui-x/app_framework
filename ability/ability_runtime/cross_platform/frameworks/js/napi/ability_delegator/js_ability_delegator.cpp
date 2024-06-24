@@ -380,11 +380,11 @@ napi_value JSAbilityDelegator::OnWaitAbilityMonitor(napi_env env, NapiCallbackIn
         g_abilityRecordInfo.emplace(property->object_, property->fullName_);
     };
 
-    NapiAsyncTask::CompleteCallback complete = [abilityObjectBox](napi_env env, NapiAsyncTask &task, int32_t status)
-    {
+    NapiAsyncTask::CompleteCallback complete = [abilityObjectBox](
+        napi_env env, NapiAsyncTask &task, int32_t status) {
         HILOG_INFO("OnWaitAbilityMonitor NapiAsyncTask CompleteCallback is called");
         if (abilityObjectBox && !abilityObjectBox->object_.expired()) {
-            ResolveWithNoError(env, task,abilityObjectBox->object_.lock()->GetNapiValue());
+            ResolveWithNoError(env, task, abilityObjectBox->object_.lock()->GetNapiValue());
         } else {
             task.Reject(env, CreateJsError(env, COMMON_FAILED, "waitAbilityMonitor failed."));
         }
@@ -436,8 +436,7 @@ napi_value JSAbilityDelegator::OnWaitAbilityStageMonitor(napi_env env, NapiCallb
     };
 
     NapiAsyncTask::CompleteCallback complete = [abilityStageObjBox](
-        napi_env env, NapiAsyncTask &task, int32_t status)
-    {
+        napi_env env, NapiAsyncTask &task, int32_t status) {
         HILOG_INFO("OnWaitAbilityMonitor NapiAsyncTask CompleteCallback is called");
         if (abilityStageObjBox && !abilityStageObjBox->object_.expired()) {
             ResolveWithNoError(env, task, abilityStageObjBox->object_.lock()->GetNapiValue());
@@ -1123,7 +1122,7 @@ void JSAbilityDelegator::RemoveStageMonitorRecord(napi_env env, napi_value value
     for (auto iter = g_stageMonitorRecord.begin(); iter != g_stageMonitorRecord.end(); ++iter) {
         std::shared_ptr<NativeReference> jsMonitor = iter->first;
         bool isEquals = false;
-        napi_strict_equals(env, value,jsMonitor->GetNapiValue(), &isEquals);
+        napi_strict_equals(env, value, jsMonitor->GetNapiValue(), &isEquals);
         if (isEquals) {
             g_stageMonitorRecord.erase(iter);
             HILOG_INFO("g_stageMonitorRecord removed, size = %{public}zu", g_stageMonitorRecord.size());

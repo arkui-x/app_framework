@@ -53,7 +53,7 @@ public:
     {
     }
     bool IsUiFrameAvailable() const override
-    {   
+    {
         return false;
     }
     void UpdateSurfaceDefaultSize(float width, float height) override;

@@ -69,6 +69,7 @@ template("ability_runtime_jsruntime") {
 
     sources = [
       "${ability_runtime_cross_platform_path}/frameworks/native/base/error/ability_business_error.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_aot_reader.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_console_log.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_data_struct_converter.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_error_utils.cpp",
@@ -90,6 +91,10 @@ template("ability_runtime_jsruntime") {
       "//foundation/appframework/resource_management/interfaces/js/innerkits/core:resmgr_napi_core",
       "//foundation/arkui/napi:ace_napi",
     ]
+
+    if (is_arkui_x) {
+      defines += [ "CROSS_PLATFORM" ]
+    }
 
     if (target_os == "android") {
       defines += [ "ANDROID_PLATFORM" ]

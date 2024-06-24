@@ -25,6 +25,7 @@
 
 #include "platform/common/rs_log.h"
 #include "rs_surface_frame_ios.h"
+#include "rs_surface_platform_texture_ios.h"
 #include "rs_surface_texture_ios.h"
 
 namespace OHOS {
@@ -51,7 +52,7 @@ bool RSSurfaceGPU::IsValid() const
 }
 
 std::unique_ptr<RSSurfaceFrame> RSSurfaceGPU::RequestFrame(
-    int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC)
+    int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
     if (!IsValid()) {
         ROSEN_LOGE("RSSurfaceGPU::RequestFrame, layer_ is nullptr");
@@ -147,7 +148,13 @@ RSSurfaceExtPtr RSSurfaceGPU::CreateSurfaceExt(const RSSurfaceExtConfig& config)
     switch(config.type) {
         case RSSurfaceExtType::SURFACE_TEXTURE: {
             if (texture_ == nullptr) {
-                texture_ = std::make_shared<RSSurfaceTextureIOS>(config);
+                texture_ = std::dynamic_pointer_cast<RSSurfaceExt>(std::make_shared<RSSurfaceTextureIOS>(config));
+            }
+            return texture_;
+        }
+        case RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE: {
+            if (texture_ == nullptr) {
+                texture_ = std::dynamic_pointer_cast<RSSurfaceExt>(std::make_shared<RSSurfacePlatformTextureIOS>(config));
             }
             return texture_;
         }
@@ -160,6 +167,9 @@ RSSurfaceExtPtr RSSurfaceGPU::GetSurfaceExt(const RSSurfaceExtConfig& config)
 {
     switch(config.type) {
         case RSSurfaceExtType::SURFACE_TEXTURE: {
+            return texture_;
+        }
+        case RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE: {
             return texture_;
         }
         default:

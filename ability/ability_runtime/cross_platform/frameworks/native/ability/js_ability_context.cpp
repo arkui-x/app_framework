@@ -44,7 +44,7 @@ napi_value JsAbilityContext::StartAbility(napi_env env, napi_callback_info info)
     HILOG_INFO("OnStartAbility is called.");
     NapiCallbackInfo napiInfo;
     JsAbilityContext* me = static_cast<JsAbilityContext*>(GetNapiCallbackInfoAndThis(env, info, napiInfo, nullptr));
-    return (me != nullptr) ? me->OnStartAbility(env, info) : nullptr;  
+    return (me != nullptr) ? me->OnStartAbility(env, info) : nullptr;
 }
 
 napi_value JsAbilityContext::OnStartAbility(napi_env env, napi_callback_info info)
@@ -230,7 +230,7 @@ napi_value JsAbilityContext::OnTerminateSelfWithResult(napi_env env, napi_callba
 
     NapiAsyncTask::CompleteCallback complete = [innerErrorCode](napi_env env, NapiAsyncTask &task, int32_t status) {
         if (*innerErrorCode == ERR_OK) {
-            task.Resolve(env,CreateJsUndefined(env));
+            task.Resolve(env, CreateJsUndefined(env));
         } else {
             task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
         }
@@ -260,7 +260,6 @@ napi_value JsAbilityContext::WrapAbilityResult(
 bool JsAbilityContext::UnWrapAbilityResult(
     napi_env env, napi_value jObj, int32_t& resultCode, AAFwk::Want& resultWant)
 {
-
     if (jObj == nullptr) {
         HILOG_ERROR("jObj is nullptr");
         return false;
@@ -275,7 +274,6 @@ bool JsAbilityContext::UnWrapAbilityResult(
     napi_value jsProNameList = nullptr;
     napi_get_named_property(env, jObj, "resultCode", &jsProNameList);
     ConvertFromJsNumber(env, jsProNameList, resultCode);
-    
     
     napi_value jWant = nullptr;
     napi_get_named_property(env, jObj, "want", &jWant);
@@ -295,7 +293,6 @@ napi_value CreateJsAbilityContext(napi_env env, const std::shared_ptr<AbilityCon
     }
 
     napi_value object = CreateJsBaseContext(env, context);
-
     if (object == nullptr) {
         HILOG_ERROR("object is nullptr");
         return object;

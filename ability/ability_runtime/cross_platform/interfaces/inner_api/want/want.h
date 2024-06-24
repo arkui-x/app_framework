@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -410,6 +410,16 @@ public:
      * @return Returns this Want object containing the parameter value.
      */
     Want& SetParam(const std::string& key, const std::vector<std::string>& value);
+
+    /**
+     * @description: Obtains the parameters.
+     * @return Returns the parameter value.
+     */
+
+    const std::map<std::string, std::shared_ptr<void>> &GetParams() const
+    {
+        return params_;
+    }
 
     bool HasParameter(const std::string& key) const;
     void RemoveParam(const std::string& key);

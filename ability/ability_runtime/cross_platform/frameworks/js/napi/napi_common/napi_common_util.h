@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,6 +49,8 @@ bool UnwrapStringByPropertyName(napi_env env, napi_value jsObject, const char* p
  */
 napi_value GetPropertyValueByPropertyName(
     napi_env env, napi_value jsObject, const char* propertyName, napi_valuetype expectType);
+
+bool SetPropertyValueByPropertyName(napi_env env, napi_value jsObject, const char *propertyName, napi_value value);
 
 /**
  * @brief Indicates the specified attribute exists in the object passed by JS.

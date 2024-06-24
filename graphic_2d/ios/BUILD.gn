@@ -41,6 +41,7 @@ ohos_source_set("ios") {
     "rs_marshalling_helper.cpp",
     "rs_render_service_client.mm",
     "rs_surface_frame_ios.cpp",
+    "rs_surface_platform_texture_ios.mm",
     "rs_surface_texture_ios.mm",
     "rs_system_properties.cpp",
     "rs_vsync_client_ios.mm",
@@ -55,6 +56,9 @@ ohos_source_set("ios") {
     "$rosen_root/modules/2d_graphics/include",
     "$graphic_2d_root/utils/log",
     "$rosen_root/modules/2d_graphics/src/drawing/engine_adapter",
+    "$rosen_root/modules/frame_report/include",
+    "//foundation/graphic/graphic_surface/interfaces/inner_api",
+    "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
   ]
 
   defines += [

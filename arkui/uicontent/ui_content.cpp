@@ -45,4 +45,4 @@ void UIContent::RemoveUIContent(int32_t instanceId)
         LOGE("UIContent::RemoveUIContent Delegator is null, delegator is not initialized");
     }
 }
-} // namespace OHOS::Ace::Platform 
+} // namespace OHOS::Ace::Platform

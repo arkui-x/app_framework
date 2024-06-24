@@ -666,16 +666,17 @@ std::string Want::ToJson() const
     JsonWant jsonWant;
     for (auto iter = types_.begin(); iter != types_.end(); iter++) {
         if (iter->second == AAFwk::VALUE_TYPE_BOOLEAN) {
-            WantParams param = {iter->first, (GetBoolParam(iter->first, false) ? "true" : "false"), VALUE_TYPE_BOOLEAN};
+            WantParamsJson param = {iter->first,
+                (GetBoolParam(iter->first, false) ? "true" : "false"), VALUE_TYPE_BOOLEAN};
             jsonWant.params.emplace_back(param);
         } else if (iter->second == AAFwk::VALUE_TYPE_INT) {
-            WantParams param = {iter->first, std::to_string(GetIntParam(iter->first, 0)), VALUE_TYPE_INT};
+            WantParamsJson param = {iter->first, std::to_string(GetIntParam(iter->first, 0)), VALUE_TYPE_INT};
             jsonWant.params.emplace_back(param);
         } else if (iter->second == AAFwk::VALUE_TYPE_DOUBLE) {
-            WantParams param = {iter->first, std::to_string(GetDoubleParam(iter->first, 0)), VALUE_TYPE_DOUBLE};
+            WantParamsJson param = {iter->first, std::to_string(GetDoubleParam(iter->first, 0)), VALUE_TYPE_DOUBLE};
             jsonWant.params.emplace_back(param);
         } else if (iter->second == AAFwk::VALUE_TYPE_STRING) {
-            WantParams param = {iter->first, GetStringParam(iter->first), VALUE_TYPE_STRING};
+            WantParamsJson param = {iter->first, GetStringParam(iter->first), VALUE_TYPE_STRING};
             jsonWant.params.emplace_back(param);
         }
     }
@@ -686,7 +687,6 @@ std::string Want::ToJson() const
 
 void Want::ParseJson(const std::string& jsonParams)
 {
-    HILOG_INFO("ParseJson, jsonParams: %{public}s", jsonParams.c_str());
     if (jsonParams.empty()) {
         return;
     }

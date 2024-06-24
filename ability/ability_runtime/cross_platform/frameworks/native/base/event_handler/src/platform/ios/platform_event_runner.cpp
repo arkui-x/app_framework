@@ -43,7 +43,7 @@ public:
         messageLoop_ = std::make_shared<IOSMessageLoop>();
     }
 
-    virtual ~PlatformIoWaiter() final
+    ~PlatformIoWaiter() final
     {
         StopTimer();
 

@@ -54,7 +54,7 @@ extern "C" __attribute__((visibility("default"))) void NAPI_application_AbilityC
 static napi_module_with_js _module = {
     .nm_version = 0,
     .nm_filename = "application/libabilitycontext_napi.so/ability_context.js",
-    .nm_modname = "application.AbilityContext", 
+    .nm_modname = "application.AbilityContext",
     .nm_get_js_code = (GetJSCodeCallback)NAPI_application_AbilityContext_GetJSCode,
     .nm_get_abc_code = (GetJSCodeCallback)NAPI_application_AbilityContext_GetABCCode,
 };

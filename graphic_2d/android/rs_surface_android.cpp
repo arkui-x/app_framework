@@ -52,7 +52,7 @@ void RSSurfaceAndroid::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& fra
 }
 
 std::unique_ptr<RSSurfaceFrame> RSSurfaceAndroid::RequestFrame(
-    int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC)
+    int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
     if (nativeWindow_ == nullptr) {
         ROSEN_LOGE("RSSurfaceAndroid::RequestFrame, producer is nullptr");
@@ -146,7 +146,7 @@ GraphicColorGamut RSSurfaceAndroid::GetColorSpace() const
         ROSEN_LOGE("RSSurfaceAndroid::GetColorSpace, renderContext_ is null  %u", colorSpace_);
         return colorSpace_;
     }
-     return renderContext_->GetColorSpace();
+    return renderContext_->GetColorSpace();
 }
 
 void RSSurfaceAndroid::SetColorSpace(GraphicColorGamut colorSpace)
@@ -163,7 +163,7 @@ void RSSurfaceAndroid::SetColorSpace(GraphicColorGamut colorSpace)
 RSSurfaceExtPtr RSSurfaceAndroid::CreateSurfaceExt(const RSSurfaceExtConfig& config)
 {
     ROSEN_LOGD("RSSurfaceAndroid::CreateSurfaceExt %{public}u", config.type);
-    switch(config.type) {
+    switch (config.type) {
         case RSSurfaceExtType::SURFACE_TEXTURE: {
             if (texture_ == nullptr) {
                 texture_ = std::make_shared<AndroidSurfaceTexture>(this, config);
@@ -177,7 +177,7 @@ RSSurfaceExtPtr RSSurfaceAndroid::CreateSurfaceExt(const RSSurfaceExtConfig& con
 
 RSSurfaceExtPtr RSSurfaceAndroid::GetSurfaceExt(const RSSurfaceExtConfig& config)
 {
-    switch(config.type) {
+    switch (config.type) {
         case RSSurfaceExtType::SURFACE_TEXTURE: {
             return texture_;
         }
@@ -208,7 +208,7 @@ void AndroidSurfaceTexture::MarkUiFrameAvailable(bool available)
 static inline SkSize ScaleToFill(float scaleX, float scaleY)
 {
     const double epsilon = std::numeric_limits<double>::epsilon();
-    /* scaleY is negative. */ 
+    /* scaleY is negative. */
     const double minScale = fmin(scaleX, fabs(scaleY));
     const double rescale = 1.0f / (minScale + epsilon);
     return SkSize::Make(scaleX * rescale, scaleY * rescale);
@@ -254,7 +254,7 @@ void AndroidSurfaceTexture::DrawTextureImage(RSPaintFilterCanvas& canvas, bool f
     auto height = clipRect.GetHeight();
 #endif
     if (state_ == AttachmentState::uninitialized) {
-        if (!bufferAvailable_.load()){
+        if (!bufferAvailable_.load()) {
             return;
         }
         glGenTextures(1, &textureId_);

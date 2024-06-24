@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -51,5 +51,62 @@ template("ability_runtime_want") {
   }
 }
 
+config("want_params_config") {
+  include_dirs = [
+    "//commonlibrary/c_utils/base/include",
+    "//foundation/arkui/napi/interfaces/inner_api",
+    "//foundation/arkui/napi/interfaces/kits",
+    "//third_party/bounds_checking_function/include",
+    "//third_party/node/src",
+    "${ability_runtime_cross_platform_path}/frameworks/native/base/base/include",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/want",
+  ]
+}
+
+template("ability_runtime_want_params") {
+  forward_variables_from(invoker, "*")
+  ohos_source_set(target_name) {
+    subsystem_name = ability_subsystem_name
+    part_name = ability_part_name
+
+    configs = [ ":want_params_config" ]
+
+    if (target_cpu == "arm64") {
+      defines = [ "_ARM64_" ]
+    } else {
+      defines = []
+    }
+
+    if (target_os == "android") {
+      defines += [ "ANDROID_PLATFORM" ]
+    } else if (target_os == "ios") {
+      defines += [ "IOS_PLATFORM" ]
+    }
+
+    sources = [
+      "${ability_runtime_cross_platform_path}/frameworks/js/napi/napi_common/napi_common_want_params.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/base/src/array_wrapper.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/base/src/base.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/base/src/base_object.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/base/src/bool_wrapper.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/base/src/byte_wrapper.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/base/src/double_wrapper.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/base/src/float_wrapper.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/base/src/int_wrapper.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/base/src/long_wrapper.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/base/src/short_wrapper.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/base/src/string_wrapper.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/base/src/want_params_wrapper.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/base/src/zchar_wrapper.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/want/want_params.cpp",
+    ]
+
+    deps = [ "//commonlibrary/c_utils/base:utilsbase" ]
+  }
+}
+
 ability_runtime_want("cross_platform_want") {
+}
+
+ability_runtime_want_params("cross_platform_want_params") {
 }

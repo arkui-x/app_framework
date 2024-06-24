@@ -36,6 +36,11 @@ bool RSSystemProperties::IsPhoneType()
     return true;
 }
 
+bool RSSystemProperties::GetCacheEnabledForRotation()
+{
+    return {};
+}
+
 void RSSystemProperties::SetRecordingDisenabled()
 {
     return;
@@ -52,6 +57,11 @@ bool RSSystemProperties::GetUniRenderEnabled()
 }
 
 bool RSSystemProperties::GetRenderNodeTraceEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetAnimationTraceEnabled()
 {
     return {};
 }
@@ -167,11 +177,6 @@ bool RSSystemProperties::GetSkipGeometryNotChangeEnabled()
     return {};
 }
 
-bool RSSystemProperties::GetPropertyDrawableEnable()
-{
-    return {};
-}
-
 bool RSSystemProperties::GetAnimationCacheEnabled()
 {
     return {};
@@ -202,12 +207,12 @@ int RSSystemProperties::GetFilterCacheSizeThreshold()
     return 0;
 }
 
-bool RSSystemProperties::GetFilterPartialRenderEnabled()
+bool RSSystemProperties::GetKawaseEnabled()
 {
     return false;
 }
 
-bool RSSystemProperties::GetKawaseEnabled()
+bool RSSystemProperties::GetHpsBlurEnabled()
 {
     return false;
 }
@@ -257,6 +262,12 @@ bool RSSystemProperties::GetBlurEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetForegroundFilterEnabled()
+{
+    return true;
+}
+
+
 const std::vector<float>& RSSystemProperties::GetAiInvertCoef()
 {
     // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
@@ -267,6 +278,11 @@ const std::vector<float>& RSSystemProperties::GetAiInvertCoef()
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
     return false;
+}
+
+int RSSystemProperties::GetDebugTraceLevel()
+{
+    return 0;
 }
 
 bool RSSystemProperties::GetSyncTransactionEnabled()
@@ -284,11 +300,6 @@ bool RSSystemProperties::GetSingleFrameComposerEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetUseShadowBatchingEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetSubSurfaceEnabled()
 {
     return false;
@@ -299,12 +310,33 @@ bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetColorPickerPartialEnabled()
+bool RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled()
 {
     return false;
 }
 
-bool RSSystemProperties::GetMaskLinearBlurEnabled(){
+bool RSSystemProperties::GetBlurExtraFilterEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetMaskLinearBlurEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetMotionBlurEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetDynamicBrightnessEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::IsTabletType()
+{
     return false;
 }
 
@@ -326,6 +358,26 @@ bool RSSystemProperties::GetDumpUICaptureEnabled()
 bool RSSystemProperties::GetDumpUIPixelmapEnabled()
 {
     return false;
+}
+
+SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
+{
+    return SubTreePrepareCheckType::ENABLED;
+}
+
+bool RSSystemProperties::GetRenderParallelEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetUnmarshParallelFlag()
+{
+    return false;
+}
+
+uint32_t RSSystemProperties::GetUnMarshParallelSize()
+{
+    return UINT32_MAX;
 }
 } // namespace Rosen
 } // namespace OHOS

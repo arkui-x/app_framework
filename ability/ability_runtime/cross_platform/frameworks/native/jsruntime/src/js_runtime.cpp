@@ -33,6 +33,7 @@
 #include "ecmascript/napi/include/jsnapi.h"
 #include "event_handler.h"
 #include "hilog.h"
+#include "js_aot_reader.h"
 #include "js_console_log.h"
 #include "js_module_reader.h"
 #include "js_runtime_utils.h"
@@ -114,17 +115,6 @@ public:
         return ArkNativeEngine::ArkValueToNapiValue(env_, exportObj);
     }
 
-    // TODO: refactor
-    void LoadAotFile(const std::string& moduleName) override
-    {
-        panda::RuntimeOption postOption;
-        postOption.SetBundleName(bundleName_);
-        postOption.SetAnDir(appLibPath_ + "/aot/");
-        postOption.SetEnableProfile(false);
-        panda::JSNApi::PostFork(vm_, postOption);
-        panda::JSNApi::LoadAotFile(vm_, moduleName);
-    }
-
 private:
     static int32_t PrintVmLog(int32_t, int32_t, const char*, const char*, const char* message)
     {
@@ -181,8 +171,6 @@ private:
         panda::JSNApi::SetHostResolveBufferTracker(vm_, JsModuleReader(options.bundleName));
         return JsRuntime::Initialize(options);
     }
-
-    panda::ecmascript::EcmaVM* vm_ = nullptr;
 };
 
 class UvLoopHandler : public AppExecFwk::FileDescriptorListener, public std::enable_shared_from_this<UvLoopHandler> {
@@ -471,7 +459,12 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
         HILOG_ERROR("Failed to create object instance");
         return std::unique_ptr<NativeReference>();
     }
-    LoadAotFile(moduleName_);
+
+#if defined(ANDROID_PLATFORM) && defined(CROSS_PLATFORM)
+    panda::JSNApi::LoadAotFile(vm_, bundleName_, moduleName_, JsAotReader());
+#else
+    panda::JSNApi::LoadAotFile(vm_, moduleName_);
+#endif
 
     napi_ref resultRef = nullptr;
     napi_create_reference(env_, instanceValue, 1, &resultRef);

@@ -45,6 +45,8 @@ template("display_manager_napi") {
       "${display_manager_napi_path}/dm/include",
       "${display_manager_napi_path}/innerkits/dm",
       "${display_manager_napi_path}/kits/napi/display_runtime",
+      "//arkcompiler/ets_runtime",
+      "//arkcompiler/runtime_core",
       "//commonlibrary/c_utils/base/include",
       "//foundation/appframework/window_manager/utils/include",
     ]

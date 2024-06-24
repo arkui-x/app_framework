@@ -27,8 +27,8 @@ extern const char* _binary_application_context_js_end;
 extern const char* _binary_application_context_abc_end;
 #endif
 
-extern "C" __attribute__((visibility("default")))
-void NAPI_application_ApplicationContext_GetJSCode(const char **buf, int *bufLen)
+extern "C" __attribute__((visibility("default"))) void NAPI_application_ApplicationContext_GetJSCode(
+    const char **buf, int *bufLen)
 {
     if (buf != nullptr) {
         *buf = _binary_application_context_js_start;
@@ -40,8 +40,8 @@ void NAPI_application_ApplicationContext_GetJSCode(const char **buf, int *bufLen
 }
 
 // context JS register
-extern "C" __attribute__((visibility("default")))
-void NAPI_application_ApplicationContext_GetABCCode(const char **buf, int *buflen)
+extern "C" __attribute__((visibility("default"))) void NAPI_application_ApplicationContext_GetABCCode(
+    const char **buf, int *buflen)
 {
     if (buf != nullptr) {
         *buf = _binary_application_context_abc_start;
@@ -59,8 +59,7 @@ static napi_module_with_js _module = {
     .nm_get_abc_code = (GetJSCodeCallback)NAPI_application_ApplicationContext_GetABCCode,
 };
 
-extern "C" __attribute__((constructor))
-void NAPI_application_ApplicationContext_AutoRegister()
+extern "C" __attribute__((constructor)) void NAPI_application_ApplicationContext_AutoRegister()
 {
     napi_module_with_js_register(&_module);
 }

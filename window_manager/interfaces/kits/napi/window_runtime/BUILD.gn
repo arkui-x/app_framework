@@ -11,7 +11,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//arkcompiler/ets_frontend/ts2panda/ts2abc_config.gni")
 import("//build/ohos.gni")
 import("//foundation/appframework/window_manager/window_manager.gni")
 
@@ -52,6 +51,13 @@ template("window_manager_napi") {
       "//commonlibrary/c_utils/base/include",
       "../../../../utils/include",
     ]
+
+    if (is_arkui_x) {
+      include_dirs += [
+        "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
+      ]
+    }
+
     if (current_os == "android") {
       include_dirs +=
           [ "//foundation/arkui/ace_engine/adapter/android/entrance/java/jni" ]

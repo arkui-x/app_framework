@@ -192,7 +192,7 @@ void AppMain::ParseBundleComplete()
     }
 
     if (!CreateRuntime(applicationInfo->bundleName,
-            bundleInfo->hapModuleInfos.back().compileMode != AppExecFwk::CompileMode::ES_MODULE)) {
+        bundleInfo->hapModuleInfos.back().compileMode != AppExecFwk::CompileMode::ES_MODULE)) {
         HILOG_ERROR("runtime create failed.");
         return;
     }

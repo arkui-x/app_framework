@@ -86,12 +86,12 @@ void JsAbilityLifecycleCallback::CallJsMethod(
     std::weak_ptr<JsAbilityLifecycleCallback> thisWeakPtr(shared_from_this());
     
     std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
-        [thisWeakPtr, methodName, ability, callbacks = callbacks_](napi_env env, NapiAsyncTask &task, int32_t status)
-        {
-            std::shared_ptr<JsAbilityLifecycleCallback> jsCallback = thisWeakPtr.lock();
-            if (jsCallback) {
-                jsCallback->CallJsMethodInnerCommon(methodName, ability, nullptr, callbacks);
-            }
+        [thisWeakPtr, methodName, ability, callbacks = callbacks_](
+            napi_env env, NapiAsyncTask &task, int32_t status) {
+                std::shared_ptr<JsAbilityLifecycleCallback> jsCallback = thisWeakPtr.lock();
+                if (jsCallback) {
+                    jsCallback->CallJsMethodInnerCommon(methodName, ability, nullptr, callbacks);
+                }
         }
     );
     

@@ -111,6 +111,7 @@ void EventQueue::Insert(InnerEvent::Pointer& event, Priority priority)
     }
     bool needNotify = false;
     switch (priority) {
+        case Priority::VIP:
         case Priority::IMMEDIATE:
         case Priority::HIGH:
         case Priority::LOW: {

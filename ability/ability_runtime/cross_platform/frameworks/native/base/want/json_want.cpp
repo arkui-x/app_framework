@@ -162,17 +162,17 @@ void to_json(nlohmann::json& jsonObject, const JsonWant& jsonWant)
 void from_json(const nlohmann::json& jsonObject, JsonWant& jsonWant)
 {
     const auto& jsonObjectEnd = jsonObject.end();
-    GetValueIfFindKey<std::vector<WantParams>>(
+    GetValueIfFindKey<std::vector<WantParamsJson>>(
         jsonObject, jsonObjectEnd, JSON_KEY_PARAM, jsonWant.params, JsonType::ARRAY, false, ArrayType::OBJECT);
 }
 
-void to_json(nlohmann::json& jsonObject, const WantParams& wantParams)
+void to_json(nlohmann::json& jsonObject, const WantParamsJson& wantParams)
 {
     jsonObject = nlohmann::json { { JSON_KEY_KEY, wantParams.key }, { JSON_KEY_VALUE, wantParams.value },
         { JSON_KEY_TYPE, wantParams.type } };
 }
 
-void from_json(const nlohmann::json& jsonObject, WantParams& wantParams)
+void from_json(const nlohmann::json& jsonObject, WantParamsJson& wantParams)
 {
     const auto& jsonObjectEnd = jsonObject.end();
     GetValueIfFindKey<std::string>(

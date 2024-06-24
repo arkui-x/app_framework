@@ -19,38 +19,35 @@
 #include <CoreFoundation/CoreFoundation.h>
 
 namespace OHOS {
-
 template <class T>
 class CFRef {
- public:
-  CFRef() : instance_(nullptr) {}
-
-  CFRef(T instance) : instance_(instance) {}
-
-  ~CFRef() {
-    if (instance_ != nullptr) {
-      CFRelease(instance_);
+public:
+    CFRef() : instance_(nullptr) {}
+    CFRef(T instance) : instance_(instance) {}
+    ~CFRef()
+    {
+        if (instance_ != nullptr) {
+            CFRelease(instance_);
+        }
+        instance_ = nullptr;
     }
-    instance_ = nullptr;
-  }
 
-  void Reset(T instance) {
-    if (instance_ == instance) {
-      return;
+    void Reset(T instance)
+    {
+        if (instance_ == instance) {
+            return;
+        }
+        if (instance_ != nullptr) {
+            CFRelease(instance_);
+        }
+        instance_ = instance;
     }
-    if (instance_ != nullptr) {
-      CFRelease(instance_);
-    }
-    instance_ = instance;
-  }
-  operator T() const { return instance_; }
-  operator bool() const { return instance_ != nullptr; }
-
- private:
-  T instance_;
-  CFRef(const CFRef&) = delete;
-  CFRef& operator=(const CFRef&) = delete;
+    operator T() const { return instance_; }
+    operator bool() const { return instance_ != nullptr; }
+private:
+    T instance_;
+    CFRef(const CFRef&) = delete;
+    CFRef& operator=(const CFRef&) = delete;
 };
 } // namespace ohos
-
 #endif // OHOS_PLATFORM_IOS_CF_REF_H_

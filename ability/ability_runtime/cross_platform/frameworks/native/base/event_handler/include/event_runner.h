@@ -26,6 +26,11 @@ namespace OHOS {
 namespace AppExecFwk {
 class EventInnerRunner;
 
+enum class ThreadMode: uint32_t {
+    NEW_THREAD = 0,    // for new thread mode, event handler create thread
+    FFRT,           // for new thread mode, use ffrt
+};
+
 class EventRunner final {
 public:
     EventRunner() = delete;
@@ -40,12 +45,38 @@ public:
     static std::shared_ptr<EventRunner> Create(bool inNewThread = true);
 
     /**
+     * Create new 'EventRunner'.
+     *
+     * @param inNewThread True if create new thread to start the 'EventRunner' automatically.
+     * @param threadMode thread mode, use ffrt or new thread, for inNewThread = true.
+     * @return Returns shared pointer of the new 'EventRunner'.
+     */
+    static std::shared_ptr<EventRunner> Create(bool inNewThread, ThreadMode threadMode)
+    {
+        (void) threadMode;
+        return Create(inNewThread);
+    }
+
+    /**
      * Create new 'EventRunner' and start to run in a new thread.
      *
      * @param threadName Thread name of the new created thread.
      * @return Returns shared pointer of the new 'EventRunner'.
      */
     static std::shared_ptr<EventRunner> Create(const std::string& threadName);
+
+    /**
+     * Create new 'EventRunner' and start to run in a new thread.
+     *
+     * @param threadName Thread name of the new created thread.
+     * @param threadMode thread mode, use ffrt or new thread.
+     * @return Returns shared pointer of the new 'EventRunner'.
+     */
+    static std::shared_ptr<EventRunner> Create(const std::string &threadName, ThreadMode threadMode)
+    {
+        (void) threadMode;
+        return Create(threadName);
+    }
 
     /**
      * Create new 'EventRunner' and start to run in a new thread.
@@ -56,6 +87,20 @@ public:
      */
     static inline std::shared_ptr<EventRunner> Create(const char* threadName)
     {
+        return Create((threadName != nullptr) ? std::string(threadName) : std::string());
+    }
+
+    /**
+     * Create new 'EventRunner' and start to run in a new thread.
+     * Eliminate ambiguity, while calling like 'EventRunner::Create("threadName")'.
+     *
+     * @param threadName Thread name of the new created thread.
+     * @param threadMode thread mode, use ffrt or new thread.
+     * @return Returns shared pointer of the new 'EventRunner'.
+     */
+    static inline std::shared_ptr<EventRunner> Create(const char *threadName, ThreadMode threadMode)
+    {
+        (void) threadMode;
         return Create((threadName != nullptr) ? std::string(threadName) : std::string());
     }
 

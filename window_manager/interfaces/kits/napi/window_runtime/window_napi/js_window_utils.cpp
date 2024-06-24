@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -125,8 +125,10 @@ napi_value WindowEventTypeInit(napi_env env)
     const napi_property_descriptor props[] = {
         DECLARE_NAPI_PROPERTY("WINDOW_SHOWN", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::FOREGROUND))),
         DECLARE_NAPI_PROPERTY("WINDOW_ACTIVE", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::ACTIVE))),
-        DECLARE_NAPI_PROPERTY("WINDOW_INACTIVE", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::INACTIVE))),
-        DECLARE_NAPI_PROPERTY("WINDOW_HIDDEN", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::BACKGROUND))),
+        DECLARE_NAPI_PROPERTY("WINDOW_INACTIVE", CreateJsValue(
+            env, static_cast<int32_t>(LifeCycleEventType::INACTIVE))),
+        DECLARE_NAPI_PROPERTY("WINDOW_HIDDEN", CreateJsValue(
+            env, static_cast<int32_t>(LifeCycleEventType::BACKGROUND))),
     };
     return CreateObject(env, nullptr, props, sizeof(props) / sizeof(props[0]));
 }
@@ -319,8 +321,60 @@ bool GetSystemBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProper
     return true;
 }
 
+bool GetSpecificBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProperties,
+                          napi_env env, napi_callback_info info, std::shared_ptr<Window>& window)
+{
+    size_t argc = 4;
+    napi_value argv[4] = {nullptr};
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    std::string name;
+    if (!ConvertFromJsValue(env, argv[0], name)) {
+        WLOGE("Failed to convert parameter to SystemBarName");
+        return false;
+    }
+    bool enable = false;
+    if (!ConvertFromJsValue(env, argv[1], enable)) {
+        WLOGE("Failed to convert parameter to bool");
+        return CreateUndefined(env);
+    }
+    if (name.compare("status") == 0) {
+        auto statusProperty = window->GetSystemBarPropertyByType(WindowType::WINDOW_TYPE_STATUS_BAR);
+        systemBarProperties[WindowType::WINDOW_TYPE_STATUS_BAR] = statusProperty;
+        systemBarProperties[WindowType::WINDOW_TYPE_STATUS_BAR].enable_ = enable;
+    } else if (name.compare("navigation") == 0) {
+        auto navProperty = window->GetSystemBarPropertyByType(WindowType::WINDOW_TYPE_NAVIGATION_BAR);
+        systemBarProperties[WindowType::WINDOW_TYPE_NAVIGATION_BAR] = navProperty;
+        systemBarProperties[WindowType::WINDOW_TYPE_NAVIGATION_BAR].enable_ = enable;
+    } else if (name.compare("navigationIndicator") == 0) {
+        auto navIndicatorProperty = window->GetSystemBarPropertyByType(WindowType::WINDOW_TYPE_NAVIGATION_INDICATOR);
+        systemBarProperties[WindowType::WINDOW_TYPE_NAVIGATION_INDICATOR] = navIndicatorProperty;
+        systemBarProperties[WindowType::WINDOW_TYPE_NAVIGATION_INDICATOR].enable_ = enable;
+    } else {
+        WLOGE("Unknown SystemBarName parameter");
+        return false;
+    }
+    return true;
+}
+
+napi_value ConvertAvoidAreaToJsValue(napi_env env, const AvoidArea& avoidArea, AvoidAreaType type)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue == nullptr) {
+        WLOGE("Failed to convert avoidArea to jsObject");
+        return nullptr;
+    }
+    napi_set_named_property(env, objValue, "visible",
+        CreateJsValue(env, type == AvoidAreaType::TYPE_CUTOUT ? false : true));
+    napi_set_named_property(env, objValue, "leftRect", GetRectAndConvertToJsValue(env, avoidArea.leftRect_));
+    napi_set_named_property(env, objValue, "topRect", GetRectAndConvertToJsValue(env, avoidArea.topRect_));
+    napi_set_named_property(env, objValue, "rightRect", GetRectAndConvertToJsValue(env, avoidArea.rightRect_));
+    napi_set_named_property(env, objValue, "bottomRect", GetRectAndConvertToJsValue(env, avoidArea.bottomRect_));
+    return objValue;
+}
+
 void LoadContentTask(napi_env env, napi_ref storageRef, const std::string &contextUrl,
-    std::shared_ptr<Window> weakWindow, NapiAsyncTask& task)
+    std::shared_ptr<Window> weakWindow, NapiAsyncTask& task, bool isLoadedByName)
 {
     napi_value nativeStorage = nullptr;
     if (storageRef != nullptr) {
@@ -335,7 +389,7 @@ void LoadContentTask(napi_env env, napi_ref storageRef, const std::string &conte
     }
     WLOGI("LoadContentTask : contextUrl %{public}s", contextUrl.c_str());
     WMError ret = weakWindow->SetUIContent(contextUrl,
-        reinterpret_cast<NativeEngine*>(env), nativeStorage, false, nullptr);
+        reinterpret_cast<NativeEngine*>(env), nativeStorage, false, nullptr, isLoadedByName);
     if (ret == WMError::WM_OK) {
         task.Resolve(env, CreateUndefined(env));
     } else {
@@ -410,6 +464,35 @@ napi_value CreateObject(napi_env env, const char *moduleName, const napi_propert
         return nullptr;
     }
     return obj;
+}
+
+napi_value AvoidAreaTypeInit(napi_env env)
+{
+    WLOGD("AvoidAreaTypeInit");
+
+    if (env == nullptr) {
+        WLOGE("env is nullptr");
+        return nullptr;
+    }
+
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue == nullptr) {
+        WLOGE("Failed to get object");
+        return nullptr;
+    }
+
+    napi_set_named_property(env, objValue, "TYPE_SYSTEM", CreateJsValue(env,
+        static_cast<int32_t>(AvoidAreaType::TYPE_SYSTEM)));
+    napi_set_named_property(env, objValue, "TYPE_CUTOUT", CreateJsValue(env,
+        static_cast<int32_t>(AvoidAreaType::TYPE_CUTOUT)));
+    napi_set_named_property(env, objValue, "TYPE_SYSTEM_GESTURE", CreateJsValue(env,
+        static_cast<int32_t>(AvoidAreaType::TYPE_SYSTEM_GESTURE)));
+    napi_set_named_property(env, objValue, "TYPE_KEYBOARD",
+        CreateJsValue(env, static_cast<int32_t>(AvoidAreaType::TYPE_KEYBOARD)));
+    napi_set_named_property(env, objValue, "TYPE_NAVIGATION_INDICATOR",
+        CreateJsValue(env, static_cast<int32_t>(AvoidAreaType::TYPE_NAVIGATION_INDICATOR)));
+    return objValue;
 }
 } // namespace Rosen
 } // namespace OHOS

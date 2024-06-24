@@ -63,7 +63,7 @@ public:
         const std::string& moduleName, const std::string& modulePath, std::vector<uint8_t>& buffer,
         const std::string& srcEntrance, bool esmodule);
     std::unique_ptr<NativeReference> LoadSystemModule(
-        const std::string& moduleName, napi_value* const* argv = nullptr, size_t argc = 0);
+        const std::string& moduleName, napi_value* const *argv = nullptr, size_t argc = 0);
     void PostTask(const std::function<void()>& task, const std::string& name, int64_t delayTime);
     void RemoveTask(const std::string& name);
     virtual bool RunScript(const std::string& path, const std::string& hapPath, bool useCommonChunk = false) = 0;
@@ -79,7 +79,6 @@ protected:
 
     napi_value LoadJsBundle(const std::string& path, std::vector<uint8_t>& buffer);
     virtual napi_value LoadJsModule(const std::string& path, std::vector<uint8_t>& buffer) = 0;
-    virtual void LoadAotFile(const std::string& moduleName) = 0;
 
     bool isArkEngine_ = false;
     bool preloaded_ = false;
@@ -96,6 +95,7 @@ protected:
 
     std::string bundleName_;
     uint32_t instanceId_ = 0;
+    panda::ecmascript::EcmaVM* vm_ = nullptr;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

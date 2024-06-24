@@ -154,18 +154,10 @@ HandleScope::~HandleScope()
     napi_close_handle_scope(env_, scope_);
 }
 
-// ---About to be deleted
-HandleScope::HandleScope(NativeEngine& engine)
-{
-    env_ = (napi_env)(&engine);
-    napi_open_handle_scope(env_, &scope_);
-}
-// ---
-
 // Handle Escape
 HandleEscape::HandleEscape(JsRuntime& jsRuntime)
 {
-    env_ =  jsRuntime.GetNapiEnv();    
+    env_ = jsRuntime.GetNapiEnv();
     napi_open_escapable_handle_scope(env_, &scope_);
 }
 
@@ -186,19 +178,6 @@ napi_value HandleEscape::Escape(napi_value value)
     napi_escape_handle(env_, scope_, value, &result);
     return result;
 }
-
-// ---About to be deleted
-HandleEscape::HandleEscape(NativeEngine& engine)
-{
-    env_ = (napi_env)(&engine);
-    napi_open_escapable_handle_scope(env_, &scope_);
-}
-
-NativeValue* HandleEscape::Escape(NativeValue* value)
-{
-    return (NativeValue*)Escape((napi_value)value);
-}
-// ---
 
 // Async Task
 NapiAsyncTask::NapiAsyncTask(napi_deferred deferred, std::unique_ptr<NapiAsyncTask::ExecuteCallback>&& execute,
@@ -367,6 +346,12 @@ void NapiAsyncTask::Complete(napi_env env, napi_status status, void* data)
     if (me->complete_ && *(me->complete_)) {
         HandleScope handleScope(env);
         (*me->complete_)(env, *me, static_cast<int32_t>(status));
+    }
+    
+    if (me->work_) {
+        HandleScope handleScope(env);
+        napi_delete_async_work(env, me->work_);
+        me->work_ = nullptr;
     }
 }
 

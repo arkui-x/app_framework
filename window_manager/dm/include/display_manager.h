@@ -38,7 +38,6 @@ public:
 private:
     DisplayManager();
     ~DisplayManager();
-    // void OnRemoteDied();
     
     class Impl;
     std::recursive_mutex mutex_;

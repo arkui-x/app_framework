@@ -127,7 +127,6 @@ void to_json(nlohmann::json& jsonObject, const AbilityInfo& abilityInfo)
         { JSON_KEY_ICON_ID, abilityInfo.iconId }, { JSON_KEY_THEME, abilityInfo.theme },
         { JSON_KEY_VISIBLE, abilityInfo.visible }, { JSON_KEY_KIND, abilityInfo.kind },
         { JSON_KEY_TYPE, abilityInfo.type },
-        // {JSON_KEY_EXTENSION_ABILITY_TYPE, abilityInfo.extensionAbilityType},
         { JSON_KEY_ORIENTATION, abilityInfo.orientation }, { JSON_KEY_LAUNCH_MODE, abilityInfo.launchMode },
         { JSON_KEY_SRC_PATH, abilityInfo.srcPath }, { JSON_KEY_SRC_LANGUAGE, abilityInfo.srcLanguage },
         { JSON_KEY_PERMISSIONS, abilityInfo.permissions }, { JSON_KEY_PROCESS, abilityInfo.process },

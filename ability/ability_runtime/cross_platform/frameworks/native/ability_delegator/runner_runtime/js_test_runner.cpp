@@ -28,7 +28,7 @@ extern const char* _binary_delegator_mgmt_abc_end;
 namespace OHOS {
 namespace RunnerRuntime {
 std::unique_ptr<TestRunner> JsTestRunner::Create(const std::unique_ptr<Runtime> &runtime,
-    const std::shared_ptr<AbilityDelegatorArgs> &args, 
+    const std::shared_ptr<AbilityDelegatorArgs> &args,
     const std::shared_ptr<BundleInfo> &bundleInfo, bool isFaJsModel)
 {
     HILOG_INFO("JsTestRunner: Create enter");
@@ -53,7 +53,7 @@ std::unique_ptr<TestRunner> JsTestRunner::Create(const std::unique_ptr<Runtime> 
 }
 
 JsTestRunner::JsTestRunner(
-    JsRuntime &jsRuntime, const std::shared_ptr<AbilityDelegatorArgs> &args, 
+    JsRuntime &jsRuntime, const std::shared_ptr<AbilityDelegatorArgs> &args,
     const std::shared_ptr<BundleInfo> &bundleInfo, bool isFaJsModel)
     : jsRuntime_(jsRuntime), isFaJsModel_(isFaJsModel)
 {

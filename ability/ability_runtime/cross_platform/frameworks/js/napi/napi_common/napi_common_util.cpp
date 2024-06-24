@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -153,6 +153,15 @@ napi_value GetPropertyValueByPropertyName(
     }
 
     return value;
+}
+
+bool SetPropertyValueByPropertyName(napi_env env, napi_value jsObject, const char *propertyName, napi_value value)
+{
+    if (value != nullptr && propertyName != nullptr) {
+        NAPI_CALL_BASE(env, napi_set_named_property(env, jsObject, propertyName, value), false);
+        return true;
+    }
+    return false;
 }
 
 /**

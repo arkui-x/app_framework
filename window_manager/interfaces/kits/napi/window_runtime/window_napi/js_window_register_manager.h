@@ -35,14 +35,19 @@ public:
     JsWindowRegisterManager();
     ~JsWindowRegisterManager();
     static JsWindowRegisterManager& GetInstance();
-    WmErrorCode RegisterListener(napi_env env, std::shared_ptr<Window> window, std::string type, CaseType caseType, napi_value value);
-    WmErrorCode UnregisterListener(napi_env env, std::shared_ptr<Window> window, std::string type, CaseType caseType, napi_value value);
+    WmErrorCode RegisterListener(
+        napi_env env, std::shared_ptr<Window> window, std::string type, CaseType caseType, napi_value value);
+    WmErrorCode UnregisterListener(
+        napi_env env, std::shared_ptr<Window> window, std::string type, CaseType caseType, napi_value value);
 private:
     bool IsEqualRegister(napi_env env, napi_value lhs, napi_ref rref);
     bool IsCallbackRegistered(napi_env env, std::string type, napi_value jsListenerObject);
-    WmErrorCode ProcessLifeCycleEventRegister(sptr<JsWindowListener> listener, std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);
-
-    using Func_t = WmErrorCode(JsWindowRegisterManager::*)(sptr<JsWindowListener>, std::shared_ptr<OHOS::Rosen::Window> window, bool);
+    WmErrorCode ProcessLifeCycleEventRegister(
+        sptr<JsWindowListener> listener, std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);
+    WmErrorCode ProcessSizeChangeRegister(
+        sptr<JsWindowListener> listener, std::shared_ptr<Window> window, bool isRegister);
+    using Func_t = WmErrorCode(JsWindowRegisterManager::*)(
+        sptr<JsWindowListener>, std::shared_ptr<OHOS::Rosen::Window> window, bool);
     std::map<std::string, std::map<napi_ref, sptr<JsWindowListener>>> jsCbMap_;
     std::mutex mtx_;
     std::map<CaseType, std::map<std::string, Func_t>> listenerProcess_;

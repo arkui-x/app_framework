@@ -23,21 +23,21 @@
 
 namespace OHOS {
 namespace AAFwk {
-struct WantParams {
+struct WantParamsJson {
     std::string key;
     std::string value;
     int32_t type;
 };
 
 struct JsonWant {
-    std::vector<WantParams> params;
+    std::vector<WantParamsJson> params;
 };
 
 void to_json(nlohmann::json& jsonObject, const JsonWant& jsonWant);
 void from_json(const nlohmann::json& jsonObject, JsonWant& jsonWant);
 
-void to_json(nlohmann::json& jsonObject, const WantParams& wantParams);
-void from_json(const nlohmann::json& jsonObject, WantParams& wantParams);
+void to_json(nlohmann::json& jsonObject, const WantParamsJson& wantParams);
+void from_json(const nlohmann::json& jsonObject, WantParamsJson& wantParams);
 } // namespace AAFwk
 } // namespace OHOS
 #endif // OHOS_ABILITY_BASE_WANT_H

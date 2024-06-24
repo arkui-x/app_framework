@@ -30,70 +30,70 @@ JSAbilityMonitor::JSAbilityMonitor(const std::string &abilityName, const std::st
 
 void JSAbilityMonitor::OnAbilityCreate(const std::weak_ptr<NativeReference> &abilityObj)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     CallLifecycleCBFunction("onAbilityCreate", abilityObj);
 
-    HILOG_INFO("exit");
+    RESMGR_HILOGI(RESMGR_TAG, "exit");
 }
 
 void JSAbilityMonitor::OnAbilityForeground(const std::weak_ptr<NativeReference> &abilityObj)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     CallLifecycleCBFunction("onAbilityForeground", abilityObj);
 
-    HILOG_INFO("exit");
+    RESMGR_HILOGI(RESMGR_TAG, "exit");
 }
 
 void JSAbilityMonitor::OnAbilityBackground(const std::weak_ptr<NativeReference> &abilityObj)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     CallLifecycleCBFunction("onAbilityBackground", abilityObj);
 
-    HILOG_INFO("exit");
+    RESMGR_HILOGI(RESMGR_TAG, "exit");
 }
 
 void JSAbilityMonitor::OnAbilityDestroy(const std::weak_ptr<NativeReference> &abilityObj)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     CallLifecycleCBFunction("onAbilityDestroy", abilityObj);
 
-    HILOG_INFO("exit");
+    RESMGR_HILOGI(RESMGR_TAG, "exit");
 }
 
 void JSAbilityMonitor::OnWindowStageCreate(const std::weak_ptr<NativeReference> &abilityObj)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     CallLifecycleCBFunction("onWindowStageCreate", abilityObj);
 
-    HILOG_INFO("exit");
+    RESMGR_HILOGI(RESMGR_TAG, "exit");
 }
 
 void JSAbilityMonitor::OnWindowStageRestore(const std::weak_ptr<NativeReference> &abilityObj)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     CallLifecycleCBFunction("onWindowStageRestore", abilityObj);
 
-    HILOG_INFO("exit");
+    RESMGR_HILOGI(RESMGR_TAG, "exit");
 }
 
 void JSAbilityMonitor::OnWindowStageDestroy(const std::weak_ptr<NativeReference> &abilityObj)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     CallLifecycleCBFunction("onWindowStageDestroy", abilityObj);
 
-    HILOG_INFO("exit");
+    RESMGR_HILOGI(RESMGR_TAG, "exit");
 }
 
 void JSAbilityMonitor::SetJsAbilityMonitor(napi_value jsAbilityMonitor)
 {
-    HILOG_INFO("enter");
+    RESMGR_HILOGI(RESMGR_TAG, "enter");
 
     napi_ref ref = nullptr;
     napi_create_reference(env_, jsAbilityMonitor, 1, &ref);
@@ -104,25 +104,25 @@ napi_value JSAbilityMonitor::CallLifecycleCBFunction(const std::string &function
     const std::weak_ptr<NativeReference> &abilityObj)
 {
     if (functionName.empty()) {
-        HILOG_ERROR("Invalid function name");
+        RESMGR_HILOGE(RESMGR_TAG, "Invalid function name");
         return nullptr;
     }
 
     if (!jsAbilityMonitor_) {
-        HILOG_ERROR("Invalid jsAbilityMonitor");
+        RESMGR_HILOGE(RESMGR_TAG, "Invalid jsAbilityMonitor");
         return nullptr;
     }
 
     napi_value obj = jsAbilityMonitor_->GetNapiValue();
     if (obj == nullptr) {
-        HILOG_ERROR("Failed to get object");
+        RESMGR_HILOGE(RESMGR_TAG, "Failed to get object");
         return nullptr;
     }
 
     napi_value method = nullptr;
     napi_get_named_property(env_, obj, functionName.data(), &method);
     if (method == nullptr) {
-        HILOG_ERROR("Failed to get %{public}s from object", functionName.data());
+        RESMGR_HILOGE(RESMGR_TAG, "Failed to get %{public}s from object", functionName.data());
         return nullptr;
     }
 

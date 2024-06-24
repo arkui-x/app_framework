@@ -37,10 +37,17 @@ JsWindowStage::~JsWindowStage() {}
 napi_value JsWindowStage::LoadContent(napi_env env, napi_callback_info info)
 {
     JsWindowStage* me = CheckParamsAndGetThis<JsWindowStage>(env, info);
-    return (me != nullptr) ? me->OnLoadContent(env, info) : nullptr;
+    return (me != nullptr) ? me->OnLoadContent(env, info, false) : nullptr;
 }
 
-napi_value JsWindowStage::OnLoadContent(napi_env env, napi_callback_info info)
+napi_value JsWindowStage::LoadContentByName(napi_env env, napi_callback_info info)
+{
+    WLOGD("[NAPI]LoadContentByName");
+    JsWindowStage* me = CheckParamsAndGetThis<JsWindowStage>(env, info);
+    return (me != nullptr) ? me->OnLoadContent(env, info, true) : nullptr;
+}
+
+napi_value JsWindowStage::OnLoadContent(napi_env env, napi_callback_info info, bool isLoadedByName)
 {
     WmErrorCode errCode = WmErrorCode::WM_OK;
     napi_value storage = nullptr;
@@ -61,14 +68,15 @@ napi_value JsWindowStage::OnLoadContent(napi_env env, napi_callback_info info)
 
     napi_value result = nullptr;
     NapiAsyncTask::CompleteCallback complete =
-        [weak = windowStage_, storageRef, contextUrl](napi_env env, NapiAsyncTask& task, int32_t status) {
+        [weak = windowStage_, storageRef, contextUrl, isLoadedByName](napi_env env, NapiAsyncTask& task,
+            int32_t status) {
             auto weakStage = weak.lock();
             if (weakStage == nullptr || weakStage->GetMainWindow() == nullptr) {
                 WLOGE("JsWindowStage::OnLoadContent : no main window");
                 task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
                 return;
             }
-            LoadContentTask(env, storageRef, contextUrl, weakStage->GetMainWindow(), task);
+            LoadContentTask(env, storageRef, contextUrl, weakStage->GetMainWindow(), task, isLoadedByName);
         };
     NapiAsyncTask::Schedule("JsWindowStage::OnLoadContent",
         env, CreateAsyncTaskWithLastParam(env, callback, nullptr, std::move(complete), &result));
@@ -240,7 +248,7 @@ napi_value JsWindowStage::OffEvent(napi_env env, napi_callback_info info)
         }
     }
 
-    WLOGI("JsWindowStage::OffEvent : Window [%{public}u, %{public}s] unregister event %{public}s",
+    WLOGD("JsWindowStage::OffEvent : Window [%{public}u, %{public}s] unregister event %{public}s",
         window->GetWindowId(), window->GetWindowName().c_str(), eventString.c_str());
     return CreateUndefined(env);
 }
@@ -296,7 +304,7 @@ napi_value JsWindowStage::OnCreateSubWindow(napi_env env, napi_callback_info inf
             return;
         }
         task.Resolve(env, CreateJsWindowObject(env, window));
-        WLOGI("JsWindowStage::OnCreateSubWindow : Create sub window %{public}s end", windowName.c_str());
+        WLOGD("JsWindowStage::OnCreateSubWindow : Create sub window %{public}s end", windowName.c_str());
     };
     napi_value callback = nullptr;
     if (argc > 1 && IsFunction(env, argv[1])) {
@@ -345,7 +353,7 @@ napi_value JsWindowStage::OnGetSubWindow(napi_env env, napi_callback_info info)
             }
             std::vector<std::shared_ptr<Window>> subWindowVec = weakWindowStage->GetSubWindow();
             task.Resolve(env, CreateJsSubWindowArrayObject(env, subWindowVec));
-            WLOGI("JsWindowStage::OnGetSubWindow : Get sub windows, size = %{public}zu", subWindowVec.size());
+            WLOGD("JsWindowStage::OnGetSubWindow : Get sub windows, size = %{public}zu", subWindowVec.size());
     };
     napi_value callback = nullptr;
     if (argc >= 1 && IsFunction(env, argv[0])) {
@@ -364,9 +372,10 @@ void JsWindowStage::Finalizer(napi_env env, void* data, void* hint)
 
 napi_value CreateJsWindowStage(napi_env env, std::shared_ptr<Rosen::WindowStage> WindowStage)
 {
-    WLOGI("CreateJsWindowStage");
+    WLOGD("CreateJsWindowStage");
     const napi_property_descriptor props[] = {
         DECLARE_NAPI_FUNCTION("loadContent", JsWindowStage::LoadContent),
+        DECLARE_NAPI_FUNCTION("loadContentByName", JsWindowStage::LoadContentByName),
         DECLARE_NAPI_FUNCTION("getMainWindow", JsWindowStage::GetMainWindow),
         DECLARE_NAPI_FUNCTION("getMainWindowSync", JsWindowStage::GetMainWindowSync),
         DECLARE_NAPI_FUNCTION("createSubWindow", JsWindowStage::CreateSubWindow),

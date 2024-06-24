@@ -23,7 +23,6 @@
 #include "hap_module_info.h"
 #include "inner_bundle_user_info.h"
 #include "json_util.h"
-// #include "nocopyable.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -1374,7 +1373,6 @@ public:
     {
         auto it = std::find_if(sandboxPersistentInfo_.begin(), sandboxPersistentInfo_.end(),
             [&info](const auto& sandboxInfo) { return sandboxInfo.appIndex == info.appIndex; });
-
         if (it != sandboxPersistentInfo_.end()) {
             sandboxPersistentInfo_.erase(it);
         }
@@ -1385,7 +1383,6 @@ public:
     {
         auto it = std::find_if(sandboxPersistentInfo_.begin(), sandboxPersistentInfo_.end(),
             [&info](const auto& sandboxInfo) { return sandboxInfo.appIndex == info.appIndex; });
-
         if (it == sandboxPersistentInfo_.end()) {
             return;
         }

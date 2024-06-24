@@ -130,6 +130,11 @@ std::vector<uint8_t> StageAssetManager::GetBufferByAppDataPath(const std::string
 {
     return StageAssetProvider::GetInstance()->GetBufferByAppDataPath(fileFullPath);
 }
+
+std::vector<uint8_t> StageAssetManager::GetAotBuffer(const std::string &fileName)
+{
+    return StageAssetProvider::GetInstance()->GetAotBuffer(fileName);
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS
