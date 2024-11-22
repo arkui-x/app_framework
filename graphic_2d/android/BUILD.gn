@@ -1,0 +1,95 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import(
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
+
+config("composer_public_config") {
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/rosen/include/common",
+    "//drivers/peripheral/display/interfaces/include",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/composer",
+    "//foundation/appframework/graphic_2d/android",
+  ]
+}
+
+ohos_source_set("android") {
+  defines = rs_common_define
+
+  sources = [
+    "$rosen_root/modules/render_service_base/src/platform/ohos/rs_log.cpp",
+    "rs_accessibility.cpp",
+    "rs_ashmem_helper.cpp",
+    "rs_frame_report.cpp",
+    "rs_marshalling_helper.cpp",
+    "rs_render_service_client.cpp",
+    "rs_surface_android.cpp",
+    "rs_surface_frame_android.cpp",
+    "rs_system_properties.cpp",
+    "rs_trace_android.cpp",
+    "rs_vsync_client_android.cpp",
+    "scene_board_judgement.cpp",
+  ]
+
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/interfaces/inner_api",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface/",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/graphic_2d/utils/log",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+    "$rosen_root/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$rosen_root/modules/frame_report/include",
+    "//foundation/graphic/graphic_surface/interfaces/inner_api",
+    "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
+  ]
+
+  defines += [ "MODULE_RSB" ]
+  if (rs_enable_gpu) {
+    sources += [ "render_context.cpp" ]
+  }
+
+  cflags = [ "-std=c++17" ]
+
+  configs = [ "$rosen_root/modules/platform:eventhandler_config" ]
+
+  public_configs = [ ":composer_public_config" ]
+
+  deps = [
+    "$rosen_root/modules/platform:hilog",
+    "$rosen_root/modules/platform:image_native",
+  ]
+
+  libs = [
+    "EGL",
+    "GLESv2",
+    "android",
+    "nativewindow",
+  ]
+  public_deps = [
+    "$rosen_root/modules/platform:ace_skia",
+    "$rosen_root/modules/platform:ipc_core",
+    "$rosen_root/modules/platform:utils",
+  ]
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+    public_deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
+  }
+}

@@ -1,0 +1,77 @@
+[
+    {
+        "name": "OH_ResourceManager_InitNativeResourceManager"
+    },
+    {
+        "name": "OH_ResourceManager_ReleaseNativeResourceManager"
+    },
+    {
+        "name": "OH_ResourceManager_OpenRawDir"
+    },
+    {
+        "name": "OH_ResourceManager_OpenRawFile"
+    },
+    {
+        "name": "OH_ResourceManager_GetRawFileName"
+    },
+    {
+        "name": "OH_ResourceManager_GetRawFileCount"
+    },
+    {
+        "name": "OH_ResourceManager_CloseRawDir"
+    },
+    {
+        "name": "OH_ResourceManager_ReadRawFile"
+    },
+    {
+        "name": "OH_ResourceManager_SeekRawFile"
+    },
+    {
+        "name": "OH_ResourceManager_GetRawFileSize"
+    },
+    {
+        "name": "OH_ResourceManager_GetRawFileRemainingLength"
+    },
+    {
+        "name": "OH_ResourceManager_CloseRawFile"
+    },
+    {
+        "name": "OH_ResourceManager_GetRawFileOffset"
+    },
+    {
+        "name": "OH_ResourceManager_GetRawFileDescriptor"
+    },
+    {
+        "name": "OH_ResourceManager_ReleaseRawFileDescriptor"
+    },
+    {
+        "name": "OH_ResourceManager_OpenRawFile64"
+    },
+    {
+        "name": "OH_ResourceManager_ReadRawFile64"
+    },
+    {
+        "name": "OH_ResourceManager_SeekRawFile64"
+    },
+    {
+        "name": "OH_ResourceManager_GetRawFileSize64"
+    },
+    {
+        "name": "OH_ResourceManager_GetRawFileRemainingLength64"
+    },
+    {
+        "name": "OH_ResourceManager_CloseRawFile64"
+    },
+    {
+        "name": "OH_ResourceManager_GetRawFileOffset64"
+    },
+    {
+        "name": "OH_ResourceManager_GetRawFileDescriptor64"
+    },
+    {
+        "name": "OH_ResourceManager_ReleaseRawFileDescriptor64"
+    },
+    {
+        "name": "OH_ResourceManager_IsRawDir"
+    }
+]

@@ -1,0 +1,61 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
+
+config("bundle_parser_config") {
+  include_dirs = [
+    "//third_party/json/include",
+    "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/include",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/error",
+  ]
+}
+
+template("ability_runtime_bundle_parser") {
+  forward_variables_from(invoker, "*")
+
+  ohos_source_set(target_name) {
+    subsystem_name = ability_subsystem_name
+    part_name = ability_part_name
+    configs = [
+      ":bundle_parser_config",
+      "//third_party/json:nlohmann_json_config",
+      "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
+    ]
+
+    if (target_cpu == "arm64") {
+      defines = [ "_ARM64_" ]
+    }
+
+    sources = [
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/ability_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/application_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/bundle_container.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/bundle_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/bundle_parser.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/bundle_user_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/hap_module_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/inner_bundle_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/inner_bundle_user_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/module_info.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/module_profile.cpp",
+    ]
+
+    deps = [ "//third_party/jsoncpp:jsoncpp_static" ]
+  }
+}
+
+ability_runtime_bundle_parser("cross_platform_bundle_parser") {
+}
