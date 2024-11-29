@@ -34,7 +34,7 @@ public:
     AppMain();
     ~AppMain();
     static std::shared_ptr<AppMain> GetInstance();
-    void LaunchApplication();
+    void LaunchApplication(bool isCopyNativeLibs = true);
     void DispatchOnCreate(const std::string& instanceName, const std::string& params);
     void DispatchOnNewWant(const std::string& instanceName);
     void DispatchOnForeground(const std::string& instanceName);
@@ -51,7 +51,7 @@ public:
     void ParseHspModuleJson(const std::string& moduleName);
 
 private:
-    void ScheduleLaunchApplication();
+    void ScheduleLaunchApplication(bool isCopyNativeLibs);
     bool CreateRuntime(const std::string& bundleName, bool isBundle);
     void ParseBundleComplete();
     void HandleDispatchOnCreate(const std::string& instanceName, const std::string& params);
