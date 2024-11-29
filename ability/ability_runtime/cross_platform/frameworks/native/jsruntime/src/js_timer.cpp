@@ -38,8 +38,6 @@ namespace {
 class JsTimer;
     
 std::atomic<uint32_t> g_callbackId(1);
-std::mutex g_mutex;
-std::unordered_map<uint32_t, std::shared_ptr<JsTimer>> g_timerTable;
 
 class JsTimer final {
 public:
@@ -128,7 +126,6 @@ napi_value StartTimeoutOrInterval(napi_env env, napi_callback_info info, bool is
         napi_create_reference(env, argv[index], 1, &ref);
         task.PushArgs(std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref)));
     }
-
     jsRuntime.PostTask(task, name, delayTime);
     return CreateJsValue(env, callbackId);
 }
@@ -162,10 +159,12 @@ napi_value StopTimeoutOrInterval(napi_env env, napi_callback_info info)
 
     uint32_t callbackId = 0;
     napi_get_value_uint32(env, argv[0], &callbackId);
-    {
-        std::lock_guard<std::mutex> lock(g_mutex);
-        g_timerTable.erase(callbackId);
-    }
+    std::string name = "JsRuntimeTimer_";
+    name.append(std::to_string(callbackId));
+    NativeEngine* engine = reinterpret_cast<NativeEngine*>(env);
+    JsRuntime& jsRuntime = *reinterpret_cast<JsRuntime*>(engine->GetJsEngine());
+    env = reinterpret_cast<napi_env>(engine);
+    jsRuntime.RemoveTask(name);
     return CreateJsUndefined(env);
 }
 }
