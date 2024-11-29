@@ -33,6 +33,8 @@
 
 namespace OHOS {
 namespace Rosen {
+std::mutex RenderContext::resourceContextMutex;
+EGLContext RenderContext::resourceContext = nullptr;
 constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 constexpr char CHARACTER_WHITESPACE = ' ';
 constexpr const char* CHARACTER_STRING_WHITESPACE = " ";
@@ -70,22 +72,31 @@ void RenderContext::CreatePbufferSurface()
 {
 }
 
+const EGLContext RenderContext::GetResourceContext()
+{
+    std::lock_guard<std::mutex> lock(RenderContext::resourceContextMutex);
+    if (!RenderContext::resourceContext) {
+        RenderContext::resourceContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+    }
+    if (!RenderContext::resourceContext) {
+        RenderContext::resourceContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    }
+    return RenderContext::resourceContext;
+}
+
 void RenderContext::InitializeEglContext()
 {   
     if (IsEglContextReady()) {
         return;
     }
-    resource_context_ = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
-    if (resource_context_ != nullptr) {
-        eglContext_ = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3
-            sharegroup:static_cast<EAGLContext*>(resource_context_).sharegroup];
-    } else {
-        resource_context_ = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    eglContext_ = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3
+            sharegroup:static_cast<EAGLContext*>(GetResourceContext()).sharegroup];
+    if (eglContext_ == nullptr) {
         eglContext_ = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2
-            sharegroup:static_cast<EAGLContext*>(resource_context_).sharegroup];
+            sharegroup:static_cast<EAGLContext*>(GetResourceContext()).sharegroup];
     }
 
-    if (resource_context_ == nullptr || eglContext_ == nullptr) {
+    if (eglContext_ == nullptr) {
         ROSEN_LOGE("eglContext_ is null");
         return;
     }
@@ -151,7 +162,7 @@ bool RenderContext::UpdateStorageSizeIfNecessary()
 
 bool RenderContext::ResourceMakeCurrent() 
 {
-    return [EAGLContext setCurrentContext:static_cast<EAGLContext*>(resource_context_)];
+    return [EAGLContext setCurrentContext:static_cast<EAGLContext*>(resourceContext)];
 }
 
 void RenderContext::ShareMakeCurrent(EGLContext shareContext)

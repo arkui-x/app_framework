@@ -51,7 +51,7 @@ class KeyEvent;
 class AxisEvent;
 }
 
-namespace AppExecFwk {
+namespace AppExecFwk{
 struct AbilityInfo;
 }
 } // namespace OHOS

@@ -97,6 +97,9 @@ public:
             updateCallback_ = updateCallback;
         }
     }
+    void SetInitTypeCallback(const RSSurfaceTextureInitTypeCallBack& initTypeCallback) override
+    {
+    }
     void MarkUiFrameAvailable(bool available) override;
     bool IsUiFrameAvailable() const override
     {
@@ -104,7 +107,13 @@ public:
     }
 
     void UpdateSurfaceDefaultSize(float width, float height) override;
-
+    RSSurfaceExtConfig GetSurfaceExtConfig() override
+    {
+        return RSSurfaceExtConfig{};
+    }
+    void UpdateSurfaceExtConfig(const RSSurfaceExtConfig& config) override
+    {
+    }
 private:
     void updateTransform();
     enum class AttachmentState { uninitialized, attached, detached };

@@ -125,10 +125,8 @@ napi_value WindowEventTypeInit(napi_env env)
     const napi_property_descriptor props[] = {
         DECLARE_NAPI_PROPERTY("WINDOW_SHOWN", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::FOREGROUND))),
         DECLARE_NAPI_PROPERTY("WINDOW_ACTIVE", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::ACTIVE))),
-        DECLARE_NAPI_PROPERTY("WINDOW_INACTIVE", CreateJsValue(
-            env, static_cast<int32_t>(LifeCycleEventType::INACTIVE))),
-        DECLARE_NAPI_PROPERTY("WINDOW_HIDDEN", CreateJsValue(
-            env, static_cast<int32_t>(LifeCycleEventType::BACKGROUND))),
+        DECLARE_NAPI_PROPERTY("WINDOW_INACTIVE", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::INACTIVE))),
+        DECLARE_NAPI_PROPERTY("WINDOW_HIDDEN", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::BACKGROUND))),
     };
     return CreateObject(env, nullptr, props, sizeof(props) / sizeof(props[0]));
 }

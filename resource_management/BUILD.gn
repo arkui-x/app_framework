@@ -36,8 +36,8 @@ config("resmgr_config") {
 manager_sources = [
   "//base/global/resource_management/frameworks/resmgr/src/hap_manager.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/hap_resource.cpp",
+  "//base/global/resource_management/frameworks/resmgr/src/hap_resource_manager.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/locale_matcher.cpp",
-  "//base/global/resource_management/frameworks/resmgr/src/lock.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/res_config_impl.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/res_desc.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/res_locale.cpp",

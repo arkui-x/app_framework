@@ -605,7 +605,7 @@ napi_value ResourceManagerNapiSyncImpl::GetPluralStringValueSync(napi_env env, n
 
     int32_t state = ResourceManagerNapiSyncImpl::InitIdResourceAddon(env, info, dataContext);
     if (state != RState::SUCCESS) {
-        dataContext->SetErrorMsg("Failed to init para in GetPluralStringValueSync", true);
+        dataContext->SetErrorMsg("Failed to init para in GetPluralStringValueSync",true);
         ResourceManagerNapiUtils::NapiThrow(env, state);
         return nullptr;
     }

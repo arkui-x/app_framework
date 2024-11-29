@@ -157,7 +157,7 @@ HandleScope::~HandleScope()
 // Handle Escape
 HandleEscape::HandleEscape(JsRuntime& jsRuntime)
 {
-    env_ = jsRuntime.GetNapiEnv();
+    env_ =  jsRuntime.GetNapiEnv();    
     napi_open_escapable_handle_scope(env_, &scope_);
 }
 

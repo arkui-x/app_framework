@@ -27,10 +27,10 @@
 #include "common/rs_common_def.h"
 #include "platform/drawing/rs_surface.h"
 #include "platform/drawing/rs_surface_frame.h"
-#ifdef __OBJC__
-@class CALayer;
-#else
-typedef struct objc_object CALayer;
+#ifdef __OBJC__  
+@class CALayer;  
+#else  
+typedef struct objc_object CALayer;  
 #endif
 namespace OHOS {
 namespace Rosen {

@@ -35,8 +35,7 @@ static void CreateSubWindowTask(
     void* contextPtr, std::shared_ptr<WindowOption> windowOption, napi_env env, NapiAsyncTask& task)
 {
     if (windowOption == nullptr) {
-        task.Reject(
-            env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_SYSTEM_ABNORMALLY, "New window option failed"));
+        task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_SYSTEM_ABNORMALLY, "New window option failed"));
         WLOGE("CreateSubWindowTask : New window option failed");
         return;
     }

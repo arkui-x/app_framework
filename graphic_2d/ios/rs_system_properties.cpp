@@ -56,6 +56,11 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetRenderNodePurgeEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetDrawOpTraceEnabled()
 {
     return false;
@@ -87,11 +92,6 @@ bool RSSystemProperties::GetOcclusionEnabled()
 }
 
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
-{
-    return {};
-}
-
-bool RSSystemProperties::GetDirectClientCompEnableStatus()
 {
     return {};
 }
@@ -217,6 +217,12 @@ bool RSSystemProperties::GetHpsBlurEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetMESABlurFuzedEnabled()
+{
+    return false;
+}
+
+
 bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
 {
     return {};
@@ -320,8 +326,12 @@ bool RSSystemProperties::GetBlurExtraFilterEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetMaskLinearBlurEnabled()
+bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
 {
+    return false;
+}
+
+bool RSSystemProperties::GetMaskLinearBlurEnabled(){
     return false;
 }
 

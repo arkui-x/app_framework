@@ -19,6 +19,10 @@
 #include <AVFoundation/AVFoundation.h>
 #include <CoreMedia/CoreMedia.h>
 #include <Foundation/Foundation.h>
+#include <OpenGLES/ES2/gl.h>
+#include <OpenGLES/ES2/glext.h>
+#include <OpenGLES/ES3/gl.h>
+#include <OpenGLES/ES3/glext.h>
 #if defined(NEW_SKIA)
 #include <include/gpu/GrDirectContext.h>
 #else
@@ -29,6 +33,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_surface_ext.h"
 #include "platform/ios/cf_ref.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -42,12 +47,26 @@ public:
     void DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const SkRect& clipRect) override;
 #else
     void DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect) override;
+    void DrawTextureImageGL(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect);
+    void DrawTextureImageForVideo(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect);
 #endif
     void SetAttachCallback(const RSSurfaceTextureAttachCallBack& attachCallback) override
     {
+        if (attachCallback_ == nullptr) {
+            attachCallback_ = attachCallback;
+        }
     }
     void SetUpdateCallback(const RSSurfaceTextureUpdateCallBack& updateCallback) override
     {
+        if (updateCallback_ == nullptr) {
+            updateCallback_ = updateCallback;
+        }
+    }
+    void SetInitTypeCallback(const RSSurfaceTextureInitTypeCallBack& initTypeCallback) override
+    {
+        if (initTypeCallback_ == nullptr) {
+            initTypeCallback_ = initTypeCallback;
+        }
     }
     void MarkUiFrameAvailable(bool available) override
     {
@@ -58,13 +77,35 @@ public:
         return bufferAvailable_.load();
     }
     void UpdateSurfaceDefaultSize(float width, float height) override;
+
+    RSSurfaceExtConfig GetSurfaceExtConfig() override
+    {
+        return config_;
+    }
+    void UpdateSurfaceExtConfig(const RSSurfaceExtConfig& config) override
+    {
+        config_.additionalData = config.additionalData;
+    }
 private:
+    void InitializePlatformEglContext();
+
+    std::atomic<bool> bufferAvailable_ = false;
+    GLuint textureId_ = 0;
+    RSSurfaceTextureAttachCallBack attachCallback_;
+    RSSurfaceTextureUpdateCallBack updateCallback_;
+    RSSurfaceTextureInitTypeCallBack initTypeCallback_;
+    RSSurfaceExtConfig config_;
+    bool active_ = false;
+    std::vector<float> matrix {};
+    EGLContext platformEglContext_;
+
+    // for video
     void EnsureTextureCacheExists();
     void CreateTextureFromPixelBuffer();
     CVPixelBufferRef GetPixelBuffer();
-    
-    CVPixelBufferRef * ref_;
-    std::atomic<bool> bufferAvailable_ = false;
+
+    int32_t isVideo_ = 0;
+    AVPlayerItemVideoOutput* videoOutput_;
     OHOS::CFRef<CVOpenGLESTextureCacheRef> cache_ref_;
     OHOS::CFRef<CVOpenGLESTextureRef> texture_ref_;
     OHOS::CFRef<CVPixelBufferRef> buffer_ref_;

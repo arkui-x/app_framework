@@ -316,7 +316,7 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
     SkColorType colorType = kRGBA_8888_SkColorType;
     sk_sp<SkColorSpace> skColorSpace = nullptr;
 
-    ROSEN_LOGD("RenderContext::AcquireSurface, colorSpace_ =  (%d)", colorSpace_);
+    ROSEN_LOGD("RenderContext::AcquireSurface, colorSpace_ =  (%d)", colorSpace_ );
     switch (colorSpace_) {
         // [planning] in order to stay consistant with the colorspace used before, we disabled
         // GRAPHIC_COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr

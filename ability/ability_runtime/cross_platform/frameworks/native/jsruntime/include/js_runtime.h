@@ -63,7 +63,7 @@ public:
         const std::string& moduleName, const std::string& modulePath, std::vector<uint8_t>& buffer,
         const std::string& srcEntrance, bool esmodule);
     std::unique_ptr<NativeReference> LoadSystemModule(
-        const std::string& moduleName, napi_value* const *argv = nullptr, size_t argc = 0);
+        const std::string& moduleName, napi_value* const* argv = nullptr, size_t argc = 0);
     void PostTask(const std::function<void()>& task, const std::string& name, int64_t delayTime);
     void RemoveTask(const std::string& name);
     virtual bool RunScript(const std::string& path, const std::string& hapPath, bool useCommonChunk = false) = 0;

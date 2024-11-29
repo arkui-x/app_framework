@@ -634,12 +634,13 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkSamplingOptions& val)
 
 #ifdef USE_ROSEN_DRAWING
 // Drawing::DrawCmdList
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val)
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val,
+    bool isRecordCmd)
 {
     return {};
 }
 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val, bool isRecordCmd)
 {
     return {};
 }
@@ -750,6 +751,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<std::vector<ParticleRenderParams>>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)                             \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                           \
@@ -783,6 +785,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<std::vector<ParticleRenderParams>>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)                             \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                           \
@@ -808,6 +811,7 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                          \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)

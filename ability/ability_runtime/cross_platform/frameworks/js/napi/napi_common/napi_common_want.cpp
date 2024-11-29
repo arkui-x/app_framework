@@ -26,14 +26,14 @@ napi_value CreateJsWant(napi_env env, const Want &want)
     napi_value object = nullptr;
     napi_create_object(env, &object);
 
-    napi_set_named_property(env, object, "bundleName",
-        AbilityRuntime::CreateJsValue(env, want.GetBundleName()));
-    napi_set_named_property(env, object, "abilityName",
-        AbilityRuntime::CreateJsValue(env, want.GetAbilityName()));
-    napi_set_named_property(env, object, "moduleName",
-        AbilityRuntime::CreateJsValue(env, want.GetModuleName()));
-    napi_set_named_property(env, object, "parameters",
-        CreateJsWantParams(env, want));
+    napi_set_named_property(env, object, "bundleName", 
+    AbilityRuntime::CreateJsValue(env, want.GetBundleName()));
+    napi_set_named_property(env, object, "abilityName", 
+    AbilityRuntime::CreateJsValue(env, want.GetAbilityName()));
+    napi_set_named_property(env, object, "moduleName", 
+    AbilityRuntime::CreateJsValue(env, want.GetModuleName()));
+    napi_set_named_property(env, object, "parameters", 
+    CreateJsWantParams(env, want));
     return object;
 }
 
@@ -46,20 +46,20 @@ napi_value CreateJsWantParams(napi_env env, const Want& want)
     for (auto iter = types.begin(); iter != types.end(); iter++) {
         if (iter->second == AAFwk::VALUE_TYPE_BOOLEAN) {
             auto natValue = want.GetBoolParam(iter->first, false);
-            napi_set_named_property(env, object, iter->first.c_str(),
-                OHOS::AbilityRuntime::CreateJsValue(env, natValue));
+            napi_set_named_property(env, object, iter->first.c_str(), 
+            OHOS::AbilityRuntime::CreateJsValue(env, natValue));
         } else if (iter->second == AAFwk::VALUE_TYPE_INT) {
             auto natValue = want.GetIntParam(iter->first, 0);
-            napi_set_named_property(env, object, iter->first.c_str(),
-                OHOS::AbilityRuntime::CreateJsValue(env, natValue));
+            napi_set_named_property(env, object, iter->first.c_str(), 
+            OHOS::AbilityRuntime::CreateJsValue(env, natValue));
         } else if (iter->second == AAFwk::VALUE_TYPE_DOUBLE) {
             auto natValue = want.GetDoubleParam(iter->first, 0);
-            napi_set_named_property(env, object, iter->first.c_str(),
-                OHOS::AbilityRuntime::CreateJsValue(env, natValue));
+            napi_set_named_property(env, object, iter->first.c_str(), 
+            OHOS::AbilityRuntime::CreateJsValue(env, natValue));
         } else if (iter->second == AAFwk::VALUE_TYPE_STRING) {
             auto natValue = want.GetStringParam(iter->first);
-            napi_set_named_property(env, object, iter->first.c_str(),
-                OHOS::AbilityRuntime::CreateJsValue(env, natValue));
+            napi_set_named_property(env, object, iter->first.c_str(), 
+            OHOS::AbilityRuntime::CreateJsValue(env, natValue));
         }
     }
     return object;

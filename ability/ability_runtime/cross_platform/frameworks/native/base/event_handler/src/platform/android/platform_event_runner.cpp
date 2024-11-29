@@ -114,6 +114,7 @@ public:
         ALooperWakeFun wakeFun = (ALooperWakeFun)dlsym(handle, LOOPER_WAKE.c_str());
         ALooperAddFdFun addFdFun = (ALooperAddFdFun)dlsym(handle, LOOPER_ADD_FD.c_str());
         ALooperRemoveFdFun removeFdFun = (ALooperRemoveFdFun)dlsym(handle, LOOPER_REMOVE_FD.c_str());
+
         if (forThreadFun && acquireFun && releaseFun && pollAllFun && wakeFun && addFdFun && removeFdFun) {
             HILOG_ERROR("fun bind success.");
             funInfo_.aLooperForThreadFun = forThreadFun;
@@ -381,7 +382,7 @@ public:
         }
 
         if (ALooperFun::GetInstance().AddFd(looper_, fileDescriptor, static_cast<int32_t>(aLooperEvents),
-            OnFileDescriptorEvent, reinterpret_cast<uintptr_t>(this)) < 0) {
+                OnFileDescriptorEvent, reinterpret_cast<uintptr_t>(this)) < 0) {
             HILOG_ERROR("Failed to add file descriptor to android looper");
             return false;
         }

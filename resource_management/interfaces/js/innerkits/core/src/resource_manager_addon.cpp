@@ -20,7 +20,6 @@
 namespace OHOS {
 namespace Global {
 namespace Resource {
-static thread_local napi_ref g_constructor = nullptr;
 static std::shared_ptr<ResourceManager> sysResMgr = nullptr;
 static std::mutex sysMgrMutex;
 
@@ -43,86 +42,6 @@ napi_value ResourceManagerAddon::CreateOverrideAddon(napi_env env, const std::sh
     std::shared_ptr<ResourceManagerAddon> addon = std::make_shared<ResourceManagerAddon>(bundleName_, resMgr, context_);
     addon->isOverrideAddon_ = true;
     return WrapResourceManager(env, addon);
-}
-
-napi_value ResourceManagerAddon::WrapResourceManager(napi_env env, std::shared_ptr<ResourceManagerAddon> &addon)
-{
-    if (!Init(env)) {
-        HiLog::Error(LABEL, "Failed to init resource manager addon");
-        return nullptr;
-    }
-
-    napi_value constructor = nullptr;
-    napi_status status = napi_get_reference_value(env, g_constructor, &constructor);
-    if (status != napi_ok || constructor == nullptr) {
-        HiLog::Error(LABEL, "Failed to get reference value in Create, status = %{public}d", status);
-        return nullptr;
-    }
-    napi_value result = nullptr;
-    status = napi_new_instance(env, constructor, 0, nullptr, &result);
-    if (status != napi_ok) {
-        HiLog::Error(LABEL, "Failed to new instance in Create, status = %{public}d", status);
-        return nullptr;
-    }
-
-    auto addonPtr = std::make_unique<std::shared_ptr<ResourceManagerAddon>>(addon);
-    status = napi_wrap(env, result, reinterpret_cast<void *>(addonPtr.get()), ResourceManagerAddon::Destructor,
-        nullptr, nullptr);
-    if (status != napi_ok) {
-        HiLog::Error(LABEL, "Failed to wrape in Create");
-        return nullptr;
-    }
-    addonPtr.release();
-    return result;
-}
-
-napi_value ResourceManagerAddon::GetSystemResMgr(napi_env env)
-{
-    if (sysResMgr == nullptr) {
-        std::lock_guard<std::mutex> lock(sysMgrMutex);
-        if (sysResMgr == nullptr) {
-            std::shared_ptr<Global::Resource::ResourceManager>
-                systemResManager(Global::Resource::GetSystemResourceManager());
-            if (systemResManager == nullptr) {
-                ResourceManagerNapiUtils::NapiThrow(env, ERROR_CODE_SYSTEM_RES_MANAGER_GET_FAILED);
-                return nullptr;
-            }
-            sysResMgr = systemResManager;
-        }
-    }
-    std::shared_ptr<ResourceManagerAddon> addon = std::make_shared<ResourceManagerAddon>(sysResMgr, true);
-    return WrapResourceManager(env, addon);
-}
-#if defined(__ARKUI_CROSS__)
-ResourceManagerAddon::ResourceManagerAddon(
-    const std::string& bundleName, const std::shared_ptr<ResourceManager>& resMgr,
-    const std::shared_ptr<AbilityRuntime::Platform::Context>& context, bool isSystem)
-    : bundleName_(bundleName), resMgr_(resMgr), context_(context), isSystem_(isSystem)
-#else
-ResourceManagerAddon::ResourceManagerAddon(
-    const std::string& bundleName, const std::shared_ptr<ResourceManager>& resMgr,
-    const std::shared_ptr<AbilityRuntime::Context>& context, bool isSystem)
-    : bundleName_(bundleName), resMgr_(resMgr), context_(context), isSystem_(isSystem)
-#endif
-{
-    napiContext_ = std::make_shared<ResourceManagerNapiContext>();
-}
-
-ResourceManagerAddon::ResourceManagerAddon(const std::shared_ptr<ResourceManager>& resMgr, bool isSystem)
-    : resMgr_(resMgr), isSystem_(isSystem)
-{
-    napiContext_ = std::make_shared<ResourceManagerNapiContext>();
-}
-
-ResourceManagerAddon::~ResourceManagerAddon()
-{
-    HiLog::Info(LABEL, "~ResourceManagerAddon %{public}s", bundleName_.c_str());
-}
-
-void ResourceManagerAddon::Destructor(napi_env env, void *nativeObject, void *hint)
-{
-    std::unique_ptr<std::shared_ptr<ResourceManagerAddon>> addonPtr;
-    addonPtr.reset(static_cast<std::shared_ptr<ResourceManagerAddon>*>(nativeObject));
 }
 
 napi_property_descriptor ResourceManagerAddon::properties[] = {
@@ -188,26 +107,81 @@ napi_property_descriptor ResourceManagerAddon::properties[] = {
     DECLARE_NAPI_FUNCTION("updateOverrideConfiguration", UpdateOverrideConfiguration)
 };
 
-bool ResourceManagerAddon::Init(napi_env env)
+napi_value ResourceManagerAddon::WrapResourceManager(napi_env env, std::shared_ptr<ResourceManagerAddon> &addon)
 {
-    if (g_constructor != nullptr) {
-        return true;
-    }
-
     napi_value constructor;
     napi_status status = napi_define_class(env, "ResourceManager", NAPI_AUTO_LENGTH, New, nullptr,
         sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor);
     if (status != napi_ok) {
-        HiLog::Error(LABEL, "Failed to define class at Init");
-        return false;
+        HiLog::Error(LABEL, "Failed to define class at Init, status = %{public}d", status);
+        return nullptr;
     }
 
-    status = napi_create_reference(env, constructor, 1, &g_constructor);
+    napi_value result = nullptr;
+    status = napi_new_instance(env, constructor, 0, nullptr, &result);
     if (status != napi_ok) {
-        HiLog::Error(LABEL, "Failed to create reference at init");
-        return false;
+        HiLog::Error(LABEL, "Failed to new instance in Create, status = %{public}d", status);
+        return nullptr;
     }
-    return true;
+
+    auto addonPtr = std::make_unique<std::shared_ptr<ResourceManagerAddon>>(addon);
+    status = napi_wrap(env, result, reinterpret_cast<void *>(addonPtr.get()), ResourceManagerAddon::Destructor,
+        nullptr, nullptr);
+    if (status != napi_ok) {
+        HiLog::Error(LABEL, "Failed to wrape in Create");
+        return nullptr;
+    }
+    addonPtr.release();
+    return result;
+}
+
+napi_value ResourceManagerAddon::GetSystemResMgr(napi_env env)
+{
+    if (sysResMgr == nullptr) {
+        std::lock_guard<std::mutex> lock(sysMgrMutex);
+        if (sysResMgr == nullptr) {
+            std::shared_ptr<Global::Resource::ResourceManager>
+                systemResManager(Global::Resource::GetSystemResourceManager());
+            if (systemResManager == nullptr) {
+                ResourceManagerNapiUtils::NapiThrow(env, ERROR_CODE_SYSTEM_RES_MANAGER_GET_FAILED);
+                return nullptr;
+            }
+            sysResMgr = systemResManager;
+        }
+    }
+    std::shared_ptr<ResourceManagerAddon> addon = std::make_shared<ResourceManagerAddon>(sysResMgr, true);
+    return WrapResourceManager(env, addon);
+}
+#if defined(__ARKUI_CROSS__)
+ResourceManagerAddon::ResourceManagerAddon(
+    const std::string& bundleName, const std::shared_ptr<ResourceManager>& resMgr,
+    const std::shared_ptr<AbilityRuntime::Platform::Context>& context, bool isSystem)
+    : bundleName_(bundleName), resMgr_(resMgr), context_(context), isSystem_(isSystem)
+#else
+ResourceManagerAddon::ResourceManagerAddon(
+    const std::string& bundleName, const std::shared_ptr<ResourceManager>& resMgr,
+    const std::shared_ptr<AbilityRuntime::Context>& context, bool isSystem)
+    : bundleName_(bundleName), resMgr_(resMgr), context_(context), isSystem_(isSystem)
+#endif
+{
+    napiContext_ = std::make_shared<ResourceManagerNapiContext>();
+}
+
+ResourceManagerAddon::ResourceManagerAddon(const std::shared_ptr<ResourceManager>& resMgr, bool isSystem)
+    : resMgr_(resMgr), isSystem_(isSystem)
+{
+    napiContext_ = std::make_shared<ResourceManagerNapiContext>();
+}
+
+ResourceManagerAddon::~ResourceManagerAddon()
+{
+    HiLog::Info(LABEL, "~ResourceManagerAddon %{public}s", bundleName_.c_str());
+}
+
+void ResourceManagerAddon::Destructor(napi_env env, void *nativeObject, void *hint)
+{
+    std::unique_ptr<std::shared_ptr<ResourceManagerAddon>> addonPtr;
+    addonPtr.reset(static_cast<std::shared_ptr<ResourceManagerAddon>*>(nativeObject));
 }
 
 napi_value ResourceManagerAddon::New(napi_env env, napi_callback_info info)

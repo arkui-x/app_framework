@@ -94,6 +94,7 @@ template("ability_runtime_jsruntime") {
 
     if (is_arkui_x) {
       defines += [ "CROSS_PLATFORM" ]
+      include_dirs = [ "//commonlibrary/ets_utils/js_concurrent_module/common" ]
     }
 
     if (target_os == "android") {

@@ -58,8 +58,8 @@ void JsWindowListener::OnSizeChange(Rect rect)
         return;
     }
     // js callback should run in js thread
-    NapiAsyncTask::CompleteCallback jsCallback =
-        [self = weakRef_, rect, eng = engine_, caseType = caseType_]
+    NapiAsyncTask::CompleteCallback jsCallback = 
+        [self = weakRef_, rect, eng = engine_, caseType = caseType_] 
             (napi_env env, NapiAsyncTask &task, int32_t status) {
             auto thisListener = self.promote();
             if (thisListener == nullptr || eng == nullptr) {
@@ -82,6 +82,7 @@ void JsWindowListener::OnSizeChange(Rect rect)
         engine_, CreateAsyncTaskWithLastParam(engine_, nullptr, nullptr, std::move(jsCallback), &result));
     currentWidth_ = rect.width_;
     currentHeight_ = rect.height_;
+
 }
 
 void JsWindowListener::LifeCycleCallBack(LifeCycleEventType eventType)

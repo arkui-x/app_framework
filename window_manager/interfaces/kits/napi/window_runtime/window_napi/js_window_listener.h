@@ -43,7 +43,7 @@ public:
     void AfterBackground() override;
     void AfterFocused() override;
     void AfterUnfocused() override;
-    void CallJsMethod(napi_env env, const char* methodName, napi_value const *argv = nullptr, size_t argc = 0);
+    void CallJsMethod(napi_env env, const char* methodName, napi_value const* argv = nullptr, size_t argc = 0);
 private:
     uint32_t currentWidth_ = 0;
     uint32_t currentHeight_ = 0;

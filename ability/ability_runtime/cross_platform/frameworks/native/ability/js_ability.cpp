@@ -94,8 +94,9 @@ void JsAbility::Init(const std::shared_ptr<AppExecFwk::AbilityInfo>& abilityInfo
         modulePath.erase(modulePath.rfind("."));
         modulePath.append(".abc");
     }
-    jsAbilityObj_ = jsRuntime_.LoadModule(moduleName, modulePath, abilityBuffer,
-        abilityInfo->srcEntrance, abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE);
+    jsAbilityObj_ = jsRuntime_.LoadModule(moduleName, modulePath, abilityBuffer, 
+    abilityInfo->srcEntrance, abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE);
+        
     if (jsAbilityObj_ == nullptr) {
         HILOG_ERROR("Failed to get Ability object");
         return;
@@ -158,14 +159,15 @@ void JsAbility::CallObjectMethod(const char* name, napi_value const* argv, size_
 
     HandleScope handleScope(jsRuntime_);
     auto env = jsRuntime_.GetNapiEnv();
-
+  
     napi_value obj = jsAbilityObj_->GetNapiValue();
+    
     if (obj == nullptr) {
         HILOG_ERROR("Failed to convert Ability object");
         return;
     }
     napi_value methodOnCreate = nullptr;
-    napi_get_named_property(env, obj, name, &methodOnCreate);
+       napi_get_named_property(env, obj, name, &methodOnCreate);
     if (methodOnCreate == nullptr) {
         HILOG_ERROR("Failed to get '%{public}s' from Ability object", name);
         return;

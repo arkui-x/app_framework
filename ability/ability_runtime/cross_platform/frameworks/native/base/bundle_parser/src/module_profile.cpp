@@ -35,7 +35,7 @@ const std::set<std::string> DEVICE_TYPE_SET = { "default", "phone", "tablet", "t
 const std::set<std::string> VIRTUAL_MACHINE_SET = { "ark", "default" };
 
 const std::map<std::string, uint32_t> BACKGROUND_MODES_MAP = { { ProfileReader::KEY_DATA_TRANSFER,
-    ProfileReader::VALUE_DATA_TRANSFER },
+                                                                   ProfileReader::VALUE_DATA_TRANSFER },
     { ProfileReader::KEY_AUDIO_PLAYBACK, ProfileReader::VALUE_AUDIO_PLAYBACK },
     { ProfileReader::KEY_AUDIO_RECORDING, ProfileReader::VALUE_AUDIO_RECORDING },
     { ProfileReader::KEY_LOCATION, ProfileReader::VALUE_LOCATION },
@@ -71,7 +71,7 @@ const std::unordered_map<std::string, DisplayOrientation> DISPLAY_ORIENTATION_MA
     { "locked", DisplayOrientation::LOCKED }
 };
 const std::unordered_map<std::string, SupportWindowMode> WINDOW_MODE_MAP = { { "fullscreen",
-    SupportWindowMode::FULLSCREEN },
+                                                                                 SupportWindowMode::FULLSCREEN },
     { "split", SupportWindowMode::SPLIT }, { "floating", SupportWindowMode::FLOATING } };
 
 struct DeviceConfig {
@@ -680,6 +680,7 @@ bool ToBundleInfo(const ApplicationInfo& applicationInfo, const InnerModuleInfo&
     bundleInfo.vendor = applicationInfo.vendor;
     bundleInfo.releaseType = applicationInfo.apiReleaseType;
     bundleInfo.isNativeApp = false;
+    // bundleInfo.asanEnabled = applicationInfo.asanEnabled;
 
     if (innerModuleInfo.isEntry) {
         bundleInfo.mainEntry = innerModuleInfo.moduleName;
@@ -941,7 +942,7 @@ bool ToInnerBundleInfo(
                 innerModuleInfo.labelId = ability.labelId;
                 // get launcher application and ability
                 bool isLauncherEntity = std::find(skill.entities.begin(), skill.entities.end(),
-                    Constants::FLAG_HOME_INTENT_FROM_SYSTEM) != skill.entities.end();
+                                            Constants::FLAG_HOME_INTENT_FROM_SYSTEM) != skill.entities.end();
                 if (isLauncherEntity && transformParam.isPreInstallApp) {
                     applicationInfo.isLauncherApp = true;
                     abilityInfo.isLauncherAbility = true;

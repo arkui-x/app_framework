@@ -36,20 +36,17 @@ void RosenTraceEnd()
     ATrace_endSection();
 }
 
-ScopedTrace::ScopedTrace(const char *name)
-{
+ScopedTrace::ScopedTrace(const char *name) {
     if (name != nullptr) {
         ATrace_beginSection(name);
     }
 }
 
-ScopedTrace::ScopedTrace(std::string name)
-{
+ScopedTrace::ScopedTrace(std::string name) {
     ATrace_beginSection(name.c_str());
 }
 
-ScopedTrace::~ScopedTrace()
-{
+ScopedTrace::~ScopedTrace() {
     ATrace_endSection();
 }
 

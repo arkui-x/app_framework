@@ -86,7 +86,7 @@ void RSSurfaceFrameIOS::CreateSurface()
         ROSEN_LOGE("RSSurfaceFrameIOS::CreateSurface, context_ is null!");
         return;
     }
-    surface_ = context_->AcquireSurface(width_, height_);
+    surface_ = context_->AcquireSurface(width_,height_);
 #else
     if (!surface_) {
         SkImageInfo info = SkImageInfo::MakeN32(width_, height_, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
@@ -99,7 +99,7 @@ void RSSurfaceFrameIOS::CreateSurface()
             surfaceQueue.pop();
         }
     }
-#endif
+#endif  
 }
 } // namespace Rosen
 } // namespace OHOS

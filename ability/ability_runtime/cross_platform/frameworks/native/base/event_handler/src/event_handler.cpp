@@ -353,6 +353,7 @@ std::string EventHandler::GetEventName(const InnerEvent::Pointer& event)
         } else {
             eventName = std::get<std::string>(eventId);
         }
+
     }
     return eventName;
 }

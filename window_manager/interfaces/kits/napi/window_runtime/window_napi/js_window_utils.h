@@ -167,7 +167,7 @@ bool GetSystemBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProper
     napi_env env, size_t argc, const napi_value arg, std::shared_ptr<Window>& window);
 bool GetSpecificBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProperties,
     napi_env env, napi_callback_info info, std::shared_ptr<Window>& window);
-napi_value ConvertAvoidAreaToJsValue(napi_env env, const AvoidArea& avoidArea, AvoidAreaType type);
+napi_value ConvertAvoidAreaToJsValue(napi_env env, const AvoidArea& avoidArea, AvoidAreaType type);    
 napi_value WindowTypeInit(napi_env env);
 napi_value WindowModeInit(napi_env env);
 napi_value OrientationInit(napi_env env);

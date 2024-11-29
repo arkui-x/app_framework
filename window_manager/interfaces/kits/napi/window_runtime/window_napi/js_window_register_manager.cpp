@@ -36,8 +36,7 @@ JsWindowRegisterManager::JsWindowRegisterManager()
     };
 }
 
-JsWindowRegisterManager& JsWindowRegisterManager::GetInstance()
-{
+JsWindowRegisterManager& JsWindowRegisterManager::GetInstance() {
     static JsWindowRegisterManager instance;
     return instance;
 }
@@ -80,8 +79,7 @@ WmErrorCode JsWindowRegisterManager::ProcessLifeCycleEventRegister(sptr<JsWindow
         WLOGI("JsWindowRegisterManager::ProcessLifeCycleEventRegister : UnregisterLifeCycleListener");
         ret = WM_JS_TO_ERROR_CODE_MAP.at(window->UnregisterLifeCycleListener(thisListener));
     }
-    WLOGI("JsWindowRegisterManager::ProcessLifeCycleEventRegister : End!!! result=[%{public}d]",
-        static_cast<int32_t>(ret));
+    WLOGI("JsWindowRegisterManager::ProcessLifeCycleEventRegister : End!!! result=[%{public}d]", static_cast<int32_t>(ret));
     return ret;
 }
 
@@ -149,8 +147,8 @@ WmErrorCode JsWindowRegisterManager::RegisterListener(napi_env env, std::shared_
     return WmErrorCode::WM_OK;
 }
 
-WmErrorCode JsWindowRegisterManager::UnregisterListener(
-    napi_env env, std::shared_ptr<Window> window, std::string type, CaseType caseType, napi_value value)
+WmErrorCode JsWindowRegisterManager::UnregisterListener(napi_env env, std::shared_ptr<Window> window, std::string type,
+    CaseType caseType, napi_value value)
 {
     WLOGE("JsWindowRegisterManager UnregisterListener%p", this);
     std::lock_guard<std::mutex> lock(mtx_);
@@ -166,8 +164,7 @@ WmErrorCode JsWindowRegisterManager::UnregisterListener(
         for (auto it = jsCbMap_[type].begin(); it != jsCbMap_[type].end();) {
             WmErrorCode ret = (this->*listenerProcess_[caseType][type])(it->second, window, false);
             if (ret != WmErrorCode::WM_OK) {
-                WLOGE("JsWindowRegisterManager::RegisterListener : Unregister type %{public}s failed, no value",
-                    type.c_str());
+                WLOGE("JsWindowRegisterManager::RegisterListener : Unregister type %{public}s failed, no value", type.c_str());
                 return ret;
             }
             jsCbMap_[type].erase(it++);
@@ -188,8 +185,7 @@ WmErrorCode JsWindowRegisterManager::UnregisterListener(
             break;
         }
         if (!findFlag) {
-            WLOGE("JsWindowRegisterManager::UnregisterListener : Unregister type %{public}s failed because not found callback!",
-                type.c_str());
+            WLOGE("JsWindowRegisterManager::UnregisterListener : Unregister type %{public}s failed because not found callback!", type.c_str());
             return WmErrorCode::WM_ERROR_STATE_ABNORMALLY;
         }
     }

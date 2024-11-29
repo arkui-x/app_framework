@@ -477,7 +477,7 @@ napi_value JsWindow::OnSetPreferredOrientation(napi_env env, napi_callback_info 
         !JS_TO_NATIVE_ORIENTATION_MAP.count(static_cast<ApiOrientation>(type))) {
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         WLOGE("JsWindow::OnSetPreferredOrientation : Orientation %{public}u invalid!",
-            static_cast<uint32_t>(type));
+                static_cast<uint32_t>(type));
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
     }
@@ -485,7 +485,7 @@ napi_value JsWindow::OnSetPreferredOrientation(napi_env env, napi_callback_info 
     if (requestedOrientation < Orientation::BEGIN || requestedOrientation > Orientation::END) {
         errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         WLOGE("JsWindow::OnSetPreferredOrientation : Orientation %{public}u invalid!",
-            static_cast<uint32_t>(requestedOrientation));
+                static_cast<uint32_t>(requestedOrientation));
         napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
         return CreateJsUndefined(env);
     }
