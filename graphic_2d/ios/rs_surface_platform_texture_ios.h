@@ -97,7 +97,7 @@ private:
     RSSurfaceExtConfig config_;
     bool active_ = false;
     std::vector<float> matrix {};
-    EGLContext platformEglContext_;
+    EAGLContext* platformEglContext_ = nullptr;
 
     // for video
     void EnsureTextureCacheExists();

@@ -165,7 +165,7 @@ void RSSurfacePlatformTextureIOS::DrawTextureImageGL(RSPaintFilterCanvas& canvas
         return;
     }
     EAGLContext* context = EAGLContext.currentContext;
-    [EAGLContext setCurrentContext:static_cast<EAGLContext*>(platformEglContext_)];
+    [EAGLContext setCurrentContext:platformEglContext_];
     if(updateCallback_) {
         updateCallback_(matrix);
     }
