@@ -94,16 +94,16 @@ napi_value ConsoleLog(napi_env env, napi_callback_info info)
             HILOG_INFO("%{public}s", content.c_str());
             break;
         case LogLevel::DEBUG:
-            HILOG_INFO("%{public}s", content.c_str());
+            HILOG_DEBUG("%{public}s", content.c_str());
             break;
         case LogLevel::WARN:
-            HILOG_INFO("%{public}s", content.c_str());
+            HILOG_WARN("%{public}s", content.c_str());
             break;
         case LogLevel::ERROR:
-            HILOG_INFO("%{public}s", content.c_str());
+            HILOG_ERROR("%{public}s", content.c_str());
             break;
         case LogLevel::FATAL:
-            HILOG_INFO("%{public}s", content.c_str());
+            HILOG_FATAL("%{public}s", content.c_str());
             break;
         default:
             HILOG_INFO("%{public}s", content.c_str());
