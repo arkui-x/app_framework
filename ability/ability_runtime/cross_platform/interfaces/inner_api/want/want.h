@@ -390,10 +390,22 @@ public:
     std::string GetAbilityName() const;
 
     /**
+     * @description: Obtains a string value of Type.
+     * @return Returns the string value of Type;
+     */
+    std::string GetType() const;
+
+    /**
      * @description: Set the ability name.
      * @param abilityName The ability name to set.
      */
     void SetAbilityName(const std::string& abilityName);
+
+    /**
+     * @description: Set the type.
+     * @param type The type to set.
+     */
+    void SetType(const std::string& type);
 
     /**
      * @description: Sets a parameter value of the string type.
@@ -455,6 +467,7 @@ private:
 private:
     std::map<std::string, std::shared_ptr<void>> params_;
     std::map<std::string, int> types_;
+    std::string type_;
     std::string bundleName_;
     std::string moduleName_;
     std::string abilityName_;

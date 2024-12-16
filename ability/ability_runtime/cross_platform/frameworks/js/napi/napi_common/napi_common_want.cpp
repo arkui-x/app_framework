@@ -196,6 +196,11 @@ bool UnwrapWant(napi_env env, napi_value param, Want& want)
     if (UnwrapStringByPropertyName(env, param, "moduleName", natValue)) {
         want.SetModuleName(natValue);
     }
+
+    natValue = "";
+    if (UnwrapStringByPropertyName(env, param, "type", natValue)) {
+       want.SetType(natValue);
+    }
     return true;
 }
 
