@@ -33,6 +33,7 @@ template("window_manager_utils") {
     }
 
     include_dirs = [
+      "//foundation/arkui/ace_engine/interfaces/inner_api/ace_kit/include",
       "${app_framework_window_manager_path}/utils/include",
       "//commonlibrary/c_utils/base/include",
     ]

@@ -16,6 +16,7 @@ import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
 config("ability_cross_platform_hilog_config") {
   include_dirs = [
     "//foundation/arkui/ace_engine/frameworks",
+    "//foundation/arkui/ace_engine/interfaces/inner_api/ace_kit/include",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog",
   ]
 }

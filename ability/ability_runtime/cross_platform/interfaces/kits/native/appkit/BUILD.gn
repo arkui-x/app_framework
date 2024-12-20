@@ -19,6 +19,7 @@ config("appkit_native_config") {
   include_dirs = [
     "//base/global/resource_management/interfaces/inner_api/include",
     "//base/global/resource_management/frameworks/resmgr/include",
+    "//foundation/arkui/ace_engine/interfaces/inner_api/ace_kit/include",
     "//third_party/flutter/engine",
     "//third_party/json/include",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/app_manager",
