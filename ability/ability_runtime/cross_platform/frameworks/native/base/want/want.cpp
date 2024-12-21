@@ -513,6 +513,16 @@ void Want::SetAbilityName(const std::string& abilityName)
     abilityName_ = abilityName;
 }
 
+std::string Want::GetType() const
+{
+    return type_;
+}
+
+void Want::SetType(const std::string& type)
+{
+    type_ = type;
+}
+
 /**
  * @description: Sets a parameter value of the string type.
  * @param key Indicates the key matching the parameter.
@@ -659,6 +669,7 @@ void Want::CopyFromWant(const Want& want)
     bundleName_ = want.GetBundleName();
     moduleName_ = want.GetModuleName();
     abilityName_ = want.GetAbilityName();
+    type_ = want.GetType();
 }
 
 std::string Want::ToJson() const

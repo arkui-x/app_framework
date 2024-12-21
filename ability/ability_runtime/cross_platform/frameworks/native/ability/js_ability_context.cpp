@@ -31,6 +31,7 @@ namespace Platform {
 namespace {
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
+constexpr size_t ARGC_TWO = 2;
 } // namespace
 
 void JsAbilityContext::Finalizer(napi_env env, void* data, void* hint)
@@ -54,7 +55,7 @@ napi_value JsAbilityContext::OnStartAbility(napi_env env, napi_callback_info inf
     napi_value argv[ARGC_MAX_COUNT] = {nullptr};
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
 
-    if (argc == ARGC_ZERO) {
+    if (argc < ARGC_TWO) {
         HILOG_ERROR("Not enough params");
         ThrowTooFewParametersError(env);
         return CreateJsUndefined(env);
@@ -95,6 +96,13 @@ napi_value JsAbilityContext::OnStartAbility(napi_env env, napi_callback_info inf
         }
     };
 
+    napi_valuetype paramsType[argc];
+    for (size_t i = ARGC_ZERO; i < argc; i++) {
+        NAPI_CALL(env, napi_typeof(env, argv[i], &paramsType[i]));
+    }
+    if (paramsType[argc - ARGC_TWO] == napi_object && paramsType[argc - ARGC_ONE] == napi_function) {
+        unwrapArgc = ARGC_TWO;
+    }
     napi_value lastParam = (argc > unwrapArgc) ? argv[unwrapArgc] : nullptr;
     napi_value result = nullptr;
 
@@ -157,7 +165,7 @@ napi_value JsAbilityContext::OnStartAbilityForResult(napi_env env, napi_callback
     size_t argc = ARGC_MAX_COUNT;
     napi_value argv[ARGC_MAX_COUNT] = {nullptr};
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-    if (argc == ARGC_ZERO) {
+    if (argc < ARGC_TWO) {
         HILOG_ERROR("Not enough params");
         ThrowTooFewParametersError(env);
         return CreateJsUndefined(env);
@@ -166,6 +174,13 @@ napi_value JsAbilityContext::OnStartAbilityForResult(napi_env env, napi_callback
     AppExecFwk::UnwrapWant(env, argv[ARGC_ZERO], want);
     decltype(argc) unwrapArgc = 1;
 
+    napi_valuetype paramsType[argc];
+    for (size_t i = ARGC_ZERO; i < argc; i++) {
+        NAPI_CALL(env, napi_typeof(env, argv[i], &paramsType[i]));
+    }
+    if (paramsType[argc - ARGC_TWO] == napi_object && paramsType[argc - ARGC_ONE] == napi_function) {
+        unwrapArgc = ARGC_TWO;
+    }
     auto lastParam = (argc > unwrapArgc) ? argv[unwrapArgc] : nullptr;
     napi_value result = nullptr;
     auto uasyncTask = CreateAsyncTaskWithLastParam(env, lastParam, nullptr, nullptr, &result);
