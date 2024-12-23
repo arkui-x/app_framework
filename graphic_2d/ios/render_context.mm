@@ -100,16 +100,13 @@ void RenderContext::InitializeEglContext()
         ROSEN_LOGE("eglContext_ is null");
         return;
     }
-    color_space_ = SkColorSpace::MakeSRGB();
+    color_space_ = Drawing::ColorSpace::CreateSRGB();
     if (@available(iOS 10, *)) {
         UIDisplayGamut displayGamut = [UIScreen mainScreen].traitCollection.displayGamut;
         switch (displayGamut) {
             case UIDisplayGamutP3:
-#if defined(NEW_SKIA)
-                color_space_ = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
-#else
-                color_space_ = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
-#endif
+            color_space_ = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
+                Drawing::CMSMatrixType::DCIP3);
                 break;
             default:
                 break;
