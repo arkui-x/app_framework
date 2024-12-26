@@ -56,6 +56,11 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetRenderNodePurgeEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetDrawOpTraceEnabled()
 {
     return false;
@@ -87,11 +92,6 @@ bool RSSystemProperties::GetOcclusionEnabled()
 }
 
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
-{
-    return {};
-}
-
-bool RSSystemProperties::GetDirectClientCompEnableStatus()
 {
     return {};
 }
@@ -213,6 +213,11 @@ bool RSSystemProperties::GetKawaseEnabled()
 }
 
 bool RSSystemProperties::GetHpsBlurEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetMESABlurFuzedEnabled()
 {
     return false;
 }
@@ -368,16 +373,6 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
 bool RSSystemProperties::GetRenderParallelEnabled()
 {
     return false;
-}
-
-bool RSSystemProperties::GetUnmarshParallelFlag()
-{
-    return false;
-}
-
-uint32_t RSSystemProperties::GetUnMarshParallelSize()
-{
-    return UINT32_MAX;
 }
 } // namespace Rosen
 } // namespace OHOS
