@@ -19,6 +19,7 @@
 #import <OpenGLES/ES2/gl.h>
 #import <OpenGLES/ES2/glext.h>
 #include "platform/common/rs_log.h"
+#include "render_context/render_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -26,12 +27,27 @@ namespace Rosen {
 RSSurfacePlatformTextureIOS::RSSurfacePlatformTextureIOS(const RSSurfaceExtConfig& config)
     : RSSurfaceExt()
 {
-    ref_ = static_cast<CVPixelBufferRef*>(config.additionalData);
+    config_ = config;
 }
 
 RSSurfacePlatformTextureIOS::~RSSurfacePlatformTextureIOS()
 {
-    ref_ = nullptr;
+    if (isVideo_) {
+        [videoOutput_ release];
+    }
+
+    if (textureId_ > 0 && attachCallback_ != nullptr) {
+        attachCallback_(textureId_, false);
+    }
+
+    if (platformEglContext_) {
+        [platformEglContext_ release];
+        platformEglContext_ = nullptr;
+    }
+
+    if (textureId_) {
+        glDeleteTextures(1, &textureId_);
+    }
 }
 
 void RSSurfacePlatformTextureIOS::EnsureTextureCacheExists()
@@ -51,14 +67,18 @@ void RSSurfacePlatformTextureIOS::EnsureTextureCacheExists()
 
 CVPixelBufferRef RSSurfacePlatformTextureIOS::GetPixelBuffer()
 {
-    if (!ref_) {
-        ROSEN_LOGE("RSSurfacePlatformTextureIOS::ref_ is nullptr");
+    if (!videoOutput_) {
+        ROSEN_LOGE("RSSurfaceTextureIOS::videoOutput_ is nullptr");
         return nullptr;
     }
-    if (*ref_) {
-        CFRetain(*ref_);
+
+    CMTime outputItemTime = [videoOutput_ itemTimeForHostTime:CACurrentMediaTime()];
+    if ([videoOutput_ hasNewPixelBufferForItemTime:outputItemTime]) {
+        return [videoOutput_ copyPixelBufferForItemTime:outputItemTime itemTimeForDisplay:NULL];
+    } else {
+        ROSEN_LOGE("RSSurfacePlatformTextureIOS::GetPixelBuffer is nullptr");
+        return nullptr;
     }
-    return *ref_;
 }
 
 void RSSurfacePlatformTextureIOS::CreateTextureFromPixelBuffer()
@@ -84,13 +104,98 @@ void RSSurfacePlatformTextureIOS::UpdateSurfaceDefaultSize(float width, float he
 {
 }
 
+void RSSurfacePlatformTextureIOS::InitializePlatformEglContext()
+{
+    platformEglContext_ = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3
+        sharegroup:static_cast<EAGLContext*>(RenderContext::GetResourceContext()).sharegroup];
+    if (platformEglContext_ == nullptr) {
+        platformEglContext_ = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2
+            sharegroup:static_cast<EAGLContext*>(RenderContext::GetResourceContext()).sharegroup];
+    }
+}
+
 void RSSurfacePlatformTextureIOS::DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze,
     const Drawing::Rect& clipRect)
 {
-    EnsureTextureCacheExists();
+    if (active_ == false) {
+        if (!bufferAvailable_.load()){
+            return;
+        }
+        if (config_.additionalData == nullptr) {
+            return;
+        }
+        if (initTypeCallback_) {
+            initTypeCallback_(isVideo_);
+        }
+        if (isVideo_) {
+            videoOutput_ = [static_cast<AVPlayerItemVideoOutput*>(config_.additionalData) retain];
+            active_ = true;
+            return;
+        }
+        if (platformEglContext_ == nullptr) {
+            InitializePlatformEglContext();
+            void ** sharePtr = static_cast<void **>(config_.additionalData);
+            *sharePtr = platformEglContext_;
+        }
+        glGenTextures(1, &textureId_);
+        if (attachCallback_) {
+            attachCallback_(textureId_, true);
+            active_ = true;
+        }
+        return;
+    }
+
+    if (isVideo_) {
+        DrawTextureImageForVideo(canvas, freeze, clipRect);
+    } else {
+        DrawTextureImageGL(canvas, freeze, clipRect);
+    }
+}
+
+void RSSurfacePlatformTextureIOS::DrawTextureImageGL(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect)
+{
+    bool bufferAvailable = bufferAvailable_.load();
     if (!freeze && bufferAvailable_.load()) {
-        auto pixelBuffer = GetPixelBuffer();
         bufferAvailable_.store(false);
+    }
+
+    auto image = std::make_shared<Drawing::Image>();
+    if (image == nullptr) {
+        ROSEN_LOGI("create Drawing image fail");
+        return;
+    }
+    EAGLContext* context = EAGLContext.currentContext;
+    [EAGLContext setCurrentContext:platformEglContext_];
+    if(updateCallback_) {
+        updateCallback_(matrix);
+    }
+    glBindTexture(GL_TEXTURE_2D, textureId_);
+
+    Drawing::TextureInfo textureInfo;
+    textureInfo.SetWidth((int)clipRect.GetWidth());
+    textureInfo.SetHeight((int)clipRect.GetHeight());
+    textureInfo.SetIsMipMapped(false);
+    textureInfo.SetTarget(GL_TEXTURE_2D);
+    textureInfo.SetID(textureId_);
+    textureInfo.SetFormat(GL_RGBA8_OES);
+    Drawing::BitmapFormat fmt =
+        Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bool ret = image->BuildFromTexture(*canvas.GetGPUContext(), textureInfo,
+        Drawing::TextureOrigin::TOP_LEFT, fmt, nullptr);
+    if (!ret) {
+        ROSEN_LOGE("BuildFromTexture fail");
+        return;
+    }
+    canvas.DrawImage(*image, clipRect.GetLeft(), clipRect.GetTop(), Drawing::SamplingOptions());
+    [EAGLContext setCurrentContext:context];
+}
+
+void RSSurfacePlatformTextureIOS::DrawTextureImageForVideo(RSPaintFilterCanvas& canvas, bool freeze,
+    const Drawing::Rect& clipRect)
+{
+    EnsureTextureCacheExists();
+    if (!freeze) {
+        auto pixelBuffer = GetPixelBuffer();
         if (pixelBuffer) {
             buffer_ref_.Reset(pixelBuffer);
         }
@@ -102,7 +207,7 @@ void RSSurfacePlatformTextureIOS::DrawTextureImage(RSPaintFilterCanvas& canvas, 
     }
     auto image = std::make_shared<Drawing::Image>();
     if (image == nullptr) {
-        ROSEN_LOGD("create Drawing image fail");
+        ROSEN_LOGE("create Drawing image fail");
         return;
     }
     Drawing::TextureInfo textureInfo;

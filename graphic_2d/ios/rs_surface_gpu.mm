@@ -154,7 +154,8 @@ RSSurfaceExtPtr RSSurfaceGPU::CreateSurfaceExt(const RSSurfaceExtConfig& config)
         }
         case RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE: {
             if (texture_ == nullptr) {
-                texture_ = std::dynamic_pointer_cast<RSSurfaceExt>(std::make_shared<RSSurfacePlatformTextureIOS>(config));
+                auto texture = std::make_shared<RSSurfacePlatformTextureIOS>(config);
+                texture_ = std::dynamic_pointer_cast<RSSurfaceExt>(texture);
             }
             return texture_;
         }
