@@ -49,6 +49,9 @@ public:
     void SetUpdateCallback(const RSSurfaceTextureUpdateCallBack& updateCallback) override
     {
     }
+    void SetInitTypeCallback(const RSSurfaceTextureInitTypeCallBack& initTypeCallback) override
+    {
+    }
     void MarkUiFrameAvailable(bool available) override
     {
     }
@@ -57,6 +60,13 @@ public:
         return false;
     }
     void UpdateSurfaceDefaultSize(float width, float height) override;
+    RSSurfaceExtConfig GetSurfaceExtConfig() override
+    {
+        return RSSurfaceExtConfig{};
+    }
+    void UpdateSurfaceExtConfig(const RSSurfaceExtConfig& config) override
+    {
+    }
 private:
     void EnsureTextureCacheExists();
     void CreateTextureFromPixelBuffer();
