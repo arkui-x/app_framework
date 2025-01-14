@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -88,6 +88,15 @@ Global::Resource::Direction Configuration::ConvertDirection(std::string directio
     }
 
     return resolution;
+}
+
+uint32_t Configuration::ConvertDensity(const std::string& density) const
+{
+    if (density.empty()) {
+        return 0;
+    } else {
+        return static_cast<int32_t>(std::stoi(density));
+    }
 }
 } // namespace Platform
 } // namespace AbilityRuntime

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -148,12 +148,18 @@ napi_value CreateJsConfiguration(napi_env env, const Platform::Configuration& co
         HILOG_ERROR("Native object is nullptr.");
         return nullptr;
     }
-    
+
+    napi_set_named_property(env, object, "language", CreateJsValue(env,
+        configuration.GetItem(Platform::ConfigurationInner::APPLICATION_LANGUAGE)));
     napi_set_named_property(env, object, "colorMode", CreateJsValue(env,
         configuration.ConvertColorMode(configuration.GetItem(Platform::ConfigurationInner::SYSTEM_COLORMODE))));
     napi_set_named_property(env, object, "direction", CreateJsValue(env,
         configuration.ConvertDirection(configuration.GetItem(Platform::ConfigurationInner::APPLICATION_DIRECTION))));
-        
+    napi_set_named_property(env, object, "screenDensity", CreateJsValue(env,
+        configuration.ConvertDensity(configuration.GetItem(Platform::ConfigurationInner::APPLICATION_DENSITYDPI))));
+    std::string fontSizeScale = configuration.GetItem(Platform::ConfigurationInner::SYSTEM_FONT_SIZE_SCALE);
+    napi_set_named_property(env, object, "fontSizeScale",
+        CreateJsValue(env, fontSizeScale == "" ? 1.0 : std::stod(fontSizeScale)));
     return object;
 }
 
