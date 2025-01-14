@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <unordered_map>
 
 #include "ability_stage.h"
+#include "application_configuration_manager.h"
 #include "application_context.h"
 #include "bundle_container.h"
 #include "configuration.h"
@@ -28,7 +29,7 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
-class Application {
+class Application : public std::enable_shared_from_this<Application> {
 public:
     Application();
     ~Application();
@@ -47,13 +48,14 @@ public:
     void DispatchOnForeground(const AAFwk::Want& want);
     void DispatchOnBackground(const AAFwk::Want& want);
     void DispatchOnDestroy(const AAFwk::Want& want);
-    void OnConfigurationUpdate(const Configuration& configuration);
+    void OnConfigurationUpdate(Configuration& configuration, SetLevel level);
     void InitConfiguration(const Configuration& configuration);
     void DispatchOnAbilityResult(
         const AAFwk::Want& want, int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant);
 
 private:
     std::shared_ptr<AbilityStage> FindAbilityStage(const std::string& moduleName);
+    bool IsUpdateColorNeeded(Configuration &config, SetLevel level);
 
 private:
     std::unique_ptr<AbilityRuntime::Runtime> runtime_;

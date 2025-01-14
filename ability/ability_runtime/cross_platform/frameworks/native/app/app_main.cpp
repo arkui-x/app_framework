@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 #include "ability_delegator.h"
 #include "ability_delegator_registry.h"
 #include "ability_delegator_args.h"
+#include "application_configuration_manager.h"
 #include "application_context.h"
 #include "ability_context_adapter.h"
 #include "hilog.h"
@@ -373,7 +374,7 @@ void AppMain::HandleOnConfigurationUpdate(const std::string& jsonConfiguration)
     }
     Configuration configuration;
     configuration.ReadFromJsonConfiguration(jsonConfiguration);
-    application_->OnConfigurationUpdate(configuration);
+    application_->OnConfigurationUpdate(configuration, SetLevel::System);
 }
 
 void AppMain::HandleInitConfiguration(const std::string& jsonConfiguration)

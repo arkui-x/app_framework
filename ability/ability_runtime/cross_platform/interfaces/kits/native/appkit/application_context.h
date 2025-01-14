@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
+using AppConfigUpdateCallback = std::function<void(Configuration& config)>;
 class ApplicationContext : public Context, public std::enable_shared_from_this<ApplicationContext> {
 public:
     ApplicationContext() = default;
@@ -52,6 +53,7 @@ public:
     static std::shared_ptr<ApplicationContext> GetInstance();
     void RegisterAbilityLifecycleCallback(const std::shared_ptr<AbilityLifecycleCallback>& abilityLifecycleCallback);
     void UnregisterAbilityLifecycleCallback(const std::shared_ptr<AbilityLifecycleCallback>& abilityLifecycleCallback);
+    void RegisterAppConfigUpdateCallback(AppConfigUpdateCallback appConfigChangeCallback);
 
     void DispatchOnAbilityCreate(const std::shared_ptr<NativeReference>& ability);
     void DispatchOnAbilityDestroy(const std::shared_ptr<NativeReference>& ability);
@@ -63,6 +65,7 @@ public:
     void DispatchOnAbilityBackground(const std::shared_ptr<NativeReference>& ability);
     int32_t GetProcessRunningInformation(std::vector<RunningProcessInfo>& processInfos);
     void SetResourceManager(const std::shared_ptr<Global::Resource::ResourceManager> &resMgr);
+    void SetColorMode(int32_t colorMode);
 
 private:
     std::shared_ptr<AppExecFwk::ApplicationInfo> applicationInfo_ = nullptr;
@@ -71,6 +74,7 @@ private:
     static std::vector<std::shared_ptr<AbilityLifecycleCallback>> callbacks_;
     std::mutex callbackLock_;
     std::shared_ptr<Global::Resource::ResourceManager> resourceMgr_;
+    AppConfigUpdateCallback appConfigChangeCallback_ = nullptr;
 };
 } // namespace Platform
 } // namespace AbilityRuntime

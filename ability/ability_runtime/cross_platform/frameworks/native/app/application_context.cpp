@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -208,6 +208,11 @@ void ApplicationContext::UnregisterAbilityLifecycleCallback(
     }
 }
 
+void ApplicationContext::RegisterAppConfigUpdateCallback(AppConfigUpdateCallback appConfigChangeCallback)
+{
+    appConfigChangeCallback_ = appConfigChangeCallback;
+}
+
 void ApplicationContext::DispatchOnAbilityCreate(const std::shared_ptr<NativeReference>& ability)
 {
     if (!ability) {
@@ -298,6 +303,20 @@ int32_t ApplicationContext::GetProcessRunningInformation(std::vector<RunningProc
 {
     processInfos = ApplicationContextAdapter::GetInstance()->GetRunningProcessInformation();
     return 0;
+}
+
+void ApplicationContext::SetColorMode(int32_t colorMode)
+{
+    HILOG_DEBUG("colorMode:%{public}d", colorMode);
+    if (colorMode < -1 || colorMode > 1) {
+        HILOG_ERROR("colorMode is invalid");
+        return;
+    }
+    Configuration config;
+    config.AddItem(ConfigurationInner::SYSTEM_COLORMODE, config.GetColorModeStr(colorMode));
+    if (appConfigChangeCallback_ != nullptr) {
+        appConfigChangeCallback_(config);
+    }
 }
 } // namespace Platform
 } // namespace AbilityRuntime

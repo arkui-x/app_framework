@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,7 +25,9 @@ Configuration::Configuration() {}
 
 void Configuration::UpdateConfigurationInfo(const Configuration& config)
 {
-    configParameter_ = config.configParameter_;
+    for (const auto& [key, value] : config.configParameter_) {
+        configParameter_[key] = value;
+    }
 }
 
 std::string Configuration::GetItem(const std::string& key) const
@@ -40,6 +42,29 @@ std::string Configuration::GetItem(const std::string& key) const
     }
 
     return ConfigurationInner::EMPTY_STRING;
+}
+
+void Configuration::AddItem(const std::string& key, const std::string& value)
+{
+    if (key.empty() || value.empty()) {
+        return;
+    }
+
+    configParameter_[key] = value;
+}
+
+void Configuration::RemoveItem(const std::string& key)
+{
+    if (key.empty()) {
+        return;
+    }
+    
+    configParameter_.erase(key);
+}
+
+int Configuration::GetItemSize() const
+{
+    return static_cast<int>(configParameter_.size());
 }
 
 void Configuration::ReadFromJsonConfiguration(const std::string& jsonConfiguration)
@@ -88,6 +113,27 @@ Global::Resource::Direction Configuration::ConvertDirection(std::string directio
     }
 
     return resolution;
+}
+
+std::string Configuration::GetColorModeStr(int32_t colormode)
+{
+    std::string ret("no_color_mode");
+
+    switch (colormode) {
+        case Global::Resource::ColorMode::DARK:
+            ret = ConfigurationInner::COLOR_MODE_DARK;
+            break;
+        case Global::Resource::ColorMode::LIGHT:
+            ret = ConfigurationInner::COLOR_MODE_LIGHT;
+            break;
+        case Global::Resource::ColorMode::COLOR_MODE_NOT_SET:
+            ret = ConfigurationInner::COLOR_MODE_AUTO;
+            break;
+        default:
+            break;
+    }
+
+    return ret;
 }
 } // namespace Platform
 } // namespace AbilityRuntime
