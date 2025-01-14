@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,6 +49,8 @@ public:
     void DispatchOnAbilityResult(const std::string& instanceName, int32_t requestCode, int32_t resultCode,
         const std::string& wantParams);
     void ParseHspModuleJson(const std::string& moduleName);
+    void NotifyApplicationForeground();
+    void NotifyApplicationBackground();
 
 private:
     void ScheduleLaunchApplication(bool isCopyNativeLibs);
@@ -66,6 +68,8 @@ private:
         const std::string& testRunerName, const std::string& timeout);
     void HandleDispatchOnAbilityResult(
         const std::string& instanceName, int32_t requestCode, int32_t resultCode, const std::string& resultWant);
+    void HandleApplicationForeground();
+    void HandleApplicationBackground();
 
 private:
     std::shared_ptr<Application> application_ = nullptr;

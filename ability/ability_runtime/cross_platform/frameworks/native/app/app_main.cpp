@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -476,6 +476,48 @@ void AppMain::ParseHspModuleJson(const std::string& moduleName)
     }
     std::list<std::vector<uint8_t>> moduleList { dynamicModuleJson };
     bundleContainer_->LoadBundleInfos(moduleList);
+}
+
+void AppMain::NotifyApplicationForeground()
+{
+    if (eventHandler_ == nullptr) {
+        HILOG_ERROR("eventHandler_ is nullptr");
+        return;
+    }
+    auto task = []() {
+        AppMain::GetInstance()->HandleApplicationForeground();
+    };
+    eventHandler_->PostTask(task);
+}
+
+void AppMain::NotifyApplicationBackground()
+{
+    if (eventHandler_ == nullptr) {
+        HILOG_ERROR("eventHandler_ is nullptr");
+        return;
+    }
+    auto task = []() {
+        AppMain::GetInstance()->HandleApplicationBackground();
+    };
+    eventHandler_->PostTask(task);
+}
+
+void AppMain::HandleApplicationForeground()
+{
+    if (application_ == nullptr) {
+        HILOG_ERROR("application_ is nullptr");
+        return;
+    }
+    application_->NotifyApplicationForeground();
+}
+
+void AppMain::HandleApplicationBackground()
+{
+    if (application_ == nullptr) {
+        HILOG_ERROR("application_ is nullptr");
+        return;
+    }
+    application_->NotifyApplicationBackground();
 }
 } // namespace Platform
 } // namespace AbilityRuntime

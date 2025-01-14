@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -203,6 +203,23 @@ void Application::DispatchOnAbilityResult(
         return;
     }
     stage->DispatchOnAbilityResult(want, requestCode, resultCode, resultWant);
+}
+
+void Application::NotifyApplicationForeground()
+{
+    if (applicationContext_ == nullptr) {
+        HILOG_ERROR("stage is nullptr");
+        return;
+    }
+    applicationContext_->NotifyApplicationForeground();
+}
+void Application::NotifyApplicationBackground()
+{
+    if (applicationContext_ == nullptr) {
+        HILOG_ERROR("applicationContext is nullptr");
+        return;
+    }
+    applicationContext_->NotifyApplicationBackground();
 }
 } // namespace Platform
 } // namespace AbilityRuntime
