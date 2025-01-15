@@ -72,7 +72,7 @@ public:
     static void ForEach(IArray *array,           /* [in] */
         std::function<void(IInterface *)> func); /* [in] */
 
-    static sptr<IArray> ParseCrossPlatformArray(const nlohmann::json &arrayStr); /* [in] */
+    static sptr<IArray> ParseCrossPlatformArray(const nlohmann::json& arrayStr); /* [in] */
 
     static constexpr char SIGNATURE = '[';
 

@@ -33,7 +33,7 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-napi_value CreateJsWant(napi_env env, const Want &want)
+napi_value CreateJsWant(napi_env env, const Want& want)
 {
     napi_value object = nullptr;
     napi_create_object(env, &object);
@@ -47,7 +47,7 @@ napi_value CreateJsWant(napi_env env, const Want &want)
     return object;
 }
 
-napi_value CreateJsWantParams(napi_env env, const AAFwk::WantParams &wantParams)
+napi_value CreateJsWantParams(napi_env env, const AAFwk::WantParams& wantParams)
 {
     napi_value object = nullptr;
     napi_create_object(env, &object);
@@ -171,7 +171,7 @@ bool WrapJsWantParamsArray(napi_env env, napi_value object, const std::string& k
     }
 }
 
-napi_value WrapWant(napi_env env, const Want &want)
+napi_value WrapWant(napi_env env, const Want& want)
 {
     napi_value jsObject = nullptr;
     napi_value jsValue = nullptr;
@@ -267,7 +267,7 @@ void InnerUnwrapWantParamsNumber(napi_env env, const std::string& key, napi_valu
     }
 }
 
-napi_value WantStringToJSValue(napi_env env, const std::string &value)
+napi_value WantStringToJSValue(napi_env env, const std::string& value)
 {
     napi_value result = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, value.c_str(), NAPI_AUTO_LENGTH, &result));

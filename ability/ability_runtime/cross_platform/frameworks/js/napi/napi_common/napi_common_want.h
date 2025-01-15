@@ -25,7 +25,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 using Want = OHOS::AAFwk::Want;
-napi_value WrapWant(napi_env env, const Want &want);
+napi_value WrapWant(napi_env env, const Want& want);
 bool UnwrapWant(napi_env env, napi_value param, Want& want);
 void InnerUnwrapWantParamsNumber(napi_env env, const std::string& key, napi_value param, Want& want);
 napi_value CreateJsWant(napi_env env, const Want& want);
@@ -33,7 +33,7 @@ napi_value CreateJsWantParams(napi_env env, const AAFwk::WantParams& wantParams)
 
 napi_value WrapWantParams(napi_env env, const AAFwk::WantParams& wantParams);
 bool UnwrapWantParams(napi_env env, napi_value param, AAFwk::WantParams& wantParams);
-napi_value WantStringToJSValue(napi_env env, const std::string &value);
+napi_value WantStringToJSValue(napi_env env, const std::string& value);
 napi_value WantBoolToJSValue(napi_env env, bool value);
 napi_value WantDoubleToJSValue(napi_env env, double value);
 napi_value WantInt32ToJSValue(napi_env env, int32_t value);

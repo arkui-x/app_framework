@@ -305,8 +305,8 @@ sptr<IWantParams> WantParamWrapper::Parse(const nlohmann::json& wantJson)
 {
     WantParams wantParams;
     ParseWantParams(wantJson, wantParams);
-    sptr<IWantParams> iwantParams = new (std::nothrow) WantParamWrapper(wantParams);
-    return iwantParams;
+    sptr<IWantParams> wantParamsPtr = new (std::nothrow) WantParamWrapper(wantParams);
+    return wantParamsPtr;
 }
 
 void WantParamWrapper::ParseWantParams(const nlohmann::json& wantArray, OHOS::AAFwk::WantParams& wantParams)
