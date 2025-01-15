@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,9 +16,13 @@
 
 #include <algorithm>
 
+#include "array_wrapper.h"
+
 namespace OHOS {
 namespace AAFwk {
 namespace {
+const int TYPEID_TRANSFORM_START = 6;
+const int TYPEID_TRANSFORM_END = 10;
 size_t FindMatchingBrackets(const std::string &str, size_t leftIndex)
 {
     int count = 0;
@@ -56,26 +60,42 @@ bool WantParamWrapper::Equals(IObject &other)
 std::string WantParamWrapper::ToString()
 {
     std::string result;
-    if (wantParams_.Size() != 0) {
-        result += "{";
-        for (auto it : wantParams_.GetParams()) {
-            int typeId = WantParams::GetDataType(it.second);
-            result = result + "\"" + it.first + "\":{\"" + std::to_string(typeId) + "\":";
-            if (IWantParams::Query(it.second) != nullptr) {
-                result = result + static_cast<WantParamWrapper *>(IWantParams::Query(it.second))->ToString();
+    if (wantParams_.Size() == 0) {
+        return "[]";
+    }
+    result += "[";
+    for (auto it : wantParams_.GetParams()) {
+        int typeId = WantParams::GetDataType(it.second);
+        result = result + "{\"" + JSON_WANTPARAMS_KEY + "\":\"" + it.first + "\",\"" + JSON_WANTPARAMS_TYPE + "\":";
+        if (typeId > TYPEID_TRANSFORM_START && typeId < TYPEID_TRANSFORM_END) {
+            result = result + std::to_string(typeId + 1);
+        } else {
+            result = result + std::to_string(typeId);
+        }
+        result = result + ",\"" + JSON_WANTPARAMS_VALUE + "\":";
+        if (IWantParams::Query(it.second) != nullptr) {
+            result = result + static_cast<WantParamWrapper*>(IWantParams::Query(it.second))->ToString();
+        } else {
+            if (typeId == static_cast<int>(OHOS::AAFwk::WantValueType::VALUE_TYPE_ARRAY) ||
+                typeId == static_cast<int>(OHOS::AAFwk::WantValueType::VALUE_TYPE_SHORT) ||
+                typeId == static_cast<int>(OHOS::AAFwk::WantValueType::VALUE_TYPE_BOOLEAN) ||
+                typeId == static_cast<int>(OHOS::AAFwk::WantValueType::VALUE_TYPE_BYTE) ||
+                typeId == static_cast<int>(OHOS::AAFwk::WantValueType::VALUE_TYPE_INT) ||
+                typeId == static_cast<int>(OHOS::AAFwk::WantValueType::VALUE_TYPE_LONG) ||
+                typeId == (static_cast<int>(OHOS::AAFwk::WantValueType::VALUE_TYPE_FLOAT) - 1) ||
+                typeId == (static_cast<int>(OHOS::AAFwk::WantValueType::VALUE_TYPE_DOUBLE) - 1)) {
+                result = result + WantParams::GetStringByType(it.second, typeId);
             } else {
                 result = result + "\"" + WantParams::GetStringByType(it.second, typeId) + "\"";
             }
-            if (it == *wantParams_.GetParams().rbegin()) {
-                result += "}";
-            } else {
-                result += "},";
-            }
         }
-        result += "}";
-    } else {
-        result = "{}";
+        if (it == *wantParams_.GetParams().rbegin()) {
+            result += "}";
+        } else {
+            result += "},";
+        }
     }
+    result += "]";
     return result;
 }
 
@@ -279,6 +299,43 @@ WantParams WantParamWrapper::ParseWantParamsWithBrackets(const std::string &str)
         }
     }
     return wantPaqrams;
+}
+
+sptr<IWantParams> WantParamWrapper::Parse(const nlohmann::json& wantJson)
+{
+    WantParams wantParams;
+    ParseWantParams(wantJson, wantParams);
+    sptr<IWantParams> iwantParams = new (std::nothrow) WantParamWrapper(wantParams);
+    return iwantParams;
+}
+
+void WantParamWrapper::ParseWantParams(const nlohmann::json& wantArray, OHOS::AAFwk::WantParams& wantParams)
+{
+    for (auto& element : wantArray) {
+        auto typeId = element[JSON_WANTPARAMS_TYPE].get<int>();
+        auto elementKey = element[JSON_WANTPARAMS_KEY];
+        auto elemetnValue = element[JSON_WANTPARAMS_VALUE];
+        auto localType = static_cast<AAFwk::WantValueType>(typeId);
+        if (localType == AAFwk::WantValueType::VALUE_TYPE_BOOLEAN) {
+            wantParams.SetParam(elementKey, WantParams::GetInterfaceByType(typeId, elemetnValue ? "true" : "false"));
+        } else if (localType == AAFwk::WantValueType::VALUE_TYPE_INT) {
+            wantParams.SetParam(
+                elementKey, WantParams::GetInterfaceByType(typeId, std::to_string(elemetnValue.get<int64_t>())));
+        } else if (localType == AAFwk::WantValueType::VALUE_TYPE_DOUBLE) {
+            wantParams.SetParam(
+                elementKey, WantParams::GetInterfaceByType(typeId - 1, std::to_string(elemetnValue.get<double>())));
+        } else if (localType == AAFwk::WantValueType::VALUE_TYPE_STRING) {
+            wantParams.SetParam(
+                elementKey, WantParams::GetInterfaceByType(typeId - 1, elemetnValue.get<std::string>()));
+        } else if (localType == AAFwk::WantValueType::VALUE_TYPE_ARRAY) {
+            wantParams.SetParam(elementKey, Array::ParseCrossPlatformArray(elemetnValue));
+        } else if (localType == AAFwk::WantValueType::VALUE_TYPE_WANTPARAMS) {
+            WantParams localWantParams;
+            WantParamWrapper::ParseWantParams(elemetnValue, localWantParams);
+            sptr<IWantParams> localIwantParams = new (std::nothrow) WantParamWrapper(localWantParams);
+            wantParams.SetParam(elementKey, localIwantParams);
+        }
+    }
 }
 }  // namespace AAFwk
 }  // namespace OHOS

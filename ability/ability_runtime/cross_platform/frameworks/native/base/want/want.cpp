@@ -40,6 +40,85 @@ namespace AAFwk {
 const std::string Want::ABILITY_ID("ability_id");
 const std::string Want::INSTANCE_NAME("instance_name");
 const std::string Want::ELEMENT_BUNDLE_NAME("elementBundleName");
+namespace {
+using Json = nlohmann::json;
+const std::regex NUMBER_REGEX("^[-+]?([0-9]+)([.]([0-9]+))?$");
+const std::regex BOOL_REGEX("^(true|false)$");
+const std::regex INT_REGEX("^[-+]?([0-9]+)$");
+
+void SetBoolIntDouble(AAFwk::WantParams& wantParams, const std::string& key, const std::string& value,
+    const OHOS::AAFwk::WantValueType type)
+{
+    std::regex pattern(R"(^\s+|\s+$)");
+    std::string valueStr = std::regex_replace(value, pattern, "");
+    switch (type) {
+        case OHOS::AAFwk::WantValueType::VALUE_TYPE_INT:
+            if (std::regex_match(valueStr, INT_REGEX)) {
+                wantParams.SetParam(key, WantParams::GetInterfaceByType(static_cast<int>(type), valueStr));
+            } else {
+                HILOG_ERROR("Want parse failed. int value is incorrect. value = %{public}s", valueStr.c_str());
+            }
+            break;
+        case OHOS::AAFwk::WantValueType::VALUE_TYPE_BOOLEAN:
+            if (std::regex_match(valueStr, BOOL_REGEX)) {
+                wantParams.SetParam(key, WantParams::GetInterfaceByType(static_cast<int>(type), valueStr));
+            } else {
+                HILOG_ERROR("Want parse failed. bool value is incorrect. value = %{public}s", valueStr.c_str());
+            }
+            break;
+        case OHOS::AAFwk::WantValueType::VALUE_TYPE_DOUBLE:
+            if (std::regex_match(valueStr, NUMBER_REGEX)) {
+                wantParams.SetParam(key, WantParams::GetInterfaceByType(static_cast<int>(type) - 1, valueStr));
+            } else {
+                HILOG_ERROR("Want parse failed. double value is incorrect. value = %{public}s", valueStr.c_str());
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+bool CheckElementIsVaild(const Json& element)
+{
+    if (element.find(JSON_WANTPARAMS_KEY) == element.end() || element.find(JSON_WANTPARAMS_TYPE) == element.end() ||
+        element.find(JSON_WANTPARAMS_VALUE) == element.end()) {
+        HILOG_ERROR("Want parse failed. not a valid element. value = %{public}s", element.dump().c_str());
+        return false;
+    }
+    return true;
+}
+
+bool CheckParamsIsVaild(const std::string& params, Json& jsonObject)
+{
+    if (params.empty()) {
+        return false;
+    }
+    jsonObject = Json::parse(params.c_str(), nullptr, false);
+    if (jsonObject.is_discarded() || !jsonObject.contains(JSON_WANTPARAMS_PARAM)) {
+        HILOG_ERROR("jsonObject is discarded. value = %{public}s", params.c_str());
+        return false;
+    }
+    if (jsonObject[JSON_WANTPARAMS_PARAM].is_array() == false) {
+        HILOG_ERROR("jsonObject is not array. value = %{public}s", params.c_str());
+        return false;
+    }
+    return true;
+}
+
+template<typename T1, typename T2, typename T3>
+void GetArrayParams(IArray* ao, std::vector<T3>& array)
+{
+    auto func = [&](IInterface* object) {
+        if (object != nullptr) {
+            T1* value = T1::Query(object);
+            if (value != nullptr) {
+                array.push_back(T2::Unbox(value));
+            }
+        }
+    };
+    Array::ForEach(ao, func);
+}
+}; // namespace
 
 /**
  * @description:Default construcotr of Want class, which is used to initialzie flags and URI.
@@ -757,107 +836,6 @@ bool Want::HasParameter(const std::string& key) const
 void Want::RemoveParam(const std::string& key)
 {
     std::static_pointer_cast<WantParams>(wantParams_)->Remove(key);
-}
-
-template<class T>
-void Want::SetValue(const std::string& key, T value)
-{
-    params_[key] = std::make_shared<T>(value);
-}
-
-template<class T>
-void Want::SetArrayValue(const std::string& key, const std::vector<T>& value)
-{
-    auto ptr = std::make_shared<std::vector<T>>();
-    for (auto it = value.begin(); it != value.end(); it++) {
-        ptr->push_back(*it);
-    }
-    params_[key] = ptr;
-}
-
-template<class T>
-T Want::GetValue(const std::string& key, T defaultValue) const
-{
-    T retValue = defaultValue;
-    auto iter = params_.find(key);
-    if (iter != params_.end()) {
-        auto ptr = static_cast<T*>(iter->second.get());
-        if (ptr != nullptr) {
-            retValue = *ptr;
-        }
-    }
-    return retValue;
-}
-
-template<class T>
-std::vector<T> Want::GetArrayValue(const std::string& key) const
-{
-    std::vector<T> array;
-    auto iter = params_.find(key);
-    if (iter != params_.end()) {
-        auto ptr = static_cast<std::vector<T>*>(iter->second.get());
-        if (ptr != nullptr) {
-            for (auto it = ptr->begin(); it != ptr->end(); it++) {
-                array.push_back(*it);
-            }
-        }
-    }
-    return array;
-}
-
-void Want::CopyFromWant(const Want& want)
-{
-    for (auto iter = want.params_.begin(); iter != want.params_.end(); iter++) {
-        auto key = iter->first;
-        auto value = iter->second;
-        auto it = want.types_.find(key);
-        if (it != want.types_.end()) {
-            if (it->second == VALUE_TYPE_BOOLEAN) {
-                SetParam(key, *(static_cast<bool*>(value.get())));
-            } else if (it->second == VALUE_TYPE_BOOLEANARRAY) {
-                SetParam(key, *(static_cast<std::vector<bool>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_BYTE) {
-                SetParam(key, *(static_cast<byte*>(value.get())));
-            } else if (it->second == VALUE_TYPE_BYTEARRAY) {
-                SetParam(key, *(static_cast<std::vector<byte>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_CHAR) {
-                SetParam(key, *(static_cast<zchar*>(value.get())));
-            } else if (it->second == VALUE_TYPE_CHARARRAY) {
-                SetParam(key, *(static_cast<std::vector<zchar>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_INT) {
-                SetParam(key, *(static_cast<int*>(value.get())));
-            } else if (it->second == VALUE_TYPE_INTARRAY) {
-                SetParam(key, *(static_cast<std::vector<int>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_FLOAT) {
-                SetParam(key, *(static_cast<float*>(value.get())));
-            } else if (it->second == VALUE_TYPE_FLOATARRAY) {
-                SetParam(key, *(static_cast<std::vector<float>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_DOUBLE) {
-                SetParam(key, *(static_cast<double*>(value.get())));
-            } else if (it->second == VALUE_TYPE_DOUBLEARRAY) {
-                SetParam(key, *(static_cast<std::vector<double>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_SHORT) {
-                SetParam(key, *(static_cast<short*>(value.get())));
-            } else if (it->second == VALUE_TYPE_SHORTARRAY) {
-                SetParam(key, *(static_cast<std::vector<short>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_LONG) {
-                SetParam(key, *(static_cast<long*>(value.get())));
-            } else if (it->second == VALUE_TYPE_LONGLONG) {
-                SetParam(key, *(static_cast<long long*>(value.get())));
-            } else if (it->second == VALUE_TYPE_LONGARRAY) {
-                SetParam(key, *(static_cast<std::vector<long>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_STRING) {
-                SetParam(key, *(static_cast<std::string*>(value.get())));
-            } else if (it->second == VALUE_TYPE_STRINGARRAY) {
-                SetParam(key, *(static_cast<std::vector<std::string>*>(value.get())));
-            }
-        }
-    }
-
-    bundleName_ = want.GetBundleName();
-    moduleName_ = want.GetModuleName();
-    abilityName_ = want.GetAbilityName();
-    type_ = want.GetType();
 }
 
 /**

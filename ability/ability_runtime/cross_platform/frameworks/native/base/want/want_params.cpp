@@ -42,6 +42,10 @@ const char* REMOTE_OBJECT = "RemoteObject";
 const char* TYPE_PROPERTY = "type";
 const char* VALUE_PROPERTY = "value";
 constexpr int32_t MAX_RECURSION_DEPTH = 100;
+const std::string JSON_WANTPARAMS_KEY = "key";
+const std::string JSON_WANTPARAMS_VALUE = "value";
+const std::string JSON_WANTPARAMS_TYPE = "type";
+const std::string JSON_WANTPARAMS_PARAM = "params";
 
 std::string WantParams::GetStringByType(const sptr<IInterface> iIt, int typeId)
 {
