@@ -24,9 +24,6 @@
 
 #include "want_params_interface.h"
 
-using byte = char;
-using zchar = char32_t;
-
 namespace OHOS {
 namespace AAFwk {
 class Want final {
@@ -91,72 +88,6 @@ public:
      * @return Returns this want object containing the parameter value.
      */
     Want& SetParam(const std::string& key, const std::vector<bool>& value);
-
-    /**
-     * @description: Obtains a byte-type value matching the given key.
-     * @param key   Indicates the key of WantParams.
-     * @param defaultValue  Indicates the default byte-type value.
-     * @return Returns the byte-type value of the parameter matching the given key;
-     * returns the default value if the key does not exist.
-     */
-    byte GetByteParam(const std::string& key, byte defaultValue) const;
-
-    /**
-     * @description: Obtains a byte-type array matching the given key.
-     * @param key   Indicates the key of WantParams.
-     * @return Returns the byte-type array of the parameter matching the given key;
-     * returns null if the key does not exist.
-     */
-    std::vector<byte> GetByteArrayParam(const std::string& key) const;
-
-    /**
-     * @description: Sets a parameter value of the byte type.
-     * @param key   Indicates the key matching the parameter.
-     * @param value Indicates the byte-type value of the parameter.
-     * @return Returns this Want object containing the parameter value.
-     */
-    Want& SetParam(const std::string& key, byte value);
-
-    /**
-     * @description: Sets a parameter value of the byte array type.
-     * @param key   Indicates the key matching the parameter.
-     * @param value Indicates the byte array of the parameter.
-     * @return Returns this Want object containing the parameter value.
-     */
-    Want& SetParam(const std::string& key, const std::vector<byte>& value);
-
-    /**
-     * @description: Obtains a char value matching the given key.
-     * @param key   Indicates the key of wnatParams.
-     * @param value Indicates the default char value.
-     * @return Returns the char value of the parameter matching the given key;
-     * returns the default value if the key does not exist.
-     */
-    zchar GetCharParam(const std::string& key, zchar defaultValue) const;
-
-    /**
-     * @description: Obtains a char array matching the given key.
-     * @param key   Indicates the key of wantParams.
-     * @return Returns the char array of the parameter matching the given key;
-     * returns null if the key does not exist.
-     */
-    std::vector<zchar> GetCharArrayParam(const std::string& key) const;
-
-    /**
-     * @description: Sets a parameter value of the char type.
-     * @param key   Indicates the key of wantParams.
-     * @param value Indicates the char value of the parameter.
-     * @return Returns this want object containing the parameter value.
-     */
-    Want& SetParam(const std::string& key, zchar value);
-
-    /**
-     * @description: Sets a parameter value of the char array type.
-     * @param key   Indicates the key of wantParams.
-     * @param value Indicates the char array of the parameter.
-     * @return Returns this want object containing the parameter value.
-     */
-    Want& SetParam(const std::string& key, const std::vector<zchar>& value);
 
     /**
      * @description: Obtains an int value matching the given key.

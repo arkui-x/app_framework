@@ -22,7 +22,6 @@
 #include "base_interfaces.h"
 #include "base_obj.h"
 #include "bool_wrapper.h"
-#include "byte_wrapper.h"
 #include "double_wrapper.h"
 #include "float_wrapper.h"
 #include "hilog.h"
@@ -33,7 +32,6 @@
 #include "string_wrapper.h"
 #include "want_params.h"
 #include "want_params_wrapper.h"
-#include "zchar_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -228,138 +226,6 @@ Want& Want::SetParam(const std::string& key, const std::vector<bool>& value)
         }
         std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, ao);
     }
-    return *this;
-}
-
-/**
- * @description: Obtains a byte-type value matching the given key.
- * @param key   Indicates the key of WantParams.
- * @param defaultValue  Indicates the default byte-type value.
- * @return Returns the byte-type value of the parameter matching the given key;
- * returns the default value if the key does not exist.
- */
-byte Want::GetByteParam(const std::string& key, const byte defaultValue) const
-{
-    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
-    IByte* bo = IByte::Query(value);
-    if (bo != nullptr) {
-        return Byte::Unbox(bo);
-    }
-    return defaultValue;
-}
-
-/**
- * @description: Obtains a byte-type array matching the given key.
- * @param key   Indicates the key of WantParams.
- * @return Returns the byte-type array of the parameter matching the given key;
- * returns null if the key does not exist.
- */
-std::vector<byte> Want::GetByteArrayParam(const std::string& key) const
-{
-    std::vector<byte> array;
-    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
-    IArray* ao = IArray::Query(value);
-    if (ao != nullptr && Array::IsByteArray(ao)) {
-        GetArrayParams<IByte, Byte, byte>(ao, array);
-    }
-    return array;
-}
-
-/**
- * @description: Sets a parameter value of the byte type.
- * @param key   Indicates the key matching the parameter.
- * @param value Indicates the byte-type value of the parameter.
- * @return Returns this Want object containing the parameter value.
- */
-Want& Want::SetParam(const std::string& key, byte value)
-{
-    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, Byte::Box(value));
-    return *this;
-}
-
-/**
- * @description: Sets a parameter value of the byte array type.
- * @param key   Indicates the key matching the parameter.
- * @param value Indicates the byte array of the parameter.
- * @return Returns this Want object containing the parameter value.
- */
-Want& Want::SetParam(const std::string& key, const std::vector<byte>& value)
-{
-    std::size_t size = value.size();
-    sptr<IArray> ao = new (std::nothrow) Array(size, g_IID_IByte);
-    if (ao == nullptr) {
-        return *this;
-    }
-    for (std::size_t i = 0; i < size; i++) {
-        ao->Set(i, Byte::Box(value[i]));
-    }
-    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, ao);
-    return *this;
-}
-
-/**
- * @description: Obtains a char value matching the given key.
- * @param key   Indicates the key of wnatParams.
- * @param value Indicates the default char value.
- * @return Returns the char value of the parameter matching the given key;
- * returns the default value if the key does not exist.
- */
-zchar Want::GetCharParam(const std::string& key, zchar defaultValue) const
-{
-    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
-    IChar* ao = IChar::Query(value);
-    if (ao != nullptr) {
-        return Char::Unbox(ao);
-    }
-    return defaultValue;
-}
-
-/**
- * @description: Obtains a char array matching the given key.
- * @param key   Indicates the key of wantParams.
- * @return Returns the char array of the parameter matching the given key;
- * returns null if the key does not exist.
- */
-std::vector<zchar> Want::GetCharArrayParam(const std::string& key) const
-{
-    std::vector<zchar> array;
-    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
-    IArray* ao = IArray::Query(value);
-    if (ao != nullptr && Array::IsCharArray(ao)) {
-        GetArrayParams<IChar, Char, zchar>(ao, array);
-    }
-    return array;
-}
-
-/**
- * @description: Sets a parameter value of the char type.
- * @param key   Indicates the key of wantParams.
- * @param value Indicates the char value of the parameter.
- * @return Returns this want object containing the parameter value.
- */
-Want& Want::SetParam(const std::string& key, zchar value)
-{
-    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, Char::Box(value));
-    return *this;
-}
-
-/**
- * @description: Sets a parameter value of the char array type.
- * @param key   Indicates the key of wantParams.
- * @param value Indicates the char array of the parameter.
- * @return Returns this want object containing the parameter value.
- */
-Want& Want::SetParam(const std::string& key, const std::vector<zchar>& value)
-{
-    std::size_t size = value.size();
-    sptr<IArray> ao = new (std::nothrow) Array(size, g_IID_IChar);
-    if (ao == nullptr) {
-        return *this;
-    }
-    for (std::size_t i = 0; i < size; i++) {
-        ao->Set(i, Char::Box(value[i]));
-    }
-    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, ao);
     return *this;
 }
 
