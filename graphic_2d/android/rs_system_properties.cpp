@@ -227,6 +227,10 @@ bool RSSystemProperties::GetMESABlurFuzedEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetForceKawaseDisabled()
+{
+    return false;
+}
 
 bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
 {
@@ -312,6 +316,11 @@ bool RSSystemProperties::GetSingleFrameComposerEnabled()
 }
 
 bool RSSystemProperties::GetSubSurfaceEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSingleDrawableLockerEnabled()
 {
     return false;
 }
