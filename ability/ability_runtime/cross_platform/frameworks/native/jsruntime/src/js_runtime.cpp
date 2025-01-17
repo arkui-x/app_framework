@@ -157,6 +157,13 @@ private:
             env_ = reinterpret_cast<napi_env>(engine);
         }
 #else
+#ifdef IOS_PLATFORM
+        if (!options.codePath.empty()) {
+            ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+            engine->SetPackagePath("default", { options.codePath });
+            env_ = reinterpret_cast<napi_env>(engine);
+        }
+#endif
         if (!options.appLibPath.empty()) {
             ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
             engine->SetPackagePath("default", { options.appLibPath });
