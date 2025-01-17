@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,7 @@ constexpr const char* DIRECTION_VERTICAL = "vertical";
 constexpr const char* DIRECTION_HORIZONTAL = "horizontal";
 constexpr const char* DEVICE_TYPE_PHONE = "Phone";
 constexpr const char* DEVICE_TYPE_TABLET = "Tablet";
+constexpr const char* SYSTEM_FONT_SIZE_SCALE = "system.font.size.scale";
 }; // namespace ConfigurationInner
 
 class Configuration {
@@ -47,6 +48,7 @@ public:
     void ReadFromJsonConfiguration(const std::string& jsonConfiguration);
     Global::Resource::ColorMode ConvertColorMode(std::string colormode) const;
     Global::Resource::Direction ConvertDirection(std::string direction) const;
+    uint32_t ConvertDensity(const std::string& density) const;
 
 private:
     std::unordered_map<std::string, std::string> ConvertJsonStrToUnorderedMap(const std::string& json);

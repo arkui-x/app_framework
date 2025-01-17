@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -333,7 +333,7 @@ void AppMain::HandleDispatchOnNewWant(const std::string& instanceName)
 
 void AppMain::HandleDispatchOnForeground(const std::string& instanceName)
 {
-    HILOG_INFO("DispatchOnForeground called.");
+    HILOG_INFO("HandleDispatchOnForeground called.");
     if (application_ == nullptr) {
         HILOG_ERROR("application_ is nullptr");
         return;
@@ -344,7 +344,7 @@ void AppMain::HandleDispatchOnForeground(const std::string& instanceName)
 
 void AppMain::HandleDispatchOnBackground(const std::string& instanceName)
 {
-    HILOG_INFO("DispatchOnBackground called.");
+    HILOG_INFO("HandleDispatchOnBackground called.");
     if (application_ == nullptr) {
         HILOG_ERROR("application_ is nullptr");
         return;
@@ -355,7 +355,7 @@ void AppMain::HandleDispatchOnBackground(const std::string& instanceName)
 
 void AppMain::HandleDispatchOnDestroy(const std::string& instanceName)
 {
-    HILOG_INFO("DispatchOnDestroy called.");
+    HILOG_INFO("HandleDispatchOnDestroy called.");
     if (application_ == nullptr) {
         HILOG_ERROR("application_ is nullptr");
         return;
@@ -366,7 +366,7 @@ void AppMain::HandleDispatchOnDestroy(const std::string& instanceName)
 
 void AppMain::HandleOnConfigurationUpdate(const std::string& jsonConfiguration)
 {
-    HILOG_INFO("OnConfigurationUpdate called.");
+    HILOG_INFO("HandleOnConfigurationUpdate called.");
     if (application_ == nullptr) {
         HILOG_ERROR("application_ is nullptr");
         return;
@@ -378,7 +378,7 @@ void AppMain::HandleOnConfigurationUpdate(const std::string& jsonConfiguration)
 
 void AppMain::HandleInitConfiguration(const std::string& jsonConfiguration)
 {
-    HILOG_INFO("InitConfiguration called.");
+    HILOG_INFO("HandleInitConfiguration called.");
     if (application_ == nullptr) {
         HILOG_ERROR("application_ is nullptr");
         return;
