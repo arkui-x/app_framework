@@ -42,6 +42,7 @@ constexpr const char* DIRECTION_VERTICAL = "vertical";
 constexpr const char* DIRECTION_HORIZONTAL = "horizontal";
 constexpr const char* DEVICE_TYPE_PHONE = "Phone";
 constexpr const char* DEVICE_TYPE_TABLET = "Tablet";
+constexpr const char* SYSTEM_FONT_SIZE_SCALE = "system.font.size.scale";
 }; // namespace ConfigurationInner
 
 class Configuration {
@@ -56,6 +57,7 @@ public:
     Global::Resource::ColorMode ConvertColorMode(std::string colormode) const;
     Global::Resource::Direction ConvertDirection(std::string direction) const;
     std::string GetColorModeStr(int32_t colormode);
+    uint32_t ConvertDensity(const std::string& density) const;
 
 private:
     std::unordered_map<std::string, std::string> ConvertJsonStrToUnorderedMap(const std::string& json);

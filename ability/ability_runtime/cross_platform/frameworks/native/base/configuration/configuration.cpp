@@ -135,6 +135,15 @@ std::string Configuration::GetColorModeStr(int32_t colormode)
 
     return ret;
 }
+
+uint32_t Configuration::ConvertDensity(const std::string& density) const
+{
+    if (density.empty()) {
+        return 0;
+    } else {
+        return static_cast<int32_t>(std::stoi(density));
+    }
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS
