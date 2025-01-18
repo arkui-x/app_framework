@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,9 +33,33 @@ bool String::Equals(IObject &other) /* [in] */
     return otherObj != nullptr && otherObj->string_ == string_;
 }
 
+void String::replaceQuotes(const std::string& input, std::string& result) {
+    for (char ch : input) {
+        if (ch == '\\') {
+            result += "\\\\";
+        } else if (ch == '\"') {
+            result += "\\\"";
+        } else if (ch == '\t') {
+            result += "\\t";
+        } else if (ch == '\r') {
+            result += "\\r";
+        } else if (ch == '\n') {
+            result += "\\n";
+        } else if (ch == '\b') {
+            result += "\\b";
+        } else if (ch == '\f') {
+            result += "\\f";
+        } else {
+            result += ch;
+        }
+    }
+}
+
 std::string String::ToString()
 {
-    return string_;
+    std::string escaped;
+    String::replaceQuotes(string_, escaped);
+    return escaped;
 }
 
 sptr<IString> String::Box(const std::string &str) /* [in] */

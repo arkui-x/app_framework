@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,8 +18,10 @@
 #include <map>
 #include <set>
 #include <vector>
+
 #include "base_interfaces.h"
 #include "refbase.h"
+#include "want_params_interface.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -27,6 +29,35 @@ extern const char* FD;
 extern const char* REMOTE_OBJECT;
 extern const char* TYPE_PROPERTY;
 extern const char* VALUE_PROPERTY;
+extern const std::string JSON_WANTPARAMS_KEY;
+extern const std::string JSON_WANTPARAMS_VALUE;
+extern const std::string JSON_WANTPARAMS_TYPE;
+extern const std::string JSON_WANTPARAMS_PARAM;
+
+enum class WantValueType : int {
+    VALUE_TYPE_BOOLEAN = 1,
+    VALUE_TYPE_BYTE = 2,
+    VALUE_TYPE_CHAR = 3,
+    VALUE_TYPE_SHORT = 4,
+    VALUE_TYPE_INT = 5,
+    VALUE_TYPE_LONG = 6,
+    VALUE_TYPE_LONGLONG = 7,
+    VALUE_TYPE_FLOAT = 8,
+    VALUE_TYPE_DOUBLE = 9,
+    VALUE_TYPE_STRING = 10,
+    VALUE_TYPE_BOOLEANARRAY = 11,
+    VALUE_TYPE_BYTEARRAY = 12,
+    VALUE_TYPE_CHARARRAY = 13,
+    VALUE_TYPE_SHORTARRAY = 14,
+    VALUE_TYPE_INTARRAY = 15,
+    VALUE_TYPE_LONGARRAY = 16,
+    VALUE_TYPE_FLOATARRAY = 17,
+    VALUE_TYPE_DOUBLEARRAY = 18,
+    VALUE_TYPE_STRINGARRAY = 19,
+    VALUE_TYPE_WANTPARAMSARRAY = 24,
+    VALUE_TYPE_WANTPARAMS = 101,
+    VALUE_TYPE_ARRAY = 102,
+};
 
 enum ScreenMode : int32_t {
     IDLE_SCREEN_MODE = -1,
@@ -36,7 +67,7 @@ enum ScreenMode : int32_t {
 };
 constexpr const char* SCREEN_MODE_KEY = "ohos.extra.param.key.showMode";
 
-class WantParams {
+class WantParams : public WantParamsInterface {
 public:
     WantParams() = default;
     WantParams(const WantParams &wantParams);

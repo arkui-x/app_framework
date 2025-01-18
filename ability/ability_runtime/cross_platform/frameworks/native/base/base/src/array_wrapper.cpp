@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,9 @@
  */
 
 #include "array_wrapper.h"
+
 #include <cstdint>
+
 #include "bool_wrapper.h"
 #include "zchar_wrapper.h"
 #include "byte_wrapper.h"
@@ -107,40 +109,25 @@ bool Array::Equals(IObject &other) /* [in] */
 std::string Array::ToString()
 {
     std::string result;
-    if (typeId_ == g_IID_IString) {
-        result += String::SIGNATURE;
-    } else if (typeId_ == g_IID_IBoolean) {
-        result += Boolean::SIGNATURE;
-    } else if (typeId_ == g_IID_IByte) {
-        result += Byte::SIGNATURE;
-    } else if (typeId_ == g_IID_IShort) {
-        result += Short::SIGNATURE;
-    } else if (typeId_ == g_IID_IInteger) {
-        result += Integer::SIGNATURE;
-    } else if (typeId_ == g_IID_ILong) {
-        result += Long::SIGNATURE;
-    } else if (typeId_ == g_IID_IFloat) {
-        result += Float::SIGNATURE;
-    } else if (typeId_ == g_IID_IDouble) {
-        result += Double::SIGNATURE;
-    } else if (typeId_ == g_IID_IArray) {
-        result += Array::SIGNATURE;
-    } else if (typeId_ == g_IID_IChar) {
-        result += Char::SIGNATURE;
-    } else if (typeId_ == g_IID_IWantParams) {
-        result += WantParamWrapper::SIGNATURE;
-    } else {
-        result += "";
-    }
-
-    result += std::to_string(size_) + "{";
+    result = "[";
     for (long i = 0; i < size_; i++) {
-        result += Object::ToString(*(values_[i].GetRefPtr()));
+        if (typeId_ == g_IID_IString || typeId_ == g_IID_IChar) {
+            result += "\"";
+            result += Object::ToString(*(values_[i].GetRefPtr()));
+            result += "\"";
+        } else if (typeId_ == g_IID_IWantParams) {
+            result = result + "{\"" + JSON_WANTPARAMS_KEY + "\":\"" + JSON_WANTPARAMS_PARAM + "\",\"" +
+                     JSON_WANTPARAMS_TYPE +
+                     "\":" + std::to_string(static_cast<int>(OHOS::AAFwk::WantValueType::VALUE_TYPE_WANTPARAMS));
+            result += ",\"" + JSON_WANTPARAMS_VALUE + "\":" + Object::ToString(*(values_[i].GetRefPtr())) + "}";
+        } else {
+            result += Object::ToString(*(values_[i].GetRefPtr()));
+        }
         if (i < size_ - 1) {
             result += ",";
         }
     }
-    result += "}";
+    result += "]";
     return result;
 }
 
@@ -411,6 +398,117 @@ void Array::ForEach(IArray *array,          /* [in] */
         array->Get(i, object);
         func(object);
     }
+}
+
+namespace {
+sptr<IArray> InnerParseCrossPlatformWantParams(const nlohmann::json& values)
+{
+    if (values.empty()) {
+        return nullptr;
+    }
+    sptr<IArray> array = new (std::nothrow) Array(values.size(), g_IID_IWantParams);
+    if (array == nullptr) {
+        return nullptr;
+    }
+    int i = 0;
+    for (auto& element : values) {
+        array->Set(i, WantParamWrapper::Parse(element[JSON_WANTPARAMS_VALUE]));
+        i++;
+    }
+    return array;
+}
+
+sptr<IArray> InnerParseString(const nlohmann::json& values)
+{
+    if (values.empty()) {
+        return nullptr;
+    }
+    sptr<IArray> array = new (std::nothrow) Array(values.size(), g_IID_IString);
+    if (array == nullptr) {
+        return nullptr;
+    }
+    int i = 0;
+    for (auto& element : values) {
+        array->Set(i, String::Parse(element.get<std::string>()));
+        i++;
+    }
+    return array;
+}
+
+sptr<IArray> InnerParseLong(const nlohmann::json& values)
+{
+    if (values.empty()) {
+        return nullptr;
+    }
+    sptr<IArray> array = new (std::nothrow) Array(values.size(), g_IID_ILong);
+    if (array == nullptr) {
+        return nullptr;
+    }
+    int i = 0;
+    for (auto& element : values) {
+        array->Set(i, Long::Parse(std::to_string(element.get<int64_t>())));
+        i++;
+    }
+    return array;
+}
+
+sptr<IArray> InnerParseDouble(const nlohmann::json& values)
+{
+    if (values.empty()) {
+        return nullptr;
+    }
+    sptr<IArray> array = new (std::nothrow) Array(values.size(), g_IID_IDouble);
+    if (array == nullptr) {
+        return nullptr;
+    }
+    int i = 0;
+    for (auto& element : values) {
+        array->Set(i, Double::Parse(std::to_string(element.get<double>())));
+        i++;
+    }
+    return array;
+}
+
+sptr<IArray> InnerParseBoolean(const nlohmann::json& values)
+{
+    if (values.empty()) {
+        return nullptr;
+    }
+    sptr<IArray> array = new (std::nothrow) Array(values.size(), g_IID_IBoolean);
+    if (array == nullptr) {
+        return nullptr;
+    }
+    int i = 0;
+    for (auto& element : values) {
+        array->Set(i, Boolean::Parse(element.get<bool>() ? "true" : "false"));
+        i++;
+    }
+    return array;
+}
+} // namespace
+
+sptr<IArray> Array::ParseCrossPlatformArray(const nlohmann::json& wantJson)
+{
+    if (!wantJson.is_array() || wantJson.empty()) {
+        return nullptr;
+    }
+    auto firstElementType = wantJson[0].type();
+    switch (firstElementType) {
+        case nlohmann::json::value_t::string:
+            return InnerParseString(wantJson);
+        case nlohmann::json::value_t::number_integer:
+        case nlohmann::json::value_t::number_unsigned:
+            return InnerParseLong(wantJson);
+        case nlohmann::json::value_t::number_float:
+            return InnerParseDouble(wantJson);
+        case nlohmann::json::value_t::boolean:
+            return InnerParseBoolean(wantJson);
+        case nlohmann::json::value_t::object:
+            return InnerParseCrossPlatformWantParams(wantJson);
+        default:
+            break;
+    }
+    return nullptr;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

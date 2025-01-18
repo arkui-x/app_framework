@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #define OHOS_ABILITY_BASE_WANT_PARAMS_WRAPPER_H
 #include "base_def.h"
 #include "base_obj.h"
+#include "nlohmann/json.hpp"
 #include "want_params.h"
 namespace OHOS {
 namespace AAFwk {
@@ -71,6 +72,11 @@ public:
     static WantParams ParseWantParams(const std::string &str);
 
     static WantParams ParseWantParamsWithBrackets(const std::string &str);
+
+    static sptr<IWantParams> Parse(const nlohmann::json& wantJson);
+
+    static void ParseWantParams(
+        const nlohmann::json& wantJson, OHOS::AAFwk::WantParams& wantParams);
 
     static constexpr char SIGNATURE = 'W';
 

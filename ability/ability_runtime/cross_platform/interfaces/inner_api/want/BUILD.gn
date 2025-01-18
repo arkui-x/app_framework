@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -29,6 +29,7 @@ template("ability_runtime_want") {
     part_name = ability_part_name
     configs = [
       ":bundle_parser_config",
+      ":want_params_config",
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
     ]
 
@@ -48,6 +49,7 @@ template("ability_runtime_want") {
       "${ability_runtime_cross_platform_path}/frameworks/native/base/want/json_want.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/base/want/want.cpp",
     ]
+    deps = [ ":cross_platform_want_params" ]
   }
 }
 
@@ -57,6 +59,7 @@ config("want_params_config") {
     "//foundation/arkui/napi/interfaces/inner_api",
     "//foundation/arkui/napi/interfaces/kits",
     "//third_party/bounds_checking_function/include",
+    "//third_party/json/include",
     "//third_party/node/src",
     "${ability_runtime_cross_platform_path}/frameworks/native/base/base/include",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/want",

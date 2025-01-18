@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,21 +14,119 @@
  */
 
 #include "want.h"
-#include "json_want.h"
+
+#include <memory>
+#include <regex>
+
+#include "array_wrapper.h"
+#include "base_interfaces.h"
+#include "base_obj.h"
+#include "bool_wrapper.h"
+#include "double_wrapper.h"
+#include "float_wrapper.h"
 #include "hilog.h"
+#include "int_wrapper.h"
+#include "long_wrapper.h"
+#include "securec.h"
+#include "short_wrapper.h"
+#include "string_wrapper.h"
+#include "want_params.h"
+#include "want_params_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
 const std::string Want::ABILITY_ID("ability_id");
 const std::string Want::INSTANCE_NAME("instance_name");
 const std::string Want::ELEMENT_BUNDLE_NAME("elementBundleName");
+namespace {
+using Json = nlohmann::json;
+const std::regex NUMBER_REGEX("^[-+]?([0-9]+)([.]([0-9]+))?$");
+const std::regex BOOL_REGEX("^(true|false)$");
+const std::regex INT_REGEX("^[-+]?([0-9]+)$");
+
+void SetBoolIntDouble(AAFwk::WantParams& wantParams, const std::string& key, const std::string& value,
+    const OHOS::AAFwk::WantValueType type)
+{
+    std::regex pattern(R"(^\s+|\s+$)");
+    std::string valueStr = std::regex_replace(value, pattern, "");
+    switch (type) {
+        case OHOS::AAFwk::WantValueType::VALUE_TYPE_INT:
+            if (std::regex_match(valueStr, INT_REGEX)) {
+                wantParams.SetParam(key, WantParams::GetInterfaceByType(static_cast<int>(type), valueStr));
+            } else {
+                HILOG_ERROR("Want parse failed. int value is incorrect. value = %{public}s", valueStr.c_str());
+            }
+            break;
+        case OHOS::AAFwk::WantValueType::VALUE_TYPE_BOOLEAN:
+            if (std::regex_match(valueStr, BOOL_REGEX)) {
+                wantParams.SetParam(key, WantParams::GetInterfaceByType(static_cast<int>(type), valueStr));
+            } else {
+                HILOG_ERROR("Want parse failed. bool value is incorrect. value = %{public}s", valueStr.c_str());
+            }
+            break;
+        case OHOS::AAFwk::WantValueType::VALUE_TYPE_DOUBLE:
+            if (std::regex_match(valueStr, NUMBER_REGEX)) {
+                wantParams.SetParam(key, WantParams::GetInterfaceByType(static_cast<int>(type) - 1, valueStr));
+            } else {
+                HILOG_ERROR("Want parse failed. double value is incorrect. value = %{public}s", valueStr.c_str());
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+bool CheckElementIsVaild(const Json& element)
+{
+    if (element.find(JSON_WANTPARAMS_KEY) == element.end() || element.find(JSON_WANTPARAMS_TYPE) == element.end() ||
+        element.find(JSON_WANTPARAMS_VALUE) == element.end()) {
+        HILOG_ERROR("Want parse failed. not a valid element. value = %{public}s", element.dump().c_str());
+        return false;
+    }
+    return true;
+}
+
+bool CheckParamsIsVaild(const std::string& params, Json& jsonObject)
+{
+    if (params.empty()) {
+        return false;
+    }
+    jsonObject = Json::parse(params.c_str(), nullptr, false);
+    if (jsonObject.is_discarded() || !jsonObject.contains(JSON_WANTPARAMS_PARAM)) {
+        HILOG_ERROR("jsonObject is discarded. value = %{public}s", params.c_str());
+        return false;
+    }
+    if (jsonObject[JSON_WANTPARAMS_PARAM].is_array() == false) {
+        HILOG_ERROR("jsonObject is not array. value = %{public}s", params.c_str());
+        return false;
+    }
+    return true;
+}
+
+template<typename T1, typename T2, typename T3>
+void GetArrayParams(IArray* ao, std::vector<T3>& array)
+{
+    auto func = [&](IInterface* object) {
+        if (object != nullptr) {
+            T1* value = T1::Query(object);
+            if (value != nullptr) {
+                array.push_back(T2::Unbox(value));
+            }
+        }
+    };
+    Array::ForEach(ao, func);
+}
+}; // namespace
 
 /**
  * @description:Default construcotr of Want class, which is used to initialzie flags and URI.
  * @param None
  * @return None
  */
-Want::Want() {}
+Want::Want()
+{
+    wantParams_ = std::make_shared<AAFwk::WantParams>();
+}
 
 /**
  * @description: Default deconstructor of Want class
@@ -44,12 +142,12 @@ Want::~Want() {}
  */
 Want::Want(const Want& want)
 {
-    CopyFromWant(want);
+    InnerCopyWant(want);
 }
 
 Want& Want::operator=(const Want& want)
 {
-    CopyFromWant(want);
+    InnerCopyWant(want);
     return *this;
 }
 
@@ -59,7 +157,11 @@ Want& Want::operator=(const Want& want)
  */
 void Want::ClearWant(Want* want)
 {
-    want->params_.clear();
+    want->wantParams_ = std::make_shared<WantParams>();
+    want->bundleName_ = "";
+    want->moduleName_ = "";
+    want->abilityName_ = "";
+    want->type_ = "";
 }
 
 /**
@@ -71,7 +173,12 @@ void Want::ClearWant(Want* want)
  */
 bool Want::GetBoolParam(const std::string& key, bool defaultValue) const
 {
-    return GetValue<bool>(key, defaultValue);
+    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
+    IBoolean* bo = IBoolean::Query(value);
+    if (bo != nullptr) {
+        return Boolean::Unbox(bo);
+    }
+    return defaultValue;
 }
 
 /**
@@ -82,7 +189,13 @@ bool Want::GetBoolParam(const std::string& key, bool defaultValue) const
  */
 std::vector<bool> Want::GetBoolArrayParam(const std::string& key) const
 {
-    return GetArrayValue<bool>(key);
+    std::vector<bool> array;
+    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
+    IArray* ao = IArray::Query(value);
+    if (ao != nullptr && Array::IsBooleanArray(ao)) {
+        GetArrayParams<IBoolean, Boolean, bool>(ao, array);
+    }
+    return array;
 }
 
 /**
@@ -93,8 +206,7 @@ std::vector<bool> Want::GetBoolArrayParam(const std::string& key) const
  */
 Want& Want::SetParam(const std::string& key, bool value)
 {
-    SetValue<bool>(key, value);
-    types_[key] = VALUE_TYPE_BOOLEAN;
+    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, Boolean::Box(value));
     return *this;
 }
 
@@ -106,107 +218,14 @@ Want& Want::SetParam(const std::string& key, bool value)
  */
 Want& Want::SetParam(const std::string& key, const std::vector<bool>& value)
 {
-    SetArrayValue<bool>(key, value);
-    types_[key] = VALUE_TYPE_BOOLEANARRAY;
-    return *this;
-}
-
-/**
- * @description: Obtains a byte-type value matching the given key.
- * @param key   Indicates the key of WantParams.
- * @param defaultValue  Indicates the default byte-type value.
- * @return Returns the byte-type value of the parameter matching the given key;
- * returns the default value if the key does not exist.
- */
-byte Want::GetByteParam(const std::string& key, const byte defaultValue) const
-{
-    return GetValue<byte>(key, defaultValue);
-    ;
-}
-
-/**
- * @description: Obtains a byte-type array matching the given key.
- * @param key   Indicates the key of WantParams.
- * @return Returns the byte-type array of the parameter matching the given key;
- * returns null if the key does not exist.
- */
-std::vector<byte> Want::GetByteArrayParam(const std::string& key) const
-{
-    return GetArrayValue<byte>(key);
-}
-
-/**
- * @description: Sets a parameter value of the byte type.
- * @param key   Indicates the key matching the parameter.
- * @param value Indicates the byte-type value of the parameter.
- * @return Returns this Want object containing the parameter value.
- */
-Want& Want::SetParam(const std::string& key, byte value)
-{
-    SetValue<byte>(key, value);
-    types_[key] = VALUE_TYPE_BYTE;
-    return *this;
-}
-
-/**
- * @description: Sets a parameter value of the byte array type.
- * @param key   Indicates the key matching the parameter.
- * @param value Indicates the byte array of the parameter.
- * @return Returns this Want object containing the parameter value.
- */
-Want& Want::SetParam(const std::string& key, const std::vector<byte>& value)
-{
-    SetArrayValue<byte>(key, value);
-    types_[key] = VALUE_TYPE_BYTEARRAY;
-    return *this;
-}
-
-/**
- * @description: Obtains a char value matching the given key.
- * @param key   Indicates the key of wnatParams.
- * @param value Indicates the default char value.
- * @return Returns the char value of the parameter matching the given key;
- * returns the default value if the key does not exist.
- */
-zchar Want::GetCharParam(const std::string& key, zchar defaultValue) const
-{
-    return GetValue<zchar>(key, defaultValue);
-}
-
-/**
- * @description: Obtains a char array matching the given key.
- * @param key   Indicates the key of wantParams.
- * @return Returns the char array of the parameter matching the given key;
- * returns null if the key does not exist.
- */
-std::vector<zchar> Want::GetCharArrayParam(const std::string& key) const
-{
-    return GetArrayValue<zchar>(key);
-}
-
-/**
- * @description: Sets a parameter value of the char type.
- * @param key   Indicates the key of wantParams.
- * @param value Indicates the char value of the parameter.
- * @return Returns this want object containing the parameter value.
- */
-Want& Want::SetParam(const std::string& key, zchar value)
-{
-    SetValue<zchar>(key, value);
-    types_[key] = VALUE_TYPE_CHAR;
-    return *this;
-}
-
-/**
- * @description: Sets a parameter value of the char array type.
- * @param key   Indicates the key of wantParams.
- * @param value Indicates the char array of the parameter.
- * @return Returns this want object containing the parameter value.
- */
-Want& Want::SetParam(const std::string& key, const std::vector<zchar>& value)
-{
-    SetArrayValue<zchar>(key, value);
-    types_[key] = VALUE_TYPE_CHARARRAY;
+    std::size_t size = value.size();
+    sptr<IArray> ao = new (std::nothrow) Array(size, g_IID_IBoolean);
+    if (ao != nullptr) {
+        for (std::size_t i = 0; i < size; i++) {
+            ao->Set(i, Boolean::Box(value[i]));
+        }
+        std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, ao);
+    }
     return *this;
 }
 
@@ -219,7 +238,12 @@ Want& Want::SetParam(const std::string& key, const std::vector<zchar>& value)
  */
 int Want::GetIntParam(const std::string& key, const int defaultValue) const
 {
-    return GetValue<int>(key, defaultValue);
+    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
+    IInteger* ao = IInteger::Query(value);
+    if (ao != nullptr) {
+        return Integer::Unbox(ao);
+    }
+    return defaultValue;
 }
 
 /**
@@ -230,7 +254,13 @@ int Want::GetIntParam(const std::string& key, const int defaultValue) const
  */
 std::vector<int> Want::GetIntArrayParam(const std::string& key) const
 {
-    return GetArrayValue<int>(key);
+    std::vector<int> array;
+    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
+    IArray* ao = IArray::Query(value);
+    if (ao != nullptr && Array::IsIntegerArray(ao)) {
+        GetArrayParams<IInteger, Integer, int>(ao, array);
+    }
+    return array;
 }
 
 /**
@@ -241,8 +271,7 @@ std::vector<int> Want::GetIntArrayParam(const std::string& key) const
  */
 Want& Want::SetParam(const std::string& key, int value)
 {
-    SetValue<int>(key, value);
-    types_[key] = VALUE_TYPE_INT;
+    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, Integer::Box(value));
     return *this;
 }
 
@@ -254,8 +283,15 @@ Want& Want::SetParam(const std::string& key, int value)
  */
 Want& Want::SetParam(const std::string& key, const std::vector<int>& value)
 {
-    SetArrayValue<int>(key, value);
-    types_[key] = VALUE_TYPE_INTARRAY;
+    std::size_t size = value.size();
+    sptr<IArray> ao = new (std::nothrow) Array(size, g_IID_IInteger);
+    if (ao == nullptr) {
+        return *this;
+    }
+    for (std::size_t i = 0; i < size; i++) {
+        ao->Set(i, Integer::Box(value[i]));
+    }
+    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, ao);
     return *this;
 }
 
@@ -268,7 +304,12 @@ Want& Want::SetParam(const std::string& key, const std::vector<int>& value)
  */
 double Want::GetDoubleParam(const std::string& key, double defaultValue) const
 {
-    return GetValue<double>(key, defaultValue);
+    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
+    IDouble* ao = IDouble::Query(value);
+    if (ao != nullptr) {
+        return Double::Unbox(ao);
+    }
+    return defaultValue;
 }
 
 /**
@@ -279,7 +320,13 @@ double Want::GetDoubleParam(const std::string& key, double defaultValue) const
  */
 std::vector<double> Want::GetDoubleArrayParam(const std::string& key) const
 {
-    return GetArrayValue<double>(key);
+    std::vector<double> array;
+    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
+    IArray* ao = IArray::Query(value);
+    if (ao != nullptr && Array::IsDoubleArray(ao)) {
+        GetArrayParams<IDouble, Double, double>(ao, array);
+    }
+    return array;
 }
 
 /**
@@ -290,8 +337,7 @@ std::vector<double> Want::GetDoubleArrayParam(const std::string& key) const
  */
 Want& Want::SetParam(const std::string& key, double value)
 {
-    SetValue<double>(key, value);
-    types_[key] = VALUE_TYPE_DOUBLE;
+    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, Double::Box(value));
     return *this;
 }
 
@@ -303,8 +349,15 @@ Want& Want::SetParam(const std::string& key, double value)
  */
 Want& Want::SetParam(const std::string& key, const std::vector<double>& value)
 {
-    SetArrayValue<double>(key, value);
-    types_[key] = VALUE_TYPE_DOUBLEARRAY;
+    std::size_t size = value.size();
+    sptr<IArray> ao = new (std::nothrow) Array(size, g_IID_IDouble);
+    if (ao == nullptr) {
+        return *this;
+    }
+    for (std::size_t i = 0; i < size; i++) {
+        ao->Set(i, Double::Box(value[i]));
+    }
+    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, ao);
     return *this;
 }
 
@@ -317,7 +370,12 @@ Want& Want::SetParam(const std::string& key, const std::vector<double>& value)
  */
 float Want::GetFloatParam(const std::string& key, float defaultValue) const
 {
-    return GetValue<float>(key, defaultValue);
+    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
+    IFloat* ao = IFloat::Query(value);
+    if (ao != nullptr) {
+        return Float::Unbox(ao);
+    }
+    return defaultValue;
 }
 
 /**
@@ -327,7 +385,13 @@ float Want::GetFloatParam(const std::string& key, float defaultValue) const
  */
 std::vector<float> Want::GetFloatArrayParam(const std::string& key) const
 {
-    return GetArrayValue<float>(key);
+    std::vector<float> array;
+    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
+    IArray* ao = IArray::Query(value);
+    if (ao != nullptr && Array::IsFloatArray(ao)) {
+        GetArrayParams<IFloat, Float, float>(ao, array);
+    }
+    return array;
 }
 
 /**
@@ -338,8 +402,7 @@ std::vector<float> Want::GetFloatArrayParam(const std::string& key) const
  */
 Want& Want::SetParam(const std::string& key, float value)
 {
-    SetValue<float>(key, value);
-    types_[key] = VALUE_TYPE_FLOAT;
+    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, Float::Box(value));
     return *this;
 }
 
@@ -351,8 +414,16 @@ Want& Want::SetParam(const std::string& key, float value)
  */
 Want& Want::SetParam(const std::string& key, const std::vector<float>& value)
 {
-    SetArrayValue<float>(key, value);
-    types_[key] = VALUE_TYPE_FLOATARRAY;
+    std::size_t size = value.size();
+    sptr<IArray> ao = new (std::nothrow) Array(size, g_IID_IFloat);
+    if (ao == nullptr) {
+        return *this;
+    }
+
+    for (std::size_t i = 0; i < size; i++) {
+        ao->Set(i, Float::Box(value[i]));
+    }
+    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, ao);
     return *this;
 }
 
@@ -365,7 +436,16 @@ Want& Want::SetParam(const std::string& key, const std::vector<float>& value)
  */
 long Want::GetLongParam(const std::string& key, long defaultValue) const
 {
-    return GetValue<long>(key, defaultValue);
+    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
+    if (ILong::Query(value) != nullptr) {
+        return Long::Unbox(ILong::Query(value));
+    } else if (IString::Query(value) != nullptr) {
+        std::string str = String::Unbox(IString::Query(value));
+        if (std::regex_match(str, NUMBER_REGEX)) {
+            return std::atoll(str.c_str());
+        }
+    }
+    return defaultValue;
 }
 
 /**
@@ -376,7 +456,24 @@ long Want::GetLongParam(const std::string& key, long defaultValue) const
  */
 std::vector<long> Want::GetLongArrayParam(const std::string& key) const
 {
-    return GetArrayValue<long>(key);
+    std::vector<long> array;
+    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
+    IArray* ao = IArray::Query(value);
+    if (ao != nullptr && Array::IsLongArray(ao)) {
+        GetArrayParams<ILong, Long, long>(ao, array);
+    } else if (ao != nullptr && Array::IsStringArray(ao)) {
+        auto func = [&](IInterface* object) {
+            IString* o = IString::Query(object);
+            if (o != nullptr) {
+                std::string str = String::Unbox(o);
+                if (std::regex_match(str, NUMBER_REGEX)) {
+                    array.push_back(std::atoll(str.c_str()));
+                }
+            }
+        };
+        Array::ForEach(ao, func);
+    }
+    return array;
 }
 
 /**
@@ -387,8 +484,7 @@ std::vector<long> Want::GetLongArrayParam(const std::string& key) const
  */
 Want& Want::SetParam(const std::string& key, long value)
 {
-    SetValue<long>(key, value);
-    types_[key] = VALUE_TYPE_LONG;
+    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, Long::Box(value));
     return *this;
 }
 
@@ -400,15 +496,21 @@ Want& Want::SetParam(const std::string& key, long value)
  */
 Want& Want::SetParam(const std::string& key, const std::vector<long>& value)
 {
-    SetArrayValue<long>(key, value);
-    types_[key] = VALUE_TYPE_LONGARRAY;
+    std::size_t size = value.size();
+    sptr<IArray> ao = new (std::nothrow) Array(size, g_IID_ILong);
+    if (ao == nullptr) {
+        return *this;
+    }
+    for (std::size_t i = 0; i < size; i++) {
+        ao->Set(i, Long::Box(value[i]));
+    }
+    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, ao);
     return *this;
 }
 
 Want& Want::SetParam(const std::string& key, long long value)
 {
-    SetValue<long long>(key, value);
-    types_[key] = VALUE_TYPE_LONGLONG;
+    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, Long::Box(value));
     return *this;
 }
 
@@ -421,7 +523,12 @@ Want& Want::SetParam(const std::string& key, long long value)
  */
 short Want::GetShortParam(const std::string& key, short defaultValue) const
 {
-    return GetValue<short>(key, defaultValue);
+    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
+    IShort* ao = IShort::Query(value);
+    if (ao != nullptr) {
+        return Short::Unbox(ao);
+    }
+    return defaultValue;
 }
 
 /**
@@ -432,7 +539,13 @@ short Want::GetShortParam(const std::string& key, short defaultValue) const
  */
 std::vector<short> Want::GetShortArrayParam(const std::string& key) const
 {
-    return GetArrayValue<short>(key);
+    std::vector<short> array;
+    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
+    IArray* ao = IArray::Query(value);
+    if (ao != nullptr && Array::IsShortArray(ao)) {
+        GetArrayParams<IShort, Short, short>(ao, array);
+    }
+    return array;
 }
 
 /**
@@ -443,8 +556,7 @@ std::vector<short> Want::GetShortArrayParam(const std::string& key) const
  */
 Want& Want::SetParam(const std::string& key, short value)
 {
-    SetValue<short>(key, value);
-    types_[key] = VALUE_TYPE_SHORT;
+    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, Short::Box(value));
     return *this;
 }
 
@@ -456,8 +568,15 @@ Want& Want::SetParam(const std::string& key, short value)
  */
 Want& Want::SetParam(const std::string& key, const std::vector<short>& value)
 {
-    SetArrayValue<short>(key, value);
-    types_[key] = VALUE_TYPE_SHORTARRAY;
+    std::size_t size = value.size();
+    sptr<IArray> ao = new (std::nothrow) Array(size, g_IID_IShort);
+    if (ao == nullptr) {
+        return *this;
+    }
+    for (std::size_t i = 0; i < size; i++) {
+        ao->Set(i, Short::Box(value[i]));
+    }
+    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, ao);
     return *this;
 }
 
@@ -469,7 +588,12 @@ Want& Want::SetParam(const std::string& key, const std::vector<short>& value)
  */
 std::string Want::GetStringParam(const std::string& key) const
 {
-    return GetValue<std::string>(key, std::string());
+    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
+    IString* ao = IString::Query(value);
+    if (ao != nullptr) {
+        return String::Unbox(ao);
+    }
+    return std::string();
 }
 
 /**
@@ -480,7 +604,13 @@ std::string Want::GetStringParam(const std::string& key) const
  */
 std::vector<std::string> Want::GetStringArrayParam(const std::string& key) const
 {
-    return GetArrayValue<std::string>(key);
+    std::vector<std::string> array;
+    auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
+    IArray* ao = IArray::Query(value);
+    if (ao != nullptr && Array::IsStringArray(ao)) {
+        GetArrayParams<IString, String, std::string>(ao, array);
+    }
+    return array;
 }
 
 std::string Want::GetBundleName() const
@@ -531,8 +661,7 @@ void Want::SetType(const std::string& type)
  */
 Want& Want::SetParam(const std::string& key, const std::string& value)
 {
-    SetValue<std::string>(key, value);
-    types_[key] = VALUE_TYPE_STRING;
+    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, String::Box(value));
     return *this;
 }
 
@@ -544,8 +673,15 @@ Want& Want::SetParam(const std::string& key, const std::string& value)
  */
 Want& Want::SetParam(const std::string& key, const std::vector<std::string>& value)
 {
-    SetArrayValue<std::string>(key, value);
-    types_[key] = VALUE_TYPE_STRINGARRAY;
+    std::size_t size = value.size();
+    sptr<IArray> ao = new (std::nothrow) Array(size, g_IID_IString);
+    if (ao == nullptr) {
+        return *this;
+    }
+    for (std::size_t i = 0; i < size; i++) {
+        ao->Set(i, String::Box(value[i]));
+    }
+    std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, ao);
     return *this;
 }
 
@@ -556,7 +692,7 @@ Want& Want::SetParam(const std::string& key, const std::vector<std::string>& val
  */
 bool Want::HasParameter(const std::string& key) const
 {
-    return params_.find(key) == params_.end();
+    return std::static_pointer_cast<WantParams>(wantParams_)->HasParam(key);
 }
 
 /**
@@ -565,175 +701,98 @@ bool Want::HasParameter(const std::string& key) const
  */
 void Want::RemoveParam(const std::string& key)
 {
-    auto iter = params_.find(key);
-    if (iter != params_.end()) {
-        params_.erase(iter);
-    }
+    std::static_pointer_cast<WantParams>(wantParams_)->Remove(key);
 }
 
-template<class T>
-void Want::SetValue(const std::string& key, T value)
+/**
+ * @description: Sets a wantParams object in a want.
+ * @param wantParams  Indicates the wantParams description.
+ * @return Returns this want object containing the wantParams.
+ */
+Want& Want::SetParams(const std::shared_ptr<WantParamsInterface> wantParams)
 {
-    params_[key] = std::make_shared<T>(value);
-}
-
-template<class T>
-void Want::SetArrayValue(const std::string& key, const std::vector<T>& value)
-{
-    auto ptr = std::make_shared<std::vector<T>>();
-    for (auto it = value.begin(); it != value.end(); it++) {
-        ptr->push_back(*it);
-    }
-    params_[key] = ptr;
-}
-
-template<class T>
-T Want::GetValue(const std::string& key, T defaultValue) const
-{
-    T retValue = defaultValue;
-    auto iter = params_.find(key);
-    if (iter != params_.end()) {
-        auto ptr = static_cast<T*>(iter->second.get());
-        if (ptr != nullptr) {
-            retValue = *ptr;
-        }
-    }
-    return retValue;
-}
-
-template<class T>
-std::vector<T> Want::GetArrayValue(const std::string& key) const
-{
-    std::vector<T> array;
-    auto iter = params_.find(key);
-    if (iter != params_.end()) {
-        auto ptr = static_cast<std::vector<T>*>(iter->second.get());
-        if (ptr != nullptr) {
-            for (auto it = ptr->begin(); it != ptr->end(); it++) {
-                array.push_back(*it);
-            }
-        }
-    }
-    return array;
-}
-
-void Want::CopyFromWant(const Want& want)
-{
-    for (auto iter = want.params_.begin(); iter != want.params_.end(); iter++) {
-        auto key = iter->first;
-        auto value = iter->second;
-        auto it = want.types_.find(key);
-        if (it != want.types_.end()) {
-            if (it->second == VALUE_TYPE_BOOLEAN) {
-                SetParam(key, *(static_cast<bool*>(value.get())));
-            } else if (it->second == VALUE_TYPE_BOOLEANARRAY) {
-                SetParam(key, *(static_cast<std::vector<bool>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_BYTE) {
-                SetParam(key, *(static_cast<byte*>(value.get())));
-            } else if (it->second == VALUE_TYPE_BYTEARRAY) {
-                SetParam(key, *(static_cast<std::vector<byte>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_CHAR) {
-                SetParam(key, *(static_cast<zchar*>(value.get())));
-            } else if (it->second == VALUE_TYPE_CHARARRAY) {
-                SetParam(key, *(static_cast<std::vector<zchar>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_INT) {
-                SetParam(key, *(static_cast<int*>(value.get())));
-            } else if (it->second == VALUE_TYPE_INTARRAY) {
-                SetParam(key, *(static_cast<std::vector<int>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_FLOAT) {
-                SetParam(key, *(static_cast<float*>(value.get())));
-            } else if (it->second == VALUE_TYPE_FLOATARRAY) {
-                SetParam(key, *(static_cast<std::vector<float>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_DOUBLE) {
-                SetParam(key, *(static_cast<double*>(value.get())));
-            } else if (it->second == VALUE_TYPE_DOUBLEARRAY) {
-                SetParam(key, *(static_cast<std::vector<double>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_SHORT) {
-                SetParam(key, *(static_cast<short*>(value.get())));
-            } else if (it->second == VALUE_TYPE_SHORTARRAY) {
-                SetParam(key, *(static_cast<std::vector<short>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_LONG) {
-                SetParam(key, *(static_cast<long*>(value.get())));
-            } else if (it->second == VALUE_TYPE_LONGLONG) {
-                SetParam(key, *(static_cast<long long*>(value.get())));
-            } else if (it->second == VALUE_TYPE_LONGARRAY) {
-                SetParam(key, *(static_cast<std::vector<long>*>(value.get())));
-            } else if (it->second == VALUE_TYPE_STRING) {
-                SetParam(key, *(static_cast<std::string*>(value.get())));
-            } else if (it->second == VALUE_TYPE_STRINGARRAY) {
-                SetParam(key, *(static_cast<std::vector<std::string>*>(value.get())));
-            }
-        }
-    }
-
-    bundleName_ = want.GetBundleName();
-    moduleName_ = want.GetModuleName();
-    abilityName_ = want.GetAbilityName();
-    type_ = want.GetType();
+    wantParams_ = wantParams;
+    return *this;
 }
 
 std::string Want::ToJson() const
 {
-    JsonWant jsonWant;
-    for (auto iter = types_.begin(); iter != types_.end(); iter++) {
-        if (iter->second == AAFwk::VALUE_TYPE_BOOLEAN) {
-            WantParamsJson param = {iter->first,
-                (GetBoolParam(iter->first, false) ? "true" : "false"), VALUE_TYPE_BOOLEAN};
-            jsonWant.params.emplace_back(param);
-        } else if (iter->second == AAFwk::VALUE_TYPE_INT) {
-            WantParamsJson param = {iter->first, std::to_string(GetIntParam(iter->first, 0)), VALUE_TYPE_INT};
-            jsonWant.params.emplace_back(param);
-        } else if (iter->second == AAFwk::VALUE_TYPE_DOUBLE) {
-            WantParamsJson param = {iter->first, std::to_string(GetDoubleParam(iter->first, 0)), VALUE_TYPE_DOUBLE};
-            jsonWant.params.emplace_back(param);
-        } else if (iter->second == AAFwk::VALUE_TYPE_STRING) {
-            WantParamsJson param = {iter->first, GetStringParam(iter->first), VALUE_TYPE_STRING};
-            jsonWant.params.emplace_back(param);
-        }
-    }
-
-    nlohmann::json jWant = jsonWant;
-    return jWant.dump();
+    auto wantParams = std::static_pointer_cast<WantParams>(wantParams_);
+    WantParamWrapper wrapper(*wantParams);
+    std::string wantJson = "{\"" + JSON_WANTPARAMS_PARAM + "\":" + wrapper.ToString() + "}";
+    return wantJson;
 }
 
 void Want::ParseJson(const std::string& jsonParams)
 {
-    if (jsonParams.empty()) {
+    Json jsonObject;
+    if (CheckParamsIsVaild(jsonParams, jsonObject) == false) {
         return;
     }
-
-    nlohmann::json jsonObject = nlohmann::json::parse(jsonParams.c_str(), nullptr, false);
-    if (jsonObject.is_discarded()) {
-        HILOG_ERROR("jsonObject is discarded");
-        return;
-    }
-
-    JsonWant jwant = jsonObject.get<JsonWant>();
-    for (auto iter = jwant.params.begin(); iter != jwant.params.end(); iter++) {
-        if (iter->type == AAFwk::VALUE_TYPE_BOOLEAN) {
-            SetParam(iter->key, (iter->value == "true"));
-        } else if (iter->type == AAFwk::VALUE_TYPE_INT) {
-            SetParam(iter->key, atoi(iter->value.c_str()));
-        } else if (iter->type == AAFwk::VALUE_TYPE_DOUBLE) {
-            SetParam(iter->key, stod(iter->value));
-        } else if (iter->type == AAFwk::VALUE_TYPE_STRING) {
-            SetParam(iter->key, iter->value);
+    auto wantParams = std::static_pointer_cast<AAFwk::WantParams>(wantParams_);
+    for (auto& element : jsonObject[JSON_WANTPARAMS_PARAM]) {
+        if (CheckElementIsVaild(element) == false) {
+            continue;
+        }
+        auto typeId = element[JSON_WANTPARAMS_TYPE].get<int>();
+        auto elementKey = element[JSON_WANTPARAMS_KEY];
+        auto elemetnValue = element[JSON_WANTPARAMS_VALUE];
+        auto localType = static_cast<AAFwk::WantValueType>(typeId);
+        if (localType == AAFwk::WantValueType::VALUE_TYPE_BOOLEAN) {
+            if (elemetnValue.type() == Json::value_t::boolean) {
+                wantParams->SetParam(
+                    elementKey, WantParams::GetInterfaceByType(typeId, elemetnValue ? "true" : "false"));
+            } else {
+                SetBoolIntDouble(*wantParams, elementKey, elemetnValue, localType);
+            }
+        } else if (localType == AAFwk::WantValueType::VALUE_TYPE_INT) {
+            auto intType = elemetnValue.type();
+            if (intType == Json::value_t::number_integer || intType == Json::value_t::number_unsigned) {
+                wantParams->SetParam(
+                    elementKey, WantParams::GetInterfaceByType(typeId, std::to_string(elemetnValue.get<int64_t>())));
+            } else {
+                SetBoolIntDouble(*wantParams, elementKey, elemetnValue, localType);
+            }
+        } else if (localType == AAFwk::WantValueType::VALUE_TYPE_DOUBLE) {
+            if (elemetnValue.type() == Json::value_t::number_float) {
+                wantParams->SetParam(
+                    elementKey, WantParams::GetInterfaceByType(typeId - 1, std::to_string(elemetnValue.get<double>())));
+            } else {
+                SetBoolIntDouble(*wantParams, elementKey, elemetnValue, localType);
+            }
+        } else if (localType == AAFwk::WantValueType::VALUE_TYPE_STRING) {
+            wantParams->SetParam(
+                elementKey, WantParams::GetInterfaceByType(typeId - 1, elemetnValue.get<std::string>()));
+        } else if (localType == AAFwk::WantValueType::VALUE_TYPE_ARRAY) {
+            wantParams->SetParam(elementKey, Array::ParseCrossPlatformArray(elemetnValue));
+        } else if (localType == AAFwk::WantValueType::VALUE_TYPE_WANTPARAMS) {
+            WantParams localWantParams;
+            WantParamWrapper::ParseWantParams(elemetnValue, localWantParams);
+            sptr<IWantParams> localIwantParams = new (std::nothrow) WantParamWrapper(localWantParams);
+            wantParams->SetParam(elementKey, localIwantParams);
         }
     }
 }
 
 bool Want::IsEmpty() const
 {
-    if (!bundleName_.empty() || !abilityName_.empty() || !moduleName_.empty()) {
+    if (!bundleName_.empty() || !abilityName_.empty() || !moduleName_.empty() || !type_.empty()) {
         return false;
     }
-    if (params_.size() != 0) {
-        return false;
-    }
-    if (types_.size() != 0) {
+
+    if (wantParams_ != nullptr && !std::static_pointer_cast<WantParams>(wantParams_)->IsEmpty()) {
         return false;
     }
     return true;
+}
+
+void Want::InnerCopyWant(const Want& want)
+{
+    bundleName_ = want.bundleName_;
+    moduleName_ = want.moduleName_;
+    abilityName_ = want.abilityName_;
+    wantParams_ = want.wantParams_;
+    type_ = want.type_;
 }
 } // namespace AAFwk
 } // namespace OHOS
