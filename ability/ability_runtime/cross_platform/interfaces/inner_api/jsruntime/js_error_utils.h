@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,10 +25,12 @@ void ThrowError(napi_env env, int32_t errCode, const std::string& errorMsg = "")
 void ThrowTooFewParametersError(napi_env env);
 void ThrowNoPermissionError(napi_env env, const std::string& permission);
 void ThrowErrorByNativeErr(napi_env env, int32_t err);
+void ThrowInvalidParamError(napi_env env, const std::string& message);
 
 napi_value CreateJsError(napi_env env, const AbilityErrorCode& err);
 napi_value CreateNoPermissionError(napi_env env, const std::string& permission);
 napi_value CreateJsErrorByNativeErr(napi_env env, int32_t err, const std::string& permission = "");
+napi_value CreateInvalidParamJsError(napi_env env, const std::string& message);
 }  // namespace AbilityRuntime
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_JS_ERROR_UTILS_H

@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -29,6 +29,7 @@ config("appkit_native_config") {
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/jsruntime",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/want",
+    "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability",
     "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit",
     "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/include",
     "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/include",

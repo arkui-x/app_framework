@@ -27,12 +27,17 @@ namespace Platform {
 namespace ConfigurationInner {
 constexpr const char* EMPTY_STRING = "";
 constexpr const char* SYSTEM_COLORMODE = "ohos.system.colorMode";
+constexpr const char* COLORMODE_IS_SET_BY_APP = "ohos.system.colorMode.isSetByApp";
+constexpr const char* COLORMODE_IS_SET_BY_SA = "ohos.system.colorMode.isSetBySa";
 constexpr const char* APPLICATION_DIRECTION = "ohos.application.direction";
 constexpr const char* APPLICATION_DENSITYDPI = "ohos.application.densitydpi";
 constexpr const char* APPLICATION_LANGUAGE = "ohos.system.language";
 constexpr const char* DEVICE_TYPE = "const.build.characteristics";
 constexpr const char* COLOR_MODE_LIGHT = "light";
 constexpr const char* COLOR_MODE_DARK = "dark";
+constexpr const char* COLOR_MODE_AUTO = "auto";
+constexpr const char* IS_SET_BY_APP = "isSetByApp";
+constexpr const char* IS_SET_BY_SA = "isSetBySa";
 constexpr const char* DIRECTION_VERTICAL = "vertical";
 constexpr const char* DIRECTION_HORIZONTAL = "horizontal";
 constexpr const char* DEVICE_TYPE_PHONE = "Phone";
@@ -45,9 +50,13 @@ public:
     Configuration();
     void UpdateConfigurationInfo(const Configuration& other);
     std::string GetItem(const std::string& key) const;
+    void AddItem(const std::string& key, const std::string& value);
+    void RemoveItem(const std::string &key);
+    int GetItemSize() const;
     void ReadFromJsonConfiguration(const std::string& jsonConfiguration);
     Global::Resource::ColorMode ConvertColorMode(std::string colormode) const;
     Global::Resource::Direction ConvertDirection(std::string direction) const;
+    std::string GetColorModeStr(int32_t colormode);
     uint32_t ConvertDensity(const std::string& density) const;
 
 private:

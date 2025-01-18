@@ -21,6 +21,7 @@
 #include "ability_delegator.h"
 #include "ability_delegator_registry.h"
 #include "ability_delegator_args.h"
+#include "application_configuration_manager.h"
 #include "application_context.h"
 #include "ability_context_adapter.h"
 #include "hilog.h"
@@ -373,7 +374,7 @@ void AppMain::HandleOnConfigurationUpdate(const std::string& jsonConfiguration)
     }
     Configuration configuration;
     configuration.ReadFromJsonConfiguration(jsonConfiguration);
-    application_->OnConfigurationUpdate(configuration);
+    application_->OnConfigurationUpdate(configuration, SetLevel::System);
 }
 
 void AppMain::HandleInitConfiguration(const std::string& jsonConfiguration)
