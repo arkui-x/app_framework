@@ -478,6 +478,48 @@ void AppMain::ParseHspModuleJson(const std::string& moduleName)
     std::list<std::vector<uint8_t>> moduleList { dynamicModuleJson };
     bundleContainer_->LoadBundleInfos(moduleList);
 }
+
+void AppMain::NotifyApplicationForeground()
+{
+    if (eventHandler_ == nullptr) {
+        HILOG_ERROR("eventHandler_ is nullptr");
+        return;
+    }
+    auto task = []() {
+        AppMain::GetInstance()->HandleApplicationForeground();
+    };
+    eventHandler_->PostTask(task);
+}
+
+void AppMain::NotifyApplicationBackground()
+{
+    if (eventHandler_ == nullptr) {
+        HILOG_ERROR("eventHandler_ is nullptr");
+        return;
+    }
+    auto task = []() {
+        AppMain::GetInstance()->HandleApplicationBackground();
+    };
+    eventHandler_->PostTask(task);
+}
+
+void AppMain::HandleApplicationForeground()
+{
+    if (application_ == nullptr) {
+        HILOG_ERROR("application_ is nullptr");
+        return;
+    }
+    application_->NotifyApplicationForeground();
+}
+
+void AppMain::HandleApplicationBackground()
+{
+    if (application_ == nullptr) {
+        HILOG_ERROR("application_ is nullptr");
+        return;
+    }
+    application_->NotifyApplicationBackground();
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

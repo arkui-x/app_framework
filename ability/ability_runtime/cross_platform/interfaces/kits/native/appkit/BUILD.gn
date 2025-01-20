@@ -74,6 +74,7 @@ template("ability_runtime_appkit_native") {
       "${ability_runtime_cross_platform_path}/frameworks/native/app/application.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/app/application_context.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/app/application_context_manager.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/app/application_state_change_callback.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/app/js_ability_stage.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/app/js_ability_stage_context.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/app/js_application_context_utils.cpp",

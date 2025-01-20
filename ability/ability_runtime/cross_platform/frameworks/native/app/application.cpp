@@ -227,6 +227,24 @@ void Application::DispatchOnAbilityResult(
     stage->DispatchOnAbilityResult(want, requestCode, resultCode, resultWant);
 }
 
+void Application::NotifyApplicationForeground()
+{
+    if (applicationContext_ == nullptr) {
+        HILOG_ERROR("stage is nullptr");
+        return;
+    }
+    applicationContext_->NotifyApplicationForeground();
+}
+
+void Application::NotifyApplicationBackground()
+{
+    if (applicationContext_ == nullptr) {
+        HILOG_ERROR("applicationContext is nullptr");
+        return;
+    }
+    applicationContext_->NotifyApplicationBackground();
+}
+
 bool Application::IsUpdateColorNeeded(Configuration& config, SetLevel level)
 {
     std::string colorMode = config.GetItem(ConfigurationInner::SYSTEM_COLORMODE);

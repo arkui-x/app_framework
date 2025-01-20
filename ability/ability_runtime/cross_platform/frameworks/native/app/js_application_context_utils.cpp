@@ -29,6 +29,7 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
+std::shared_ptr<JsApplicationStateChangeCallback> JsApplicationContextUtils::applicationStateCallback_ = nullptr;
 namespace {
 constexpr char APPLICATION_CONTEXT_NAME[] = "__application_context_ptr__";
 const char* MD_NAME = "JsApplicationContextUtils";
@@ -187,6 +188,10 @@ napi_value JsApplicationContextUtils::OnOn(napi_env env, NapiCallbackInfo& info)
         return OnOnAbilityLifecycle(env, info);
     }
 
+    if (type == "applicationStateChange") {
+        return OnOnApplicationStateChange(env, info);
+    }
+
     HILOG_ERROR("on function type not match.");
     AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
     return CreateJsUndefined(env);
@@ -260,6 +265,10 @@ napi_value JsApplicationContextUtils::OnOff(napi_env env, const NapiCallbackInfo
         return OnOffAbilityLifecycle(env, info, callbackId);
     }
 
+    if (type == "applicationStateChange") {
+        return OnOffApplicationStateChange(env, info);
+    }
+
     HILOG_ERROR("off function type not match.");
     AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
     return CreateJsUndefined(env);
@@ -303,6 +312,63 @@ napi_value JsApplicationContextUtils::OnOffAbilityLifecycle(
     NapiAsyncTask::Schedule("JsApplicationContextUtils::OnOffAbilityLifecycle", env,
         CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
     return result;
+}
+
+napi_value JsApplicationContextUtils::OnOnApplicationStateChange(napi_env env, NapiCallbackInfo& info)
+{
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        HILOG_ERROR("ApplicationContext is nullptr");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+
+    std::lock_guard<std::mutex> lock(applicationStateCallbackLock_);
+    if (applicationStateCallback_ != nullptr) {
+        applicationStateCallback_->Register(info.argv[INDEX_ONE]);
+        return CreateJsUndefined(env);
+    }
+
+    applicationStateCallback_ = std::make_shared<JsApplicationStateChangeCallback>(env);
+    if (applicationStateCallback_ == nullptr) {
+        HILOG_ERROR("applicationStateCallback_ is nullptr.");
+        return CreateJsUndefined(env);
+    }
+    applicationStateCallback_->Register(info.argv[INDEX_ONE]);
+    applicationContext->RegisterApplicationStateChangeCallback(applicationStateCallback_);
+    return CreateJsUndefined(env);
+}
+
+napi_value JsApplicationContextUtils::OnOffApplicationStateChange(napi_env env, const NapiCallbackInfo& info)
+{
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        HILOG_ERROR("ApplicationContext is nullptr");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+
+    std::lock_guard<std::mutex> lock(applicationStateCallbackLock_);
+    if (applicationStateCallback_ == nullptr) {
+        HILOG_ERROR("ApplicationStateCallback_ is nullptr");
+        ThrowInvalidParamError(
+            env, "Parse applicationStateCallback failed, applicationStateCallback must be function.");
+        return CreateJsUndefined(env);
+    }
+
+    if (info.argc == ARGC_ONE || !CheckTypeForNapiValue(env, info.argv[INDEX_ONE], napi_object)) {
+        applicationStateCallback_->UnRegister();
+    } else if (!applicationStateCallback_->UnRegister(info.argv[INDEX_ONE])) {
+        HILOG_ERROR("call UnRegister failed");
+        ThrowInvalidParamError(env, "Parse param call UnRegister failed, call UnRegister must be function.");
+        return CreateJsUndefined(env);
+    }
+
+    if (applicationStateCallback_->IsEmpty()) {
+        applicationContext->UnRegisterApplicationStateChangeCallback(applicationStateCallback_);
+        applicationStateCallback_.reset();
+    }
+    return CreateJsUndefined(env);
 }
 
 napi_value JsApplicationContextUtils::GetApplicationContext(napi_env env, napi_callback_info info)

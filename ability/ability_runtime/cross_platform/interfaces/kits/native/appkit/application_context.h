@@ -17,6 +17,7 @@
 #define FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_APPLICATION_CONTEXT_H
 
 #include "ability_lifecycle_callback.h"
+#include "application_state_change_callback.h"
 #include "bundle_container.h"
 #include "context.h"
 #include "running_process_info.h"
@@ -53,6 +54,10 @@ public:
     static std::shared_ptr<ApplicationContext> GetInstance();
     void RegisterAbilityLifecycleCallback(const std::shared_ptr<AbilityLifecycleCallback>& abilityLifecycleCallback);
     void UnregisterAbilityLifecycleCallback(const std::shared_ptr<AbilityLifecycleCallback>& abilityLifecycleCallback);
+    void RegisterApplicationStateChangeCallback(
+        const std::shared_ptr<ApplicationStateChangeCallback>& applicationStateChangeCallback);
+    void UnRegisterApplicationStateChangeCallback(
+        const std::shared_ptr<ApplicationStateChangeCallback>& applicationStateChangeCallback);
     void RegisterAppConfigUpdateCallback(AppConfigUpdateCallback appConfigChangeCallback);
 
     void DispatchOnAbilityCreate(const std::shared_ptr<NativeReference>& ability);
@@ -63,6 +68,8 @@ public:
         const std::shared_ptr<NativeReference>& ability, const std::shared_ptr<NativeReference>& windowStage);
     void DispatchOnAbilityForeground(const std::shared_ptr<NativeReference>& ability);
     void DispatchOnAbilityBackground(const std::shared_ptr<NativeReference>& ability);
+    void NotifyApplicationForeground();
+    void NotifyApplicationBackground();
     int32_t GetProcessRunningInformation(std::vector<RunningProcessInfo>& processInfos);
     void SetResourceManager(const std::shared_ptr<Global::Resource::ResourceManager> &resMgr);
     void SetColorMode(int32_t colorMode);
@@ -72,7 +79,9 @@ private:
     std::shared_ptr<Configuration> configuration_ = nullptr;
     std::shared_ptr<AppExecFwk::BundleContainer> bundleContainer_ = nullptr;
     static std::vector<std::shared_ptr<AbilityLifecycleCallback>> callbacks_;
+    static std::vector<std::shared_ptr<ApplicationStateChangeCallback>> applicationStateCallback_;
     std::mutex callbackLock_;
+    std::mutex applicationStateCallbackLock_;
     std::shared_ptr<Global::Resource::ResourceManager> resourceMgr_;
     AppConfigUpdateCallback appConfigChangeCallback_ = nullptr;
 };

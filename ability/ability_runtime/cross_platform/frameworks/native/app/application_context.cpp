@@ -28,6 +28,7 @@ std::vector<std::shared_ptr<AbilityLifecycleCallback>> ApplicationContext::callb
 std::shared_ptr<ApplicationContext> Context::applicationContext_ = nullptr;
 std::mutex Context::contextMutex_;
 const size_t Context::CONTEXT_TYPE_ID(std::hash<const char*> {}("Context"));
+std::vector<std::shared_ptr<ApplicationStateChangeCallback>> ApplicationContext::applicationStateCallback_;
 
 std::shared_ptr<ApplicationContext> ApplicationContext::GetInstance()
 {
@@ -208,6 +209,23 @@ void ApplicationContext::UnregisterAbilityLifecycleCallback(
     }
 }
 
+void ApplicationContext::RegisterApplicationStateChangeCallback(
+    const std::shared_ptr<ApplicationStateChangeCallback>& applicationStateChangeCallback)
+{
+    std::lock_guard<std::mutex> lock(applicationStateCallbackLock_);
+    applicationStateCallback_.push_back(applicationStateChangeCallback);
+}
+
+void ApplicationContext::UnRegisterApplicationStateChangeCallback(
+    const std::shared_ptr<ApplicationStateChangeCallback>& applicationStateChangeCallback)
+{
+    std::lock_guard<std::mutex> lock(applicationStateCallbackLock_);
+    auto it = std::find(applicationStateCallback_.begin(), applicationStateCallback_.end(), applicationStateChangeCallback);
+    if (it != applicationStateCallback_.end()) {
+        applicationStateCallback_.erase(it);
+    }
+}
+
 void ApplicationContext::RegisterAppConfigUpdateCallback(AppConfigUpdateCallback appConfigChangeCallback)
 {
     appConfigChangeCallback_ = appConfigChangeCallback;
@@ -295,6 +313,26 @@ void ApplicationContext::DispatchOnAbilityBackground(const std::shared_ptr<Nativ
     for (auto callback : callbacks_) {
         if (callback != nullptr) {
             callback->OnAbilityBackground(ability);
+        }
+    }
+}
+
+void ApplicationContext::NotifyApplicationForeground()
+{
+    std::lock_guard<std::mutex> lock(applicationStateCallbackLock_);
+    for (auto callback : applicationStateCallback_) {
+        if (callback != nullptr) {
+            callback->NotifyApplicationForeground();
+        }
+    }
+}
+
+void ApplicationContext::NotifyApplicationBackground()
+{
+    std::lock_guard<std::mutex> lock(applicationStateCallbackLock_);
+    for (auto callback : applicationStateCallback_) {
+        if (callback != nullptr) {
+            callback->NotifyApplicationBackground();
         }
     }
 }
