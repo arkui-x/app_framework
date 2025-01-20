@@ -540,6 +540,34 @@ napi_value JsApplicationContextUtils::OnGetRunningProcessInformation(napi_env en
     return result;
 }
 
+napi_value JsApplicationContextUtils::SetColorMode(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils, OnSetColorMode, APPLICATION_CONTEXT_NAME);
+}
+
+napi_value JsApplicationContextUtils::OnSetColorMode(napi_env env, NapiCallbackInfo& info)
+{
+    if (info.argc == ARGC_ZERO) {
+        HILOG_WARN("Not enough params");
+        ThrowInvalidParamError(env, "Not enough params.");
+        return CreateJsUndefined(env);
+    }
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        HILOG_WARN("applicationContext is already released");
+        return CreateJsUndefined(env);
+    }
+
+    int32_t colorMode = 0;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], colorMode)) {
+        ThrowInvalidParamError(env, "Parse param colorMode failed, colorMode must be number.");
+        HILOG_ERROR("Parse colorMode failed");
+        return CreateJsUndefined(env);
+    }
+    applicationContext->SetColorMode(colorMode);
+    return CreateJsUndefined(env);
+}
+
 void JsApplicationContextUtils::BindNativeApplicationContext(napi_env env, napi_value object)
 {
     BindNativeProperty(env, object, "cacheDir", JsApplicationContextUtils::GetCacheDir);
@@ -555,6 +583,7 @@ void JsApplicationContextUtils::BindNativeApplicationContext(napi_env env, napi_
     BindNativeFunction(env, object, "getRunningProcessInformation", MD_NAME,
         JsApplicationContextUtils::GetRunningProcessInformation);
     BindNativeFunction(env, object, "createModuleContext", MD_NAME, JsApplicationContextUtils::CreateModuleContext);
+    BindNativeFunction(env, object, "setColorMode", MD_NAME, JsApplicationContextUtils::SetColorMode);
 }
 } // namespace Platform
 } // namespace AbilityRuntime

@@ -226,6 +226,11 @@ void ApplicationContext::UnRegisterApplicationStateChangeCallback(
     }
 }
 
+void ApplicationContext::RegisterAppConfigUpdateCallback(AppConfigUpdateCallback appConfigChangeCallback)
+{
+    appConfigChangeCallback_ = appConfigChangeCallback;
+}
+
 void ApplicationContext::DispatchOnAbilityCreate(const std::shared_ptr<NativeReference>& ability)
 {
     if (!ability) {
@@ -336,6 +341,20 @@ int32_t ApplicationContext::GetProcessRunningInformation(std::vector<RunningProc
 {
     processInfos = ApplicationContextAdapter::GetInstance()->GetRunningProcessInformation();
     return 0;
+}
+
+void ApplicationContext::SetColorMode(int32_t colorMode)
+{
+    HILOG_DEBUG("colorMode:%{public}d", colorMode);
+    if (colorMode < -1 || colorMode > 1) {
+        HILOG_ERROR("colorMode is invalid");
+        return;
+    }
+    Configuration config;
+    config.AddItem(ConfigurationInner::SYSTEM_COLORMODE, config.GetColorModeStr(colorMode));
+    if (appConfigChangeCallback_ != nullptr) {
+        appConfigChangeCallback_(config);
+    }
 }
 } // namespace Platform
 } // namespace AbilityRuntime

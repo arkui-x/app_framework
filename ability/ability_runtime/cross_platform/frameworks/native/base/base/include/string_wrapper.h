@@ -42,6 +42,8 @@ public:
 
     static sptr<IString> Parse(const std::string &str); /* [in] */
 
+    static void replaceQuotes(const std::string& input, std::string& result); /* [in] */
+
 public:
     static constexpr char SIGNATURE = 'T';
 

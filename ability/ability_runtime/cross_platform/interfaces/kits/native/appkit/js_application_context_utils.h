@@ -48,6 +48,7 @@ public:
     static napi_value GetRunningProcessInformation(napi_env env, napi_callback_info info);
     static napi_value CreateJsApplicationContext(napi_env env);
     static napi_value CreateModuleContext(napi_env env, napi_callback_info info);
+    static napi_value SetColorMode(napi_env env, napi_callback_info info);
 
 protected:
     std::weak_ptr<ApplicationContext> applicationContext_;
@@ -68,6 +69,7 @@ private:
     napi_value OnGetBundleCodeDir(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetRunningProcessInformation(napi_env env, NapiCallbackInfo& info);
     napi_value OnCreateModuleContext(napi_env env, NapiCallbackInfo& info);
+    napi_value OnSetColorMode(napi_env env, NapiCallbackInfo& info);
 
     static void BindNativeApplicationContext(napi_env env, napi_value object);
 

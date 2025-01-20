@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,33 +21,11 @@
 #include <memory>
 #include <string>
 #include <vector>
-typedef unsigned char byte;
-typedef char zchar;
+
+#include "want_params_interface.h"
 
 namespace OHOS {
 namespace AAFwk {
-enum {
-    VALUE_TYPE_BOOLEAN = 1,
-    VALUE_TYPE_BYTE = 2,
-    VALUE_TYPE_CHAR = 3,
-    VALUE_TYPE_SHORT = 4,
-    VALUE_TYPE_INT = 5,
-    VALUE_TYPE_LONG = 6,
-    VALUE_TYPE_LONGLONG = 7,
-    VALUE_TYPE_FLOAT = 8,
-    VALUE_TYPE_DOUBLE = 9,
-    VALUE_TYPE_STRING = 10,
-    VALUE_TYPE_BOOLEANARRAY = 11,
-    VALUE_TYPE_BYTEARRAY = 12,
-    VALUE_TYPE_CHARARRAY = 13,
-    VALUE_TYPE_SHORTARRAY = 14,
-    VALUE_TYPE_INTARRAY = 15,
-    VALUE_TYPE_LONGARRAY = 16,
-    VALUE_TYPE_FLOATARRAY = 17,
-    VALUE_TYPE_DOUBLEARRAY = 18,
-    VALUE_TYPE_STRINGARRAY = 19,
-};
-
 class Want final {
 public:
     /**
@@ -110,72 +88,6 @@ public:
      * @return Returns this want object containing the parameter value.
      */
     Want& SetParam(const std::string& key, const std::vector<bool>& value);
-
-    /**
-     * @description: Obtains a byte-type value matching the given key.
-     * @param key   Indicates the key of WantParams.
-     * @param defaultValue  Indicates the default byte-type value.
-     * @return Returns the byte-type value of the parameter matching the given key;
-     * returns the default value if the key does not exist.
-     */
-    byte GetByteParam(const std::string& key, byte defaultValue) const;
-
-    /**
-     * @description: Obtains a byte-type array matching the given key.
-     * @param key   Indicates the key of WantParams.
-     * @return Returns the byte-type array of the parameter matching the given key;
-     * returns null if the key does not exist.
-     */
-    std::vector<byte> GetByteArrayParam(const std::string& key) const;
-
-    /**
-     * @description: Sets a parameter value of the byte type.
-     * @param key   Indicates the key matching the parameter.
-     * @param value Indicates the byte-type value of the parameter.
-     * @return Returns this Want object containing the parameter value.
-     */
-    Want& SetParam(const std::string& key, byte value);
-
-    /**
-     * @description: Sets a parameter value of the byte array type.
-     * @param key   Indicates the key matching the parameter.
-     * @param value Indicates the byte array of the parameter.
-     * @return Returns this Want object containing the parameter value.
-     */
-    Want& SetParam(const std::string& key, const std::vector<byte>& value);
-
-    /**
-     * @description: Obtains a char value matching the given key.
-     * @param key   Indicates the key of wnatParams.
-     * @param value Indicates the default char value.
-     * @return Returns the char value of the parameter matching the given key;
-     * returns the default value if the key does not exist.
-     */
-    zchar GetCharParam(const std::string& key, zchar defaultValue) const;
-
-    /**
-     * @description: Obtains a char array matching the given key.
-     * @param key   Indicates the key of wantParams.
-     * @return Returns the char array of the parameter matching the given key;
-     * returns null if the key does not exist.
-     */
-    std::vector<zchar> GetCharArrayParam(const std::string& key) const;
-
-    /**
-     * @description: Sets a parameter value of the char type.
-     * @param key   Indicates the key of wantParams.
-     * @param value Indicates the char value of the parameter.
-     * @return Returns this want object containing the parameter value.
-     */
-    Want& SetParam(const std::string& key, zchar value);
-
-    /**
-     * @description: Sets a parameter value of the char array type.
-     * @param key   Indicates the key of wantParams.
-     * @param value Indicates the char array of the parameter.
-     * @return Returns this want object containing the parameter value.
-     */
-    Want& SetParam(const std::string& key, const std::vector<zchar>& value);
 
     /**
      * @description: Obtains an int value matching the given key.
@@ -424,23 +336,23 @@ public:
     Want& SetParam(const std::string& key, const std::vector<std::string>& value);
 
     /**
-     * @description: Obtains the parameters.
-     * @return Returns the parameter value.
+     * @description: Sets a wantParams object in a want.
+     * @param wantParams  Indicates the wantParams description.
+     * @return Returns this want object containing the wantParams.
      */
+    Want& SetParams(const std::shared_ptr<WantParamsInterface> wantParams);
 
-    const std::map<std::string, std::shared_ptr<void>> &GetParams() const
+    /**
+     * @description: Obtains the description of the WantParams object in a Want
+     * @return Returns the WantParams description in the Want
+     */
+    const std::shared_ptr<WantParamsInterface>& GetParams() const
     {
-        return params_;
+        return wantParams_;
     }
 
     bool HasParameter(const std::string& key) const;
     void RemoveParam(const std::string& key);
-
-    std::map<std::string, int> GetTypes() const
-    {
-        return types_;
-    }
-
     std::string ToJson() const;
     void ParseJson(const std::string& jsonParams);
     bool IsEmpty() const;
@@ -451,22 +363,8 @@ public:
     static const std::string ELEMENT_BUNDLE_NAME;
 
 private:
-    void CopyFromWant(const Want& want);
-    template<class T>
-    void SetValue(const std::string& key, T value);
-
-    template<class T>
-    void SetArrayValue(const std::string& key, const std::vector<T>& value);
-
-    template<class T>
-    T GetValue(const std::string& key, T defaultValue) const;
-
-    template<class T>
-    std::vector<T> GetArrayValue(const std::string& key) const;
-
-private:
-    std::map<std::string, std::shared_ptr<void>> params_;
-    std::map<std::string, int> types_;
+    void InnerCopyWant(const Want& want);
+    std::shared_ptr<WantParamsInterface> wantParams_;
     std::string type_;
     std::string bundleName_;
     std::string moduleName_;

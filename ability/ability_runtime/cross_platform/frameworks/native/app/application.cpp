@@ -154,13 +154,20 @@ void Application::DispatchOnDestroy(const AAFwk::Want& want)
     }
 }
 
-void Application::OnConfigurationUpdate(const Configuration& configuration)
+void Application::OnConfigurationUpdate(Configuration& configuration, SetLevel level)
 {
     HILOG_INFO("Application::OnConfigurationUpdate");
     if (configuration_ == nullptr) {
         HILOG_ERROR("configuration_ is nullptr");
         return;
     }
+
+    bool isUpdateAppColor = IsUpdateColorNeeded(configuration, level);
+    if (!isUpdateAppColor && configuration.GetItemSize() == 0) {
+        HILOG_DEBUG("configuration need not updated");
+        return;
+    }
+
     configuration_->UpdateConfigurationInfo(configuration);
 
     for (auto stage : abilityStages_) {
@@ -179,8 +186,23 @@ void Application::InitConfiguration(const Configuration& configuration)
         return;
     }
     configuration_ = std::make_shared<Configuration>(configuration);
+    auto colorMode = configuration.GetItem(ConfigurationInner::SYSTEM_COLORMODE);
+    ApplicationConfigurationManager::GetInstance().SetColorModeSetLevel(SetLevel::System, colorMode);
+
     auto applicationContext = ApplicationContext::GetInstance();
     applicationContext->SetConfiguration(configuration_);
+
+    auto application = std::static_pointer_cast<Application>(shared_from_this());
+    std::weak_ptr<Application> applicationWeak = application;
+    auto appConfigUpdateCallback = [applicationWeak](Configuration& configuration) {
+        auto application = applicationWeak.lock();
+        if (application == nullptr) {
+            HILOG_ERROR("application is nullptr.");
+            return;
+        }
+        application->OnConfigurationUpdate(configuration, SetLevel::Application);
+    };
+    applicationContext->RegisterAppConfigUpdateCallback(appConfigUpdateCallback);
 }
 
 std::shared_ptr<AbilityStage> Application::FindAbilityStage(const std::string& moduleName)
@@ -213,6 +235,7 @@ void Application::NotifyApplicationForeground()
     }
     applicationContext_->NotifyApplicationForeground();
 }
+
 void Application::NotifyApplicationBackground()
 {
     if (applicationContext_ == nullptr) {
@@ -220,6 +243,38 @@ void Application::NotifyApplicationBackground()
         return;
     }
     applicationContext_->NotifyApplicationBackground();
+}
+
+bool Application::IsUpdateColorNeeded(Configuration& config, SetLevel level)
+{
+    std::string colorMode = config.GetItem(ConfigurationInner::SYSTEM_COLORMODE);
+    std::string colorModeIsSetBySa = config.GetItem(ConfigurationInner::COLORMODE_IS_SET_BY_SA);
+    if (level < SetLevel::SA && !colorModeIsSetBySa.empty()) {
+        level = SetLevel::SA;
+    }
+
+    HILOG_DEBUG("current %{public}d, pre %{public}d", static_cast<uint8_t>(level),
+        static_cast<uint8_t>(ApplicationConfigurationManager::GetInstance().GetColorModeSetLevel()));
+
+    bool needUpdate = true;
+
+    if (level < ApplicationConfigurationManager::GetInstance().GetColorModeSetLevel() || colorMode.empty()) {
+        config.RemoveItem(ConfigurationInner::SYSTEM_COLORMODE);
+        config.RemoveItem(ConfigurationInner::COLORMODE_IS_SET_BY_SA);
+        HILOG_DEBUG("color remove");
+        needUpdate = false;
+    }
+
+    if (!colorMode.empty()) {
+        config.AddItem(ConfigurationInner::SYSTEM_COLORMODE,
+            ApplicationConfigurationManager::GetInstance().SetColorModeSetLevel(level, colorMode));
+
+        if (level > SetLevel::System) {
+            config.AddItem(ConfigurationInner::COLORMODE_IS_SET_BY_APP, ConfigurationInner::IS_SET_BY_APP);
+        }
+    }
+
+    return needUpdate;
 }
 } // namespace Platform
 } // namespace AbilityRuntime

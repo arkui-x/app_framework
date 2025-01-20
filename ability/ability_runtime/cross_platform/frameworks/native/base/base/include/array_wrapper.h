@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "base_obj.h"
+#include "nlohmann/json.hpp"
 
 namespace OHOS {
 namespace AAFwk {
@@ -70,6 +71,8 @@ public:
 
     static void ForEach(IArray *array,           /* [in] */
         std::function<void(IInterface *)> func); /* [in] */
+
+    static sptr<IArray> ParseCrossPlatformArray(const nlohmann::json& arrayStr); /* [in] */
 
     static constexpr char SIGNATURE = '[';
 

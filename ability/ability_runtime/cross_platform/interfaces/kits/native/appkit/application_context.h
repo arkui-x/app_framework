@@ -25,6 +25,7 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
+using AppConfigUpdateCallback = std::function<void(Configuration& config)>;
 class ApplicationContext : public Context, public std::enable_shared_from_this<ApplicationContext> {
 public:
     ApplicationContext() = default;
@@ -57,6 +58,7 @@ public:
         const std::shared_ptr<ApplicationStateChangeCallback>& applicationStateChangeCallback);
     void UnRegisterApplicationStateChangeCallback(
         const std::shared_ptr<ApplicationStateChangeCallback>& applicationStateChangeCallback);
+    void RegisterAppConfigUpdateCallback(AppConfigUpdateCallback appConfigChangeCallback);
 
     void DispatchOnAbilityCreate(const std::shared_ptr<NativeReference>& ability);
     void DispatchOnAbilityDestroy(const std::shared_ptr<NativeReference>& ability);
@@ -70,6 +72,7 @@ public:
     void NotifyApplicationBackground();
     int32_t GetProcessRunningInformation(std::vector<RunningProcessInfo>& processInfos);
     void SetResourceManager(const std::shared_ptr<Global::Resource::ResourceManager> &resMgr);
+    void SetColorMode(int32_t colorMode);
 
 private:
     std::shared_ptr<AppExecFwk::ApplicationInfo> applicationInfo_ = nullptr;
@@ -80,6 +83,7 @@ private:
     std::mutex callbackLock_;
     std::mutex applicationStateCallbackLock_;
     std::shared_ptr<Global::Resource::ResourceManager> resourceMgr_;
+    AppConfigUpdateCallback appConfigChangeCallback_ = nullptr;
 };
 } // namespace Platform
 } // namespace AbilityRuntime
