@@ -54,7 +54,7 @@ bool WrapJsWantParamsArray(napi_env env, napi_value object, const std::string& k
 bool InnerWrapJsWantParamsWantParams(
     napi_env env, napi_value object, const std::string& key, const AAFwk::WantParams& wantParams);
 template<class TBase, class T, class NativeT>
-bool InnerWrapWantParamsArray(napi_env env, napi_value object, const std::string& key, sptr<AAFwk::IArray>& ao)
+bool InnerWrapWantParamsArrayArkUIX(napi_env env, napi_value object, const std::string& key, sptr<AAFwk::IArray>& ao)
 {
     long size = 0;
     if (ao->GetLength(size) != ERR_OK) {
