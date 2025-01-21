@@ -147,23 +147,23 @@ bool InnerWrapWantParamsArrayWantParamsArkUIX(
 bool WrapJsWantParamsArray(napi_env env, napi_value object, const std::string& key, sptr<AAFwk::IArray>& ao)
 {
     if (AAFwk::Array::IsStringArray(ao)) {
-        return InnerWrapWantParamsArray<AAFwk::IString, AAFwk::String, std::string>(env, object, key, ao);
+        return InnerWrapWantParamsArrayArkUIX<AAFwk::IString, AAFwk::String, std::string>(env, object, key, ao);
     } else if (AAFwk::Array::IsBooleanArray(ao)) {
-        return InnerWrapWantParamsArray<AAFwk::IBoolean, AAFwk::Boolean, bool>(env, object, key, ao);
+        return InnerWrapWantParamsArrayArkUIX<AAFwk::IBoolean, AAFwk::Boolean, bool>(env, object, key, ao);
     } else if (AAFwk::Array::IsShortArray(ao)) {
-        return InnerWrapWantParamsArray<AAFwk::IShort, AAFwk::Short, short>(env, object, key, ao);
+        return InnerWrapWantParamsArrayArkUIX<AAFwk::IShort, AAFwk::Short, short>(env, object, key, ao);
     } else if (AAFwk::Array::IsIntegerArray(ao)) {
-        return InnerWrapWantParamsArray<AAFwk::IInteger, AAFwk::Integer, int>(env, object, key, ao);
+        return InnerWrapWantParamsArrayArkUIX<AAFwk::IInteger, AAFwk::Integer, int>(env, object, key, ao);
     } else if (AAFwk::Array::IsLongArray(ao)) {
-        return InnerWrapWantParamsArray<AAFwk::ILong, AAFwk::Long, int64_t>(env, object, key, ao);
+        return InnerWrapWantParamsArrayArkUIX<AAFwk::ILong, AAFwk::Long, int64_t>(env, object, key, ao);
     } else if (AAFwk::Array::IsFloatArray(ao)) {
-        return InnerWrapWantParamsArray<AAFwk::IFloat, AAFwk::Float, float>(env, object, key, ao);
+        return InnerWrapWantParamsArrayArkUIX<AAFwk::IFloat, AAFwk::Float, float>(env, object, key, ao);
     } else if (AAFwk::Array::IsByteArray(ao)) {
-        return InnerWrapWantParamsArray<AAFwk::IByte, AAFwk::Byte, int>(env, object, key, ao);
+        return InnerWrapWantParamsArrayArkUIX<AAFwk::IByte, AAFwk::Byte, int>(env, object, key, ao);
     } else if (AAFwk::Array::IsCharArray(ao)) {
-        return InnerWrapWantParamsArray<AAFwk::IChar, AAFwk::Char, char>(env, object, key, ao);
+        return InnerWrapWantParamsArrayArkUIX<AAFwk::IChar, AAFwk::Char, char>(env, object, key, ao);
     } else if (AAFwk::Array::IsDoubleArray(ao)) {
-        return InnerWrapWantParamsArray<AAFwk::IDouble, AAFwk::Double, double>(env, object, key, ao);
+        return InnerWrapWantParamsArrayArkUIX<AAFwk::IDouble, AAFwk::Double, double>(env, object, key, ao);
     } else if (AAFwk::Array::IsWantParamsArray(ao)) {
         return InnerWrapWantParamsArrayWantParamsArkUIX(env, object, key, ao);
     } else {
