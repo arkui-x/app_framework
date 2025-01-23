@@ -403,5 +403,10 @@ uint32_t RSSystemProperties::GetUnMarshParallelSize()
 {
     return UINT32_MAX;
 }
+
+std::string RSSystemProperties::GetVersionType()
+{
+    return "";
+}
 } // namespace Rosen
 } // namespace OHOS
