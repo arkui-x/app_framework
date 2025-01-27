@@ -59,9 +59,10 @@ uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
     return {};
 }
 
-std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
+std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig &config,
+    bool unobscured)
 {
-    return std::make_shared<RSSurfaceAndroid>(static_cast<ANativeWindow*>(config.additionalData));
+    return std::make_shared<RSSurfaceAndroid>(static_cast<ANativeWindow *>(config.additionalData));
 }
 
 class VSyncReceiverAndroid : public VSyncReceiver {
@@ -123,7 +124,8 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
 }
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam)
+    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
+    const Drawing::Rect& specifiedAreaRect)
 {
     return false;
 }
@@ -290,6 +292,14 @@ void RSRenderServiceClient::ReportEventComplete(DataBaseRs info)
 }
 
 void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
+{
+}
+
+void RSRenderServiceClient::ReportRsSceneJankStart(AppInfo info)
+{
+}
+
+void RSRenderServiceClient::ReportRsSceneJankEnd(AppInfo info)
 {
 }
 
