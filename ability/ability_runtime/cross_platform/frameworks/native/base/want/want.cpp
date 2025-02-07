@@ -76,6 +76,23 @@ void SetBoolIntDouble(AAFwk::WantParams& wantParams, const std::string& key, con
     }
 }
 
+void SetDouble(Json& elemetnValue, std::shared_ptr<AAFwk::WantParams> wantParams, std::string elementKey,
+    AAFwk::WantValueType localType)
+{
+    auto intType = elemetnValue.type();
+    if (intType == Json::value_t::number_float) {
+        wantParams->SetParam(
+            elementKey, WantParams::GetInterfaceByType(static_cast<int>(WantValueType::VALUE_TYPE_DOUBLE) - 1,
+                            std::to_string(elemetnValue.get<double>())));
+    } else if (intType == Json::value_t::number_integer || intType == Json::value_t::number_unsigned) {
+        wantParams->SetParam(
+            elementKey, WantParams::GetInterfaceByType(static_cast<int>(WantValueType::VALUE_TYPE_DOUBLE) - 1,
+                            std::to_string(elemetnValue.get<int64_t>())));
+    } else if (intType == Json::value_t::string) {
+        SetBoolIntDouble(*wantParams, elementKey, elemetnValue, localType);
+    }
+}
+
 bool CheckElementIsVaild(const Json& element)
 {
     if (element.find(JSON_WANTPARAMS_KEY) == element.end() || element.find(JSON_WANTPARAMS_TYPE) == element.end() ||
@@ -754,12 +771,7 @@ void Want::ParseJson(const std::string& jsonParams)
                 SetBoolIntDouble(*wantParams, elementKey, elemetnValue, localType);
             }
         } else if (localType == AAFwk::WantValueType::VALUE_TYPE_DOUBLE) {
-            if (elemetnValue.type() == Json::value_t::number_float) {
-                wantParams->SetParam(
-                    elementKey, WantParams::GetInterfaceByType(typeId - 1, std::to_string(elemetnValue.get<double>())));
-            } else {
-                SetBoolIntDouble(*wantParams, elementKey, elemetnValue, localType);
-            }
+            SetDouble(elemetnValue, wantParams, elementKey, localType);
         } else if (localType == AAFwk::WantValueType::VALUE_TYPE_STRING) {
             wantParams->SetParam(
                 elementKey, WantParams::GetInterfaceByType(typeId - 1, elemetnValue.get<std::string>()));
