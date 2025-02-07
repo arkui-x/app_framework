@@ -322,8 +322,15 @@ void WantParamWrapper::ParseWantParams(const nlohmann::json& wantArray, OHOS::AA
             wantParams.SetParam(
                 elementKey, WantParams::GetInterfaceByType(typeId, std::to_string(elemetnValue.get<int64_t>())));
         } else if (localType == AAFwk::WantValueType::VALUE_TYPE_DOUBLE) {
-            wantParams.SetParam(
-                elementKey, WantParams::GetInterfaceByType(typeId - 1, std::to_string(elemetnValue.get<double>())));
+            auto intType = elemetnValue.type();
+            if (intType == nlohmann::json::value_t::number_float) {
+                wantParams.SetParam(
+                    elementKey, WantParams::GetInterfaceByType(typeId - 1, std::to_string(elemetnValue.get<double>())));
+            } else if (intType == nlohmann::json::value_t::number_integer ||
+                       intType == nlohmann::json::value_t::number_unsigned) {
+                wantParams.SetParam(elementKey,
+                    WantParams::GetInterfaceByType(typeId - 1, std::to_string(elemetnValue.get<int64_t>())));
+            }
         } else if (localType == AAFwk::WantValueType::VALUE_TYPE_STRING) {
             wantParams.SetParam(
                 elementKey, WantParams::GetInterfaceByType(typeId - 1, elemetnValue.get<std::string>()));
