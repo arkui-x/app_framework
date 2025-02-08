@@ -24,7 +24,7 @@ config("resmgr_napi_core_public_config") {
     "${skia_root_new}",
     "${crossplatform_multimedia_root}/image_framework/interfaces/innerkits/include",
     "${graphic_2d_path}/utils/color_manager/export",
-    "${graphic_2d_path}/rosen/modules/platform/utils",
+    "//commonlibrary/c_utils/base/include",
     "${ace_napi_frameworks}",
   ]
   configs = [
