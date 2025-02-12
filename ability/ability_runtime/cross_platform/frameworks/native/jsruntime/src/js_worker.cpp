@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +35,8 @@
 #include "native_engine/impl/ark/ark_native_engine.h"
 #ifdef ANDROID_PLATFORM
 #include "stage_asset_provider.h"
+#else
+#include "adapter/ios/stage/ability/stage_asset_provider.h"
 #endif
 #include "commonlibrary/ets_utils/js_sys_module/console/console.h"
 
@@ -124,17 +126,19 @@ void OffWorkerFunc(NativeEngine* nativeEngine)
 
 bool ReadAssetData(const std::string& filePath, std::vector<uint8_t>& content, bool isDebugVersion)
 {
-    char path[PATH_MAX];
+    std::string path;
 #if defined(ANDROID_PLATFORM)
     content = Platform::StageAssetProvider::GetInstance()->GetAbcPathBuffer(filePath);
     return true;
 #else
-    if (realpath(filePath.c_str(), path) == nullptr) {
-        HILOG_ERROR("ReadAssetData realpath(%{private}s) failed, errno = %{public}d", filePath.c_str(), errno);
-        return false;
-    }
+    std::string bundleCodeDir = Platform::StageAssetProvider::GetInstance()->GetBundleCodeDir();
+    path = bundleCodeDir + "/" + filePath;
 #endif
-    std::ifstream stream(path, std::ios::binary | std::ios::ate);
+    if (path.empty()) {
+        HILOG_ERROR("ReadAssetData path is empty");
+        return false; 
+    }
+    std::ifstream stream(path.c_str(), std::ios::binary | std::ios::ate);
     if (!stream.is_open()) {
         HILOG_ERROR("ReadAssetData failed to open file %{private}s", filePath.c_str());
         return false;
