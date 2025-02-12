@@ -126,14 +126,18 @@ void OffWorkerFunc(NativeEngine* nativeEngine)
 
 bool ReadAssetData(const std::string& filePath, std::vector<uint8_t>& content, bool isDebugVersion)
 {
-    std::string path = "";
+    std::string path;
 #if defined(ANDROID_PLATFORM)
     content = Platform::StageAssetProvider::GetInstance()->GetAbcPathBuffer(filePath);
     return true;
 #else
-    auto assetProvider = Platform::StageAssetProvider::GetInstance();
-    path = assetProvider->GetBundleCodeDir() + "/" + filePath;
+    std::string bundleCodeDir = Platform::StageAssetProvider::GetInstance()->GetBundleCodeDir();
+    path = bundleCodeDir + "/" + filePath;
 #endif
+    if (path.empty()) {
+        HILOG_ERROR("ReadAssetData path is empty");
+        return false; 
+    }
     std::ifstream stream(path.c_str(), std::ios::binary | std::ios::ate);
     if (!stream.is_open()) {
         HILOG_ERROR("ReadAssetData failed to open file %{private}s", filePath.c_str());
