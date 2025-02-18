@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-var Context = requireNapi("application.Context")
+var Context = requireNapi('application.Context');
 
 class AbilityStageContext extends Context {
     constructor(obj) {
-        super(obj)
-        this.currentHapModuleInfo = obj.currentHapModuleInfo
-        this.config = obj.config
+        super(obj);
+        this.currentHapModuleInfo = obj.currentHapModuleInfo;
+        this.config = obj.config;
     }
 
     onUpdateConfiguration(config) {
-        this.config = config
+        this.config = config;
     }
 }
 
-export default AbilityStageContext
+export default AbilityStageContext;
