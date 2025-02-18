@@ -47,47 +47,5 @@ action("pkg_icudata") {
     "-m",
     "$is_use_ios_simulator",
   ]
-  outputs = [ "$root_out_dir/icu_data/res/icudt72l_dat.S" ]
-}
-
-ohos_shared_library("shared_icudata") {
-  deps = [ ":pkg_icudata" ]
-  sources = [ "$root_out_dir/icu_data/res/icudt72l_dat.S" ]
-  cflags = [
-    "-O3",
-    "-std=c11",
-    "-W",
-    "-Wall",
-    "-pedantic",
-    "-Wshadow",
-    "-Wpointer-arith",
-    "-Wwrite-strings",
-    "-Wmissing-prototypes",
-  ]
-  ldflags = [ "-shared" ]
-
-  part_name = "icudata"
-  subsystem_name = "arkui"
-  output_name = "icudata"
-}
-
-ohos_static_library("static_icudata") {
-  deps = [ ":pkg_icudata" ]
-  sources = [ "$root_out_dir/icu_data/res/icudt72l_dat.S" ]
-  cflags = [
-    "-O3",
-    "-std=c11",
-    "-W",
-    "-Wall",
-    "-pedantic",
-    "-Wshadow",
-    "-Wpointer-arith",
-    "-Wwrite-strings",
-    "-Wmissing-prototypes",
-  ]
-
-  ldflags = [ "-static" ]
-
-  output_dir = "${root_out_dir}/arkui/icudata"
-  output_name = "icudata"
+  outputs = [ "$root_out_dir/icu_data/out/icudt72l.dat" ]
 }
