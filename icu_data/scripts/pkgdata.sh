@@ -259,7 +259,7 @@ gen_pkgdata_inc_for_ios() {
 
     COMPILE="$CC $CPPFLAGS $DEFS $CFLAGS -c"
     SHLIB="$CC $CFLAGS $LDFLAGS -shared $LD_SOOPTIONS"
-    
+
     echo "GENCCODE_ASSEMBLY_TYPE=$GENCCODE_ASSEMBLY" >> $pkg_inc_path
     echo "SO=$SO" >> $pkg_inc_path
     echo "SOBJ=$SOBJ" >> $pkg_inc_path
@@ -333,8 +333,8 @@ echo "[ICUData] gen icudata res success."
 # -c Use the standard ICU copyright.
 # -d Specify the destination directory for files
 cd "$icu_bin_root_out_dir/.."
-PKGDATA="$tool_bin_dir/pkgdata -O $pkg_inc_path -v -s $res_out_root_dir/out/build/icudt72l -d $res_out_root_dir/out/lib"
-echo `$PKGDATA -e icudt72 -T $res_out_root_dir/out/tmp -p icudt72l -m dll -L icudata $res_out_root_dir/out/tmp/icudata.lst`
-cp -r $res_out_root_dir/out/tmp/icudt72l_dat.S $res_out_root_dir/res/
+
+PKGDATA="$tool_bin_dir/pkgdata -s $res_out_root_dir/out/build/icudt72l -T $res_out_root_dir/out/tmp -p icudt72l -d $res_out_root_dir/out"
+echo `$PKGDATA $res_out_root_dir/out/tmp/icudata.lst`
 
 exit 0

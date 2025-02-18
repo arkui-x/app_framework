@@ -70,6 +70,7 @@ private:
         const std::string& instanceName, int32_t requestCode, int32_t resultCode, const std::string& resultWant);
     void HandleApplicationForeground();
     void HandleApplicationBackground();
+    void LoadIcuData();
 
 private:
     std::shared_ptr<Application> application_ = nullptr;
