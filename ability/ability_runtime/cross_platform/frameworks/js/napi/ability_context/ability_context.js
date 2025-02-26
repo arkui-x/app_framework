@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-var Context = requireNapi('application.Context');
+let Context = requireNapi('application.Context');
 
 class AbilityContext extends Context {
     constructor(obj) {

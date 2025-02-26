@@ -24,4 +24,4 @@ class Ability {
     onNewWant(want, param) { }
 }
 
-export default Ability
+export default Ability;

@@ -200,7 +200,7 @@ struct AssetHelper final {
             // 1.2 start with /modulename
             // 1.3 start with modulename
             HILOG_INFO("The application is packaged using jsbundle mode.");
-            if (uri.find(BUNDLE_NAME_FLAG) == 0) {
+            if (uri.compare(0, BUNDLE_NAME_FLAG.length(), BUNDLE_NAME_FLAG) == 0) {
                 size_t index = 0;
                 HILOG_INFO("uri start with @bundle:");
                 index = uri.find_first_of("/");
@@ -219,7 +219,7 @@ struct AssetHelper final {
             // 2.2 start with /modulename
             // 2.3 start with modulename
             HILOG_INFO("The application is packaged using esmodule mode.");
-            if (uri.find(BUNDLE_NAME_FLAG) == 0) {
+            if (uri.compare(0, BUNDLE_NAME_FLAG.length(), BUNDLE_NAME_FLAG) == 0) {
                 HILOG_INFO("uri start with @bundle:");
                 size_t fileNamePos = uri.find_last_of("/");
                 realPath = uri.substr(fileNamePos + 1);

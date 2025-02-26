@@ -38,10 +38,7 @@ class PlatformIoWaiter final : public IoWaiter,
                                public std::enable_shared_from_this<PlatformIoWaiter> {
 public:
     using TimerCallback = std::function<void()>;
-    PlatformIoWaiter()
-    {
-        messageLoop_ = std::make_shared<IOSMessageLoop>();
-    }
+    PlatformIoWaiter() : messageLoop_(std::make_shared<IOSMessageLoop>()) {}
 
     virtual ~PlatformIoWaiter() final
     {

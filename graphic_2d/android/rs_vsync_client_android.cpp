@@ -29,9 +29,8 @@ std::unique_ptr<RSVsyncClient> RSVsyncClient::Create()
     return std::make_unique<RSVsyncClientAndroid>();
 }
 
-RSVsyncClientAndroid::RSVsyncClientAndroid()
+RSVsyncClientAndroid::RSVsyncClientAndroid() : running_(true)
 {
-    running_ = true;
     auto func = std::bind(&RSVsyncClientAndroid::VsyncThreadMain, this);
     vsyncThread_ = std::make_unique<std::thread>(func);
 }

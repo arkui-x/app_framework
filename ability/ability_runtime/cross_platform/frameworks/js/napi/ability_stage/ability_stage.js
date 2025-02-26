@@ -20,4 +20,4 @@ class AbilityStage {
     onConfigurationUpdate(newConfig) { }
 }
 
-export default AbilityStage
+export default AbilityStage;
