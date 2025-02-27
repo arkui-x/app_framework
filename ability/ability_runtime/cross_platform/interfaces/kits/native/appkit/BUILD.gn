@@ -95,6 +95,8 @@ template("ability_runtime_appkit_native") {
       "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability:cross_platform_abilitykit_native",
     ]
 
+    external_deps = [ "icu:static_icuuc" ]
+
     if (target_os == "android") {
       defines += [ "ANDROID_PLATFORM" ]
       deps += [ "//foundation/arkui/napi:ace_napi" ]

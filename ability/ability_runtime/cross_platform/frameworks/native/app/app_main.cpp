@@ -15,6 +15,7 @@
 
 #include "app_main.h"
 
+#include <fstream>
 #include <string>
 
 #include "ability.h"
@@ -31,6 +32,8 @@
 
 #include "base/log/ace_trace.h"
 #include "base/utils/string_utils.h"
+#include "ohos/init_data.h"
+
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -72,6 +75,8 @@ void AppMain::ScheduleLaunchApplication(bool isCopyNativeLibs)
 {
     HILOG_INFO("AppMain schedule launch application.");
     Ace::AceScopedTrace trace("ScheduleLaunchApplication");
+
+    LoadIcuData();
 
     bundleContainer_ = std::make_shared<AppExecFwk::BundleContainer>();
     if (bundleContainer_ == nullptr) {
@@ -519,6 +524,17 @@ void AppMain::HandleApplicationBackground()
         return;
     }
     application_->NotifyApplicationBackground();
+}
+
+void AppMain::LoadIcuData()
+{
+    #ifdef ANDROID_PLATFORM
+        std::string appDataModuleDir = StageAssetManager::GetInstance()->GetAppDataModuleDir();
+    #else
+        std::string appDataModuleDir = StageAssetManager::GetInstance()->GetBundleCodeDir();
+    #endif
+    appDataModuleDir = appDataModuleDir + "/" + "systemres";
+    SetArkuiXIcuDirectory(appDataModuleDir.c_str());
 }
 } // namespace Platform
 } // namespace AbilityRuntime
