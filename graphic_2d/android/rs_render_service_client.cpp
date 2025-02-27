@@ -59,7 +59,7 @@ uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
     return {};
 }
 
-std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig &config,
+std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
     bool unobscured)
 {
     return std::make_shared<RSSurfaceAndroid>(static_cast<ANativeWindow *>(config.additionalData));
