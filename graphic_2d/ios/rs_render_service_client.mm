@@ -72,7 +72,8 @@ uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
     return {};
 }
 
-std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
+std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+    bool unobscured)
 {
 #ifdef USE_GPU
     ROSEN_LOGE("RSRenderServiceClient::CreateNodeAndSurface -- GPU");
@@ -141,8 +142,8 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     return std::make_shared<VSyncReceiverIOS>(looper);
 }
 
-bool RSRenderServiceClient::TakeSurfaceCapture(
-    NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
+    const RSSurfaceCaptureConfig& captureConfig, const Drawing::Rect& specifiedAreaRect)
 {
     return false;
 }
