@@ -374,5 +374,10 @@ bool RSSystemProperties::GetRenderParallelEnabled()
 {
     return false;
 }
+
+std::string RSSystemProperties::GetVersionType()
+{
+    return "";
+}
 } // namespace Rosen
 } // namespace OHOS
