@@ -290,9 +290,9 @@ bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
     }
     int maxResources = 0;
     size_t maxResourcesSize = 0;
-    int cacheLimitsTimes = 2;
     grContext->getResourceCacheLimits(&maxResources, &maxResourcesSize);
     if (maxResourcesSize > 0) {
+        int cacheLimitsTimes = 2;
         grContext->setResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes *
             std::fmin(maxResourcesSize, DEFAULT_SKIA_CACHE_SIZE));
     } else {

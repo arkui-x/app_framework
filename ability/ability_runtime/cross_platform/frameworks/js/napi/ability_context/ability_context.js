@@ -13,34 +13,34 @@
  * limitations under the License.
  */
 
-var Context = requireNapi("application.Context")
+var Context = requireNapi("application.Context");
 
 class AbilityContext extends Context {
     constructor(obj) {
-        super(obj)
-        this.abilityInfo = obj.abilityInfo
-        this.currentHapModuleInfo = obj.currentHapModuleInfo
-        this.config = obj.config
+        super(obj);
+        this.abilityInfo = obj.abilityInfo;
+        this.currentHapModuleInfo = obj.currentHapModuleInfo;
+        this.config = obj.config;
     }
 
     onUpdateConfiguration(config) {
-        this.config = config
+        this.config = config;
     }
 
     startAbility(want, options, callback) {
-        return this.__context_impl__.startAbility(want, options, callback)
+        return this.__context_impl__.startAbility(want, options, callback);
     }
 
     terminateSelf(callback) {
-        return this.__context_impl__.terminateSelf(callback)
+        return this.__context_impl__.terminateSelf(callback);
     }
 
     startAbilityForResult(want, callback) {
-        return this.__context_impl__.startAbilityForResult(want, callback)
+        return this.__context_impl__.startAbilityForResult(want, callback);
     }
 
     terminateSelfWithResult(abilityResult, callback) {
-        return this.__context_impl__.terminateSelfWithResult(abilityResult, callback)
+        return this.__context_impl__.terminateSelfWithResult(abilityResult, callback);
     }
 
     reportDrawnCompleted(callback) {
@@ -48,4 +48,4 @@ class AbilityContext extends Context {
     }
 }
 
-export default AbilityContext
+export default AbilityContext;

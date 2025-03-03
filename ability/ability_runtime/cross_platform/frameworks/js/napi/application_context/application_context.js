@@ -82,7 +82,7 @@ class EventHub {
 
 class ApplicationContext {
     constructor(obj) {
-        this.__context_impl__ = obj
+        this.__context_impl__ = obj;
         this.__context_impl__.eventHub = new EventHub();
     }
 
@@ -95,43 +95,43 @@ class ApplicationContext {
     }
 
     getApplicationContext() {
-        return this.__context_impl__.getApplicationContext()
+        return this.__context_impl__.getApplicationContext();
     }
 
     createModuleContext(moduleName) {
-        return this.__context_impl__.createModuleContext(moduleName)
+        return this.__context_impl__.createModuleContext(moduleName);
     }
 
     get resourceManager() {
-        return this.__context_impl__.resourceManager
+        return this.__context_impl__.resourceManager;
     }
 
     get applicationInfo() {
-        return this.__context_impl__.applicationInfo
+        return this.__context_impl__.applicationInfo;
     }
 
     get cacheDir() {
-        return this.__context_impl__.cacheDir
+        return this.__context_impl__.cacheDir;
     }
 
     get tempDir() {
-        return this.__context_impl__.tempDir
+        return this.__context_impl__.tempDir;
     }
 
     get filesDir() {
-        return this.__context_impl__.filesDir
+        return this.__context_impl__.filesDir;
     }
 
     get databaseDir() {
-        return this.__context_impl__.databaseDir
+        return this.__context_impl__.databaseDir;
     }
 
     get preferencesDir() {
-        return this.__context_impl__.preferencesDir
+        return this.__context_impl__.preferencesDir;
     }
 
     get bundleCodeDir() {
-        return this.__context_impl__.bundleCodeDir
+        return this.__context_impl__.bundleCodeDir;
     }
 
     get eventHub() {
@@ -143,8 +143,8 @@ class ApplicationContext {
     }
 
     getRunningProcessInformation(callback) {
-        return this.__context_impl__.getRunningProcessInformation(callback)
+        return this.__context_impl__.getRunningProcessInformation(callback);
     }
 }
 
-export default ApplicationContext
+export default ApplicationContext;
