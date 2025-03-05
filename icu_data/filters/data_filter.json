@@ -87,7 +87,9 @@
         "icuver",
         "supplementalData",
         "numberingSystems",
-        "keyTypeData"
+        "keyTypeData",
+        "pluralRanges",
+        "plurals"
       ]
     },
     "zone_tree": {
