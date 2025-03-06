@@ -315,11 +315,6 @@ bool RSSystemProperties::GetSingleFrameComposerEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetSubSurfaceEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetSingleDrawableLockerEnabled()
 {
     return false;
