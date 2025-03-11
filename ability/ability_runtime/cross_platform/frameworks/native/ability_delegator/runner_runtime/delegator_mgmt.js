@@ -16,7 +16,7 @@
 function isSystemplugin(shortName, moduleType) {
     const plugin = moduleType === 'ohos' ? globalThis.ohosplugin : globalThis.systemplugin;
     if (typeof (plugin) !== 'undefined') {
-      var target = plugin;
+      let target = plugin;
       for (let key of shortName.split('.')) {
         target = target[key];
         if (!target) {
@@ -27,15 +27,11 @@ function isSystemplugin(shortName, moduleType) {
     }
 }
 
-
-var global = globalThis;
+let global = globalThis;
 globalThis.exports = {default: {}};
-globalThis.$app_define$ = function (page, packageName, parseContent) {
+globalThis.$appDefine$ = function (page, packageName, parseContent) {
     const module = {exports: {}};
     parseContent({}, module.exports, module);
     globalThis.exports.default = module.exports;
-    console.info('Delegator Mgmt app_define');
 };
-globalThis.$app_bootstrap$ = function() {};
-
-console.info('Delegator Mgmt init success');
+globalThis.$appBootstrap$ = function() {};
