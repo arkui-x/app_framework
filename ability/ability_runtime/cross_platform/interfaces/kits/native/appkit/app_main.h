@@ -51,6 +51,7 @@ public:
     void ParseHspModuleJson(const std::string& moduleName);
     void NotifyApplicationForeground();
     void NotifyApplicationBackground();
+    void PreloadModule(const std::string& moduleName, const std::string& abilityName);
 
 private:
     void ScheduleLaunchApplication(bool isCopyNativeLibs);
@@ -71,6 +72,7 @@ private:
     void HandleApplicationForeground();
     void HandleApplicationBackground();
     void LoadIcuData();
+    void HandlePreloadModule(const std::string& moduleName, const std::string& abilityName);
 
 private:
     std::shared_ptr<Application> application_ = nullptr;

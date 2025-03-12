@@ -74,6 +74,7 @@ template("ability_runtime_abilitykit_native") {
       "${ability_runtime_cross_platform_path}/frameworks/native/ability/application_configuration_manager.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/ability/js_ability.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/ability/js_ability_context.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/ability/preload_manager.cpp",
     ]
 
     deps = [
