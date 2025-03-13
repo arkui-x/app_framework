@@ -108,6 +108,11 @@ void StageAssetManager::SetNativeLibPaths(
 {
     StageAssetProvider::GetInstance()->SetNativeLibPaths(bundleName, moduleNames);
 }
+
+void StageAssetManager::RemoveModuleFilePath(const std::string& moduleName)
+{
+    StageAssetProvider::GetInstance()->RemoveModuleFilePath(moduleName);
+}
 #endif
 
 void StageAssetManager::GetResIndexPath(
@@ -134,6 +139,21 @@ std::vector<uint8_t> StageAssetManager::GetBufferByAppDataPath(const std::string
 std::vector<uint8_t> StageAssetManager::GetAotBuffer(const std::string &fileName)
 {
     return StageAssetProvider::GetInstance()->GetAotBuffer(fileName);
+}
+
+void StageAssetManager::isDynamicModule(const std::string& moduleName, bool needUpdate)
+{
+    StageAssetProvider::GetInstance()->UpdateVersionCode(moduleName, needUpdate);
+}
+
+void StageAssetManager::InitModuleVersionCode()
+{
+    StageAssetProvider::GetInstance()->InitModuleVersionCode();
+}
+
+bool StageAssetManager::IsDynamicUpdateModule(const std::string& moduleName)
+{
+    return StageAssetProvider::GetInstance()->IsDynamicUpdateModule(moduleName);
 }
 } // namespace Platform
 } // namespace AbilityRuntime

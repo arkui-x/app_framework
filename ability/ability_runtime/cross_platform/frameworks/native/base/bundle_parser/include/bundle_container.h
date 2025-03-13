@@ -38,6 +38,7 @@ public:
     std::shared_ptr<ApplicationInfo> GetApplicationInfo() const;
     std::shared_ptr<BundleInfo> GetBundleInfo() const;
     std::shared_ptr<HapModuleInfo> GetHapModuleInfo(const std::string& modulePackage) const;
+    void RemoveModuleInfo(const std::string& modulePackage);
     std::shared_ptr<AbilityInfo> GetAbilityInfo(const std::string& moduleName, const std::string& abilityName) const;
     std::vector<std::shared_ptr<AbilityInfo>> GetAbilityInfos() const;
     void dump(const std::string& pathName);

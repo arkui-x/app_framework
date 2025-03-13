@@ -84,6 +84,13 @@ std::shared_ptr<HapModuleInfo> BundleContainer::GetHapModuleInfo(const std::stri
     return nullptr;
 }
 
+void BundleContainer::RemoveModuleInfo(const std::string& modulePackage)
+{
+    if (bundleInfo_ != nullptr) {
+        bundleInfo_->RemoveModuleInfo(modulePackage);
+    }
+}
+
 std::shared_ptr<AbilityInfo> BundleContainer::GetAbilityInfo(
     const std::string& moduleName, const std::string& abilityName) const
 {

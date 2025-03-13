@@ -40,6 +40,7 @@
 #include "js_timer.h"
 #include "js_worker.h"
 #include "native_engine/impl/ark/ark_native_engine.h"
+#include "stage_asset_manager.h"
 
 #include "base/log/ace_trace.h"
 
@@ -81,7 +82,7 @@ public:
         return true;
     }
 
-    napi_value LoadJsModule(const std::string& path, std::vector<uint8_t>& buffer) override
+    napi_value LoadJsModule(const std::string& path, std::vector<uint8_t>& buffer, bool needUpdate) override
     {
         std::string assetPath = BUNDLE_INSTALL_PATH + moduleName_ + MERGE_ABC_PATH;
         HILOG_INFO("LoadJsModule path %{public}s", path.c_str());
@@ -91,7 +92,7 @@ public:
         panda::JSNApi::SetModuleName(vm_, moduleName_);
         
         NativeEngine* engine = reinterpret_cast<NativeEngine*>(env_);
-        bool result = engine->RunScriptBuffer(path.c_str(), buffer, false) != nullptr;
+        bool result = engine->RunScriptBuffer(path.c_str(), buffer, false, needUpdate) != nullptr;
         env_ = reinterpret_cast<napi_env>(engine);
         
         if (!result) {
@@ -436,6 +437,7 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
 
     napi_value classValue = nullptr;
 
+    bool isDynamicUpdate = IsNeedUpdate(moduleName_, modulePath);
     auto it = modules_.find(modulePath);
     if (it != modules_.end()) {
         classValue = it->second->GetNapiValue();
@@ -447,7 +449,7 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
             fileName.append(".abc");
             std::regex pattern(std::string("\\.") + std::string("/"));
             fileName = std::regex_replace(fileName, pattern, "");
-            classValue = LoadJsModule(fileName, buffer);
+            classValue = LoadJsModule(fileName, buffer, isDynamicUpdate);
         } else {
             classValue = LoadJsBundle(modulePath, buffer);
         }
@@ -476,6 +478,22 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
     napi_ref resultRef = nullptr;
     napi_create_reference(env_, instanceValue, 1, &resultRef);
     return std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(resultRef));
+}
+
+bool JsRuntime::IsNeedUpdate(const std::string& moduleName, const std::string& modulePath)
+{
+    bool isDynamicUpdate = Platform::StageAssetManager::GetInstance()->IsDynamicUpdateModule(moduleName);
+    if (isDynamicUpdate) {
+        auto it = modules_.find(modulePath);
+        if (it != modules_.end()) {
+            if (it->second != nullptr) {
+                delete it->second;
+                it->second = nullptr;
+            }
+            modules_.erase(it);
+        }
+    }
+    return isDynamicUpdate;
 }
 
 std::unique_ptr<NativeReference> JsRuntime::LoadSystemModule(

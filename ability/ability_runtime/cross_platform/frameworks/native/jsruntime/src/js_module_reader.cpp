@@ -41,6 +41,13 @@ bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, si
     moduleBuffer_.clear();
     std::string moduleName = GetModuleName(inputPath);
     std::string modulePath;
+    Platform::StageAssetManager::GetInstance()->isDynamicModule(moduleName, true);
+    bool isDynamicModule = Platform::StageAssetManager::GetInstance()->IsDynamicUpdateModule(moduleName);
+    if (isDynamicModule) {
+#ifdef ANDROID_PLATFORM
+        Platform::StageAssetManager::GetInstance()->RemoveModuleFilePath(moduleName);
+#endif
+    }
     moduleBuffer_ = Platform::StageAssetManager::GetInstance()->GetModuleBuffer(moduleName, modulePath, true);
     if (moduleBuffer_.empty()) {
         errorMsg = "modulePath:" + modulePath;
