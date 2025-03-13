@@ -28,23 +28,23 @@ class AbilityContext extends Context {
     }
 
     startAbility(want, options, callback) {
-        return this.__context_impl__.startAbility(want, options, callback);
+        return this.__contextImpl__.startAbility(want, options, callback);
     }
 
     terminateSelf(callback) {
-        return this.__context_impl__.terminateSelf(callback);
+        return this.__contextImpl__.terminateSelf(callback);
     }
 
     startAbilityForResult(want, options, callback) {
-        return this.__context_impl__.startAbilityForResult(want, options, callback);
+        return this.__contextImpl__.startAbilityForResult(want, options, callback);
     }
 
     terminateSelfWithResult(abilityResult, callback) {
-        return this.__context_impl__.terminateSelfWithResult(abilityResult, callback);
+        return this.__contextImpl__.terminateSelfWithResult(abilityResult, callback);
     }
 
     reportDrawnCompleted(callback) {
-        return this.__context_impl__.reportDrawnCompleted(callback);
+        return this.__contextImpl__.reportDrawnCompleted(callback);
     }
 }
 
