@@ -66,44 +66,44 @@ class EventHub {
 
 class Context {
     constructor(obj) {
-        this.__context_impl__ = obj;
-        this.__context_impl__.eventHub = new EventHub();
+        this.__contextImpl__ = obj;
+        this.__contextImpl__.eventHub = new EventHub();
     }
 
     get resourceManager() {
-        return this.__context_impl__.resourceManager;
+        return this.__contextImpl__.resourceManager;
     }
 
     get applicationInfo() {
-        return this.__context_impl__.applicationInfo;
+        return this.__contextImpl__.applicationInfo;
     }
 
     get cacheDir() {
-        return this.__context_impl__.cacheDir;
+        return this.__contextImpl__.cacheDir;
     }
 
     get tempDir() {
-        return this.__context_impl__.tempDir;
+        return this.__contextImpl__.tempDir;
     }
 
     get filesDir() {
-        return this.__context_impl__.filesDir;
+        return this.__contextImpl__.filesDir;
     }
 
     get databaseDir() {
-        return this.__context_impl__.databaseDir;
+        return this.__contextImpl__.databaseDir;
     }
 
     get preferencesDir() {
-        return this.__context_impl__.preferencesDir;
+        return this.__contextImpl__.preferencesDir;
     }
 
     get bundleCodeDir() {
-        return this.__context_impl__.bundleCodeDir;
+        return this.__contextImpl__.bundleCodeDir;
     }
 
     get eventHub() {
-      return this.__context_impl__.eventHub;
+      return this.__contextImpl__.eventHub;
     }
 
     get stageMode() {
@@ -111,11 +111,11 @@ class Context {
     }
     
     getApplicationContext() {
-        return this.__context_impl__.getApplicationContext();
+        return this.__contextImpl__.getApplicationContext();
     }
 
     createModuleContext(moduleName) {
-        return this.__context_impl__.createModuleContext(moduleName);
+        return this.__contextImpl__.createModuleContext(moduleName);
     }
 }
 

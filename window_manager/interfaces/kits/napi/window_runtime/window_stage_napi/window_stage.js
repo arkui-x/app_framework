@@ -15,55 +15,55 @@
 
 class WindowStage {
     constructor(obj) {
-      this.__window_stage__ = obj;
+      this.__windowStage__ = obj;
     }
   
     setUIContent(context, url, storage) {
-      return this.__window_stage__.setUIContent(context, url, storage);
+      return this.__windowStage__.setUIContent(context, url, storage);
     }
   
     loadContent(url, storage, asyncCallback) {
-      return this.__window_stage__.loadContent(url, storage, asyncCallback);
+      return this.__windowStage__.loadContent(url, storage, asyncCallback);
     }
 
     loadContentByName(name, storage, asyncCallback) {
-      return this.__window_stage__.loadContentByName(name, storage, asyncCallback);
+      return this.__windowStage__.loadContentByName(name, storage, asyncCallback);
     }
 
     getWindowMode(asyncCallback) {
-      return this.__window_stage__.getWindowMode(asyncCallback);
+      return this.__windowStage__.getWindowMode(asyncCallback);
     }
   
     getMainWindow(asyncCallback) {
-      return this.__window_stage__.getMainWindow(asyncCallback);
+      return this.__windowStage__.getMainWindow(asyncCallback);
     }
   
     getMainWindowSync() {
-      return this.__window_stage__.getMainWindowSync();
+      return this.__windowStage__.getMainWindowSync();
     }
   
     createSubWindow(windowName, asyncCallback) {
-      return this.__window_stage__.createSubWindow(windowName, asyncCallback);
+      return this.__windowStage__.createSubWindow(windowName, asyncCallback);
     }
   
     getSubWindow(asyncCallback) {
-      return this.__window_stage__.getSubWindow(asyncCallback);
+      return this.__windowStage__.getSubWindow(asyncCallback);
     }
   
     on(type, callback) {
-      return this.__window_stage__.on(type, callback);
+      return this.__windowStage__.on(type, callback);
     }
   
     off(type, callback) {
-      return this.__window_stage__.off(type, callback);
+      return this.__windowStage__.off(type, callback);
     }
   
     setShowOnLockScreen(showOnLockScreen) {
-      return this.__window_stage__.setShowOnLockScreen(showOnLockScreen);
+      return this.__windowStage__.setShowOnLockScreen(showOnLockScreen);
     }
   
     disableWindowDecor() {
-      return this.__window_stage__.disableWindowDecor();
+      return this.__windowStage__.disableWindowDecor();
     }
 }
   
