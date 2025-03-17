@@ -28,6 +28,7 @@
 #include "hilog.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
+#include "preload_manager.h"
 #include "runtime.h"
 
 #include "base/log/ace_trace.h"
@@ -535,6 +536,43 @@ void AppMain::LoadIcuData()
     #endif
     appDataModuleDir = appDataModuleDir + "/" + "systemres";
     SetArkuiXIcuDirectory(appDataModuleDir.c_str());
+}
+
+void AppMain::PreloadModule(const std::string& moduleName, const std::string& abilityName)
+{
+    if (!eventHandler_) {
+        HILOG_ERROR("eventHandler_ is nullptr");
+        return;
+    }
+    auto task = [moduleName, abilityName]() { AppMain::GetInstance()->HandlePreloadModule(moduleName, abilityName); };
+    eventHandler_->PostTask(task);
+}
+
+void AppMain::HandlePreloadModule(const std::string& moduleName, const std::string& abilityName)
+{
+    if (bundleContainer_ == nullptr) {
+        HILOG_ERROR("bundleContainer_ is nullptr");
+        return;
+    }
+
+    auto abilityInfo = bundleContainer_->GetAbilityInfo(moduleName, abilityName);
+    if (abilityInfo == nullptr) {
+        HILOG_ERROR("abilityInfo is nullptr");
+        return;
+    }
+
+    if (application_->GetRuntime() == nullptr) {
+        HILOG_ERROR("application_->GetRuntime() is nullptr");
+        return;
+    }
+
+    if (PreloadManager::GetInstance() != nullptr) {
+        abilityInfo->hapPath = "arkui-x/" + abilityInfo->moduleName + "/";
+        PreloadManager::GetInstance()->PreloadModule(application_->GetRuntime(), abilityInfo);
+    } else {
+        HILOG_ERROR("PreloadManager::GetInstance() is nullptr");
+        return;
+    }
 }
 } // namespace Platform
 } // namespace AbilityRuntime
