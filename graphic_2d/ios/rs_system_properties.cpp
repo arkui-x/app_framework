@@ -56,6 +56,11 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetRenderNodePurgeEnabled()
 {
     return false;
@@ -72,6 +77,11 @@ bool RSSystemProperties::IsSceneBoardEnabled()
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
+{
+    return {};
+}
+
+AdvancedDirtyRegionType RSSystemProperties::GetAdvancedDirtyRegionEnabled()
 {
     return {};
 }
@@ -412,6 +422,16 @@ bool RSSystemProperties::GetOptimizeParentNodeRegionEnabled()
 bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
 {
     return true;
+}
+
+bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS
