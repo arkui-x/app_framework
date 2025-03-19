@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -120,6 +120,7 @@ const std::string MODULE_ATOMIC_SERVICE_MODULE_TYPE = "atomicServiceModuleType";
 const std::string MODULE_PRELOADS = "preloads";
 const std::string HAS_ATOMIC_SERVICE_CONFIG = "hasAtomicServiceConfig";
 const std::string MAIN_ATOMIC_MODULE_NAME = "mainAtomicModuleName";
+const std::string MODULE_PACKAGE_NAME = "packageName";
 
 inline CompileMode ConvertCompileMode(const std::string& compileMode)
 {
@@ -420,7 +421,7 @@ void to_json(nlohmann::json& jsonObject, const InnerModuleInfo& info)
         { MODULE_NATIVE_LIBRARY_PATH, info.nativeLibraryPath }, { MODULE_CPU_ABI, info.cpuAbi },
         { MODULE_HAP_PATH, info.hapPath }, { MODULE_COMPILE_MODE, info.compileMode },
         { MODULE_TARGET_MODULE_NAME, info.targetModuleName }, { MODULE_TARGET_PRIORITY, info.targetPriority },
-        { MODULE_PRELOADS, info.preloads } };
+        { MODULE_PRELOADS, info.preloads }, {MODULE_PACKAGE_NAME, info.packageName}};
 }
 
 void to_json(nlohmann::json& jsonObject, const SkillUri& uri)
@@ -583,6 +584,8 @@ void from_json(const nlohmann::json& jsonObject, InnerModuleInfo& info)
         false, parseResult, ArrayType::NOT_ARRAY);
     GetValueIfFindKey<std::vector<std::string>>(jsonObject, jsonObjectEnd, MODULE_PRELOADS, info.preloads,
         JsonType::ARRAY, false, ProfileReader::parseResult, ArrayType::STRING);
+    GetValueIfFindKey<std::string>(jsonObject, jsonObjectEnd, MODULE_PACKAGE_NAME, info.packageName,
+        JsonType::STRING, false, ProfileReader::parseResult, ArrayType::NOT_ARRAY);
     if (parseResult != ERR_OK) {
         HILOG_ERROR("read InnerModuleInfo from database error, error code : %{public}d", parseResult);
     }
@@ -837,6 +840,7 @@ std::optional<HapModuleInfo> InnerBundleInfo::FindHapModuleInfo(const std::strin
         hapInfo.dependencies.emplace_back(dependency.moduleName);
     }
     hapInfo.compileMode = ConvertCompileMode(it->second.compileMode);
+    hapInfo.packageName = it->second.packageName;
     return hapInfo;
 }
 

@@ -164,6 +164,20 @@ bool AppMain::CreateRuntime(const std::string& bundleName, bool isBundle)
 #ifdef ANDROID_PLATFORM
     options.appDataLibPath = StageAssetManager::GetInstance()->GetAppDataLibDir();
 #endif
+    auto bundleinfo = bundleContainer_->GetBundleInfo();
+    if (bundleinfo != nullptr) {
+        for (const auto& hapModuleInfo : bundleinfo->hapModuleInfos) {
+            auto moduleName = hapModuleInfo.moduleName;
+            std::vector<uint8_t> buffer = StageAssetManager::GetInstance()->GetPkgJsonBuffer(moduleName);
+            if (buffer.empty()) {
+                continue;
+            }
+            buffer.push_back('\0');
+            options.pkgContextInfoJsonBufferMap[moduleName] = buffer;
+            options.packageNameList[moduleName] = hapModuleInfo.packageName;
+        }
+    }
+
     auto runtime = AbilityRuntime::Runtime::Create(options);
     if (runtime == nullptr) {
         return false;
