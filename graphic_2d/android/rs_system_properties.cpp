@@ -433,5 +433,10 @@ bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetWindowKeyFrameEnabled()
+{
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
