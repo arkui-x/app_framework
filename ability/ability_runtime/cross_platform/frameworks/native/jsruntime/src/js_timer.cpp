@@ -99,9 +99,8 @@ napi_value StartTimeoutOrInterval(napi_env env, napi_callback_info info, bool is
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
 
-    // parameter check, must have at least 2 params
-    if (argc < 2 ||!CheckTypeForNapiValue(env, argv[0], napi_function)
-        || !CheckTypeForNapiValue(env, argv[1], napi_number)) {
+    // parameter check, must have at least 1 params
+    if (argc < 1 || !CheckTypeForNapiValue(env, argv[0], napi_function)) {
         HILOG_ERROR("Set callback timer failed with invalid parameter.");
         return CreateJsUndefined(env);
     }
@@ -110,8 +109,6 @@ napi_value StartTimeoutOrInterval(napi_env env, napi_callback_info info, bool is
     napi_ref ref = nullptr;
     napi_create_reference(env, argv[0], 1, &ref);
     std::shared_ptr<NativeReference> jsFunction(reinterpret_cast<NativeReference*>(ref));
-    int64_t delayTime = 0;
-    napi_get_value_int64(env, argv[1], &delayTime);
     uint32_t callbackId = g_callbackId.fetch_add(1, std::memory_order_relaxed);
     std::string name = "JsRuntimeTimer_";
     name.append(std::to_string(callbackId));
@@ -120,6 +117,14 @@ napi_value StartTimeoutOrInterval(napi_env env, napi_callback_info info, bool is
     NativeEngine* engine = reinterpret_cast<NativeEngine*>(env);
     JsRuntime& jsRuntime = *reinterpret_cast<JsRuntime*>(engine->GetJsEngine());
     env = reinterpret_cast<napi_env>(engine);
+
+    int64_t delayTime = 0;
+    if (argc < 2 || !CheckTypeForNapiValue(env, argv[1], napi_number)) {
+        JsTimer task(jsRuntime, jsFunction, name, delayTime, isInterval);
+        jsRuntime.PostTask(task, name, delayTime);
+        return CreateJsValue(env, callbackId);
+    }    
+    napi_get_value_int64(env, argv[1], &delayTime);
     JsTimer task(jsRuntime, jsFunction, name, delayTime, isInterval);
     for (size_t index = 2; index < argc; ++index) {
         napi_ref ref = nullptr;
