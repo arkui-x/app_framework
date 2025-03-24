@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,6 +39,7 @@
 #include "js_runtime_utils.h"
 #include "js_timer.h"
 #include "js_worker.h"
+#include "json_util.h"
 #include "native_engine/impl/ark/ark_native_engine.h"
 
 #include "base/log/ace_trace.h"
@@ -57,6 +58,13 @@ constexpr size_t DEFAULT_LONG_PAUSE_TIME = 40;
 constexpr char TIMER_TASK[] = "uv_timer_task";
 constexpr char MERGE_ABC_PATH[] = "/ets/modules.abc";
 constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
+const std::string PACKAGE_NAME = "packageName";
+const std::string BUNDLE_NAME = "bundleName";
+const std::string MODULE_NAME = "moduleName";
+const std::string VERSION = "version";
+const std::string ENTRY_PATH = "entryPath";
+const std::string IS_SO = "isSO";
+const std::string DEPENDENCY_ALIAS = "dependencyAlias";
 
 class ArkJsRuntime : public JsRuntime {
 public:
@@ -122,6 +130,74 @@ private:
         return 0;
     }
 
+    void GetPkgContextInfoListMap(const std::map<std::string, std::vector<uint8_t>>& contextInfoMap,
+        std::map<std::string, std::vector<std::vector<std::string>>>& pkgContextInfoMap,
+        std::map<std::string, std::string>& pkgAliasMap)
+    {
+        for (const auto& [moduleName, buffer] : contextInfoMap) {
+            std::vector<std::vector<std::string>> pkgContextInfoList;
+            nlohmann::json jsonObject = nlohmann::json::parse(buffer.data(), nullptr, false);
+            if (jsonObject.is_discarded()) {
+                HILOG_ERROR("moduleName: %{public}s parse json error", moduleName.c_str());
+                continue;
+            }
+            ParsePkgContextInfoJson(jsonObject, pkgContextInfoList, pkgAliasMap);
+            pkgContextInfoMap[moduleName] = pkgContextInfoList;
+        }
+    }
+
+    void ParsePkgContextInfoJson(nlohmann::json& jsonObject, std::vector<std::vector<std::string>>& pkgContextInfoList,
+        std::map<std::string, std::string>& pkgAliasMap)
+    {
+        for (nlohmann::json::iterator jsonIt = jsonObject.begin(); jsonIt != jsonObject.end(); ++jsonIt) {
+            std::vector<std::string> items;
+            items.emplace_back(jsonIt.key());
+            nlohmann::json itemObject = jsonIt.value();
+            std::string pkgName = "";
+            items.emplace_back(PACKAGE_NAME);
+            if (itemObject[PACKAGE_NAME].is_null() || !itemObject[PACKAGE_NAME].is_string()) {
+                items.emplace_back(pkgName);
+            } else {
+                pkgName = itemObject[PACKAGE_NAME].get<std::string>();
+                items.emplace_back(pkgName);
+            }
+
+            ParsePkgContextInfoJsonString(itemObject, BUNDLE_NAME, items);
+            ParsePkgContextInfoJsonString(itemObject, MODULE_NAME, items);
+            ParsePkgContextInfoJsonString(itemObject, VERSION, items);
+            ParsePkgContextInfoJsonString(itemObject, ENTRY_PATH, items);
+            items.emplace_back(IS_SO);
+            if (itemObject[IS_SO].is_null() || !itemObject[IS_SO].is_boolean()) {
+                items.emplace_back("false");
+            } else {
+                bool isSo = itemObject[IS_SO].get<bool>();
+                if (isSo) {
+                    items.emplace_back("true");
+                } else {
+                    items.emplace_back("false");
+                }
+            }
+            if (!itemObject[DEPENDENCY_ALIAS].is_null() && itemObject[DEPENDENCY_ALIAS].is_string()) {
+                std::string pkgAlias = itemObject[DEPENDENCY_ALIAS].get<std::string>();
+                if (!pkgAlias.empty()) {
+                    pkgAliasMap[pkgAlias] = pkgName;
+                }
+            }
+            pkgContextInfoList.emplace_back(items);
+        }
+    }
+
+    void ParsePkgContextInfoJsonString(
+        const nlohmann::json& itemObject, const std::string& key, std::vector<std::string>& items)
+    {
+        items.emplace_back(key);
+        if (itemObject[key].is_null() || !itemObject[key].is_string()) {
+            items.emplace_back("");
+        } else {
+            items.emplace_back(itemObject[key].get<std::string>());
+        }
+    }
+
     bool Initialize(const Runtime::Options& options) override
     {
         Ace::AceScopedTrace trace("ArkJsRuntimeInit");
@@ -169,6 +245,12 @@ private:
         panda::JSNApi::SetBundle(vm_, options.isBundle);
         panda::JSNApi::SetBundleName(vm_, options.bundleName);
         panda::JSNApi::SetHostResolveBufferTracker(vm_, JsModuleReader(options.bundleName));
+        std::map<std::string, std::vector<std::vector<std::string>>> pkgContextInfoMap;
+        std::map<std::string, std::string> pkgAliasMap;
+        GetPkgContextInfoListMap(options.pkgContextInfoJsonBufferMap, pkgContextInfoMap, pkgAliasMap);
+        panda::JSNApi::SetpkgContextInfoList(vm_, pkgContextInfoMap);
+        panda::JSNApi::SetPkgAliasList(vm_, pkgAliasMap);
+        panda::JSNApi::SetPkgNameList(vm_, options.packageNameList);
         return JsRuntime::Initialize(options);
     }
 };

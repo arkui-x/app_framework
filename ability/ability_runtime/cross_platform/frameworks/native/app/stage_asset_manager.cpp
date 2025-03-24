@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,10 +36,17 @@ std::shared_ptr<StageAssetManager> StageAssetManager::GetInstance()
 
     return instance_;
 }
+
+std::vector<uint8_t> StageAssetManager::GetPkgJsonBuffer(const std::string& moduleName)
+{
+    return StageAssetProvider::GetInstance()->GetPkgJsonBuffer(moduleName);
+}
+
 std::list<std::vector<uint8_t>> StageAssetManager::GetModuleJsonBufferList()
 {
     return StageAssetProvider::GetInstance()->GetModuleJsonBufferList();
 }
+
 std::vector<uint8_t> StageAssetManager::GetModuleBuffer(
     const std::string& moduleName, std::string& modulePath, bool esmodule)
 {

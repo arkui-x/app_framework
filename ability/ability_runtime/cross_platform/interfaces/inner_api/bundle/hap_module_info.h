@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -75,6 +75,7 @@ struct HapModuleInfo {
     int32_t upgradeFlag = 0;
     CompileMode compileMode = CompileMode::JS_BUNDLE;
     std::string moduleSourceDir;
+    std::string packageName;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

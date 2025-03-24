@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -205,6 +205,7 @@ struct Module {
     bool isLibIsolated = false;
     std::string targetModule;
     int32_t targetPriority = 0;
+    std::string packageName;
 };
 
 struct ModuleJson {
@@ -546,6 +547,8 @@ void from_json(const nlohmann::json& jsonObject, Module& module)
         JsonType::STRING, false, parseResult, ArrayType::NOT_ARRAY);
     GetValueIfFindKey<int32_t>(jsonObject, jsonObjectEnd, MODULE_TARGET_PRIORITY, module.targetPriority,
         JsonType::NUMBER, false, parseResult, ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<std::string>(jsonObject, jsonObjectEnd, MODULE_PACKAGE_NAME, module.packageName,
+        JsonType::STRING, false, parseResult, ArrayType::NOT_ARRAY);
 }
 
 void from_json(const nlohmann::json& jsonObject, ModuleJson& moduleJson)
@@ -864,6 +867,7 @@ bool ToInnerModuleInfo(const Profile::ModuleJson& moduleJson, const TransformPar
         innerModuleInfo.targetPriority = moduleJson.module.targetPriority;
     }
     // abilities and extensionAbilities store in InnerBundleInfo
+    innerModuleInfo.packageName = moduleJson.module.packageName;
     return true;
 }
 
