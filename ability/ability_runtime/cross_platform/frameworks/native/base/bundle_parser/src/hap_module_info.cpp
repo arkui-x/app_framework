@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -69,6 +69,16 @@ const std::string HAP_MODULE_INFO_ATOMIC_SERVICE_MODULE_TYPE = "atomicServiceMod
 const std::string HAP_MODULE_INFO_PRELOADS = "preloads";
 const std::string PRELOAD_ITEM_MODULE_NAME = "moduleName";
 const size_t MODULE_CAPACITY = 10240; // 10K
+const char* HAP_MODULE_INFO_ROUTER_MAP = "routerMap";
+const char* HAP_MODULE_INFO_ROUTER_ARRAY = "routerArray";
+const char* ROUTER_ITEM_KEY_NAME = "name";
+const char* ROUTER_ITEM_KEY_PAGE_SOURCE_FILE = "pageSourceFile";
+const char* ROUTER_ITEM_KEY_BUILD_FUNCTION = "buildFunction";
+const char* ROUTER_ITEM_KEY_DATA = "data";
+const char* ROUTER_ITEM_KEY_CUSTOM_DATA = "customData";
+const char* ROUTER_ITEM_KEY_OHMURL = "ohmurl";
+const char* ROUTER_ITEM_KEY_BUNDLE_NAME = "bundleName";
+const char* ROUTER_ITEM_KEY_MODULE_NAME = "moduleName";
 } // namespace
 
 void to_json(nlohmann::json& jsonObject, const HapModuleInfo& hapModuleInfo)
@@ -115,6 +125,8 @@ void to_json(nlohmann::json& jsonObject, const HapModuleInfo& hapModuleInfo)
         { HAP_MODULE_INFO_NATIVE_LIBRARY_PATH, hapModuleInfo.nativeLibraryPath },
         { HAP_MODULE_INFO_CPU_ABI, hapModuleInfo.cpuAbi },
         { HAP_MODULE_INFO_MODULE_SOURCE_DIR, hapModuleInfo.moduleSourceDir },
+        { HAP_MODULE_INFO_ROUTER_MAP, hapModuleInfo.routerMap },
+        { HAP_MODULE_INFO_ROUTER_ARRAY, hapModuleInfo.routerArray },
     };
 }
 
@@ -204,8 +216,49 @@ void from_json(const nlohmann::json& jsonObject, HapModuleInfo& hapModuleInfo)
         JsonType::STRING, false, parseResult, ArrayType::NOT_ARRAY);
     GetValueIfFindKey<std::string>(jsonObject, jsonObjectEnd, HAP_MODULE_INFO_MODULE_SOURCE_DIR,
         hapModuleInfo.moduleSourceDir, JsonType::STRING, false, parseResult, ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<std::string>(jsonObject, jsonObjectEnd, HAP_MODULE_INFO_ROUTER_MAP, hapModuleInfo.routerMap,
+        JsonType::STRING, false, parseResult, ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<std::vector<RouterItem>>(jsonObject, jsonObjectEnd, HAP_MODULE_INFO_ROUTER_ARRAY,
+        hapModuleInfo.routerArray, JsonType::ARRAY, false, parseResult, ArrayType::OBJECT);
     if (parseResult != ERR_OK) {
         HILOG_WARN("HapModuleInfo from_json error, error code : %{public}d", parseResult);
+    }
+}
+
+void to_json(nlohmann::json& jsonObject, const RouterItem& routerItem)
+{
+    jsonObject = nlohmann::json {
+        { ROUTER_ITEM_KEY_NAME, routerItem.name },
+        { ROUTER_ITEM_KEY_PAGE_SOURCE_FILE, routerItem.pageSourceFile },
+        { ROUTER_ITEM_KEY_BUILD_FUNCTION, routerItem.buildFunction },
+        { ROUTER_ITEM_KEY_DATA, routerItem.data },
+        { ROUTER_ITEM_KEY_CUSTOM_DATA, routerItem.customData },
+        { ROUTER_ITEM_KEY_OHMURL, routerItem.ohmurl },
+        { ROUTER_ITEM_KEY_BUNDLE_NAME, routerItem.bundleName },
+        { ROUTER_ITEM_KEY_MODULE_NAME, routerItem.moduleName },
+    };
+}
+
+void from_json(const nlohmann::json& jsonObject, RouterItem& routerItem)
+{
+    const auto& jsonObjectEnd = jsonObject.end();
+    int32_t parseResult = ERR_OK;
+    GetValueIfFindKey<std::string>(jsonObject, jsonObjectEnd, ROUTER_ITEM_KEY_NAME, routerItem.name, JsonType::STRING,
+        false, parseResult, ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<std::string>(jsonObject, jsonObjectEnd, ROUTER_ITEM_KEY_PAGE_SOURCE_FILE,
+        routerItem.pageSourceFile, JsonType::STRING, false, parseResult, ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<std::string>(jsonObject, jsonObjectEnd, ROUTER_ITEM_KEY_BUILD_FUNCTION, routerItem.buildFunction,
+        JsonType::STRING, false, parseResult, ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<std::string>(jsonObject, jsonObjectEnd, ROUTER_ITEM_KEY_OHMURL, routerItem.ohmurl,
+        JsonType::STRING, false, parseResult, ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<std::string>(jsonObject, jsonObjectEnd, ROUTER_ITEM_KEY_BUNDLE_NAME, routerItem.bundleName,
+        JsonType::STRING, false, parseResult, ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<std::string>(jsonObject, jsonObjectEnd, ROUTER_ITEM_KEY_MODULE_NAME, routerItem.moduleName,
+        JsonType::STRING, false, parseResult, ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<std::map<std::string, std::string>>(jsonObject, jsonObjectEnd, ROUTER_ITEM_KEY_DATA,
+        routerItem.data, JsonType::OBJECT, false, parseResult, ArrayType::NOT_ARRAY);
+    if (parseResult != ERR_OK) {
+        HILOG_ERROR("read RouterItem jsonObject error : %{public}d", parseResult);
     }
 }
 } // namespace AppExecFwk

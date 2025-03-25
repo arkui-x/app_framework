@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,24 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef FOUNDATION_APPEXECFWK_SERVICES_BUNDLEMGR_INCLUDE_BUNDLE_PARSER_H
-#define FOUNDATION_APPEXECFWK_SERVICES_BUNDLEMGR_INCLUDE_BUNDLE_PARSER_H
+#ifndef FOUNDATION_APPEXECFWK_SERVICES_BUNDLEMGR_INCLUDE_NAVIGATION_ROUTER_ITEM_COMPARE_H
+#define FOUNDATION_APPEXECFWK_SERVICES_BUNDLEMGR_INCLUDE_NAVIGATION_ROUTER_ITEM_COMPARE_H
 
 #include <set>
 #include <string>
 
-#include "inner_bundle_info.h"
+#include "hap_module_info.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-class BundleParser {
+class RouterItemCompare {
 public:
-    int32_t Parse(const std::vector<uint8_t>& buf, InnerBundleInfo& bundleInfo);
-    ErrCode ParseRouterArray(const std::string& configFile, std::vector<RouterItem>& routerArray) const;
+    explicit RouterItemCompare(const std::set<std::string>& moduleNameSet);
+    bool operator()(const RouterItem& item1, const RouterItem& item2) const;
 
 private:
-    bool CheckRouterData(nlohmann::json data) const;
+    std::set<std::string> moduleNameSet;
 };
 } // namespace AppExecFwk
 } // namespace OHOS
-#endif // FOUNDATION_APPEXECFWK_SERVICES_BUNDLEMGR_INCLUDE_BUNDLE_PARSER_H
+#endif // FOUNDATION_APPEXECFWK_SERVICES_BUNDLEMGR_INCLUDE_NAVIGATION_ROUTER_ITEM_COMPARE_H

@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -18,8 +18,10 @@ config("bundle_parser_config") {
   include_dirs = [
     "//third_party/json/include",
     "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/include",
+    "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/include/navigation",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/error",
+    "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit",
   ]
 }
 
@@ -38,7 +40,14 @@ template("ability_runtime_bundle_parser") {
     if (target_cpu == "arm64") {
       defines = [ "_ARM64_" ]
     }
+    if (target_os == "android") {
+      defines += [ "ANDROID_PLATFORM" ]
+    } else if (target_os == "ios") {
+      defines += [ "IOS_PLATFORM" ]
+    }
 
+    cross_platform_base_path =
+        "${ability_runtime_cross_platform_path}/frameworks/native/base"
     sources = [
       "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/ability_info.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/application_info.cpp",
@@ -51,6 +60,9 @@ template("ability_runtime_bundle_parser") {
       "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/inner_bundle_user_info.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/module_info.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/src/module_profile.cpp",
+      "${cross_platform_base_path}/bundle_parser/src/navigation/router_item_compare.cpp",
+      "${cross_platform_base_path}/bundle_parser/src/navigation/router_map_helper.cpp",
+      "${cross_platform_base_path}/bundle_parser/src/navigation/sem_ver.cpp",
     ]
 
     deps = [ "//third_party/jsoncpp:jsoncpp_static" ]

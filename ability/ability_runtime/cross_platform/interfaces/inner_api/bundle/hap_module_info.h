@@ -30,6 +30,17 @@ enum class ModuleColorMode {
 
 enum class ModuleType { UNKNOWN = 0, ENTRY = 1, FEATURE = 2, SHARED = 3 };
 
+struct RouterItem {
+    std::string name;
+    std::string pageSourceFile;
+    std::string buildFunction;
+    std::string customData;
+    std::string ohmurl;
+    std::string bundleName;
+    std::string moduleName;
+    std::map<std::string, std::string> data;
+};
+
 // configuration information about an module
 struct HapModuleInfo {
     std::string name; // module.name in config.json
@@ -76,6 +87,8 @@ struct HapModuleInfo {
     CompileMode compileMode = CompileMode::JS_BUNDLE;
     std::string moduleSourceDir;
     std::string packageName;
+    std::string routerMap;
+    std::vector<RouterItem> routerArray;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

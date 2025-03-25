@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,8 @@ enum BundleFlag {
     GET_BUNDLE_WITH_EXTENSION_INFO = 0x00000020,
     // get bundle info include hash value
     GET_BUNDLE_WITH_HASH_VALUE = 0x00000030,
+    // get bundle info inlcude router map, only for dump usage
+    GET_BUNDLE_WITH_ROUTER_MAP = 0x00000080,
 };
 
 enum class GetBundleInfoFlag {
@@ -48,6 +50,7 @@ enum class GetBundleInfoFlag {
     GET_BUNDLE_INFO_WITH_METADATA = 0x00000020,
     GET_BUNDLE_INFO_WITH_DISABLE = 0x00000040,
     GET_BUNDLE_INFO_WITH_SIGNATURE_INFO = 0x00000080,
+    GET_BUNDLE_INFO_WITH_ROUTER_MAP = 0x00000200,
 };
 
 struct RequestPermissionUsedScene {
@@ -125,6 +128,8 @@ struct BundleInfo {
     bool isDifferentName = false;
 
     SignatureInfo signatureInfo;
+
+    std::vector<RouterItem> routerArray;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

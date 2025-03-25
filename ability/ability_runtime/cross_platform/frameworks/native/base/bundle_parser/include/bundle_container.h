@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,6 +44,8 @@ public:
     void SetAppCodePath(const std::string& codePath);
     void SetPidAndUid(int32_t pid, int32_t uid);
     std::string GetBundleName() const;
+    ErrCode GetBundleInfoForSelf(int32_t flags, BundleInfo& bundleInfo);
+
 private:
     std::shared_ptr<InnerBundleInfo> bundleInfo_ = nullptr;
 };

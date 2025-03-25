@@ -74,6 +74,8 @@ const std::unordered_map<std::string, SupportWindowMode> WINDOW_MODE_MAP = { { "
                                                                                  SupportWindowMode::FULLSCREEN },
     { "split", SupportWindowMode::SPLIT }, { "floating", SupportWindowMode::FLOATING } };
 
+constexpr const char* MODULE_ROUTER_MAP = "routerMap";
+
 struct DeviceConfig {
     // pair first : if exist in module.json then true, otherwise false
     // pair second : actual value
@@ -206,6 +208,7 @@ struct Module {
     std::string targetModule;
     int32_t targetPriority = 0;
     std::string packageName;
+    std::string routerMap;
 };
 
 struct ModuleJson {
@@ -549,6 +552,8 @@ void from_json(const nlohmann::json& jsonObject, Module& module)
         JsonType::NUMBER, false, parseResult, ArrayType::NOT_ARRAY);
     GetValueIfFindKey<std::string>(jsonObject, jsonObjectEnd, MODULE_PACKAGE_NAME, module.packageName,
         JsonType::STRING, false, parseResult, ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<std::string>(jsonObject, jsonObjectEnd, MODULE_ROUTER_MAP, module.routerMap, JsonType::STRING,
+        false, parseResult, ArrayType::NOT_ARRAY);
 }
 
 void from_json(const nlohmann::json& jsonObject, ModuleJson& moduleJson)
@@ -867,6 +872,7 @@ bool ToInnerModuleInfo(const Profile::ModuleJson& moduleJson, const TransformPar
     } else {
         innerModuleInfo.targetPriority = moduleJson.module.targetPriority;
     }
+    innerModuleInfo.routerMap = moduleJson.module.routerMap;
     // abilities and extensionAbilities store in InnerBundleInfo
     innerModuleInfo.packageName = moduleJson.module.packageName;
     return true;
