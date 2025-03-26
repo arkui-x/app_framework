@@ -46,12 +46,16 @@ public:
     void CopyHspResourcePath(const std::string& moduleName);
     void CopyNativeLibToAppDataModuleDir(const std::string& bundleName);
     void SetNativeLibPaths(const std::string& bundleName, const std::vector<std::string>& moduleNames);
+    void RemoveModuleFilePath(const std::string& moduleName);
 #endif
     void GetResIndexPath(const std::string& moduleName, std::string& appResIndexPath, std::string& sysResIndexPath);
     std::string GetAppDataModuleDir() const;
     bool GetAppDataModuleAssetList(const std::string& path, std::vector<std::string>& fileFullPaths, bool onlyChild);
     std::vector<uint8_t> GetBufferByAppDataPath(const std::string& fileFullPath);
     std::vector<uint8_t> GetAotBuffer(const std::string &fileName);
+    void InitModuleVersionCode();
+    void isDynamicModule(const std::string& moduleName, bool needUpdate);
+    bool IsDynamicUpdateModule(const std::string& moduleName);
 
 private:
     static std::shared_ptr<StageAssetManager> instance_;

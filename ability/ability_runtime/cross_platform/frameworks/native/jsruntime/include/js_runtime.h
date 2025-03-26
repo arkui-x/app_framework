@@ -70,6 +70,7 @@ public:
     void StartDebugMode(bool needBreakPoint);
     bool StartDebugMode(const std::string& bundleName, bool needBreakPoint, uint32_t instanceId,
         const DebuggerPostTask& debuggerPostTask = {});
+    bool IsNeedUpdate(const std::string& moduleName, const std::string& modulePath);
 
 protected:
     JsRuntime() = default;
@@ -78,7 +79,7 @@ protected:
     void Deinitialize();
 
     napi_value LoadJsBundle(const std::string& path, std::vector<uint8_t>& buffer);
-    virtual napi_value LoadJsModule(const std::string& path, std::vector<uint8_t>& buffer) = 0;
+    virtual napi_value LoadJsModule(const std::string& path, std::vector<uint8_t>& buffer, bool needUpdate) = 0;
 
     bool isArkEngine_ = false;
     bool preloaded_ = false;

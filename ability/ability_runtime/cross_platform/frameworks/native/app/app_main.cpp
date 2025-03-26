@@ -84,7 +84,7 @@ void AppMain::ScheduleLaunchApplication(bool isCopyNativeLibs)
         HILOG_ERROR("bundleContainer_ is nullptr");
         return;
     }
-
+    StageAssetManager::GetInstance()->InitModuleVersionCode();
     auto moduleList = StageAssetManager::GetInstance()->GetModuleJsonBufferList();
     HILOG_INFO("module list size: %{public}d", static_cast<int32_t>(moduleList.size()));
     if (!moduleList.empty()) {
@@ -303,12 +303,20 @@ void AppMain::InitConfiguration(const std::string& jsonConfiguration)
 void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std::string& params)
 {
     HILOG_INFO("HandleDispatchOnCreate called, instanceName: %{public}s", instanceName.c_str());
-    if (application_ == nullptr) {
+    if (application_ == nullptr || bundleContainer_ == nullptr) {
         HILOG_ERROR("application_ is nullptr");
         return;
     }
     auto want = TransformToWant(instanceName);
     std::string moduleName = want.GetModuleName();
+    StageAssetManager::GetInstance()->isDynamicModule(moduleName, true);
+    bool isDynamicModule = StageAssetManager::GetInstance()->IsDynamicUpdateModule(moduleName);
+    if (isDynamicModule) {
+#ifdef ANDROID_PLATFORM
+        StageAssetManager::GetInstance()->RemoveModuleFilePath(moduleName);
+#endif
+        bundleContainer_->RemoveModuleInfo(moduleName);
+    }
     auto hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
     if (hapModuleInfo == nullptr) {
         auto moduleList = StageAssetManager::GetInstance()->GetModuleJsonBufferList();
@@ -483,6 +491,10 @@ void AppMain::ParseHspModuleJson(const std::string& moduleName)
     if (bundleContainer_ == nullptr) {
         HILOG_ERROR("bundleContainer_ is nullptr");
         return;
+    }
+    bool isDynamicModule = StageAssetManager::GetInstance()->IsDynamicUpdateModule(moduleName);
+    if (isDynamicModule) {
+        bundleContainer_->RemoveModuleInfo(moduleName);
     }
     auto hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
     if (hapModuleInfo != nullptr) {
