@@ -35,6 +35,7 @@ public:
     std::shared_ptr<AppExecFwk::ApplicationInfo> GetApplicationInfo() const override;
     void SetApplicationInfo(const std::shared_ptr<AppExecFwk::ApplicationInfo>& info);
     void SetConfiguration(const std::shared_ptr<Configuration>& configuration);
+    std::shared_ptr<AppExecFwk::BundleContainer> GetBundleContainer();
     void SetBundleContainer(const std::shared_ptr<AppExecFwk::BundleContainer>& bundleContainer);
     std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager() const override;
     std::string GetBundleCodePath() const override;
