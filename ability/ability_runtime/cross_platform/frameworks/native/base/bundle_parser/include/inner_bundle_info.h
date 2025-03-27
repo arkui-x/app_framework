@@ -105,6 +105,7 @@ struct InnerModuleInfo {
     int32_t targetPriority;
     std::vector<std::string> preloads;
     std::string packageName;
+    std::string routerMap;
 };
 
 struct SkillUri {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -73,6 +73,7 @@ const std::string OVERLAY_TYPE = "overlayType";
 const std::string BUNDLE_INFO_ASAN_ENABLED = "asanEnabled";
 const std::string OVERLAY_BUNDLE_INFO = "overlayBundleInfos";
 const size_t BUNDLE_CAPACITY = 10240; // 10K
+const char* BUNDLE_INFO_ROUTER_ARRAY = "routerArray";
 } // namespace
 
 void to_json(nlohmann::json& jsonObject, const RequestPermissionUsedScene& usedScene)
@@ -184,6 +185,7 @@ void to_json(nlohmann::json& jsonObject, const BundleInfo& bundleInfo)
         { BUNDLE_INFO_APP_INDEX, bundleInfo.appIndex },
         { BUNDLE_INFO_SIGNATURE_INFO, bundleInfo.signatureInfo },
         { BUNDLE_INFO_ASAN_ENABLED, bundleInfo.asanEnabled },
+        { BUNDLE_INFO_ROUTER_ARRAY, bundleInfo.routerArray },
     };
 }
 
@@ -273,6 +275,8 @@ void from_json(const nlohmann::json& jsonObject, BundleInfo& bundleInfo)
         JsonType::OBJECT, false, parseResult, ArrayType::NOT_ARRAY);
     GetValueIfFindKey<bool>(jsonObject, jsonObjectEnd, BUNDLE_INFO_ASAN_ENABLED, bundleInfo.asanEnabled,
         JsonType::BOOLEAN, false, parseResult, ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<std::vector<RouterItem>>(jsonObject, jsonObjectEnd, BUNDLE_INFO_ROUTER_ARRAY,
+        bundleInfo.routerArray, JsonType::ARRAY, false, parseResult, ArrayType::OBJECT);
     if (parseResult != ERR_OK) {
         HILOG_ERROR("BundleInfo from_json error, error code : %{public}d", parseResult);
     }

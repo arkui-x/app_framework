@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,6 +51,8 @@ void to_json(nlohmann::json& jsonObject, const RequestPermission& requestPermiss
 void from_json(const nlohmann::json& jsonObject, RequestPermission& requestPermission);
 void to_json(nlohmann::json& jsonObject, const Resource& resource);
 void from_json(const nlohmann::json& jsonObject, Resource& resource);
+void to_json(nlohmann::json& jsonObject, const RouterItem& routerItem);
+void from_json(const nlohmann::json& jsonObject, RouterItem& routerItem);
 } // namespace AppExecFwk
 } // namespace OHOS
 #endif // FOUNDATION_APPEXECFWK_INTERFACES_INNERKITS_APPEXECFWK_BASE_INCLUDE_JSON_SERIALIZER_H

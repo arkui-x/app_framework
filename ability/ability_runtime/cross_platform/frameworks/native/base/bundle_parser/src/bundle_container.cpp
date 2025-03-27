@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 #include "hilog.h"
 #include "json_serializer.h"
 #include "module_profile.h"
+#include "navigation/router_map_helper.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -159,6 +160,24 @@ std::string BundleContainer::GetBundleName() const
         return "";
     }
     return bundleInfo_->GetBundleName();
+}
+
+ErrCode BundleContainer::GetBundleInfoForSelf(int32_t flag, BundleInfo& bundleInfo)
+{
+    HILOG_DEBUG("BundleContainer GetBundleInfoForSelf flag %{public}d", flag);
+    if (bundleInfo_ != nullptr) {
+        auto uid = Constants::UNSPECIFIED_USERID;
+        if (bundleInfo_->GetBundleInfoV9(flag, bundleInfo, uid) == ERR_OK) {
+            HILOG_DEBUG("GetBundleInfoV9 successfully, bundleName: %{public}s", bundleInfo_->GetBundleName().c_str());
+            RouterMapHelper::ProcessBundleRouterMap(bundleInfo, flag);
+        } else {
+            HILOG_ERROR("GetBundleInfoV9 failed");
+        }
+        return ERR_OK;
+    } else {
+        HILOG_ERROR("bundleInfo_ is nullptr");
+        return ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST;
+    }
 }
 } // namespace AppExecFwk
 } // namespace OHOS
