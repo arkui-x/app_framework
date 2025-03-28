@@ -28,4 +28,4 @@ ArkUI-X 应用框架（AppFramework）适配层是在不同平台上模拟OpenHa
 ## 框架开发指导
 
 更多框架开发相关内容可参考：
-- [框架开发者文档](https://gitee.com/arkui-x/docs/blob/master/zh-cn/framework-dev/README.md)
+- [框架开发者文档](https://gitcode.com/arkui-x/docs/blob/master/zh-cn/framework-dev/README.md)
