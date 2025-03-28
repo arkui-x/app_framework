@@ -157,6 +157,11 @@ void ApplicationContext::SetConfiguration(const std::shared_ptr<Configuration>& 
     configuration_ = configuration;
 }
 
+std::shared_ptr<AppExecFwk::BundleContainer> ApplicationContext::GetBundleContainer()
+{
+    return bundleContainer_;
+}
+
 void ApplicationContext::SetBundleContainer(const std::shared_ptr<AppExecFwk::BundleContainer>& bundleContainer)
 {
     bundleContainer_ = bundleContainer;
