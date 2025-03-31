@@ -121,10 +121,12 @@ std::shared_ptr<Configuration> AbilityStageContext::GetConfiguration()
 
 void AbilityStageContext::InitResourceManeger()
 {
+    HILOG_INFO("AbilityStageContext InitResourceManeger enter");
     if (resourceManager_ == nullptr) {
         resourceManager_ = std::shared_ptr<Global::Resource::ResourceManager>(
             Global::Resource::CreateResourceManager());
     }
+    HILOG_INFO("AbilityStageContext CreateResourceManager end");
     if (resourceManager_ == nullptr) {
         HILOG_ERROR("resourceManager_ is nullptr");
         return;
@@ -139,10 +141,12 @@ void AbilityStageContext::InitResourceManeger()
     if (!appResRet) {
         HILOG_ERROR("Add app resource failed");
     }
+    HILOG_INFO("AbilityStageContext add appResource:%s", appResourcePath_.c_str());
     auto sysResRet = resourceManager_->AddResource(sysResourcePath_.c_str());
     if (!sysResRet) {
         HILOG_ERROR("Add system resource failed");
     }
+    HILOG_INFO("AbilityStageContext add sysResource:%s", sysResourcePath_.c_str());
     std::unique_ptr<Global::Resource::ResConfig> resConfig(Global::Resource::CreateResConfig());
     if (resConfig == nullptr) {
         HILOG_ERROR("resConfig is nullptr");
@@ -184,6 +188,7 @@ void AbilityStageContext::InitResourceManeger()
         }
     }
     resourceManager_->UpdateResConfig(*resConfig);
+    HILOG_INFO("AbilityStageContext InitResourceManeger end");
 }
 
 void AbilityStageContext::GetResourcePaths(std::string& appResourcePath, std::string& sysResourcePath)
