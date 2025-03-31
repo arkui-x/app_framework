@@ -17,23 +17,27 @@ import("//foundation/arkui/ace_engine/build/ace_gen_obj.gni")
 
 config("appkit_native_config") {
   include_dirs = [
-    "//base/global/resource_management/interfaces/inner_api/include",
-    "//base/global/resource_management/frameworks/resmgr/include",
-    "//foundation/arkui/ace_engine/interfaces/inner_api/ace_kit/include",
-    "//third_party/flutter/engine",
-    "//third_party/json/include",
+    "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/include",
+    "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/include",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/app_manager",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/configuration",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/error",
-    "${ability_runtime_cross_platform_path}/interfaces/inner_api/jsruntime",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/hilog",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/jsruntime",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/want",
     "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability",
     "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit",
-    "${ability_runtime_cross_platform_path}/frameworks/native/base/bundle_parser/include",
-    "${ability_runtime_cross_platform_path}/frameworks/native/base/event_handler/include",
     "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit/ability_delegator",
+    "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit/app",
+    "${cross_platform_napi_path}/app/js_error",
+    "${cross_platform_napi_path}/js_environment",
+    "//base/global/resource_management/frameworks/resmgr/include",
+    "//base/global/resource_management/interfaces/inner_api/include",
+    "//commonlibrary/c_utils/base/include",
+    "//foundation/arkui/ace_engine/interfaces/inner_api/ace_kit/include",
+    "//third_party/flutter/engine",
+    "//third_party/json/include",
   ]
 
   if (target_os == "android") {
@@ -74,6 +78,7 @@ template("ability_runtime_appkit_native") {
       "${ability_runtime_cross_platform_path}/frameworks/native/app/application.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/app/application_context.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/app/application_context_manager.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/app/application_data_manager.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/app/application_state_change_callback.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/app/js_ability_stage.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/app/js_ability_stage_context.cpp",
@@ -93,6 +98,8 @@ template("ability_runtime_appkit_native") {
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/want:cross_platform_want",
       "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability:cross_platform_abilitykit_native",
       "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability:cross_platform_abilitykit_native",
+      "${cross_platform_napi_path}/app/js_error:crossplatform_error_logger",
+      "${cross_platform_napi_path}/js_environment:cross_platform_js_environment",
     ]
 
     external_deps = [ "icu:static_icuuc" ]
@@ -113,12 +120,13 @@ template("appkit_delegator_appkit_native") {
   forward_variables_from(invoker, "*")
   ohos_source_set(target_name) {
     include_dirs = [
-      "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit/ability_delegator",
       "${ability_runtime_cross_platform_path}/interfaces/kits/native/ability",
-      "//third_party/icu/icu4c/source/common",
-      "//third_party/icu/icu4c/source",
+      "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit/ability_delegator",
+      "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit/app",
       "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/hilog",
       "//foundation/arkui/ace_engine/interfaces/inner_api/ace",
+      "//third_party/icu/icu4c/source",
+      "//third_party/icu/icu4c/source/common",
     ]
 
     configs = [
