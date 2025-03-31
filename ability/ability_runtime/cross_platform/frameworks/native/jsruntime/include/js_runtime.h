@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,6 +33,11 @@ namespace OHOS {
 namespace AppExecFwk {
 class EventHandler;
 } // namespace AppExecFwk
+
+namespace JsEnv {
+struct UncaughtExceptionInfo;
+class NapiUncaughtExceptionCallback;
+} // namespace JsEnv
 
 namespace AbilityRuntime {
 class TimerTask;
@@ -70,6 +75,7 @@ public:
     void StartDebugMode(bool needBreakPoint);
     bool StartDebugMode(const std::string& bundleName, bool needBreakPoint, uint32_t instanceId,
         const DebuggerPostTask& debuggerPostTask = {});
+    void RegisterUncaughtExceptionHandler(const JsEnv::UncaughtExceptionInfo& uncaughtExceptionInfo);
     bool IsNeedUpdate(const std::string& moduleName, const std::string& modulePath);
 
 protected:
