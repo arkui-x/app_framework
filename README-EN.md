@@ -1,36 +1,33 @@
-# app_framework
+# ArkUI-X Application Framework Adaptation Layer
 
-#### Description
-{**When you're done, you can delete the content in this README and update the file with details for others getting started with your repository**}
+## Introduction
 
-#### Software Architecture
-Software architecture description
+The ArkUI-X Application Framework (AppFramework) adaptation layer simulates the OpenHarmony app framework's runtime environment across different platforms. It adapts the application lifecycle and development model to specific system platforms, ensuring compatibility in development paradigms while maintaining consistent application behavior.
 
-#### Installation
+The application framework adaptation layer primarily includes these core modules:
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+- AbilityRuntime：The basic runtime environment for Ability, providing the basic capabilities of the Stage model.
+- ArkUI Interface Layer: Interface for starting ArkUI instances.
+- Graphic2D：2D Graphics Adaptation Layer
+- ResourceManagement：Resource Management
+- WindowManager：Window Management Module
 
-#### Instructions
+## Directory Introduction
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+The directory structure is shown in the figure below:
 
-#### Contribution
+```
+/foundation/appframework
+├── ability                       # Basic Runtime Environment for Ability
+├── arkui                         # ArkUI-related interfaces
+├── graphic_2d                    # 2D Graphics Adaptation Layer
+├── icu_data                      # ICU Internationalization Data Configuration
+├── resource_management           # Resource Management Module
+└── window_manager                # Window Management Module
+```
 
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
+## Framework development guidance
 
+For more framework development related content, please refer to:
 
-#### Gitee Feature
-
-1.  You can use Readme\_XXX.md to support different languages, such as Readme\_en.md, Readme\_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members  [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+- [Framework Developer Documentation](https://gitcode.com/arkui-x/docs/blob/master/en/framework-dev/README.md)
