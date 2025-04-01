@@ -183,7 +183,7 @@ struct AssetHelper final {
     }
 
     void operator()(const std::string& uri, uint8_t** buff, size_t* buffSize, std::vector<uint8_t>& content,
-        std::string &ami, bool& useSecureMem, void** mapper, bool isRestricted = false) const
+        std::string &ami, bool& useSecureMem, bool isRestricted = false) const
     {
         if (uri.empty()) {
             HILOG_ERROR("Uri is empty.");
