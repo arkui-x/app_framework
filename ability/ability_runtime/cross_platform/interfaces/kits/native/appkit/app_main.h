@@ -26,6 +26,10 @@
 
 class NativeReference;
 namespace OHOS {
+namespace JsEnv {
+    struct UncaughtExceptionInfo;
+}
+
 namespace AbilityRuntime {
 namespace Platform {
 using Want = AAFwk::Want;
@@ -73,6 +77,8 @@ private:
     void HandleApplicationBackground();
     void LoadIcuData();
     void HandlePreloadModule(const std::string& moduleName, const std::string& abilityName);
+    void RegisterUncaughtExceptionHandler(Runtime* runtime);
+    void FillUncaughtExceptionInfo(JsEnv::UncaughtExceptionInfo& info, const std::string& hapPath);
 
 private:
     std::shared_ptr<Application> application_ = nullptr;

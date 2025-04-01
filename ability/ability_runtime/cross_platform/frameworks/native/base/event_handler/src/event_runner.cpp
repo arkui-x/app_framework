@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 #include <sys/prctl.h>
 #endif
 #include <thread>
+#include <unistd.h>
 #include <unordered_map>
 #include <vector>
 
@@ -390,6 +391,7 @@ ThreadCollector::Avatar ThreadCollector::avatar_;
 } // unnamed namespace
 
 std::shared_ptr<EventRunner> EventRunner::mainRunner_;
+EventRunner::CallbackTime EventRunner::distributeCallback_ = nullptr;
 
 std::shared_ptr<EventRunner> EventRunner::Create(bool inNewThread)
 {
@@ -576,6 +578,23 @@ std::shared_ptr<EventRunner> EventRunner::GetMainEventRunner()
     }
 
     return mainRunner_;
+}
+
+bool EventRunner::IsAppMainThread()
+{
+#ifdef IOS_PLATFORM
+    return pthread_main_np();
+#else
+    static int pid = -1;
+
+    if (pid == -1) {
+        pid = getpid();
+    }
+    if (pid == gettid()) {
+        return true;
+    }
+    return false;
+#endif
 }
 } // namespace AppExecFwk
 } // namespace OHOS

@@ -74,6 +74,8 @@ public:
     int32_t GetProcessRunningInformation(std::vector<RunningProcessInfo>& processInfos);
     void SetResourceManager(const std::shared_ptr<Global::Resource::ResourceManager> &resMgr);
     void SetColorMode(int32_t colorMode);
+    std::string GetAppRunningUniqueId() const;
+    void SetAppRunningUniqueId(const std::string& appRunningUniqueId);
 
 private:
     std::shared_ptr<AppExecFwk::ApplicationInfo> applicationInfo_ = nullptr;
@@ -85,6 +87,7 @@ private:
     std::mutex applicationStateCallbackLock_;
     std::shared_ptr<Global::Resource::ResourceManager> resourceMgr_;
     AppConfigUpdateCallback appConfigChangeCallback_ = nullptr;
+    std::string appRunningUniqueId_;
 };
 } // namespace Platform
 } // namespace AbilityRuntime

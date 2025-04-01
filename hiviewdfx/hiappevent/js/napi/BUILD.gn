@@ -1,0 +1,35 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/arkui/ace_engine/ace_config.gni")
+
+ohos_source_set("napi_hiviewdfx_hiappevent") {
+  public_configs = [ "//foundation/appframework/hiviewdfx/hiappevent/native:native_hiviewdfx_hiappevent_config" ]
+  include_dirs = [
+    "//third_party/jsoncpp/include",
+    "//third_party/node/src",
+    "//foundation/arkui/napi/interfaces/inner_api",
+    "//third_party/libuv/include",
+  ]
+
+  sources = [
+    "//foundation/appframework/hiviewdfx/hiappevent/js/napi/src/napi_app_event_watcher.cpp",
+    "//foundation/appframework/hiviewdfx/hiappevent/js/napi/src/napi_util.cpp",
+  ]
+
+  deps = [ "//foundation/appframework/hiviewdfx/hiappevent/native:native_hiviewdfx_hiappevent" ]
+
+  subsystem_name = "hiappevent_napi"
+  part_name = "hiviewdfx_hiappevent"
+}

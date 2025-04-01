@@ -37,6 +37,7 @@ config("jsruntime_config") {
     "$ark_toolchain_path",
     "$ark_toolchain_path/inspector",
     "$ark_toolchain_path/websocket",
+    "${cross_platform_napi_path}/js_environment",
   ]
   if (target_os == "android") {
     include_dirs += [
@@ -89,13 +90,17 @@ template("ability_runtime_jsruntime") {
 
     deps = [
       "${ability_runtime_cross_platform_path}/interfaces/inner_api/bundle:cross_platform_bundle_parser",
+      "${cross_platform_napi_path}/js_environment:cross_platform_js_environment",
       "//foundation/appframework/resource_management/interfaces/js/innerkits/core:resmgr_napi_core",
       "//foundation/arkui/napi:ace_napi",
     ]
 
     if (is_arkui_x) {
       defines += [ "CROSS_PLATFORM" ]
-      include_dirs = [ "//commonlibrary/ets_utils/js_concurrent_module/common" ]
+      include_dirs = [
+        "${cross_platform_napi_path}/js_environment/uncaught_exception_callback.h",
+        "//commonlibrary/ets_utils/js_concurrent_module/common",
+      ]
     }
 
     if (target_os == "android") {
