@@ -364,16 +364,6 @@ bool RSSystemProperties::GetDynamicBrightnessEnabled()
     return true;
 }
 
-bool RSSystemProperties::IsTabletType()
-{
-    return false;
-}
-
-bool RSSystemProperties::IsPcType()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetEffectMergeEnabled()
 {
     return true;
