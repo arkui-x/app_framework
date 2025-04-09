@@ -17,15 +17,20 @@
 
 #include <fstream>
 #include <string>
+#include <unistd.h>
 
 #include "ability.h"
+#include "ability_context_adapter.h"
 #include "ability_delegator.h"
-#include "ability_delegator_registry.h"
 #include "ability_delegator_args.h"
+#include "ability_delegator_registry.h"
 #include "application_configuration_manager.h"
 #include "application_context.h"
-#include "ability_context_adapter.h"
+#include "application_data_manager.h"
+#include "base/log/ace_trace.h"
+#include "base/utils/string_utils.h"
 #include "hilog.h"
+#include "js_error_logger.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
 #include "preload_manager.h"
@@ -34,11 +39,14 @@
 #include "base/log/ace_trace.h"
 #include "base/utils/string_utils.h"
 #include "ohos/init_data.h"
-
+#include "runtime.h"
+#include "uncaught_exception_callback.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
+constexpr int64_t NANOSECONDS = 1000000000;
+constexpr int64_t MICROSECONDS = 1000000;
 std::shared_ptr<AppMain> AppMain::instance_ = nullptr;
 std::mutex AppMain::mutex_;
 AppMain::AppMain()
@@ -110,6 +118,12 @@ void AppMain::ScheduleLaunchApplication(bool isCopyNativeLibs)
         HILOG_ERROR("applicationContext is nullptr");
         return;
     }
+    struct timespec t;
+    t.tv_sec = 0;
+    t.tv_nsec = 0;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    applicationContext->SetAppRunningUniqueId(
+        std::to_string(static_cast<int64_t>((t.tv_sec) * NANOSECONDS + t.tv_nsec) / MICROSECONDS));
     applicationContext->SetBundleContainer(bundleContainer_);
     ParseBundleComplete();
 
@@ -183,6 +197,7 @@ bool AppMain::CreateRuntime(const std::string& bundleName, bool isBundle)
         return false;
     }
 
+    RegisterUncaughtExceptionHandler(runtime.get());
     application_->SetRuntime(std::move(runtime));
     return true;
 }
@@ -484,6 +499,88 @@ void AppMain::HandleDispatchOnAbilityResult(
     abilityResultWant.ParseJson(resultWant);
     application_->DispatchOnAbilityResult(
         TransformToWant(instanceName), requestCode, resultCode, abilityResultWant);
+}
+
+void AppMain::RegisterUncaughtExceptionHandler(Runtime* runtime)
+{
+    if (runtime == nullptr || bundleContainer_ == nullptr) {
+        HILOG_ERROR("AppMain RegisterUncaughtExceptionHandler failed, runtime or bundleContainer_ is nullptr");
+        return;
+    }
+    auto bundleInfo = bundleContainer_->GetBundleInfo();
+    if (bundleInfo == nullptr) {
+        HILOG_ERROR("bundleInfo is nullptr");
+        return;
+    }
+    bool findEntryHapModuleInfo = false;
+    AppExecFwk::HapModuleInfo entryHapModuleInfo;
+    if (!bundleInfo->hapModuleInfos.empty()) {
+        for (auto hapModuleInfo : bundleInfo->hapModuleInfos) {
+            if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::ENTRY) {
+                findEntryHapModuleInfo = true;
+                entryHapModuleInfo = hapModuleInfo;
+                break;
+            }
+        }
+        if (!findEntryHapModuleInfo) {
+            entryHapModuleInfo = bundleInfo->hapModuleInfos.back();
+        }
+    }
+
+    JsEnv::UncaughtExceptionInfo uncaughtExceptionInfo;
+    FillUncaughtExceptionInfo(uncaughtExceptionInfo, entryHapModuleInfo.hapPath);
+    (static_cast<AbilityRuntime::JsRuntime&>(*runtime)).RegisterUncaughtExceptionHandler(uncaughtExceptionInfo);
+}
+
+void AppMain::FillUncaughtExceptionInfo(JsEnv::UncaughtExceptionInfo& info, const std::string& hapPath)
+{
+    if (application_ == nullptr || bundleContainer_ == nullptr) {
+        HILOG_ERROR("application_ or bundleContainer_ is nullptr");
+        return;
+    }
+    auto applicationContext = application_->GetApplicationContext();
+    auto applicationInfo = bundleContainer_->GetApplicationInfo();
+    if (applicationContext == nullptr || applicationInfo == nullptr) {
+        HILOG_ERROR("applicationContext or applicationInfo is nullptr");
+        return;
+    }
+    info.hapPath = hapPath;
+    JsErrorInfo jsInfo;
+    jsInfo.appRunningId = applicationContext->GetAppRunningUniqueId();
+    jsInfo.bundleName = applicationInfo->bundleName;
+    jsInfo.versionName = applicationInfo->versionName;
+    jsInfo.pid = pid_;
+    jsInfo.uid = uid_;
+    std::weak_ptr<AppMain> weakThis = shared_from_this();
+    info.uncaughtTask = [weakThis, jsInfo] (std::string summary, const JsEnv::ErrorObject errorObj) {
+        auto sharedThis = weakThis.lock();
+        if (sharedThis == nullptr) {
+            HILOG_ERROR("null AppMain");
+            return;
+        }
+        AppExecFwk::ErrorObject appExecErrorObj = {
+            .name = errorObj.name,
+            .message = errorObj.message,
+            .stack = errorObj.stack
+        };
+        if (sharedThis->application_ == nullptr) {
+            return;
+        }
+        JsErrorLogger::SendExceptionToJsError(jsInfo, appExecErrorObj, sharedThis->application_->IsForegroud());
+        auto& runtime = sharedThis->application_->GetRuntime();
+        if (runtime == nullptr) {
+            return;
+        }
+        auto napiEnv = (static_cast<AbilityRuntime::JsRuntime&>(*runtime)).GetNapiEnv();
+        if (NapiErrorManager::GetInstance()->NotifyUncaughtException(
+            napiEnv, summary, appExecErrorObj.name,
+            appExecErrorObj.message, appExecErrorObj.stack)) {
+            return;
+        }
+        if (AppExecFwk::ApplicationDataManager::GetInstance().NotifyUnhandledException(summary)) {
+            AppExecFwk::ApplicationDataManager::GetInstance().NotifyExceptionObject(appExecErrorObj);
+        }
+    };
 }
 
 void AppMain::ParseHspModuleJson(const std::string& moduleName)

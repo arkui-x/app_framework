@@ -37,6 +37,10 @@ public:
     void SetRuntime(std::unique_ptr<AbilityRuntime::Runtime>&& runtime);
     const std::unique_ptr<AbilityRuntime::Runtime>& GetRuntime();
     void SetApplicationContext(const std::shared_ptr<ApplicationContext>& applicationContext);
+    std::shared_ptr<ApplicationContext> GetApplicationContext()
+    {
+        return applicationContext_;
+    };
 
     void SetBundleContainer(const std::shared_ptr<AppExecFwk::BundleContainer>& bundleContainer)
     {
@@ -54,6 +58,7 @@ public:
         const AAFwk::Want& want, int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant);
     void NotifyApplicationForeground();
     void NotifyApplicationBackground();
+    bool IsForegroud();
 
 private:
     std::shared_ptr<AbilityStage> FindAbilityStage(const std::string& moduleName);
@@ -65,6 +70,7 @@ private:
     std::unordered_map<std::string, std::shared_ptr<AbilityStage>> abilityStages_;
     std::shared_ptr<AppExecFwk::BundleContainer> bundleContainer_ = nullptr;
     std::shared_ptr<Configuration> configuration_ = nullptr;
+    bool isForeground_ = true;
 };
 } // namespace Platform
 } // namespace AbilityRuntime

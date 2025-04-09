@@ -1,0 +1,42 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
+
+ohos_source_set("crossplatform_error_logger") {
+  include_dirs = [
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/app_manager",
+    "//commonlibrary/c_utils/base/include",
+    "//foundation/appframework/hiviewdfx/hiappevent/native/include",
+    "//foundation/appframework/hiviewdfx/hiappevent/native/include/observer",
+    "//foundation/appframework/hiviewdfx/hiappevent/native/include/utility",
+    "//foundation/appframework/hiviewdfx/hiappevent/native/include/clean",
+    "//foundation/appframework/hiviewdfx/hiappevent/js/napi/include",
+    "//third_party/jsoncpp/include",
+    "//third_party/libuv/include",
+  ]
+
+  sources = [ "js_error_logger.cpp" ]
+
+  deps = [ "//foundation/appframework/hiviewdfx/hiappevent/native:native_hiviewdfx_hiappevent" ]
+
+  if (target_os == "android") {
+    defines = [ "ANDROID_PLATFORM" ]
+  } else if (target_os == "ios") {
+    defines = [ "IOS_PLATFORM" ]
+  }
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +35,9 @@ class EventRunner final {
 public:
     EventRunner() = delete;
     ~EventRunner();
+
+    using CallbackTime = std::function<void(int64_t)>;
+    static CallbackTime distributeCallback_;
 
     /**
      * Create new 'EventRunner'.
@@ -230,6 +233,41 @@ public:
     }
 
     /**
+     * Set the main thread timeout period.
+     *
+     * @param distributeTimeout the distribution standard expiration time.
+     */
+    void SetTimeout(int64_t distributeTimeout)
+    {
+        timeout_ = distributeTimeout;
+    }
+
+    /**
+     * Set distribute time out callback.
+     *
+     * @param callback Distribute Time out callback.
+     */
+    void SetTimeoutCallback(CallbackTime callback)
+    {
+        distributeCallback_ = callback;
+    }
+
+    /**
+     * Get the execution standard timeout period.
+     *
+     * @return the distribution standard expiration time.
+     */
+    int64_t GetTimeout() const
+    {
+        return timeout_;
+    }
+
+    /**
+     * Check if the current application is the main thread.
+     */
+    static bool IsAppMainThread();
+
+    /**
      * Obtains the EventRunner for the main thread of the application.
      *
      * @return Returns the EventRunner for the main thread of the application.
@@ -254,6 +292,7 @@ private:
 
     int64_t deliveryTimeout_ = 0;
     int64_t distributeTimeout_ = 0;
+    int64_t timeout_ = 0;
     bool deposit_ { true };
     std::atomic<bool> running_ { false };
     std::shared_ptr<EventQueue> queue_;
