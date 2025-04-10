@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -280,6 +280,20 @@ void EventHandler::DistributeTimeAction(const InnerEvent::Pointer& event, InnerE
 #endif // HAS_HICHECKER_NATIVE_PART
 }
 
+void EventHandler::DistributeTimeoutHandler(const InnerEvent::TimePoint& beginTime)
+{
+    int64_t distributeTimeout = EventRunner::GetMainEventRunner()->GetTimeout();
+    if (distributeTimeout > 0) {
+        InnerEvent::TimePoint endTime = InnerEvent::Clock::now();
+        if ((endTime - std::chrono::milliseconds(distributeTimeout)) > beginTime &&
+            EventRunner::distributeCallback_) {
+            auto diff = endTime - beginTime;
+            int64_t durationTime = std::chrono::duration_cast<std::chrono::milliseconds>(diff).count();
+            EventRunner::distributeCallback_(durationTime);
+        }
+    }
+}
+
 void EventHandler::DistributeEvent(const InnerEvent::Pointer& event)
 {
     if (!event) {
@@ -289,12 +303,24 @@ void EventHandler::DistributeEvent(const InnerEvent::Pointer& event)
 
     currentEventHandler = shared_from_this();
 
+    InnerEvent::TimePoint nowStart = InnerEvent::Clock::now();
+    DeliveryTimeAction(event, nowStart);
+    InnerEvent::TimePoint beginTime;
+    bool isAppMainThread = EventRunner::IsAppMainThread();
+    if (isAppMainThread) {
+        beginTime = InnerEvent::Clock::now();
+    }
+
     if (event->HasTask()) {
         // Call task callback directly if contains a task.
         (event->GetTaskCallback())();
     } else {
         // Otherwise let developers to handle it.
         ProcessEvent(event);
+    }
+
+    if (isAppMainThread) {
+        DistributeTimeoutHandler(beginTime);
     }
 }
 

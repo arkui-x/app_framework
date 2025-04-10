@@ -233,6 +233,7 @@ void Application::NotifyApplicationForeground()
         HILOG_ERROR("stage is nullptr");
         return;
     }
+    isForeground_ = true;
     applicationContext_->NotifyApplicationForeground();
 }
 
@@ -242,7 +243,13 @@ void Application::NotifyApplicationBackground()
         HILOG_ERROR("applicationContext is nullptr");
         return;
     }
+    isForeground_ = false;
     applicationContext_->NotifyApplicationBackground();
+}
+
+bool Application::IsForegroud()
+{
+    return isForeground_;
 }
 
 bool Application::IsUpdateColorNeeded(Configuration& config, SetLevel level)

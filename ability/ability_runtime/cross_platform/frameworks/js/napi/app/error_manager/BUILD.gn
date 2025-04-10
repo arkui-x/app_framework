@@ -1,0 +1,45 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
+
+ohos_source_set("error_manager_source_set") {
+  include_dirs = [
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/app_manager",
+    "${ability_runtime_cross_platform_path}/interfaces/inner_api/error",
+    "${ability_runtime_cross_platform_path}/interfaces/kits/native/appkit/app",
+    "//commonlibrary/c_utils/base/include",
+  ]
+
+  sources = [
+    "error_manager_module.cpp",
+    "js_error_manager.cpp",
+    "js_error_observer.cpp",
+  ]
+
+  deps = [
+    "${cross_platform_napi_path}/napi_common:napi_common",
+    "//foundation/arkui/napi:ace_napi",
+  ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_shared_library("errormanager") {
+  deps = [ ":error_manager_source_set" ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}

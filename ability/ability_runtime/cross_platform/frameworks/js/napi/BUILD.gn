@@ -23,11 +23,13 @@ group("napi_packages") {
       "${cross_platform_napi_path}/ability_delegator:ability_delegator_source_set",
       "${cross_platform_napi_path}/ability_stage:app_ability_abilitystage_source_set",
       "${cross_platform_napi_path}/ability_stage_context:application_abilitystagecontext_source_set",
+      "${cross_platform_napi_path}/app/error_manager:error_manager_source_set",
       "${cross_platform_napi_path}/application_context:application_applicationcontext_source_set",
       "${cross_platform_napi_path}/application_state_change_callback:applicationstatechangecallback_source_set",
       "${cross_platform_napi_path}/bundle_manager:bundle_bundlemanager_source_set",
       "${cross_platform_napi_path}/configuration_constant:app_ability_configurationconstant_source_set",
       "${cross_platform_napi_path}/context:application_context_source_set",
+      "//foundation/appframework/hiviewdfx/hiappevent/js/napi:napi_hiviewdfx_hiappevent",
     ]
   } else {
     deps = [
@@ -37,6 +39,7 @@ group("napi_packages") {
       "${cross_platform_napi_path}/ability_delegator:ability_delegator",
       "${cross_platform_napi_path}/ability_stage:app_ability_abilitystage",
       "${cross_platform_napi_path}/ability_stage_context:application_abilitystagecontext",
+      "${cross_platform_napi_path}/app/error_manager:errorManager",
       "${cross_platform_napi_path}/application_context:application_applicationcontext",
       "${cross_platform_napi_path}/application_state_change_callback:applicationstatechangecallback",
       "${cross_platform_napi_path}/bundle_manager:bundle_bundlemanager",

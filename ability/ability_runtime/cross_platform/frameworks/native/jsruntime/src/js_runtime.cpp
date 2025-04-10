@@ -43,6 +43,8 @@
 #include "native_engine/impl/ark/ark_native_engine.h"
 #include "stage_asset_manager.h"
 
+#include "uncaught_exception_callback.h"
+
 #include "base/log/ace_trace.h"
 
 #ifdef SUPPORT_GRAPHICS
@@ -644,6 +646,15 @@ bool JsRuntime::StartDebugMode(
 #endif
     StartDebuggerInWorkerModule();
     return true;
+}
+
+void JsRuntime::RegisterUncaughtExceptionHandler(const JsEnv::UncaughtExceptionInfo& uncaughtExceptionInfo)
+{
+    ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+    if (engine != nullptr) {
+        engine->RegisterNapiUncaughtExceptionHandler(
+            JsEnv::NapiUncaughtExceptionCallback(uncaughtExceptionInfo.uncaughtTask, nullptr, env_));
+    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

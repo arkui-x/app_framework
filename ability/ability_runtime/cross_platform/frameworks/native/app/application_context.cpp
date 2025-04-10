@@ -361,6 +361,16 @@ void ApplicationContext::SetColorMode(int32_t colorMode)
         appConfigChangeCallback_(config);
     }
 }
+
+void ApplicationContext::SetAppRunningUniqueId(const std::string& appRunningUniqueId)
+{
+    appRunningUniqueId_ = appRunningUniqueId;
+}
+
+std::string ApplicationContext::GetAppRunningUniqueId() const
+{
+    return appRunningUniqueId_;
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

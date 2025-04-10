@@ -138,7 +138,8 @@ void AbilityStageContext::InitResourceManeger()
     std::string moduleName = hapModuleInfo_->moduleName;
     StageAssetManager::GetInstance()->GetResIndexPath(moduleName, appResourcePath_, sysResourcePath_);
     bool isDynamicModule = StageAssetManager::GetInstance()->IsDynamicUpdateModule(moduleName);
-    auto appResRet = resourceManager_->AddResource(appResourcePath_.c_str(), isDynamicModule);
+    auto appResRet =
+    resourceManager_->AddResource(appResourcePath_.c_str(), Global::Resource::SELECT_ALL, isDynamicModule);
     if (!appResRet) {
         HILOG_ERROR("Add app resource failed");
     }
