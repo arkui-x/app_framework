@@ -35,6 +35,7 @@ config("appkit_native_config") {
     "//base/global/resource_management/frameworks/resmgr/include",
     "//base/global/resource_management/interfaces/inner_api/include",
     "//commonlibrary/c_utils/base/include",
+    "//foundation/arkui/ace_engine",
     "//foundation/arkui/ace_engine/interfaces/inner_api/ace_kit/include",
     "//third_party/flutter/engine",
     "//third_party/json/include",
