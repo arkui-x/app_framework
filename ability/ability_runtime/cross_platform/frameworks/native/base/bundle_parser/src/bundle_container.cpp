@@ -36,12 +36,16 @@ void BundleContainer::LoadBundleInfos(const std::list<std::vector<uint8_t>>& buf
     HILOG_INFO("BundleContainer LoadBundleInfos bufList size %{public}d", static_cast<int>(bufList.size()));
     for (auto it = bufList.begin(); it != bufList.end(); it++) {
         InnerBundleInfo bInfo;
-        if (parser.Parse(*it, bInfo) == ERR_OK) {
-            if (bundleInfo_ == nullptr) {
-                bundleInfo_ = std::make_shared<InnerBundleInfo>();
-                *bundleInfo_ = bInfo;
-            } else {
-                bundleInfo_->AddModuleInfo(bInfo);
+        if (parser.Parse(*it, bInfo) != ERR_OK) {
+            continue;
+        }
+        if (bundleInfo_ == nullptr) {
+            bundleInfo_ = std::make_shared<InnerBundleInfo>();
+            *bundleInfo_ = bInfo;
+        } else {
+            bool added = bundleInfo_->AddModuleInfo(bInfo);
+            if (!added) {
+                bundleInfo_->UpdateModuleInfo(bInfo);
             }
         }
     }
@@ -64,6 +68,22 @@ std::shared_ptr<BundleInfo> BundleContainer::GetBundleInfo() const
         auto flag = static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE);
         auto uid = Constants::UNSPECIFIED_USERID;
         if (bundleInfo_->GetBundleInfo(flag, *bInfo, uid)) {
+            return bInfo;
+        }
+    }
+    return nullptr;
+}
+
+std::shared_ptr<BundleInfo> BundleContainer::GetBundleInfoV9(int32_t flag) const
+{
+    HILOG_INFO("BundleContainer GetBundleInfoV9 flag %{public}d", flag);
+    if (bundleInfo_ != nullptr) {
+        auto bInfo = std::make_shared<BundleInfo>();
+        if (bInfo == nullptr) {
+            return nullptr;
+        }
+        auto uid = Constants::UNSPECIFIED_USERID;
+        if (bundleInfo_->GetBundleInfoV9(flag, *bInfo, uid) == ERR_OK) {
             return bInfo;
         }
     }

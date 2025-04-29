@@ -1175,6 +1175,7 @@ void InnerBundleInfo::GetApplicationInfo(int32_t flags, int32_t userId, Applicat
 
 ErrCode InnerBundleInfo::GetApplicationInfoV9(int32_t flags, int32_t userId, ApplicationInfo& appInfo) const
 {
+    appInfo = *baseApplicationInfo_;
     for (const auto& info : innerModuleInfos_) {
         bool deCompress = info.second.hapPath.empty();
         ModuleInfo moduleInfo;

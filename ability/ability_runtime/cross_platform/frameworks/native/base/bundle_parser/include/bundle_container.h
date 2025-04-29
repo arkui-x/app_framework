@@ -37,6 +37,7 @@ public:
     void LoadBundleInfos(const std::list<std::vector<uint8_t>>& bufList);
     std::shared_ptr<ApplicationInfo> GetApplicationInfo() const;
     std::shared_ptr<BundleInfo> GetBundleInfo() const;
+    std::shared_ptr<BundleInfo> GetBundleInfoV9(int32_t flag) const;
     std::shared_ptr<HapModuleInfo> GetHapModuleInfo(const std::string& modulePackage) const;
     void RemoveModuleInfo(const std::string& modulePackage);
     std::shared_ptr<AbilityInfo> GetAbilityInfo(const std::string& moduleName, const std::string& abilityName) const;
