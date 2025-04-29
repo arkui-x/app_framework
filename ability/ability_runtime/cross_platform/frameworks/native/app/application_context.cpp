@@ -362,6 +362,26 @@ void ApplicationContext::SetColorMode(int32_t colorMode)
     }
 }
 
+void ApplicationContext::SetFont(const std::string &font)
+{
+    HILOG_DEBUG("SetFont:%{public}s", font.c_str());
+    Configuration config;
+    config.AddItem(ConfigurationInner::APPLICATION_FONT, font);
+    if (appConfigChangeCallback_ != nullptr) {
+        appConfigChangeCallback_(config);
+    }
+}
+
+bool ApplicationContext::SetFontSizeScale(double fontSizeScale)
+{
+    Configuration config;
+    config.AddItem(ConfigurationInner::SYSTEM_FONT_SIZE_SCALE, std::to_string(fontSizeScale));
+    if (appConfigChangeCallback_ != nullptr) {
+        appConfigChangeCallback_(config);
+    }
+    return true;
+}
+
 void ApplicationContext::SetAppRunningUniqueId(const std::string& appRunningUniqueId)
 {
     appRunningUniqueId_ = appRunningUniqueId;
