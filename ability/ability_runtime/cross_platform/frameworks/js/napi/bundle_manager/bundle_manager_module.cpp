@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,7 @@
  */
 
 #include "ability_info.h"
+#include "js_bundle_manager.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "native_engine/native_engine.h"
@@ -47,14 +48,55 @@ static napi_value InitLaunchTypeObject(napi_env env)
     return object;
 }
 
+static napi_value InitBundleFlagObject(napi_env env)
+{
+    napi_value object = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &object));
+
+    NAPI_CALL(env, SetEnumItem(env, object, "GET_BUNDLE_INFO_DEFAULT",
+                       static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_DEFAULT)));
+    NAPI_CALL(env, SetEnumItem(env, object, "GET_BUNDLE_INFO_WITH_APPLICATION",
+                       static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION)));
+    NAPI_CALL(env, SetEnumItem(env, object, "GET_BUNDLE_INFO_WITH_HAP_MODULE",
+                       static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE)));
+    NAPI_CALL(env, SetEnumItem(env, object, "GET_BUNDLE_INFO_WITH_ABILITY",
+                       static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_ABILITY)));
+    NAPI_CALL(
+        env, SetEnumItem(env, object, "GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION",
+                 static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION)));
+    NAPI_CALL(env, SetEnumItem(env, object, "GET_BUNDLE_INFO_WITH_METADATA",
+                       static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_METADATA)));
+    NAPI_CALL(env, SetEnumItem(env, object, "GET_BUNDLE_INFO_WITH_DISABLE",
+                       static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_DISABLE)));
+    NAPI_CALL(env, SetEnumItem(env, object, "GET_BUNDLE_INFO_WITH_SIGNATURE_INFO",
+                       static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_SIGNATURE_INFO)));
+
+    return object;
+}
+
 static napi_value BundleManagerExport(napi_env env, napi_value exports)
 {
     napi_value launchType = InitLaunchTypeObject(env);
     NAPI_ASSERT(env, launchType != nullptr, "failed to create launch type object");
 
+    napi_value bundleFlag = InitBundleFlagObject(env);
+    NAPI_ASSERT(env, bundleFlag != nullptr, "failed to create bundle flag object");
+
     napi_property_descriptor exportObjs[] = {
         DECLARE_NAPI_PROPERTY("LaunchType", launchType),
+        DECLARE_NAPI_PROPERTY("BundleFlag", bundleFlag),
     };
+
+    std::unique_ptr<JsBundleManager> jsBundleManager = std::make_unique<JsBundleManager>();
+    NAPI_ASSERT(env, jsBundleManager != nullptr, "failed to create JsBundleManager object");
+
+    napi_wrap(env, exports, jsBundleManager.release(), JsBundleManager::Finalizer, nullptr, nullptr);
+
+    const char* moduleName = "JsBundleManager";
+    AbilityRuntime::BindNativeFunction(
+        env, exports, "getBundleInfoForSelfSync", moduleName, JsBundleManager::GetBundleInfoForSelfSync);
+    AbilityRuntime::BindNativeFunction(
+        env, exports, "getBundleInfoForSelf", moduleName, JsBundleManager::GetBundleInfoForSelf);
 
     napi_status status = napi_define_properties(env, exports, sizeof(exportObjs) / sizeof(exportObjs[0]), exportObjs);
     NAPI_ASSERT(env, status == napi_ok, "failed to define properties for exports");
