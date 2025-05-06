@@ -74,6 +74,8 @@ public:
     int32_t GetProcessRunningInformation(std::vector<RunningProcessInfo>& processInfos);
     void SetResourceManager(const std::shared_ptr<Global::Resource::ResourceManager> &resMgr);
     void SetColorMode(int32_t colorMode);
+    void SetFont(const std::string &font);
+    bool SetFontSizeScale(double fontSizeScale);
     std::string GetAppRunningUniqueId() const;
     void SetAppRunningUniqueId(const std::string& appRunningUniqueId);
 

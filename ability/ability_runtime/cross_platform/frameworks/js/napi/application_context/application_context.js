@@ -149,6 +149,14 @@ class ApplicationContext {
     setColorMode(colorMode) {
         return this.__contextImpl__.setColorMode(colorMode);
     }
+
+    setFont(font) {
+      return this.__contextImpl__.setFont(font);
+    }
+    
+    setFontSizeScale(fontSizeScale) {
+      return this.__contextImpl__.setFontSizeScale(fontSizeScale);
+    }
 }
 
 export default ApplicationContext;
