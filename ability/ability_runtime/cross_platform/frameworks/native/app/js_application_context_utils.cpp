@@ -568,6 +568,51 @@ napi_value JsApplicationContextUtils::OnSetColorMode(napi_env env, NapiCallbackI
     return CreateJsUndefined(env);
 }
 
+napi_value JsApplicationContextUtils::SetFont(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils, OnSetFont, APPLICATION_CONTEXT_NAME);
+}
+
+napi_value JsApplicationContextUtils::OnSetFont(napi_env env, NapiCallbackInfo& info)
+{
+    std::string fontName;
+    if (!ConvertFromJsValue(env, info.argv[0], fontName)) {
+        HILOG_ERROR("Parse fontName failed");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        HILOG_WARN("applicationContext is already released");
+        return CreateJsUndefined(env);
+    }
+    applicationContext->SetFont(fontName);
+    return CreateJsUndefined(env);
+}
+
+napi_value JsApplicationContextUtils::SetFontSizeScale(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils, OnSetFontSizeScale,
+        APPLICATION_CONTEXT_NAME);
+}
+
+napi_value JsApplicationContextUtils::OnSetFontSizeScale(napi_env env, NapiCallbackInfo& info)
+{
+    double fontSizeScale;
+    if (!ConvertFromJsValue(env, info.argv[0], fontSizeScale)) {
+        HILOG_ERROR("Parse fontSizeScale failed");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        HILOG_WARN("applicationContext is already released");
+        return CreateJsUndefined(env);
+    }
+    applicationContext->SetFontSizeScale(fontSizeScale);
+    return CreateJsUndefined(env);
+}
+
 void JsApplicationContextUtils::BindNativeApplicationContext(napi_env env, napi_value object)
 {
     BindNativeProperty(env, object, "cacheDir", JsApplicationContextUtils::GetCacheDir);
@@ -584,6 +629,8 @@ void JsApplicationContextUtils::BindNativeApplicationContext(napi_env env, napi_
         JsApplicationContextUtils::GetRunningProcessInformation);
     BindNativeFunction(env, object, "createModuleContext", MD_NAME, JsApplicationContextUtils::CreateModuleContext);
     BindNativeFunction(env, object, "setColorMode", MD_NAME, JsApplicationContextUtils::SetColorMode);
+    BindNativeFunction(env, object, "setFont", MD_NAME, JsApplicationContextUtils::SetFont);
+    BindNativeFunction(env, object, "setFontSizeScale", MD_NAME, JsApplicationContextUtils::SetFontSizeScale);
 }
 } // namespace Platform
 } // namespace AbilityRuntime
