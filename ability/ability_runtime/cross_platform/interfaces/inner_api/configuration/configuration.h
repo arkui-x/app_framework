@@ -43,6 +43,7 @@ constexpr const char* DIRECTION_HORIZONTAL = "horizontal";
 constexpr const char* DEVICE_TYPE_PHONE = "Phone";
 constexpr const char* DEVICE_TYPE_TABLET = "Tablet";
 constexpr const char* SYSTEM_FONT_SIZE_SCALE = "system.font.size.scale";
+constexpr const char* APPLICATION_FONT = "ohos.application.font";
 }; // namespace ConfigurationInner
 
 class Configuration {
