@@ -14,7 +14,7 @@
  */
 
 #include <cinttypes>
-#include "surface_utils.h"
+#include "cross_platform/surface_utils.h"
 
 namespace OHOS {
 SurfaceUtils& SurfaceUtils::GetInstance()
