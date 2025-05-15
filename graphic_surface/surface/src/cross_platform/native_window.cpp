@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include "external_window.h"
-#include "surface_utils.h"
+#include "cross_platform/external_window.h"
+#include "cross_platform/surface_utils.h"
 
 using namespace OHOS;
 int32_t OH_NativeWindow_CreateNativeWindowFromSurfaceId(uint64_t surfaceId, OHNativeWindow **window)
