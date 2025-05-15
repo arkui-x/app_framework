@@ -87,7 +87,7 @@ void RSAshmemHelper::CopyFileDescriptor(
 }
 
 void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataParcel, MessageParcel* ashmemParcel,
-    std::unique_ptr<AshmemFdWorker>& ashmemFdWorker)
+    std::unique_ptr<AshmemFdWorker>& ashmemFdWorker, pid_t callingPid)
 {
 }
 
