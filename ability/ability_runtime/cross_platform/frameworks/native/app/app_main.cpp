@@ -38,6 +38,7 @@
 
 #include "base/log/ace_trace.h"
 #include "base/utils/string_utils.h"
+#include "include/core/SkFontMgr.h"
 #include "ohos/init_data.h"
 #include "runtime.h"
 #include "uncaught_exception_callback.h"
@@ -697,6 +698,16 @@ void AppMain::HandlePreloadModule(const std::string& moduleName, const std::stri
         return;
     }
 }
+
+#ifdef IOS_PLATFORM
+void AppMain::SetResourceFilePrefixPath()
+{
+    std::string resourcesFilePrefixPath("");
+    std::string runtimeOS = "IOS";
+    resourcesFilePrefixPath = StageAssetManager::GetInstance()->GetResourceFilePrefixPath();
+    SkFontMgr::SetFontMgrConfig(runtimeOS, resourcesFilePrefixPath);
+}
+#endif
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -39,6 +39,7 @@ config("appkit_native_config") {
     "//foundation/arkui/ace_engine/interfaces/inner_api/ace_kit/include",
     "//third_party/flutter/engine",
     "//third_party/json/include",
+    "//third_party/skia",
   ]
 
   if (target_os == "android") {
@@ -106,10 +107,16 @@ template("ability_runtime_appkit_native") {
     external_deps = [ "icu:static_icuuc" ]
 
     if (target_os == "android") {
-      defines += [ "ANDROID_PLATFORM" ]
+      defines += [
+        "ANDROID_PLATFORM",
+        "CROSS_PLATFORM",
+      ]
       deps += [ "//foundation/arkui/napi:ace_napi" ]
     } else if (target_os == "ios") {
-      defines += [ "IOS_PLATFORM" ]
+      defines += [
+        "IOS_PLATFORM",
+        "CROSS_PLATFORM",
+      ]
       deps += [ "//foundation/arkui/napi:ace_napi" ]
     }
     deps += [ "//foundation/appframework/resource_management:global_resmgr" ]
