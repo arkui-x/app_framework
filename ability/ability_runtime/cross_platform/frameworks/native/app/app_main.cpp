@@ -46,6 +46,9 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
+const std::string CONFIGURATION = "configuration";
+const std::string FONT_SIZE_SCALE = "fontSizeScale";
+const std::string FONT_SIZE_MAX_SCALE = "fontSizeMaxScale";
 constexpr int64_t NANOSECONDS = 1000000000;
 constexpr int64_t MICROSECONDS = 1000000;
 std::shared_ptr<AppMain> AppMain::instance_ = nullptr;
@@ -316,6 +319,44 @@ void AppMain::InitConfiguration(const std::string& jsonConfiguration)
     eventHandler_->PostTask(task);
 }
 
+void AddConfigurationData(Configuration& configuration, const std::string& moduleName)
+{
+    auto fontConfigBuffer = StageAssetManager::GetInstance()->GetFontConfigJsonBuffer(moduleName);
+    if (fontConfigBuffer.empty()) {
+        return;
+    }
+    std::string fontConfigContent(fontConfigBuffer.begin(), fontConfigBuffer.end());
+    nlohmann::json fontConfigJson = nlohmann::json::parse(fontConfigContent, nullptr, false);
+    if (fontConfigJson.is_discarded() || !fontConfigJson.contains(CONFIGURATION)) {
+        return;
+    }
+    auto fontConfig = fontConfigJson[CONFIGURATION];
+    if (fontConfig.is_discarded() || !fontConfig.is_object()) {
+        return;
+    }
+    if (fontConfig.contains(FONT_SIZE_SCALE)) {
+        std::string fontSizeScaleStr = fontConfig[FONT_SIZE_SCALE].get<std::string>();
+        configuration.AddItem(ConfigurationInner::APP_FONT_SIZE_SCALE, fontSizeScaleStr);
+    }
+    if (fontConfig.contains(FONT_SIZE_MAX_SCALE)) {
+        std::string fontMaxScaleStr = fontConfig[FONT_SIZE_MAX_SCALE].get<std::string>();
+        configuration.AddItem(ConfigurationInner::APP_FONT_MAX_SCALE, fontMaxScaleStr);
+    }
+}
+
+void UpdateModuleConfiguration(const std::string& moduleName)
+{
+    auto applicationContext = ApplicationContext::GetInstance();
+    if (applicationContext == nullptr) {
+        return;
+    }
+    auto configuration = applicationContext->GetConfiguration();
+    if (configuration == nullptr) {
+        return;
+    }
+    AddConfigurationData(*configuration, moduleName);
+}
+
 void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std::string& params)
 {
     HILOG_INFO("HandleDispatchOnCreate called, instanceName: %{public}s", instanceName.c_str());
@@ -333,6 +374,7 @@ void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std:
 #endif
         bundleContainer_->RemoveModuleInfo(moduleName);
     }
+    UpdateModuleConfiguration(moduleName);
     auto hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
     if (hapModuleInfo == nullptr) {
         auto moduleList = StageAssetManager::GetInstance()->GetModuleJsonBufferList();
@@ -418,6 +460,8 @@ void AppMain::HandleOnConfigurationUpdate(const std::string& jsonConfiguration)
     }
     Configuration configuration;
     configuration.ReadFromJsonConfiguration(jsonConfiguration);
+    std::string moduleName;
+    AddConfigurationData(configuration, moduleName);
     application_->OnConfigurationUpdate(configuration, SetLevel::System);
 }
 
@@ -430,6 +474,8 @@ void AppMain::HandleInitConfiguration(const std::string& jsonConfiguration)
     }
     Configuration configuration;
     configuration.ReadFromJsonConfiguration(jsonConfiguration);
+    std::string moduleName;
+    AddConfigurationData(configuration, moduleName);
     application_->InitConfiguration(configuration);
 }
 
