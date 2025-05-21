@@ -138,6 +138,13 @@ bool GetAppDataModuleAssetList(const std::string& path, std::vector<std::string>
     return StageAssetProvider::GetInstance()->GetAppDataModuleAssetList(path, fileFullPaths, onlyChild);
 }
 
+#ifdef IOS_PLATFORM
+std::string StageAssetManager::GetResourceFilePrefixPath()
+{
+    return StageAssetProvider::GetInstance()->GetResourceFilePrefixPath();
+}
+#endif
+
 std::vector<uint8_t> StageAssetManager::GetBufferByAppDataPath(const std::string& fileFullPath)
 {
     return StageAssetProvider::GetInstance()->GetBufferByAppDataPath(fileFullPath);

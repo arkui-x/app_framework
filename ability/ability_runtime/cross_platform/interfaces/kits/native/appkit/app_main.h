@@ -56,6 +56,9 @@ public:
     void NotifyApplicationForeground();
     void NotifyApplicationBackground();
     void PreloadModule(const std::string& moduleName, const std::string& abilityName);
+#ifdef IOS_PLATFORM
+    void SetResourceFilePrefixPath();
+#endif
 
 private:
     void ScheduleLaunchApplication(bool isCopyNativeLibs);

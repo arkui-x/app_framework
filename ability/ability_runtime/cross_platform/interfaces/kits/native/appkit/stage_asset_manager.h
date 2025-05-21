@@ -41,6 +41,9 @@ public:
     std::string GetDatabaseDir() const;
     std::string GetPreferencesDir() const;
     std::string GetAppLibDir() const;
+#ifdef IOS_PLATFORM
+    std::string GetResourceFilePrefixPath();
+#endif
 #ifdef ANDROID_PLATFORM
     std::string GetAppDataLibDir() const;
     void CopyHspResourcePath(const std::string& moduleName);
