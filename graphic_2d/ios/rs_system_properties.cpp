@@ -428,5 +428,20 @@ bool RSSystemProperties::GetWindowKeyFrameEnabled()
 {
     return true;
 }
+
+bool RSSystemProperties::GetDebugFmtTraceEnabled()
+{
+    return GetDebugTraceEnabled();
+}
+
+bool RSSystemProperties::GetBehindWindowFilterEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::ViewDrawNodeType()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS
