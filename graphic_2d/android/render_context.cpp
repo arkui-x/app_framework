@@ -162,10 +162,17 @@ void RenderContext::InitializeEglContext()
     EGLint config_attribs[] = { EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8,
         EGL_ALPHA_SIZE, 8, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_NONE };
 
+    EGLint config_attribs_ES2[] = { EGL_SURFACE_TYPE,
+        EGL_SWAP_BEHAVIOR_PRESERVED_BIT | EGL_PBUFFER_BIT | EGL_PIXMAP_BIT | EGL_WINDOW_BIT, EGL_RED_SIZE, 8,
+        EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8, EGL_ALPHA_SIZE, 8, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, EGL_NONE };
+
     ret = eglChooseConfig(eglDisplay_, config_attribs, &config_, 1, &count);
     if (!(ret && static_cast<unsigned int>(count) >= 1)) {
-        ROSEN_LOGE("RenderContext Failed to eglChooseConfig");
-        return;
+        ret = eglChooseConfig(eglDisplay_, config_attribs_ES2, &config_, 1, &count);
+        if (!(ret && static_cast<unsigned int>(count) >= 1)) {
+            ROSEN_LOGE("RenderContext Failed to eglChooseConfig");
+            return;
+        }
     }
 
     static const EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, EGL_CONTEXT_CLIENT_VERSION_NUM, EGL_NONE };
