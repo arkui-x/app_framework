@@ -134,7 +134,8 @@ void RenderContext::CreatePbufferSurface()
 }
 
 namespace {
-void DumpEglConfigs(EGLDisplay display) {
+void DumpEglConfigs(EGLDisplay display)
+{
     EGLint num_configs = 0;
     if (!eglGetConfigs(display, nullptr, 0, &num_configs) || num_configs == 0) {
         ROSEN_LOGE("eglGetConfigs failed or returned no configs, error: %x", eglGetError());
@@ -146,9 +147,14 @@ void DumpEglConfigs(EGLDisplay display) {
         return;
     }
     for (int i = 0; i < num_configs; ++i) {
-        EGLint red = 0, green = 0, blue = 0, alpha = 0;
-        EGLint depth = 0, stencil = 0;
-        EGLint renderableType = 0, surfaceType = 0;
+        EGLint red = 0;
+        EGLint green = 0;
+        EGLint blue = 0;
+        EGLint alpha = 0;
+        EGLint depth = 0;
+        EGLint stencil = 0;
+        EGLint renderableType = 0;
+        EGLint surfaceType = 0;
 
         eglGetConfigAttrib(display, configs[i], EGL_RED_SIZE, &red);
         eglGetConfigAttrib(display, configs[i], EGL_GREEN_SIZE, &green);
