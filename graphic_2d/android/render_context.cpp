@@ -149,7 +149,7 @@ void DumpEglConfigs(EGLDisplay display)
     for (int i = 0; i < num_configs; ++i) {
         EGLint red = 0;
         EGLint green = 0;
-        EGLint blue = 0; 
+        EGLint blue = 0;
         EGLint alpha = 0;
         EGLint depth = 0;
         EGLint stencil = 0;
