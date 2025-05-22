@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,7 +25,7 @@
 
 /* the coefficient of converting seconds to nanoseconds */
 constexpr int64_t SEC_TO_NANOSEC = 1000000000;
-
+constexpr float FRAME_RATE = 60;
 @interface RSVsyncIOS : NSObject
 
 - (instancetype)init;
@@ -77,6 +77,14 @@ void RSVsyncClientIOS::SetVsyncCallback(VsyncCallback callback)
         displayLink_ = [[CADisplayLink displayLinkWithTarget:self selector:@selector(onDisplayLink:)] retain];
         displayLink_.paused = YES;
         [displayLink_ addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+        float mainMaxFrameRate = [UIScreen mainScreen].maximumFramesPerSecond;
+        if (@available(iOS 15.0,*)) {
+            float maxFrameRate = fmax(mainMaxFrameRate, FRAME_RATE);
+            float minFrameRate = fmax(mainMaxFrameRate / 2, FRAME_RATE);
+            displayLink_.preferredFrameRateRange = CAFrameRateRangeMake(minFrameRate, maxFrameRate, maxFrameRate);
+        } else {
+            displayLink_.preferredFramesPerSecond = mainMaxFrameRate;
+        }
         lock_ = [[NSLock alloc] init];
     }
     return self;
