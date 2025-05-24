@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -128,6 +128,8 @@ napi_value CreateJsDisplayObject(napi_env env, sptr<Display>& display)
     napi_set_named_property(env, objValue, "densityPixels", CreateJsValue(env, info->GetDensityPixels()));
     napi_set_named_property(env, objValue, "scaledDensity", CreateJsValue(env, info->GetScaledDensity()));
     napi_set_named_property(env, objValue, "densityDPI", CreateJsValue(env, info->GetDensityDpi()));
+    napi_set_named_property(env, objValue, "xDPI", CreateJsValue(env, info->GetXDpi()));
+    napi_set_named_property(env, objValue, "yDPI", CreateJsValue(env, info->GetYDpi()));
     return objValue;
 }
 }  // namespace Rosen

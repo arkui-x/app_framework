@@ -63,6 +63,7 @@ template("display_manager_napi") {
       "${display_manager_napi_path}/kits/napi/display_runtime/display_manager_module.cpp",
       "${display_manager_napi_path}/kits/napi/display_runtime/js_display.cpp",
       "${display_manager_napi_path}/kits/napi/display_runtime/js_display_manager.cpp",
+      "${display_manager_napi_path}/kits/napi/display_runtime/js_display_listener.cpp",
     ]
   }
 }
