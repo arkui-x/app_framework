@@ -133,6 +133,44 @@ void RenderContext::CreatePbufferSurface()
     }
 }
 
+namespace {
+void DumpEglConfigs(EGLDisplay display)
+{
+    EGLint num_configs = 0;
+    if (!eglGetConfigs(display, nullptr, 0, &num_configs) || num_configs == 0) {
+        ROSEN_LOGE("eglGetConfigs failed or returned no configs, error: %x", eglGetError());
+        return;
+    }
+    std::vector<EGLConfig> configs(num_configs);
+    if (!eglGetConfigs(display, configs.data(), num_configs, &num_configs)) {
+        ROSEN_LOGE("eglGetConfigs failed when fetching configs, error: %x", eglGetError());
+        return;
+    }
+    for (int i = 0; i < num_configs; ++i) {
+        EGLint red = 0;
+        EGLint green = 0;
+        EGLint blue = 0;
+        EGLint alpha = 0;
+        EGLint depth = 0;
+        EGLint stencil = 0;
+        EGLint renderableType = 0;
+        EGLint surfaceType = 0;
+
+        eglGetConfigAttrib(display, configs[i], EGL_RED_SIZE, &red);
+        eglGetConfigAttrib(display, configs[i], EGL_GREEN_SIZE, &green);
+        eglGetConfigAttrib(display, configs[i], EGL_BLUE_SIZE, &blue);
+        eglGetConfigAttrib(display, configs[i], EGL_ALPHA_SIZE, &alpha);
+        eglGetConfigAttrib(display, configs[i], EGL_DEPTH_SIZE, &depth);
+        eglGetConfigAttrib(display, configs[i], EGL_STENCIL_SIZE, &stencil);
+        eglGetConfigAttrib(display, configs[i], EGL_RENDERABLE_TYPE, &renderableType);
+        eglGetConfigAttrib(display, configs[i], EGL_SURFACE_TYPE, &surfaceType);
+
+        ROSEN_LOGI("Config[%d]: R%d G%d B%d A%d | Depth=%d Stencil=%d | RenderType=%X SurfaceType=%X", i, red, green,
+            blue, alpha, depth, stencil, renderableType, surfaceType);
+    }
+}
+}
+
 void RenderContext::InitializeEglContext()
 {
     if (IsEglContextReady()) {
@@ -171,6 +209,7 @@ void RenderContext::InitializeEglContext()
         ret = eglChooseConfig(eglDisplay_, config_attribs_ES2, &config_, 1, &count);
         if (!(ret && static_cast<unsigned int>(count) >= 1)) {
             ROSEN_LOGE("RenderContext Failed to eglChooseConfig");
+            DumpEglConfigs(eglDisplay_);
             return;
         }
     }
