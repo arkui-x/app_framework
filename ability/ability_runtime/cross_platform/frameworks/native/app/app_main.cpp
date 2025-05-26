@@ -319,7 +319,7 @@ void AppMain::InitConfiguration(const std::string& jsonConfiguration)
     eventHandler_->PostTask(task);
 }
 
-void AddConfigurationData(Configuration& configuration, const std::string& moduleName)
+void AddConfigurationData(Configuration& configuration, const std::string& moduleName = "")
 {
     auto fontConfigBuffer = StageAssetManager::GetInstance()->GetFontConfigJsonBuffer(moduleName);
     if (fontConfigBuffer.empty()) {
@@ -460,8 +460,7 @@ void AppMain::HandleOnConfigurationUpdate(const std::string& jsonConfiguration)
     }
     Configuration configuration;
     configuration.ReadFromJsonConfiguration(jsonConfiguration);
-    std::string moduleName;
-    AddConfigurationData(configuration, moduleName);
+    AddConfigurationData(configuration);
     application_->OnConfigurationUpdate(configuration, SetLevel::System);
 }
 
@@ -474,8 +473,7 @@ void AppMain::HandleInitConfiguration(const std::string& jsonConfiguration)
     }
     Configuration configuration;
     configuration.ReadFromJsonConfiguration(jsonConfiguration);
-    std::string moduleName;
-    AddConfigurationData(configuration, moduleName);
+    AddConfigurationData(configuration);
     application_->InitConfiguration(configuration);
 }
 
