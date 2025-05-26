@@ -77,7 +77,6 @@ void WindowStage::UpdateConfigurationForAll(
     }
     auto subWindows = GetSubWindow();
     if (subWindows.empty()) {
-        LOGW("No sub windows available to update configuration");
         return;
     }
     for (const auto& subWindow : subWindows) {
