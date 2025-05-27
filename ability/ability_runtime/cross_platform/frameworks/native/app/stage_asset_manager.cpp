@@ -47,6 +47,11 @@ std::list<std::vector<uint8_t>> StageAssetManager::GetModuleJsonBufferList()
     return StageAssetProvider::GetInstance()->GetModuleJsonBufferList();
 }
 
+std::vector<uint8_t> StageAssetManager::GetFontConfigJsonBuffer(const std::string& moduleName)
+{
+    return StageAssetProvider::GetInstance()->GetFontConfigJsonBuffer(moduleName);
+}
+
 std::vector<uint8_t> StageAssetManager::GetModuleBuffer(
     const std::string& moduleName, std::string& modulePath, bool esmodule)
 {

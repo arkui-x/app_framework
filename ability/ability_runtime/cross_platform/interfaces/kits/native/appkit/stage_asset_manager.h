@@ -31,6 +31,7 @@ public:
     static std::shared_ptr<StageAssetManager> GetInstance();
     std::vector<uint8_t> GetPkgJsonBuffer(const std::string& moduleName);
     std::list<std::vector<uint8_t>> GetModuleJsonBufferList();
+    std::vector<uint8_t> GetFontConfigJsonBuffer(const std::string& moduleName);
     std::vector<uint8_t> GetModuleBuffer(const std::string& moduleName, std::string& modulePath, bool esmodule);
     std::vector<uint8_t> GetModuleAbilityBuffer(
         const std::string& moduleName, const std::string& abilityName, std::string& modulePath, bool esmodule);

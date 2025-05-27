@@ -75,6 +75,15 @@ void WindowStage::UpdateConfigurationForAll(
     if (mainWindow_ != nullptr) {
         mainWindow_->UpdateConfiguration(config);
     }
+    auto subWindows = GetSubWindow();
+    if (subWindows.empty()) {
+        return;
+    }
+    for (const auto& subWindow : subWindows) {
+        if (subWindow != nullptr) {
+            subWindow->UpdateConfiguration(config);
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
