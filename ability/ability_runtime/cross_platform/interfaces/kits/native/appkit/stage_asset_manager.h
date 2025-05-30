@@ -47,6 +47,7 @@ public:
     void CopyNativeLibToAppDataModuleDir(const std::string& bundleName);
     void SetNativeLibPaths(const std::string& bundleName, const std::vector<std::string>& moduleNames);
     void RemoveModuleFilePath(const std::string& moduleName);
+    bool IsDynamicLoadLibs();
 #endif
     void GetResIndexPath(const std::string& moduleName, std::string& appResIndexPath, std::string& sysResIndexPath);
     std::string GetAppDataModuleDir() const;

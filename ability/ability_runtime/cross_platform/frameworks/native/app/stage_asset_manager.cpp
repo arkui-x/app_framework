@@ -120,6 +120,11 @@ void StageAssetManager::RemoveModuleFilePath(const std::string& moduleName)
 {
     StageAssetProvider::GetInstance()->RemoveModuleFilePath(moduleName);
 }
+
+bool StageAssetManager::IsDynamicLoadLibs()
+{
+    return StageAssetProvider::GetInstance()->IsDynamicLoadLibs();
+}
 #endif
 
 void StageAssetManager::GetResIndexPath(
