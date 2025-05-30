@@ -29,6 +29,8 @@ JsWindowRegisterManager::JsWindowRegisterManager()
     listenerProcess_[CaseType::CASE_WINDOW] = {
         { "windowSizeChange",              &JsWindowRegisterManager::ProcessSizeChangeRegister    },
         { "windowEvent",              &JsWindowRegisterManager::ProcessLifeCycleEventRegister    },
+        {AVOID_AREA_CHANGE_CB,        &JsWindowRegisterManager::ProcessAvoidAreaChangeRegister    },
+        {WINDOW_STATUS_CHANGE_CB,   &JsWindowRegisterManager::ProcessWindowStatusChangeRegister    }
     };
     // white register list for window stage
     listenerProcess_[CaseType::CASE_STAGE] = {
@@ -58,6 +60,40 @@ WmErrorCode JsWindowRegisterManager::ProcessSizeChangeRegister(sptr<JsWindowList
         ret = WM_JS_TO_ERROR_CODE_MAP.at(window->RegisterWindowChangeListener(thisListener));
     } else {
         ret = WM_JS_TO_ERROR_CODE_MAP.at(window->UnregisterWindowChangeListener(thisListener));
+    }
+    return ret;
+}
+
+WmErrorCode JsWindowRegisterManager::ProcessAvoidAreaChangeRegister(sptr<JsWindowListener> listener,
+    std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister)
+{
+    if (window == nullptr) {
+        WLOGE("[WindowRegister] window is nullptr");
+        return WmErrorCode::WM_ERROR_STATE_ABNORMALLY;
+    }
+    sptr<IAvoidAreaChangedListener> thisListener(listener);
+    WmErrorCode ret;
+    if (isRegister) {
+        ret = WM_JS_TO_ERROR_CODE_MAP.at(window->RegisterAvoidAreaChangeListener(thisListener));
+    } else {
+        ret = WM_JS_TO_ERROR_CODE_MAP.at(window->UnregisterAvoidAreaChangeListener(thisListener));
+    }
+    return ret;
+}
+
+WmErrorCode JsWindowRegisterManager::ProcessWindowStatusChangeRegister(sptr<JsWindowListener> listener,
+    std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister)
+{
+    if (window == nullptr) {
+        WLOGE("[WindowRegister] window is nullptr");
+        return WmErrorCode::WM_ERROR_STATE_ABNORMALLY;
+    }
+    sptr<IWindowStatusChangeListener> thisListener(listener);
+    WmErrorCode ret;
+    if (isRegister) {
+        ret = WM_JS_TO_ERROR_CODE_MAP.at(window->RegisterWindowStatusChangeListener(thisListener));
+    } else {
+        ret = WM_JS_TO_ERROR_CODE_MAP.at(window->UnregisterWindowStatusChangeListener(thisListener));
     }
     return ret;
 }
@@ -117,7 +153,7 @@ WmErrorCode JsWindowRegisterManager::RegisterListener(napi_env env, std::shared_
     WLOGE("JsWindowRegisterManager RegisterListener%p", this);
     std::lock_guard<std::mutex> lock(mtx_);
     if (IsCallbackRegistered(env, type, value)) {
-        return WmErrorCode::WM_ERROR_STATE_ABNORMALLY;
+        return WmErrorCode::WM_OK;
     }
     if (listenerProcess_[caseType].count(type) == 0) {
         WLOGE("JsWindowRegisterManager::RegisterListener : Type %{public}s is not supported", type.c_str());

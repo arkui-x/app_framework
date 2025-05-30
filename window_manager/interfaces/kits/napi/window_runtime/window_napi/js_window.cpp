@@ -173,6 +173,13 @@ napi_value JsWindow::SetWindowKeepScreenOn(napi_env env, napi_callback_info info
     return (me != nullptr) ? me->OnSetWindowKeepScreenOn(env, info) : nullptr;
 }
 
+napi_value JsWindow::SetWindowPrivacyMode(napi_env env, napi_callback_info info)
+{
+    WLOGD("JsWindow::SetWindowPrivacyMode");
+    JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
+    return (me != nullptr) ? me->OnSetWindowPrivacyMode(env, info) : nullptr;
+}
+
 napi_value JsWindow::SetWindowFocusable(napi_env env, napi_callback_info info)
 {
     WLOGD("SetWindowFocusable");
@@ -712,6 +719,56 @@ napi_value JsWindow::OnSetWindowBrightness(napi_env env, napi_callback_info info
     return result;
 }
 
+napi_value JsWindow::OnSetWindowPrivacyMode(napi_env env, napi_callback_info info)
+{
+    WLOGD("JsWindow::OnSetWindowPrivacyMode : Start...");
+    WmErrorCode errCode = WmErrorCode::WM_OK;
+    size_t argc = WINDOW_ARGC_MAX_COUNT;
+    napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < 1) {
+        WLOGE("JsWindow::OnSetWindowPrivacyMode : Argc is invalid: %{public}zu", argc);
+        errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
+        napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
+        return CreateJsUndefined(env);
+    }
+    bool isPrivacyMode = true;
+    if (!ConvertFromJsValue(env, argv[0], isPrivacyMode)) {
+        WLOGE("JsWindow::OnSetWindowPrivacyMode : Failed to convert parameter to isPrivacyMode");
+        errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
+        napi_throw(env, CreateWindowsJsError(env, errCode, "Invalid params."));
+        return CreateJsUndefined(env);
+    }
+
+    std::weak_ptr<Window> weakToken(windowToken_);
+    NapiAsyncTask::CompleteCallback complete =
+        [weakToken, isPrivacyMode](napi_env env, NapiAsyncTask& task, int32_t status) {
+        auto weakWindow = weakToken.lock();
+        if (weakWindow == nullptr) {
+            task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY, "Invalidate params."));
+            return;
+        }
+        WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->SetWindowPrivacyMode(isPrivacyMode));
+        if (ret == WmErrorCode::WM_OK) {
+            task.Resolve(env, CreateUndefined(env));
+        } else {
+            task.Reject(env, CreateWindowsJsError(env, static_cast<int32_t>(ret),
+                                                "Window set privacy mode failed"));
+        }
+        WLOGI("JsWindow::OnSetWindowPrivacyMode : Window [%{public}u, %{public}s] set keep screen on end",
+              weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str());
+    };
+
+    napi_value result = nullptr;
+    napi_value callback = nullptr;
+    if (argc > 1 && IsFunction(env, argv[1])) {
+        callback = argv[1];
+    }
+    NapiAsyncTask::Schedule("JsWindow::OnSetWindowPrivacyMode", env,
+        CreateAsyncTaskWithLastParam(env, callback, nullptr, std::move(complete), &result));
+    return result;
+}
+
 napi_value JsWindow::OnSetWindowKeepScreenOn(napi_env env, napi_callback_info info)
 {
     WLOGD("JsWindow::OnSetWindowKeepScreenOn : Start...");
@@ -1232,6 +1289,63 @@ napi_value JsWindow::OnGetWindowAvoidAreaSync(napi_env env, napi_callback_info i
     }
 }
 
+napi_value JsWindow::SetWindowSystemBarProperties(napi_env env, napi_callback_info info)
+{
+    WLOGD("SetWindowSystemBarProperties");
+    JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
+    return (me != nullptr) ? me->OnSetWindowSystemBarProperties(env, info) : nullptr;
+}
+
+napi_value JsWindow::OnSetWindowSystemBarProperties(napi_env env, napi_callback_info info)
+{
+    size_t argc = 4;
+    napi_value argv[4] = { nullptr };
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_value lastParam = (argc <= 1) ? nullptr :
+        (IsFunction(env, argv[1]) == napi_function ? argv[1] : nullptr);
+    napi_value result = nullptr;
+    std::unordered_map<WindowType, SystemBarProperty> systemBarProperties;
+    std::unordered_map<WindowType, SystemBarPropertyFlag> systemBarPropertyFlags;
+    if (argc < 1 || argv[0] == nullptr ||
+        !GetSystemBarPropertiesFromJs(env, argv[0], systemBarProperties, systemBarPropertyFlags)) {
+        WLOGE("argc is invalid or failed to convert parameter ");
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM, "Invalid params."));
+        return CreateJsUndefined(env);
+    }
+    std::weak_ptr<Window> weakToken(windowToken_);
+    NapiAsyncTask::CompleteCallback complete =
+       [weakToken, systemBarProperties = std::move(systemBarProperties), systemBarPropertyFlags =
+        std::move(systemBarPropertyFlags)](napi_env env, NapiAsyncTask& task, int32_t status) {
+        auto window = weakToken.lock();
+        if (window == nullptr) {
+            task.Reject(env,
+                CreateJsError(env, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY),
+                "Invalidate params."));
+            return;
+        }
+        WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(window->UpdateSystemBarProperties(systemBarProperties,
+            systemBarPropertyFlags));
+        if (ret == WmErrorCode::WM_OK) {
+            task.Resolve(env, CreateUndefined(env));
+        } else {
+            WLOGE("set system bar properties failed, errcode: %{public}d", ret);
+            task.Reject(env, CreateWindowsJsError(env, ret,
+                "SetWindowSystemBarProperties"));
+        }
+        WLOGD("JsWindow::OnSetWindowSystemBarProperties : SetWindowSystemBarProperties"
+            "[%{public}u, %{public}s] end, ret = %{public}d",
+            window->GetWindowId(), window->GetWindowName().c_str(), ret);
+    };
+
+    napi_value callback = nullptr;
+    if (argc > 1 && IsFunction(env, argv[1])) {
+        callback = argv[1];
+    }
+    NapiAsyncTask::Schedule("JsWindow::OnSetWindowSystemBarProperties", env,
+        CreateAsyncTaskWithLastParam(env, callback, nullptr, std::move(complete), &result));
+    return result;
+}
+
 static const napi_property_descriptor g_props[] = {
     DECLARE_NAPI_FUNCTION("showWindow", JsWindow::ShowWindow),
     DECLARE_NAPI_FUNCTION("destroyWindow", JsWindow::DestroyWindow),
@@ -1248,6 +1362,7 @@ static const napi_property_descriptor g_props[] = {
     DECLARE_NAPI_FUNCTION("setWindowBackgroundColor", JsWindow::SetWindowBackgroundColorSync),
     DECLARE_NAPI_FUNCTION("setWindowBrightness", JsWindow::SetWindowBrightness),
     DECLARE_NAPI_FUNCTION("setWindowKeepScreenOn", JsWindow::SetWindowKeepScreenOn),
+    DECLARE_NAPI_FUNCTION("setWindowPrivacyMode", JsWindow::SetWindowPrivacyMode),
     DECLARE_NAPI_FUNCTION("on", JsWindow::RegisterWindowManagerCallback),
     DECLARE_NAPI_FUNCTION("off", JsWindow::UnregisterWindowManagerCallback),
     DECLARE_NAPI_FUNCTION("setWindowColorSpace", JsWindow::SetWindowColorSpace),
@@ -1256,6 +1371,7 @@ static const napi_property_descriptor g_props[] = {
     DECLARE_NAPI_FUNCTION("setWindowLayoutFullScreen", JsWindow::SetWindowLayoutFullScreen),
     DECLARE_NAPI_FUNCTION("getWindowAvoidArea", JsWindow::GetWindowAvoidAreaSync),
     DECLARE_NAPI_FUNCTION("setWindowFocusable", JsWindow::SetWindowFocusable),
+    DECLARE_NAPI_FUNCTION("setWindowSystemBarProperties", JsWindow::SetWindowSystemBarProperties),
 };
 
 napi_value CreateJsWindowObject(napi_env env, std::shared_ptr<Rosen::Window>& window)
