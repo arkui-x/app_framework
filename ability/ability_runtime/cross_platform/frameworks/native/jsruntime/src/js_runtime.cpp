@@ -227,12 +227,16 @@ private:
         if (!options.appLibPath.empty()) {
             paths.push_back(options.appLibPath);
         }
-        if (!options.appDataLibPath.empty()) {
+        bool isDataLibPathEmpty = options.appDataLibPath.empty();
+        if (!isDataLibPathEmpty) {
             paths.push_back(options.appDataLibPath);
         }
         if (paths.size() != 0) {
             ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
             engine->SetPackagePath("default", paths);
+            if (Platform::StageAssetManager::GetInstance()->IsDynamicLoadLibs() && !isDataLibPathEmpty) {
+                engine->SetPackagePath(options.appDataLibPath, paths);
+            }
             env_ = reinterpret_cast<napi_env>(engine);
         }
 #else
