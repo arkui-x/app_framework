@@ -58,7 +58,7 @@ void JsWindowListener::OnSizeChange(Rect rect)
         return;
     }
     // js callback should run in js thread
-    NapiAsyncTask::CompleteCallback jsCallback = 
+    NapiAsyncTask::CompleteCallback jsCallback =
         [self = weakRef_, rect, eng = engine_, caseType = caseType_] 
             (napi_env env, NapiAsyncTask &task, int32_t status) {
             auto thisListener = self.promote();
@@ -82,7 +82,38 @@ void JsWindowListener::OnSizeChange(Rect rect)
         engine_, CreateAsyncTaskWithLastParam(engine_, nullptr, nullptr, std::move(jsCallback), &result));
     currentWidth_ = rect.width_;
     currentHeight_ = rect.height_;
+}
 
+void JsWindowListener::OnAvoidAreaChanged(const Rosen::AvoidArea avoidArea, Rosen::AvoidAreaType type)
+{
+    WLOGD("[NAPI] OnAvoidAreaChanged");
+    NapiAsyncTask::CompleteCallback jsCallback =
+        [self = weakRef_, avoidArea, type, eng = engine_, caseType = caseType_]
+            (napi_env env, NapiAsyncTask &task, int32_t status) {
+            auto thisListener = self.promote();
+            if (thisListener == nullptr || eng == nullptr) {
+                WLOGE("[NAPI]this listener or env is nullptr");
+                return;
+            }
+            napi_value avoidAreaValue = ConvertAvoidAreaToJsValue(eng, avoidArea, type);
+            if (avoidAreaValue == nullptr) {
+                WLOGE("[NAPI]Failed to get avoidAreaValue");
+                return;
+            }
+            napi_value objValue = nullptr;
+            napi_create_object(eng, &objValue);
+            if (objValue == nullptr) {
+                WLOGE("Failed to get object");
+                return;
+            }
+            napi_set_named_property(eng, objValue, "type", CreateJsValue(env, static_cast<uint32_t>(type)));
+            napi_set_named_property(eng, objValue, "area", avoidAreaValue);
+            napi_value argv[] = { objValue };
+            thisListener->CallJsMethod(eng, caseType.c_str(), argv, ArraySize(argv));
+        };
+        napi_value result;
+        NapiAsyncTask::ScheduleHighQos("JsWindowListener::OnAvoidAreaChanged",
+            engine_, CreateAsyncTaskWithLastParam(engine_, nullptr, nullptr, std::move(jsCallback), &result));
 }
 
 void JsWindowListener::LifeCycleCallBack(LifeCycleEventType eventType)
@@ -132,6 +163,25 @@ void JsWindowListener::AfterFocused()
 void JsWindowListener::AfterUnfocused()
 {
     LifeCycleCallBack(LifeCycleEventType::INACTIVE);
+}
+
+void JsWindowListener::OnWindowStatusChange(WindowStatus windowstatus)
+{
+    WLOGD("[NAPI] OnWindowStatusChange");
+    // js callback should run in js thread
+    auto jsCallback = [self = weakRef_, windowstatus, env = engine_, funcName = __func__] {
+        auto thisListener = self.promote();
+        if (thisListener == nullptr || env == nullptr) {
+            WLOGD("[NAPI]%{public}s: this listener or env is nullptr", funcName);
+            return;
+        }
+        HandleScope handleScope(env);
+        napi_value argv[] = {CreateJsValue(env, static_cast<uint32_t>(windowstatus))};
+        thisListener->CallJsMethod(env, WINDOW_STATUS_CHANGE_CB.c_str(), argv, ArraySize(argv));
+    };
+    if (napi_status::napi_ok != napi_send_event(engine_, jsCallback, napi_eprio_high)) {
+        WLOGD("[NAPI]failed to send event");
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
