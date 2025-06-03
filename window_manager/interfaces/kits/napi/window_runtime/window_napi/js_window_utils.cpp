@@ -16,6 +16,7 @@
 #include "js_window_utils.h"
 
 #include <iomanip>
+#include <regex>
 #include "native_engine/native_engine.h"
 #include "window_hilog.h"
 
@@ -491,6 +492,149 @@ napi_value AvoidAreaTypeInit(napi_env env)
     napi_set_named_property(env, objValue, "TYPE_NAVIGATION_INDICATOR",
         CreateJsValue(env, static_cast<int32_t>(AvoidAreaType::TYPE_NAVIGATION_INDICATOR)));
     return objValue;
+}
+
+template<class T>
+bool ParseJsValue(napi_value jsObject, napi_env env, const std::string& name, T& data)
+{
+    napi_value value = nullptr;
+    napi_get_named_property(env, jsObject, name.c_str(), &value);
+    napi_valuetype type = napi_undefined;
+    napi_typeof(env, value, &type);
+    if (type != napi_undefined) {
+        if (!AbilityRuntime::ConvertFromJsValue(env, value, data)) {
+            return false;
+        }
+    } else {
+        return false;
+    }
+    return true;
+}
+
+napi_valuetype IsUndefined(napi_env env, napi_value value)
+{
+    napi_valuetype res = napi_undefined;
+    napi_typeof(env, value, &res);
+    return res;
+}
+
+static uint32_t GetColorFromJs(napi_env env, napi_value jsObject,
+    const char* name, uint32_t defaultColor, bool& flag)
+{
+    napi_value jsColor = nullptr;
+    napi_get_named_property(env, jsObject, name, &jsColor);
+    if (IsUndefined(env, jsColor) != napi_undefined) {
+        std::string colorStr;
+        if (!ConvertFromJsValue(env, jsColor, colorStr)) {
+            WLOGE("Failed to convert parameter to color");
+            return defaultColor;
+        }
+        std::regex pattern("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$");
+        if (!std::regex_match(colorStr, pattern)) {
+            WLOGD("Invalid color input");
+            return defaultColor;
+        }
+        std::string color = colorStr.substr(1);
+        if (color.length() == RGB_LENGTH) {
+            color = "FF" + color; // ARGB
+        }
+        flag = true;
+        std::stringstream ss;
+        uint32_t hexColor;
+        ss << std::hex << color;
+        ss >> hexColor;
+        return hexColor;
+    }
+    return defaultColor;
+}
+
+bool SetWindowStatusBarContentColor(napi_env env, napi_value jsObject,
+    std::unordered_map<WindowType, SystemBarProperty>& properties,
+    std::unordered_map<WindowType, SystemBarPropertyFlag>& propertyFlags)
+{
+    auto statusProperty = properties[WindowType::WINDOW_TYPE_STATUS_BAR];
+    napi_value jsStatusContentColor = nullptr;
+    napi_get_named_property(env, jsObject, "statusBarContentColor", &jsStatusContentColor);
+    napi_value jsStatusIcon = nullptr;
+    napi_get_named_property(env, jsObject, "isStatusBarLightIcon", &jsStatusIcon);
+    if (IsUndefined(env, jsStatusContentColor) != napi_undefined) {
+        properties[WindowType::WINDOW_TYPE_STATUS_BAR].contentColor_ =  GetColorFromJs(env,
+            jsObject, "statusBarContentColor", statusProperty.contentColor_,
+            propertyFlags[WindowType::WINDOW_TYPE_STATUS_BAR].contentColorFlag);
+        WLOGE("ww statusBarContentColor not run");
+    } else if (IsUndefined(env, jsStatusIcon) != napi_undefined) {
+        bool isStatusBarLightIcon;
+        if (!ConvertFromJsValue(env, jsStatusIcon, isStatusBarLightIcon)) {
+            WLOGE("Convert status icon value failed");
+            return false;
+        }
+        if (isStatusBarLightIcon) {
+            properties[WindowType::WINDOW_TYPE_STATUS_BAR].contentColor_ = SYSTEM_COLOR_WHITE;
+        } else {
+            properties[WindowType::WINDOW_TYPE_STATUS_BAR].contentColor_ = SYSTEM_COLOR_BLACK;
+        }
+        propertyFlags[WindowType::WINDOW_TYPE_STATUS_BAR].contentColorFlag = true;
+    }
+    return true;
+}
+
+bool SetWindowNavigationBarContentColor(napi_env env, napi_value jsObject,
+    std::unordered_map<WindowType, SystemBarProperty>& properties,
+    std::unordered_map<WindowType, SystemBarPropertyFlag>& propertyFlags)
+{
+    auto navProperty = properties[WindowType::WINDOW_TYPE_NAVIGATION_BAR];
+    napi_value jsNavigationContentColor = nullptr;
+    napi_get_named_property(env, jsObject, "navigationBarContentColor", &jsNavigationContentColor);
+    napi_value jsNavigationIcon = nullptr;
+    napi_get_named_property(env, jsObject, "isNavigationBarLightIcon", &jsNavigationIcon);
+    if (IsUndefined(env, jsNavigationContentColor) != napi_undefined) {
+        properties[WindowType::WINDOW_TYPE_NAVIGATION_BAR].contentColor_ = GetColorFromJs(env,
+            jsObject, "navigationBarContentColor", navProperty.contentColor_,
+            propertyFlags[WindowType::WINDOW_TYPE_NAVIGATION_BAR].contentColorFlag);
+    } else if (IsUndefined(env, jsNavigationIcon) != napi_undefined) {
+        bool isNavigationBarLightIcon;
+        if (!ConvertFromJsValue(env, jsNavigationIcon, isNavigationBarLightIcon)) {
+            WLOGE("Convert navigation icon value failed");
+            return false;
+        }
+        if (isNavigationBarLightIcon) {
+            properties[WindowType::WINDOW_TYPE_NAVIGATION_BAR].contentColor_ = SYSTEM_COLOR_WHITE;
+        } else {
+            properties[WindowType::WINDOW_TYPE_NAVIGATION_BAR].contentColor_ = SYSTEM_COLOR_BLACK;
+        }
+        propertyFlags[WindowType::WINDOW_TYPE_NAVIGATION_BAR].contentColorFlag = true;
+    }
+    return true;
+}
+
+bool GetSystemBarPropertiesFromJs(napi_env env, napi_value jsObject,
+    std::unordered_map<WindowType, SystemBarProperty>& properties,
+    std::unordered_map<WindowType, SystemBarPropertyFlag>& propertyFlags)
+{
+    properties[WindowType::WINDOW_TYPE_STATUS_BAR].backgroundColor_ =
+        GetColorFromJs(env, jsObject, "statusBarColor",
+            properties[WindowType::WINDOW_TYPE_STATUS_BAR].backgroundColor_,
+            propertyFlags[WindowType::WINDOW_TYPE_STATUS_BAR].backgroundColorFlag);
+    properties[WindowType::WINDOW_TYPE_NAVIGATION_BAR].backgroundColor_ =
+        GetColorFromJs(env, jsObject, "navigationBarColor",
+            properties[WindowType::WINDOW_TYPE_NAVIGATION_BAR].backgroundColor_,
+            propertyFlags[WindowType::WINDOW_TYPE_NAVIGATION_BAR].backgroundColorFlag);
+
+    if (!SetWindowStatusBarContentColor(env, jsObject, properties, propertyFlags) ||
+        !SetWindowNavigationBarContentColor(env, jsObject, properties, propertyFlags)) {
+        return false;
+    }
+    bool enableStatusBarAnimation = false;
+    if (ParseJsValue(jsObject, env, "enableStatusBarAnimation", enableStatusBarAnimation)) {
+        properties[WindowType::WINDOW_TYPE_STATUS_BAR].enableAnimation_ = enableStatusBarAnimation;
+        propertyFlags[WindowType::WINDOW_TYPE_STATUS_BAR].enableAnimationFlag = true;
+    }
+    bool enableNavigationBarAnimation = false;
+    if (ParseJsValue(jsObject, env, "enableNavigationBarAnimation", enableNavigationBarAnimation)) {
+        properties[WindowType::WINDOW_TYPE_NAVIGATION_BAR].enableAnimation_ = enableNavigationBarAnimation;
+        propertyFlags[WindowType::WINDOW_TYPE_NAVIGATION_BAR].enableAnimationFlag = true;
+    }
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS
