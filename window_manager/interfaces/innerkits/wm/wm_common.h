@@ -237,6 +237,39 @@ enum class Orientation : uint32_t {
 };
 
 /**
+ * @brief Enumerates setting flag of systemStatusBar.
+ */
+enum class SystemBarSettingFlag : uint32_t {
+    DEFAULT_SETTING = 0,
+    COLOR_SETTING = 1,
+    ENABLE_SETTING = 1 << 1,
+    ALL_SETTING = 0b11
+};
+
+/**
+ * @struct SystemBarPropertyFlag
+ *
+ * @brief Flag of system bar
+ */
+struct SystemBarPropertyFlag {
+    bool enableFlag;
+    bool backgroundColorFlag;
+    bool contentColorFlag;
+    bool enableAnimationFlag;
+    SystemBarPropertyFlag() : enableFlag(false), backgroundColorFlag(false), contentColorFlag(false),
+        enableAnimationFlag(false) {}
+};
+
+inline SystemBarSettingFlag operator|(SystemBarSettingFlag lhs, SystemBarSettingFlag rhs)
+{
+    using T = std::underlying_type_t<SystemBarSettingFlag>;
+    return static_cast<SystemBarSettingFlag>(static_cast<T>(lhs) | static_cast<T>(rhs));
+}
+
+inline SystemBarSettingFlag& operator|=
+    (SystemBarSettingFlag& lhs, SystemBarSettingFlag rhs) { return lhs = lhs | rhs; }
+    
+/**
  * @struct SystemBarProperty
  *
  * @brief Property of system bar
@@ -245,12 +278,15 @@ struct SystemBarProperty {
     bool enable_;
     uint32_t backgroundColor_;
     uint32_t contentColor_;
+    bool enableAnimation_;
+    SystemBarSettingFlag settingFlag_;
     SystemBarProperty() : enable_(true), backgroundColor_(SYSTEM_COLOR_BLACK), contentColor_(SYSTEM_COLOR_WHITE) {}
     SystemBarProperty(bool enable, uint32_t background, uint32_t content)
         : enable_(enable), backgroundColor_(background), contentColor_(content) {}
     bool operator == (const SystemBarProperty& a) const
     {
-        return (enable_ == a.enable_ && backgroundColor_ == a.backgroundColor_ && contentColor_ == a.contentColor_);
+        return (enable_ == a.enable_ && backgroundColor_ == a.backgroundColor_ && contentColor_ == a.contentColor_ &&
+            enableAnimation_ == a.enableAnimation_);
     }
 };
 
@@ -287,6 +323,18 @@ struct Rect {
         return (posX_ >= a.posX_ && posY_ >= a.posY_ &&
             posX_ + width_ <= a.posX_ + a.width_ && posY_ + height_ <= a.posY_ + a.height_);
     }
+};
+
+/**
+ * @brief Enumerates status of window.
+ */
+enum class WindowStatus : uint32_t {
+    WINDOW_STATUS_UNDEFINED = 0,
+    WINDOW_STATUS_FULLSCREEN = 1,
+    WINDOW_STATUS_MAXIMIZE,
+    WINDOW_STATUS_MINIMIZE,
+    WINDOW_STATUS_FLOATING,
+    WINDOW_STATUS_SPLITSCREEN
 };
 
 /**
