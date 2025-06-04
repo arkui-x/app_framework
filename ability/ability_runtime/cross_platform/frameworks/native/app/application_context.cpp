@@ -20,6 +20,8 @@
 
 #include "application_context_adapter.h"
 #include "hilog.h"
+#include "stage_application_info_adapter.h"
+#include "unicode/locid.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -357,6 +359,24 @@ void ApplicationContext::SetColorMode(int32_t colorMode)
     }
     Configuration config;
     config.AddItem(ConfigurationInner::SYSTEM_COLORMODE, config.GetColorModeStr(colorMode));
+    if (appConfigChangeCallback_ != nullptr) {
+        appConfigChangeCallback_(config);
+    }
+}
+
+void ApplicationContext::SetLanguage(const std::string &language)
+{
+    HILOG_DEBUG("language:%{public}s", language.c_str());
+    UErrorCode status = U_ZERO_ERROR;
+    icu::Locale locale = icu::Locale::forLanguageTag(icu::StringPiece(language), status);
+    if (status != U_ZERO_ERROR) {
+        HILOG_ERROR("language is invalid");
+        return;
+    }
+    StageApplicationInfoAdapter::GetInstance()->SetLocale(
+        locale.getLanguage(), locale.getCountry(), locale.getScript());
+    Configuration config;
+    config.AddItem(ConfigurationInner::APPLICATION_LANGUAGE, language);
     if (appConfigChangeCallback_ != nullptr) {
         appConfigChangeCallback_(config);
     }
