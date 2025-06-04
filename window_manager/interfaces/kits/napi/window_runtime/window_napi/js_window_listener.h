@@ -31,18 +31,24 @@ namespace OHOS {
 namespace Rosen {
 const std::string WINDOW_STAGE_EVENT_CB = "windowStageEvent";
 const std::string WINDOW_EVENT_CB = "windowEvent";
+const std::string WINDOW_STATUS_CHANGE_CB = "windowStatusChange";
+const std::string AVOID_AREA_CHANGE_CB = "avoidAreaChange";
 
 class JsWindowListener : public IWindowChangeListener,
-                         public IWindowLifeCycle {
+                         public IWindowLifeCycle,
+                         public IWindowStatusChangeListener,
+                         public IAvoidAreaChangedListener {
 public:
     JsWindowListener(const std::string& caseType, napi_env env, napi_ref callback)
         : caseType_(caseType), engine_(env), jsCallBack_(callback), weakRef_(wptr<JsWindowListener> (this)) {}
     ~JsWindowListener();
     void OnSizeChange(Rect rect) override;
+    void OnAvoidAreaChanged(const Rosen::AvoidArea avoidArea, Rosen::AvoidAreaType type) override;
     void AfterForeground() override;
     void AfterBackground() override;
     void AfterFocused() override;
     void AfterUnfocused() override;
+    void OnWindowStatusChange(WindowStatus status) override;
     void CallJsMethod(napi_env env, const char* methodName, napi_value const* argv = nullptr, size_t argc = 0);
 private:
     uint32_t currentWidth_ = 0;

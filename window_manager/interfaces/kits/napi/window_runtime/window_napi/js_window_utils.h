@@ -155,18 +155,14 @@ const std::map<ApiOrientation, Orientation> JS_TO_NATIVE_ORIENTATION_MAP {
     {ApiOrientation::LOCKED,                                Orientation::LOCKED                             },
 };
 
-struct SystemBarPropertyFlag {
-    bool enableFlag;
-    bool backgroundColorFlag;
-    bool contentColorFlag;
-    SystemBarPropertyFlag() : enableFlag(false), backgroundColorFlag(false), contentColorFlag(false) {}
-};
-
 napi_value CreateJsWindowPropertiesObject(napi_env env, std::shared_ptr<Window>& window);
 bool GetSystemBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProperties,
     napi_env env, size_t argc, const napi_value arg, std::shared_ptr<Window>& window);
 bool GetSpecificBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProperties,
     napi_env env, napi_callback_info info, std::shared_ptr<Window>& window);
+bool GetSystemBarPropertiesFromJs(napi_env env, napi_value jsObject,
+    std::unordered_map<WindowType, SystemBarProperty>& properties,
+    std::unordered_map<WindowType, SystemBarPropertyFlag>& propertyFlags);
 napi_value ConvertAvoidAreaToJsValue(napi_env env, const AvoidArea& avoidArea, AvoidAreaType type);    
 napi_value WindowTypeInit(napi_env env);
 napi_value WindowModeInit(napi_env env);

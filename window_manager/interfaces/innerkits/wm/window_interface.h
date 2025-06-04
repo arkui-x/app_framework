@@ -109,6 +109,26 @@ public:
     virtual void OnSurfaceNodeDestroyed() {}
 };
 
+class IWindowStatusChangeListener : virtual public RefBase {
+    public:
+        /**
+         * @brief Notify caller when window status changed.
+         *
+         * @param status Mode of the current window.
+         */
+        virtual void OnWindowStatusChange(WindowStatus status) {}
+    };
+
+class IAvoidAreaChangedListener : virtual public RefBase {
+    public:
+        /**
+         * @brief Notify caller when avoid area size changed.
+         *
+         * @param avoidArea Area needed to be avoided.
+         * @param type Type of avoid area.
+         */
+        virtual void OnAvoidAreaChanged(const AvoidArea avoidArea, AvoidAreaType type) {}
+    };
 }
 }
 #endif // OHOS_ROSEN_WINDOW_INTERFACE_H
