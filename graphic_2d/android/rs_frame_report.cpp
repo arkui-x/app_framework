@@ -39,7 +39,7 @@ int RsFrameReport::GetEnable()
     return 0;
 }
 
-void RsFrameReport::RenderStart(uint64_t timestamp)
+void RsFrameReport::RenderStart(uint64_t timestamp, int skipFirstFrame)
 {
 }
 
