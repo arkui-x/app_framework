@@ -18,12 +18,6 @@
 
 #include <memory>
 
-#if defined(NEW_SKIA)
-#include <include/gpu/GrDirectContext.h>
-#else
-#include <include/gpu/GrContext.h>
-#endif
-
 #include "common/rs_common_def.h"
 #include "platform/common/rs_surface_ext.h"
 #include "platform/drawing/rs_surface.h"
@@ -74,7 +68,6 @@ public:
 private:
     bool SetupGrContext();
 
-    sk_sp<SkColorSpace> skColorSpace_ = nullptr;
     CAEAGLLayer* layer_ = nullptr;
     RenderContext *renderContext_ = nullptr;
     RSSurfaceExtPtr texture_;

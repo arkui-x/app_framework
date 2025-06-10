@@ -219,22 +219,13 @@ int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenTy
     return {};
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceClient::GetBitmap(NodeId id, SkBitmap& bitmap)
-#else
 bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
-#endif
 {
     return {};
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-    const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList)
-#else
 bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
-#endif
 {
     return {};
 }

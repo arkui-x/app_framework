@@ -87,13 +87,8 @@ void RSSurfaceTextureIOS::UpdateSurfaceDefaultSize(float width, float height)
 {
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSSurfaceTextureIOS::DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze,
-    const SkRect& clipRect)
-#else
 void RSSurfaceTextureIOS::DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze,
     const Drawing::Rect& clipRect)
-#endif
 {
     EnsureTextureCacheExists();
     if (!freeze) {
@@ -107,23 +102,6 @@ void RSSurfaceTextureIOS::DrawTextureImage(RSPaintFilterCanvas& canvas, bool fre
         ROSEN_LOGE("RSSurfaceTextureIOS::texture_ref_ is nullptr");
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    GrGLTextureInfo textureInfo = {CVOpenGLESTextureGetTarget(texture_ref_),
-        CVOpenGLESTextureGetName(texture_ref_), GL_RGBA8_OES};
-    GrBackendTexture backendTexture(clipRect.width(), clipRect.height(), GrMipMapped::kNo, textureInfo);
-#ifdef NEW_SKIA
-    auto image = SkImage::MakeFromTexture(
-        canvas.recordingContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-#else
-    auto image = SkImage::MakeFromTexture(
-        canvas.getGrContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-#endif
-    if (image) {
-        canvas.drawImage(image, clipRect.x(), clipRect.y());
-    }
-#else
     auto image = std::make_shared<Drawing::Image>();
     if (image == nullptr) {
         ROSEN_LOGD("create Drawing image fail");
@@ -144,7 +122,6 @@ void RSSurfaceTextureIOS::DrawTextureImage(RSPaintFilterCanvas& canvas, bool fre
         return;
     }
     canvas.DrawImage(*image, clipRect.GetLeft(), clipRect.GetTop(), Drawing::SamplingOptions());
-#endif
 }
 } // namespace Rosen
 } // namespace OHOS

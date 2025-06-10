@@ -18,8 +18,6 @@
 
 #include "platform/drawing/rs_surface_frame.h"
 
-#include <include/core/SkSurface.h>
-
 namespace OHOS {
 namespace Rosen {
 class RSSurfaceFrameIOS : public RSSurfaceFrame {
@@ -29,30 +27,17 @@ public:
 
     void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override;
     int32_t GetBufferAge() const override;
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas* GetCanvas() override;
-    sk_sp<SkSurface> GetSurface() override;
-#else
     Drawing::Canvas* GetCanvas() override;
     std::shared_ptr<Drawing::Surface> GetSurface() override;
-#endif
     void SetRenderContext(RenderContext* context) override;
 
 private:
-#ifdef USE_GPU
     friend class RSSurfaceGPU;
-#else
-    friend class RSSurfaceCPU;
-#endif
     void CreateSurface();
     int32_t width_ = 0;
     int32_t height_ = 0;
     int32_t bpp_ = 0;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkSurface> surface_ = nullptr;
-#else
     std::shared_ptr<Drawing::Surface> surface_ = nullptr;
-#endif
     RenderContext* context_ = nullptr;
 };
 

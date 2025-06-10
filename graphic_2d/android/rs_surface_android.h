@@ -79,11 +79,7 @@ public:
 
     AndroidSurfaceTexture(RSSurfaceAndroid* surface, const RSSurfaceExtConfig& config);
     ~AndroidSurfaceTexture();
-#ifndef USE_ROSEN_DRAWING
-    void DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const SkRect& clipRect) override;
-#else
     void DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect) override;
-#endif
 
     void SetAttachCallback(const RSSurfaceTextureAttachCallBack& attachCallback) override
     {
@@ -123,7 +119,6 @@ private:
     RSSurfaceTextureUpdateCallBack updateCallback_;
     std::atomic<bool> bufferAvailable_ = false;
     RSSurfaceExtConfig config_;
-    SkMatrix transform_;
     float width_ = 0;
     float height_ = 0;
 };
