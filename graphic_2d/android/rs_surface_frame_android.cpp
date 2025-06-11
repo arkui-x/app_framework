@@ -39,19 +39,6 @@ int32_t RSSurfaceFrameAndroid::GetBufferAge() const
     return static_cast<int32_t>(renderContext_->QueryEglBufferAge());
 }
 
-#ifndef USE_ROSEN_DRAWING
-SkCanvas* RSSurfaceFrameAndroid::GetCanvas()
-{
-    if (surface_ == nullptr) {
-        CreateSurface();
-    }
-
-    if (surface_ != nullptr) {
-        return surface_->getCanvas();
-    }
-    return nullptr;
-}
-#else
 Drawing::Canvas* RSSurfaceFrameAndroid::GetCanvas()
 {
     if (surface_ == nullptr) {
@@ -71,7 +58,6 @@ std::shared_ptr<Drawing::Surface> RSSurfaceFrameAndroid::GetSurface()
     }
     return surface_;
 }
-#endif
 
 void RSSurfaceFrameAndroid::SetRenderContext(RenderContext* context)
 {

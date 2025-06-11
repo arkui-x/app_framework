@@ -15,9 +15,6 @@
 
 #include "rs_surface_android.h"
 
-#include <include/core/SkColorSpace.h>
-#include <include/gpu/gl/GrGLInterface.h>
-#include <include/gpu/GrBackendSurface.h>
 #include <stdint.h>
 #include <securec.h>
 
@@ -187,7 +184,7 @@ RSSurfaceExtPtr RSSurfaceAndroid::GetSurfaceExt(const RSSurfaceExtConfig& config
 }
 
 AndroidSurfaceTexture::AndroidSurfaceTexture(RSSurfaceAndroid* surface, const RSSurfaceExtConfig& config)
-    : RSSurfaceExt(), config_(std::move(config)), transform_(SkMatrix::I())
+    : RSSurfaceExt(), config_(std::move(config))
 {
 }
 
@@ -205,26 +202,10 @@ void AndroidSurfaceTexture::MarkUiFrameAvailable(bool available)
     bufferAvailable_.store(available);
 }
 
-static inline SkSize ScaleToFill(float scaleX, float scaleY)
-{
-    const double epsilon = std::numeric_limits<double>::epsilon();
-    /* scaleY is negative. */ 
-    const double minScale = fmin(scaleX, fabs(scaleY));
-    const double rescale = 1.0f / (minScale + epsilon);
-    return SkSize::Make(scaleX * rescale, scaleY * rescale);
-}
-
 void AndroidSurfaceTexture::updateTransform()
 {
     std::vector<float> matrix {};
     updateCallback_(matrix);
-    if (matrix.size() == 16) { // 16 max len
-        const SkSize scaled = ScaleToFill(matrix[0], matrix[5]); // 5 index
-        SkScalar matrix3[] = {
-            scaled.fWidth, matrix[1], matrix[2], matrix[4], // 2 4 index
-            scaled.fHeight, matrix[6], matrix[8], matrix[9], matrix[10]}; // 6,8,9,10 index
-        transform_.set9(matrix3);
-    }
 }
 
 void AndroidSurfaceTexture::UpdateSurfaceDefaultSize(float width, float height)
@@ -233,26 +214,15 @@ void AndroidSurfaceTexture::UpdateSurfaceDefaultSize(float width, float height)
     height_ = height;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void AndroidSurfaceTexture::DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const SkRect& clipRect)
-#else
 void AndroidSurfaceTexture::DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect)
-#endif
 {
     if (state_ == AttachmentState::detached || attachCallback_ == nullptr || updateCallback_ == nullptr) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    auto x = clipRect.x();
-    auto y = clipRect.y();
-    auto width = clipRect.width();
-    auto height = clipRect.height();
-#else
     auto x = clipRect.GetLeft();
     auto y = clipRect.GetTop();
     auto width = clipRect.GetWidth();
     auto height = clipRect.GetHeight();
-#endif
     if (state_ == AttachmentState::uninitialized) {
         if (!bufferAvailable_.load()){
             return;
@@ -268,19 +238,8 @@ void AndroidSurfaceTexture::DrawTextureImage(RSPaintFilterCanvas& canvas, bool f
         bufferAvailable_.store(false);
     }
 
-    ROSEN_LOGD("AndroidSurfaceTexture::textureId_ %{public}d %{public}d %{public}d",
-        textureId_, bufferAvailable, transform_.isIdentity());
-#ifndef USE_ROSEN_DRAWING
-    GrGLTextureInfo textureInfo = {GL_TEXTURE_EXTERNAL_OES, textureId_, GL_RGBA8_OES};
-    GrBackendTexture backendTexture((int)width_, (int)height_, GrMipMapped::kNo, textureInfo);
-    auto image = SkImage::MakeFromTexture(
-        canvas.recordingContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-    if (!image) {
-        return;
-    }
-    canvas.drawImage(image, x, y);
-#else
+    ROSEN_LOGD("AndroidSurfaceTexture::textureId_ %{public}d %{public}d",
+        textureId_, bufferAvailable);
     auto image = std::make_shared<Drawing::Image>();
     if (image == nullptr) {
         ROSEN_LOGD("create Drawing image fail");
@@ -301,7 +260,6 @@ void AndroidSurfaceTexture::DrawTextureImage(RSPaintFilterCanvas& canvas, bool f
         return;
     }
     canvas.DrawImage(*image, x, y, Drawing::SamplingOptions());
-#endif
 }
 } // namespace Rosen
 } // namespace OHOS

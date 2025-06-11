@@ -17,17 +17,9 @@
 
 #include <event_handler.h>
 #include "platform/common/rs_log.h"
-#ifdef USE_GPU
 #include "rs_surface_gpu.h"
-#else
-#include "rs_surface_cpu.h"
-#endif
 #include "rs_vsync_client_ios.h"
-#ifdef __OBJC__
-@class CALayer;
-#else
-typedef struct objc_object CALayer;
-#endif
+
 namespace OHOS {
 namespace Rosen {
 void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
@@ -75,13 +67,7 @@ uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
     bool unobscured)
 {
-#ifdef USE_GPU
-    ROSEN_LOGE("RSRenderServiceClient::CreateNodeAndSurface -- GPU");
     return std::make_shared<RSSurfaceGPU>(static_cast<void*>(config.additionalData));
-#else
-    ROSEN_LOGE("RSRenderServiceClient::CreateNodeAndSurface -- CPU");
-    return std::make_shared<RSSurfaceCPU>(static_cast<void*>(config.additionalData));
-#endif
 }
 
 class VSyncReceiverIOS : public VSyncReceiver {
@@ -244,13 +230,8 @@ bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
     return {};
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-    const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList)
-#else
 bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
-#endif
 {
     return {};
 }

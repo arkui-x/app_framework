@@ -19,11 +19,6 @@
 #include <AVFoundation/AVFoundation.h>
 #include <CoreMedia/CoreMedia.h>
 #include <Foundation/Foundation.h>
-#if defined(NEW_SKIA)
-#include <include/gpu/GrDirectContext.h>
-#else
-#include <include/gpu/GrContext.h>
-#endif
 #include <memory>
 #include "common/rs_common_def.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -38,11 +33,7 @@ public:
 
     RSSurfaceTextureIOS(const RSSurfaceExtConfig& config);
     ~RSSurfaceTextureIOS();
-#ifndef USE_ROSEN_DRAWING
-    void DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const SkRect& clipRect) override;
-#else
     void DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect) override;
-#endif
     void SetAttachCallback(const RSSurfaceTextureAttachCallBack& attachCallback) override
     {
     }

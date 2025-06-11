@@ -35,24 +35,6 @@ int32_t RSSurfaceFrameIOS::GetBufferAge() const
     return -1;
 }
 
-#ifndef USE_ROSEN_DRAWING
-SkCanvas* RSSurfaceFrameIOS::GetCanvas()
-{
-    if (surface_ == nullptr) {
-        CreateSurface();
-    }
-
-    if (surface_ != nullptr) {
-        return surface_->getCanvas();
-    }
-    return nullptr;
-}
-
-sk_sp<SkSurface> RSSurfaceFrameIOS::GetSurface()
-{
-    return surface_;
-}
-#else
 Drawing::Canvas* RSSurfaceFrameIOS::GetCanvas()
 {
     if (surface_ == nullptr) {
@@ -72,7 +54,6 @@ std::shared_ptr<Drawing::Surface> RSSurfaceFrameIOS::GetSurface()
     }
     return surface_;
 }
-#endif
 
 void RSSurfaceFrameIOS::SetRenderContext(RenderContext* context)
 {
@@ -81,25 +62,11 @@ void RSSurfaceFrameIOS::SetRenderContext(RenderContext* context)
 
 void RSSurfaceFrameIOS::CreateSurface()
 {
-#ifdef USE_GPU
     if (context_ == nullptr) {
         ROSEN_LOGE("RSSurfaceFrameIOS::CreateSurface, context_ is null!");
         return;
     }
     surface_ = context_->AcquireSurface(width_,height_);
-#else
-    if (!surface_) {
-        SkImageInfo info = SkImageInfo::MakeN32(width_, height_, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
-        surface_ = SkSurface::MakeRaster(info, nullptr);
-        static std::queue<sk_sp<SkSurface>> surfaceQueue;
-        if (surface_) {
-            surfaceQueue.push(surface_);
-        }
-        if (surfaceQueue.size() > 2) { // 2 for surfaceQueue max size
-            surfaceQueue.pop();
-        }
-    }
-#endif  
 }
 } // namespace Rosen
 } // namespace OHOS

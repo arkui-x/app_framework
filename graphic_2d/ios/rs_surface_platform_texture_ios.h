@@ -23,11 +23,6 @@
 #include <OpenGLES/ES2/glext.h>
 #include <OpenGLES/ES3/gl.h>
 #include <OpenGLES/ES3/glext.h>
-#if defined(NEW_SKIA)
-#include <include/gpu/GrDirectContext.h>
-#else
-#include <include/gpu/GrContext.h>
-#endif
 #include <memory>
 #include "common/rs_common_def.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -43,13 +38,9 @@ public:
 
     RSSurfacePlatformTextureIOS(const RSSurfaceExtConfig& config);
     ~RSSurfacePlatformTextureIOS();
-#ifndef USE_ROSEN_DRAWING
-    void DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const SkRect& clipRect) override;
-#else
     void DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect) override;
     void DrawTextureImageGL(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect);
     void DrawTextureImageForVideo(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect);
-#endif
     void SetAttachCallback(const RSSurfaceTextureAttachCallBack& attachCallback) override
     {
         if (attachCallback_ == nullptr) {
