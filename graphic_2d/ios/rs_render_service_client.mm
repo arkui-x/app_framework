@@ -315,6 +315,10 @@ std::vector<int32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(Scree
     return {};
 }
 
+void RSRenderServiceClient::NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate)
+{
+}
+
 void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
     bool dynamicHardwareEnable)
 {
@@ -326,6 +330,12 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 
 int32_t RSRenderServiceClient::GetCurrentRefreshRateMode()
 {
+}
+
+bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp,
+    std::function<void()> callback)
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS
