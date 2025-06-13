@@ -443,5 +443,10 @@ bool RSSystemProperties::ViewDrawNodeType()
 {
     return false;
 }
+
+bool RSSystemProperties::GetWideColorSpaceEnabled()
+{
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -35,8 +35,13 @@ config("resmgr_config") {
 
 manager_sources = [
   "//base/global/resource_management/frameworks/resmgr/src/hap_manager.cpp",
+  "//base/global/resource_management/frameworks/resmgr/src/hap_parser.cpp",
+  "//base/global/resource_management/frameworks/resmgr/src/hap_parser_v1.cpp",
+  "//base/global/resource_management/frameworks/resmgr/src/hap_parser_v2.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/hap_resource.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/hap_resource_manager.cpp",
+  "//base/global/resource_management/frameworks/resmgr/src/hap_resource_v1.cpp",
+  "//base/global/resource_management/frameworks/resmgr/src/hap_resource_v2.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/locale_matcher.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/res_config_impl.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/res_desc.cpp",
@@ -47,7 +52,6 @@ manager_sources = [
   "//base/global/resource_management/frameworks/resmgr/src/theme_pack_config.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/theme_pack_manager.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/theme_pack_resource.cpp",
-  "//base/global/resource_management/frameworks/resmgr/src/utils/hap_parser.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/utils/psue_manager.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/utils/string_utils.cpp",
   "//base/global/resource_management/frameworks/resmgr/src/utils/utils.cpp",

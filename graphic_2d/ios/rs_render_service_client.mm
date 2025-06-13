@@ -129,8 +129,8 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
 }
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
-    const Drawing::Rect& specifiedAreaRect)
+    const RSSurfaceCaptureConfig& captureConfig, std::unique_ptr<Media::PixelMap> clientCapturePixelMap,
+    const RSSurfaceCaptureBlurParam& blurParam, const Drawing::Rect& specifiedAreaRect)
 {
     return false;
 }
@@ -334,6 +334,12 @@ int32_t RSRenderServiceClient::GetCurrentRefreshRateMode()
 
 bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp,
     std::function<void()> callback)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::TakeUICaptureInRange(
+    NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
     return false;
 }

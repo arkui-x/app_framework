@@ -35,7 +35,8 @@ public:
     JsModuleReader& operator=(const JsModuleReader&) = default;
     JsModuleReader& operator=(JsModuleReader&&) = default;
 
-    bool operator()(const std::string& inputPath, uint8_t **buff, size_t *buffSize, std::string& errorMsg);
+    bool operator()(
+        const std::string& inputPath, bool isHybrid, uint8_t** buff, size_t* buffSize, std::string& errorMsg);
 
 private:
     std::string GetModuleName(const std::string& inputPath) const;

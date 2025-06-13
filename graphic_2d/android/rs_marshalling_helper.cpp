@@ -260,16 +260,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMask>&
     return {};
 }
 
-// RSFilter
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSFilter>& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter>& val)
-{
-    return {};
-}
-
 // RSRenderFilter
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderFilter>& val)
 {
@@ -403,7 +393,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
         if (!parcel.ReadInt16(typeId)) {                                                                              \
             return false;                                                                                             \
         }                                                                                                             \
-        RSRenderPropertyType type = static_cast<RSRenderPropertyType>(typeId);                                        \
+        RSPropertyType type = static_cast<RSPropertyType>(typeId);                                                    \
         if (!parcel.ReadUint64(id)) {                                                                                 \
             return false;                                                                                             \
         }                                                                                                             \
@@ -434,7 +424,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                         \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)                          \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSRenderFilter>)                    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                            \
@@ -473,7 +462,6 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Color)                               \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                      \
