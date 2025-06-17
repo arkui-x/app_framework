@@ -133,16 +133,22 @@ void RenderContext::InitializeEglContext()
 
 void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context) 
 {
-   [EAGLContext setCurrentContext:static_cast<EAGLContext*>(eglContext_)];
-    UpdateStorageSizeIfNecessary();    
+    if (@available(iOS 18, *)) {
+        @autoreleasepool {
+            UpdateStorageSizeIfNecessary();
+        }
+    } else {
+        UpdateStorageSizeIfNecessary();
+    }
 }
 
 bool RenderContext::UpdateStorageSizeIfNecessary()
 {
-    const CGSize layer_size = [static_cast<CAEAGLLayer*>(layer_)bounds].size;
-    const CGFloat contents_scale = static_cast<CAEAGLLayer*>(layer_).contentsScale;
-    const int size_width = layer_size.width * contents_scale;
-    const int size_height = layer_size.height * contents_scale;
+    [EAGLContext setCurrentContext:static_cast<EAGLContext*>(eglContext_)];
+    static_cast<CAEAGLLayer*>(layer_).drawableProperties = @{
+        kEAGLDrawablePropertyColorFormat : kEAGLColorFormatRGBA8,
+        kEAGLDrawablePropertyRetainedBacking : @(NO),
+    };
 
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
     glBindRenderbuffer(GL_RENDERBUFFER, colorbuffer_);
@@ -207,13 +213,6 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
        ROSEN_LOGE("RenderContextEAGL layer_ is null");
        return nullptr;
     }
-
-    NSString* drawableColorFormat = kEAGLColorFormatRGBA8;
-
-    static_cast<CAEAGLLayer*>(layer_).drawableProperties = @{
-        kEAGLDrawablePropertyColorFormat : drawableColorFormat,
-        kEAGLDrawablePropertyRetainedBacking : @(NO),
-    };
     return layer_;
 }
 
