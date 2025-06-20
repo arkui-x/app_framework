@@ -47,5 +47,5 @@ action("pkg_icudata") {
     "-m",
     "$is_use_ios_simulator",
   ]
-  outputs = [ "$root_out_dir/icu_data/out/icudt72l.dat" ]
+  outputs = [ "$root_out_dir/icu_data/out/icudt74l.dat" ]
 }
