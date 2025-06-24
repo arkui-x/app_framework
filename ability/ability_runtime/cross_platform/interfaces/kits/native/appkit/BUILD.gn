@@ -39,7 +39,7 @@ config("appkit_native_config") {
     "//foundation/arkui/ace_engine/interfaces/inner_api/ace_kit/include",
     "//third_party/flutter/engine",
     "//third_party/json/include",
-    "//third_party/skia",
+    "$skia_root_new",
   ]
 
   if (target_os == "android") {
