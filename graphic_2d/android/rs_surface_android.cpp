@@ -22,6 +22,7 @@
 #include "rs_surface_frame_android.h"
 #include "render_context/render_context.h"
 
+const float TRANSLATE_VALUE = 0.5f;
 namespace OHOS {
 namespace Rosen {
 RSSurfaceAndroid::RSSurfaceAndroid(ANativeWindow* data)
@@ -280,12 +281,11 @@ void AndroidSurfaceTexture::DrawTextureImage(RSPaintFilterCanvas& canvas, bool f
     canvas.Translate(x, y);
     canvas.Scale(width, height);
     if (!transform_.IsIdentity()) {
-      Drawing::Matrix transformAroundCenter(transform_);
-
-      transformAroundCenter.PreTranslate(-0.5, -0.5);
-      transformAroundCenter.PostScale(1, -1);
-      transformAroundCenter.PostTranslate(0.5, 0.5);
-      canvas.ConcatMatrix(transformAroundCenter);
+        Drawing::Matrix transformAroundCenter(transform_);
+        transformAroundCenter.PreTranslate(-TRANSLATE_VALUE, -TRANSLATE_VALUE);
+        transformAroundCenter.PostScale(1, -1);
+        transformAroundCenter.PostTranslate(TRANSLATE_VALUE, TRANSLATE_VALUE);
+        canvas.ConcatMatrix(transformAroundCenter);
     }
     canvas.DrawImage(*image, 0, 0, Drawing::SamplingOptions());
     canvas.Restore();
