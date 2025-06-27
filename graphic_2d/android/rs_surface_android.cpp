@@ -25,6 +25,7 @@
 #include "rs_surface_frame_android.h"
 #include "render_context/render_context.h"
 
+const float TRANSLATE_VALUE = 0.5f;
 namespace OHOS {
 namespace Rosen {
 RSSurfaceAndroid::RSSurfaceAndroid(ANativeWindow* data)
@@ -187,8 +188,9 @@ RSSurfaceExtPtr RSSurfaceAndroid::GetSurfaceExt(const RSSurfaceExtConfig& config
 }
 
 AndroidSurfaceTexture::AndroidSurfaceTexture(RSSurfaceAndroid* surface, const RSSurfaceExtConfig& config)
-    : RSSurfaceExt(), config_(std::move(config)), transform_(SkMatrix::I())
+    : RSSurfaceExt(), config_(std::move(config)), transform_(Drawing::Matrix())
 {
+    transform_.SetMatrix(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 AndroidSurfaceTexture::~AndroidSurfaceTexture()
@@ -205,13 +207,13 @@ void AndroidSurfaceTexture::MarkUiFrameAvailable(bool available)
     bufferAvailable_.store(available);
 }
 
-static inline SkSize ScaleToFill(float scaleX, float scaleY)
+static inline Drawing::SizeF ScaleToFill(float scaleX, float scaleY)
 {
     const double epsilon = std::numeric_limits<double>::epsilon();
-    /* scaleY is negative. */ 
+    /* scaleY is negative. */
     const double minScale = fmin(scaleX, fabs(scaleY));
     const double rescale = 1.0f / (minScale + epsilon);
-    return SkSize::Make(scaleX * rescale, scaleY * rescale);
+    return Drawing::SizeF(scaleX * rescale, scaleY * rescale);
 }
 
 void AndroidSurfaceTexture::updateTransform()
@@ -219,11 +221,11 @@ void AndroidSurfaceTexture::updateTransform()
     std::vector<float> matrix {};
     updateCallback_(matrix);
     if (matrix.size() == 16) { // 16 max len
-        const SkSize scaled = ScaleToFill(matrix[0], matrix[5]); // 5 index
-        SkScalar matrix3[] = {
-            scaled.fWidth, matrix[1], matrix[2], matrix[4], // 2 4 index
-            scaled.fHeight, matrix[6], matrix[8], matrix[9], matrix[10]}; // 6,8,9,10 index
-        transform_.set9(matrix3);
+        const Drawing::SizeF scaled = ScaleToFill(matrix[0], matrix[5]); // 5 index
+        Drawing::Matrix::Buffer matrix3 = {
+            scaled.Width(), matrix[1], matrix[2], matrix[4], // 2 4 index
+            scaled.Height(), matrix[6], matrix[8], matrix[9], matrix[10]}; // 6,8,9,10 index
+        transform_.SetAll(matrix3);
     }
 }
 
@@ -269,7 +271,7 @@ void AndroidSurfaceTexture::DrawTextureImage(RSPaintFilterCanvas& canvas, bool f
     }
 
     ROSEN_LOGD("AndroidSurfaceTexture::textureId_ %{public}d %{public}d %{public}d",
-        textureId_, bufferAvailable, transform_.isIdentity());
+        textureId_, bufferAvailable, transform_.IsIdentity());
 #ifndef USE_ROSEN_DRAWING
     GrGLTextureInfo textureInfo = {GL_TEXTURE_EXTERNAL_OES, textureId_, GL_RGBA8_OES};
     GrBackendTexture backendTexture((int)width_, (int)height_, GrMipMapped::kNo, textureInfo);
@@ -287,8 +289,8 @@ void AndroidSurfaceTexture::DrawTextureImage(RSPaintFilterCanvas& canvas, bool f
         return;
     }
     Drawing::TextureInfo textureInfo;
-    textureInfo.SetWidth((int)width_);
-    textureInfo.SetHeight((int)height_);
+    textureInfo.SetWidth((int)1);
+    textureInfo.SetHeight((int)1);
     textureInfo.SetIsMipMapped(false);
     textureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
     textureInfo.SetID(textureId_);
@@ -300,7 +302,18 @@ void AndroidSurfaceTexture::DrawTextureImage(RSPaintFilterCanvas& canvas, bool f
     if (!ret) {
         return;
     }
-    canvas.DrawImage(*image, x, y, Drawing::SamplingOptions());
+    canvas.Save();
+    canvas.Translate(x, y);
+    canvas.Scale(width, height);
+    if (!transform_.IsIdentity()) {
+        Drawing::Matrix transformAroundCenter(transform_);
+        transformAroundCenter.PreTranslate(-TRANSLATE_VALUE, -TRANSLATE_VALUE);
+        transformAroundCenter.PostScale(1, -1);
+        transformAroundCenter.PostTranslate(TRANSLATE_VALUE, TRANSLATE_VALUE);
+        canvas.ConcatMatrix(transformAroundCenter);
+    }
+    canvas.DrawImage(*image, 0, 0, Drawing::SamplingOptions());
+    canvas.Restore();
 #endif
 }
 } // namespace Rosen
