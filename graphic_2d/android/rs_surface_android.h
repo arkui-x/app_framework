@@ -119,6 +119,7 @@ private:
     RSSurfaceTextureUpdateCallBack updateCallback_;
     std::atomic<bool> bufferAvailable_ = false;
     RSSurfaceExtConfig config_;
+    Drawing::Matrix transform_;
     float width_ = 0;
     float height_ = 0;
 };

@@ -184,8 +184,9 @@ RSSurfaceExtPtr RSSurfaceAndroid::GetSurfaceExt(const RSSurfaceExtConfig& config
 }
 
 AndroidSurfaceTexture::AndroidSurfaceTexture(RSSurfaceAndroid* surface, const RSSurfaceExtConfig& config)
-    : RSSurfaceExt(), config_(std::move(config))
+    : RSSurfaceExt(), config_(std::move(config)), transform_(Drawing::Matrix())
 {
+    transform_.SetMatrix(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 AndroidSurfaceTexture::~AndroidSurfaceTexture()
@@ -202,10 +203,26 @@ void AndroidSurfaceTexture::MarkUiFrameAvailable(bool available)
     bufferAvailable_.store(available);
 }
 
+static inline Drawing::SizeF ScaleToFill(float scaleX, float scaleY)
+{
+    const double epsilon = std::numeric_limits<double>::epsilon();
+    /* scaleY is negative. */
+    const double minScale = fmin(scaleX, fabs(scaleY));
+    const double rescale = 1.0f / (minScale + epsilon);
+    return Drawing::SizeF(scaleX * rescale, scaleY * rescale);
+}
+
 void AndroidSurfaceTexture::updateTransform()
 {
     std::vector<float> matrix {};
     updateCallback_(matrix);
+    if (matrix.size() == 16) { // 16 max len
+        const Drawing::SizeF scaled = ScaleToFill(matrix[0], matrix[5]); // 5 index
+        Drawing::Matrix::Buffer matrix3 = {
+            scaled.Width(), matrix[1], matrix[2], matrix[4], // 2 4 index
+            scaled.Height(), matrix[6], matrix[8], matrix[9], matrix[10]}; // 6,8,9,10 index
+        transform_.SetAll(matrix3);
+    }
 }
 
 void AndroidSurfaceTexture::UpdateSurfaceDefaultSize(float width, float height)
@@ -246,8 +263,8 @@ void AndroidSurfaceTexture::DrawTextureImage(RSPaintFilterCanvas& canvas, bool f
         return;
     }
     Drawing::TextureInfo textureInfo;
-    textureInfo.SetWidth((int)width_);
-    textureInfo.SetHeight((int)height_);
+    textureInfo.SetWidth((int)1);
+    textureInfo.SetHeight((int)1);
     textureInfo.SetIsMipMapped(false);
     textureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
     textureInfo.SetID(textureId_);
@@ -259,7 +276,19 @@ void AndroidSurfaceTexture::DrawTextureImage(RSPaintFilterCanvas& canvas, bool f
     if (!ret) {
         return;
     }
-    canvas.DrawImage(*image, x, y, Drawing::SamplingOptions());
+    canvas.Save();
+    canvas.Translate(x, y);
+    canvas.Scale(width, height);
+    if (!transform_.IsIdentity()) {
+      Drawing::Matrix transformAroundCenter(transform_);
+
+      transformAroundCenter.PreTranslate(-0.5, -0.5);
+      transformAroundCenter.PostScale(1, -1);
+      transformAroundCenter.PostTranslate(0.5, 0.5);
+      canvas.ConcatMatrix(transformAroundCenter);
+    }
+    canvas.DrawImage(*image, 0, 0, Drawing::SamplingOptions());
+    canvas.Restore();
 }
 } // namespace Rosen
 } // namespace OHOS
