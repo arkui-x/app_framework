@@ -121,13 +121,6 @@ bool RSSystemProperties::GetHighContrastStatus()
     return {};
 }
 
-#ifndef NEW_SKIA
-ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
-{
-    return {};
-}
-#endif
-
 uint32_t RSSystemProperties::GetCorrectionMode()
 {
     return {};
