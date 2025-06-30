@@ -56,27 +56,27 @@ static void CreateSubWindowTask(
 
 void JsWindowManager::Finalizer(napi_env env, void* data, void* hint)
 {
-    WLOGI("JsWindowManager::Finalizer");
+    WLOGD("JsWindowManager::Finalizer");
     std::unique_ptr<JsWindowManager>(static_cast<JsWindowManager*>(data));
 }
 
 napi_value JsWindowManager::CreateWindow(napi_env env, napi_callback_info info)
 {
-    WLOGI("JsWindowManager::CreateWindow");
+    WLOGD("JsWindowManager::CreateWindow");
     JsWindowManager* me = CheckParamsAndGetThis<JsWindowManager>(env, info);
     return (me != nullptr) ? me->OnCreateWindow(env, info) : nullptr;
 }
 
 napi_value JsWindowManager::FindWindowSync(napi_env env, napi_callback_info info)
 {
-    WLOGI("JsWindowManager::FindWindowSync");
+    WLOGD("JsWindowManager::FindWindowSync");
     JsWindowManager* me = CheckParamsAndGetThis<JsWindowManager>(env, info);
     return (me != nullptr) ? me->OnFindWindowSync(env, info) : nullptr;
 }
 
 napi_value JsWindowManager::GetLastWindow(napi_env env, napi_callback_info info)
 {
-    WLOGI("JsWindowManager::GetLastWindow");
+    WLOGD("JsWindowManager::GetLastWindow");
     JsWindowManager* me = CheckParamsAndGetThis<JsWindowManager>(env, info);
     return (me != nullptr) ? me->OnGetLastWindow(env, info) : nullptr;
 }
@@ -201,11 +201,11 @@ napi_value JsWindowManager::OnFindWindowSync(napi_env env, napi_callback_info in
         if (status != napi_ok) {
             return nullptr;
         }
-        WLOGI("JsWindowManager::OnFindWindowSync : Find window: %{public}s, use exist js window", windowName.c_str());
+        WLOGD("JsWindowManager::OnFindWindowSync : Find window: %{public}s, use exist js window", windowName.c_str());
         return object;
     }
 
-    WLOGI("JsWindowManager::OnFindWindowSync : could not find window from js window, call Window::FindWindow");
+    WLOGD("JsWindowManager::OnFindWindowSync : could not find window from js window, call Window::FindWindow");
     std::shared_ptr<Window> window = Window::FindWindow(windowName);
     if (window == nullptr) {
         WLOGE("JsWindowManager::OnFindWindowSync : call Window::FindWindow return failed!");
@@ -219,7 +219,7 @@ napi_value JsWindowManager::OnFindWindowSync(napi_env env, napi_callback_info in
 
 static void GetTopWindowTask(void* contextPtr, napi_env env, NapiAsyncTask& task, bool newApi)
 {
-    WLOGI("WindowManager:GetTopWindowTask : Start...");
+    WLOGD("WindowManager:GetTopWindowTask : Start...");
     std::string windowName;
     std::shared_ptr<Rosen::Window> window = nullptr;
     auto context = static_cast<std::weak_ptr<AbilityRuntime::Platform::Context>*>(contextPtr);
@@ -228,7 +228,7 @@ static void GetTopWindowTask(void* contextPtr, napi_env env, NapiAsyncTask& task
     }
 
     window = Window::GetTopWindow(context == nullptr ? nullptr : context->lock());
-    WLOGI("WindowManager:GetTopWindowTask: GetTopWindow[%{public}p]", window.get());
+    WLOGD("WindowManager:GetTopWindowTask: GetTopWindow[%{public}p]", window.get());
     if (window == nullptr) {
         task.Reject(env, CreateWindowsJsError(env, static_cast<int32_t>(WmErrorCode::WM_ERROR_STATE_ABNORMALLY),
             "Get top window failed"));
@@ -238,13 +238,13 @@ static void GetTopWindowTask(void* contextPtr, napi_env env, NapiAsyncTask& task
     windowName = window->GetWindowName();
     // get and create jsWindow
     task.Resolve(env, CreateJsWindowObject(env, window));
-    WLOGI("WindowManager:GetTopWindowTask : Get top window %{public}s success", windowName.c_str());
+    WLOGD("WindowManager:GetTopWindowTask : Get top window %{public}s success", windowName.c_str());
     return;
 }
 
 napi_value JsWindowManager::OnGetLastWindow(napi_env env, napi_callback_info info)
 {
-    WLOGI("JsWindowManager::OnGetLastWindow : Start...");
+    WLOGD("JsWindowManager::OnGetLastWindow : Start...");
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
@@ -254,7 +254,7 @@ napi_value JsWindowManager::OnGetLastWindow(napi_env env, napi_callback_info inf
         return nullptr;
     }
 
-    WLOGI("JsWindowManager::OnGetLastWindow : check parameter, argc = %{public}zu", argc);
+    WLOGD("JsWindowManager::OnGetLastWindow : check parameter, argc = %{public}zu", argc);
     napi_value nativeCallback = nullptr;
     void* contextPtr = nullptr;
     status = napi_unwrap(env, argv[0], &contextPtr);
@@ -266,7 +266,7 @@ napi_value JsWindowManager::OnGetLastWindow(napi_env env, napi_callback_info inf
         nativeCallback = argv[1];
     }
 
-    WLOGI("JsWindowManager::OnGetLastWindow : processing...");
+    WLOGD("JsWindowManager::OnGetLastWindow : processing...");
     NapiAsyncTask::CompleteCallback complete = [=](napi_env env, NapiAsyncTask& task, int32_t status) {
         return GetTopWindowTask(contextPtr, env, task, true);
     };
@@ -278,7 +278,7 @@ napi_value JsWindowManager::OnGetLastWindow(napi_env env, napi_callback_info inf
 
 napi_value JsWindowManagerInit(napi_env env, napi_value exportObj)
 {
-    WLOGI("JsWindowManagerInit");
+    WLOGD("JsWindowManagerInit");
     if (env == nullptr || exportObj == nullptr) {
         WLOGE("JsWindowManagerInit : env or exportObj is nullptr");
         return nullptr;
