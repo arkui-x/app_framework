@@ -310,7 +310,7 @@ gen_icu_data_res() {
     --seqmode sequential \
     --mode unix-exec \
     --tool_dir $tool_bin_dir \
-    --out_dir $res_out_root_dir/out/build/icudt74l \
+    --out_dir $res_out_root_dir/out/build/icudt72l \
     --tmp_dir $res_out_root_dir/out/tmp \
     # --verbose
 }
@@ -334,7 +334,7 @@ echo "[ICUData] gen icudata res success."
 # -d Specify the destination directory for files
 cd "$icu_bin_root_out_dir/.."
 
-PKGDATA="$tool_bin_dir/pkgdata -s $res_out_root_dir/out/build/icudt74l -T $res_out_root_dir/out/tmp -p icudt74l -d $res_out_root_dir/out"
+PKGDATA="$tool_bin_dir/pkgdata -s $res_out_root_dir/out/build/icudt72l -T $res_out_root_dir/out/tmp -p icudt72l -d $res_out_root_dir/out"
 echo `$PKGDATA $res_out_root_dir/out/tmp/icudata.lst`
 
 exit 0

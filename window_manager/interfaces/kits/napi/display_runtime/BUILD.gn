@@ -18,6 +18,7 @@ config("display_manager_napi_config") {
   include_dirs = [
     "${app_framework_window_manager_path}/dm/include",
     "${display_manager_napi_path}/innerkits/dm",
+    "//arkcompiler/runtime_core/common_interfaces",
   ]
 }
 
@@ -62,8 +63,8 @@ template("display_manager_napi") {
     sources = [
       "${display_manager_napi_path}/kits/napi/display_runtime/display_manager_module.cpp",
       "${display_manager_napi_path}/kits/napi/display_runtime/js_display.cpp",
-      "${display_manager_napi_path}/kits/napi/display_runtime/js_display_manager.cpp",
       "${display_manager_napi_path}/kits/napi/display_runtime/js_display_listener.cpp",
+      "${display_manager_napi_path}/kits/napi/display_runtime/js_display_manager.cpp",
     ]
   }
 }
