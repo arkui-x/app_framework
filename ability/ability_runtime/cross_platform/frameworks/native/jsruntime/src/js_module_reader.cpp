@@ -31,8 +31,7 @@ uint64_t GetNowTime()
 }
 JsModuleReader::JsModuleReader(const std::string& bundleName) : bundleName_(bundleName) {}
 
-bool JsModuleReader::operator()(
-    const std::string& inputPath, bool isHybrid, uint8_t** buff, size_t* buffSize, std::string& errorMsg)
+bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, size_t* buffSize, std::string& errorMsg)
 {
     HILOG_INFO("Begin: %{private}s, time is: %{public}ld.", inputPath.c_str(), GetNowTime());
     if (inputPath.empty() || buff == nullptr || buffSize == nullptr) {
