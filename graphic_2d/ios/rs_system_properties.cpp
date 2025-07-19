@@ -407,6 +407,11 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     return true;
@@ -441,5 +446,21 @@ bool RSSystemProperties::GetWideColorSpaceEnabled()
 {
     return true;
 }
+
+bool RSSystemProperties::GetHybridRenderEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
+{
+    return false;
+}
+
+uint32_t RSSystemProperties::GetHybridRenderTextBlobLenCount()
+{
+    return 0;
+}
+
 } // namespace Rosen
 } // namespace OHOS
