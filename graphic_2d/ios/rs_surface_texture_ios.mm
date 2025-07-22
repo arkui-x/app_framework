@@ -59,7 +59,7 @@ CVPixelBufferRef RSSurfaceTextureIOS::GetPixelBuffer()
     if ([videoOutput_ hasNewPixelBufferForItemTime:outputItemTime]) {
         return [videoOutput_ copyPixelBufferForItemTime:outputItemTime itemTimeForDisplay:NULL];
     } else {
-            ROSEN_LOGE("RSSurfaceTextureIOS::GetPixelBuffer is nullptr");
+            ROSEN_LOGD("RSSurfaceTextureIOS::GetPixelBuffer is nullptr");
         return nullptr;
     }
 }
