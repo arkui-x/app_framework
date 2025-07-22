@@ -212,7 +212,7 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
 bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext)
 {
     if (drGPUContext_ != nullptr) {
-        ROSEN_LOGE("Drawing GPUContext has already created");
+        ROSEN_LOGD("Drawing GPUContext has already created");
         return true;
     }
     Drawing::GPUContextOptions options;
@@ -267,7 +267,7 @@ void RenderContext::RenderFrame()
     RS_TRACE_FUNC();
     // flush commands
     if (surface_ != nullptr && surface_->GetCanvas() != nullptr) {
-        ROSEN_LOGE("RenderFrame: Canvas");
+        ROSEN_LOGD("RenderFrame: Canvas");
         surface_->GetCanvas()->Flush();
     } else {
         ROSEN_LOGE("canvas is nullptr!!!");

@@ -80,8 +80,7 @@ void RSVsyncClientIOS::SetVsyncCallback(VsyncCallback callback)
         float mainMaxFrameRate = [UIScreen mainScreen].maximumFramesPerSecond;
         if (@available(iOS 15.0,*)) {
             float maxFrameRate = fmax(mainMaxFrameRate, FRAME_RATE);
-            float minFrameRate = fmax(mainMaxFrameRate / 2, FRAME_RATE);
-            displayLink_.preferredFrameRateRange = CAFrameRateRangeMake(minFrameRate, maxFrameRate, maxFrameRate);
+            displayLink_.preferredFrameRateRange = CAFrameRateRangeMake(maxFrameRate, maxFrameRate, maxFrameRate);
         } else {
             displayLink_.preferredFramesPerSecond = mainMaxFrameRate;
         }
