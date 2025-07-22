@@ -454,7 +454,6 @@ void EventQueue::WaitUntilLocked(const InnerEvent::TimePoint& when, std::unique_
 
 void EventQueue::HandleFileDescriptorEvent(int32_t fileDescriptor, uint32_t events)
 {
-    HILOG_INFO("EventQueue::HandleFileDescriptorEvent");
     std::shared_ptr<FileDescriptorListener> listener;
 
     {
