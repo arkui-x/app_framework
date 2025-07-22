@@ -275,21 +275,17 @@ public:
 
     void OnReadable(int32_t) override
     {
-        HILOG_INFO("UvLoopHandler::OnReadable is triggered");
         OnTriggered();
     }
 
     void OnWritable(int32_t) override
     {
-        HILOG_INFO("UvLoopHandler::OnWritable is triggered");
         OnTriggered();
     }
 
 private:
     void OnTriggered()
     {
-        HILOG_INFO("UvLoopHandler::OnTriggered is triggered");
-
         auto fd = uv_backend_fd(uvLoop_);
 #ifndef IOS_PLATFORM
         struct epoll_event ev;
