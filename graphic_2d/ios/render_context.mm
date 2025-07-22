@@ -153,9 +153,17 @@ bool RenderContext::UpdateStorageSizeIfNecessary()
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
     glBindRenderbuffer(GL_RENDERBUFFER, colorbuffer_);
 
-    if (![eglContext_ renderbufferStorage:GL_RENDERBUFFER fromDrawable:static_cast<CAEAGLLayer *>(layer_)]) {
-        ROSEN_LOGE("eglContext_ renderbufferStorage:GL_RENDERBUFFER Failed");
-        return false;
+    if (@available(iOS 26, *)) {
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            if (![eglContext_ renderbufferStorage:GL_RENDERBUFFER fromDrawable:static_cast<CAEAGLLayer *>(layer_)]) {
+                ROSEN_LOGE("eglContext_ renderbufferStorage:GL_RENDERBUFFER Failed");
+            }
+        });
+    } else {
+        if (![eglContext_ renderbufferStorage:GL_RENDERBUFFER fromDrawable:static_cast<CAEAGLLayer *>(layer_)]) {
+            ROSEN_LOGE("eglContext_ renderbufferStorage:GL_RENDERBUFFER Failed");
+            return false;
+        }
     }
 
     glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &storage_width_);
