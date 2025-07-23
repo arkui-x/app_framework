@@ -145,10 +145,6 @@ void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context)
 bool RenderContext::UpdateStorageSizeIfNecessary()
 {
     [EAGLContext setCurrentContext:static_cast<EAGLContext*>(eglContext_)];
-    static_cast<CAEAGLLayer*>(layer_).drawableProperties = @{
-        kEAGLDrawablePropertyColorFormat : kEAGLColorFormatRGBA8,
-        kEAGLDrawablePropertyRetainedBacking : @(NO),
-    };
 
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
     glBindRenderbuffer(GL_RENDERBUFFER, colorbuffer_);
