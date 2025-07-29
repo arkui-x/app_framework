@@ -39,6 +39,7 @@
 #include "adapter/ios/stage/ability/stage_asset_provider.h"
 #endif
 #include "commonlibrary/ets_utils/js_sys_module/console/console.h"
+#include "foundation/appframework/arkui/uicontent/declarative_module_preloader.h"
 
 #ifdef SUPPORT_GRAPHICS
 using OHOS::Ace::ContainerScope;
@@ -98,6 +99,7 @@ void InitWorkerFunc(NativeEngine* nativeEngine)
         panda::JSNApi::StartDebugger(vm, debugOption, instanceId, workerPostTask);
 #endif
     }
+    OHOS::Ace::Platform::DeclarativeModulePreloader::PreloadWorker(*nativeEngine);
 }
 
 void OffWorkerFunc(NativeEngine* nativeEngine)

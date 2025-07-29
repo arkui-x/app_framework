@@ -26,6 +26,7 @@ namespace OHOS::Ace::Platform {
 class DeclarativeModulePreloader {
 public:
     static void Preload(NativeEngine& runtime);
+    static void PreloadWorker(NativeEngine& runtime);
 };
 } // namespace OHOS::Ace::Platform
 #endif // FOUNDATION_APPFRAMEWORK_UICONTENT_DECLARATIVE_MODULE_PRELOADER_H

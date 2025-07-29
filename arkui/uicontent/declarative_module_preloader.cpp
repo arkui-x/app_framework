@@ -51,4 +51,9 @@ void DeclarativeModulePreloader::Preload(NativeEngine &runtime)
     InitAceModule(reinterpret_cast<void *>(&runtime));
 }
 
+void DeclarativeModulePreloader::PreloadWorker(NativeEngine& runtime)
+{
+    Framework::JsiDeclarativeEngineInstance::PreloadAceModuleWorker(reinterpret_cast<void*>(&runtime));
+}
+
 } // namespace OHOS::Ace::Platform
