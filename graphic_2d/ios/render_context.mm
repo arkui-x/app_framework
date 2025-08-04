@@ -15,6 +15,7 @@
 
 #include "render_context/render_context.h"
 
+#include <MacTypes.h>
 #include <__nullptr>
 #include <sstream>
 #include <UIKit/UIKit.h>
@@ -133,37 +134,38 @@ void RenderContext::InitializeEglContext()
 
 void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context) 
 {
-    if (@available(iOS 18, *)) {
-        @autoreleasepool {
-            UpdateStorageSizeIfNecessary();
-        }
-    } else {
-        UpdateStorageSizeIfNecessary();
+    [EAGLContext setCurrentContext:static_cast<EAGLContext*>(eglContext_)];
+    CAEAGLLayer* layer = static_cast<CAEAGLLayer*>(surface);
+    const CGSize layer_size = [layer bounds].size;
+    const CGFloat contents_scale = layer.contentsScale;
+    const GLint size_width = layer_size.width * contents_scale;
+    const GLint size_height = layer_size.height * contents_scale;
+
+    if (layer == layer_ && size_width == storage_width_ && size_height == storage_height_) {
+        // Nothing to since the stoage size is already consistent with the layer.
+        return;
     }
+    ROSEN_LOGD("renderbufferStorage");
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
+    glBindRenderbuffer(GL_RENDERBUFFER, colorbuffer_);
+    __block bool res = false;
+    if (@available(iOS 18, *)) {
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            res = [eglContext_ renderbufferStorage:GL_RENDERBUFFER fromDrawable:static_cast<CAEAGLLayer *>(layer_)];
+        });
+    } else {
+       res = [eglContext_ renderbufferStorage:GL_RENDERBUFFER fromDrawable:static_cast<CAEAGLLayer *>(layer_)];
+    }
+    if (!res) {
+        ROSEN_LOGE("eglContext_ renderbufferStorage:GL_RENDERBUFFER Failed");
+        return;
+    }
+    glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &storage_width_);
+    glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &storage_height_);
 }
 
 bool RenderContext::UpdateStorageSizeIfNecessary()
 {
-    [EAGLContext setCurrentContext:static_cast<EAGLContext*>(eglContext_)];
-
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
-    glBindRenderbuffer(GL_RENDERBUFFER, colorbuffer_);
-
-    if (@available(iOS 26, *)) {
-        dispatch_sync(dispatch_get_main_queue(), ^{
-            if (![eglContext_ renderbufferStorage:GL_RENDERBUFFER fromDrawable:static_cast<CAEAGLLayer *>(layer_)]) {
-                ROSEN_LOGE("eglContext_ renderbufferStorage:GL_RENDERBUFFER Failed");
-            }
-        });
-    } else {
-        if (![eglContext_ renderbufferStorage:GL_RENDERBUFFER fromDrawable:static_cast<CAEAGLLayer *>(layer_)]) {
-            ROSEN_LOGE("eglContext_ renderbufferStorage:GL_RENDERBUFFER Failed");
-            return false;
-        }
-    }
-
-    glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &storage_width_);
-    glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &storage_height_);
     return true;
 }
 
@@ -211,12 +213,18 @@ void RenderContext::DestroyEGLSurface(EGLSurface surface)
 
 EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
 {
+    if (layer_ == eglNativeWindow) {
+        return layer_;
+    }
     [static_cast<CAEAGLLayer*>(layer_) release];
     layer_ = [static_cast<CAEAGLLayer*>(eglNativeWindow) retain];
     if (static_cast<CAEAGLLayer*>(layer_) == nullptr) {
        ROSEN_LOGE("RenderContextEAGL layer_ is null");
        return nullptr;
     }
+    // use new layer, reset width and height
+    storage_width_ = 0;
+    storage_height_ = 0;
     return layer_;
 }
 
