@@ -443,6 +443,14 @@ public:
      */
     std::string Dump();
 
+    /**
+     * Check the event whether sent by enhanced api.
+     */
+    inline bool IsEnhanced()
+    {
+        return isEnhanced_;
+    }
+
 private:
     using SmartPtrDestructor = void (*)(void*);
 
@@ -561,6 +569,8 @@ private:
 
     // use to store hitrace Id
     std::shared_ptr<HiTraceId> hiTraceId_;
+
+    bool isEnhanced_ = false;
 };
 } // namespace AppExecFwk
 } // namespace OHOS
