@@ -62,7 +62,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceGPU::RequestFrame(
         return nullptr;
     }
     renderContext_->CreateEGLSurface(layer_);
-    renderContext_->MakeCurrent(nullptr, nullptr);
+    renderContext_->MakeCurrent(layer_, nullptr);
     auto frame = std::make_unique<RSSurfaceFrameIOS>(width, height);
     frame->SetRenderContext(renderContext_);
     frame->CreateSurface();
@@ -81,7 +81,7 @@ bool RSSurfaceGPU::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t u
     }
 
     /* gpu render flush */
-    renderContext_->MakeCurrent(nullptr, nullptr);
+    renderContext_->MakeCurrent(layer_, nullptr);
     renderContext_->RenderFrame();
     renderContext_->SwapBuffers(nullptr);
 #ifndef USE_ROSEN_DRAWING
