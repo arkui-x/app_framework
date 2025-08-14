@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_ABILITY_CONTEXT_IMPL_H
 
 #include "ability_context.h"
+#include "native_engine/native_reference.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -43,6 +44,7 @@ public:
     ErrCode TerminateSelf() override;
     ErrCode CloseAbility() override;
     std::shared_ptr<AppExecFwk::AbilityInfo> GetAbilityInfo() const override;
+    std::shared_ptr<NativeReference> GetJsWindowStage() override;
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo() const override;
     std::shared_ptr<Configuration> GetConfiguration() override;
     void GetResourcePaths(std::string& hapResPath, std::string& sysResPath) override;
@@ -61,9 +63,11 @@ public:
 
     void SetAbilityStageContext(const std::shared_ptr<Context>& abilityStageContext);
     void SetInstanceName(const std::string& instanceName);
+    void SetJsWindowStage(const std::shared_ptr<NativeReference> jsWindowStage) override;
 private:
     void HandleOnAbilityResult(int32_t requestCode, int32_t resultCode, const AAFwk::Want& want);
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo_ = nullptr;
+    std::shared_ptr<NativeReference> jsWindowStage_ = nullptr;
     std::shared_ptr<Context> stageContext_ = nullptr;
     std::string instanceName_;
     std::map<int, RuntimeTask> resultCallbacks_;

@@ -351,13 +351,27 @@ void JsAbility::OnWindowStageCreated()
 {
     HILOG_INFO("OnWindowStageCreated begin");
     Ability::OnWindowStageCreated();
-
+    auto abilityContext = GetAbilityContext();
     auto jsAppWindowStage = CreateJsWindowStage();
-    if (jsAppWindowStage == nullptr) {
-        HILOG_ERROR("Failed to create jsAppWindowStage object by LoadSystemModule");
+    if (jsAppWindowStage == nullptr || abilityContext == nullptr) {
+        HILOG_ERROR("Failed jsAppWindowStage or abilityContext is nullptr");
         return;
     }
-    napi_value argv[] = { jsAppWindowStage->GetNapiValue() };
+    std::shared_ptr<NativeReference> sharedJsWindowStage(jsAppWindowStage.release());
+    napi_value stageValue = sharedJsWindowStage->GetNapiValue();
+    if (stageValue == nullptr) {
+        HILOG_ERROR("Failed to get window stage NAPI value");
+    }
+    if (shellContextRef_ != nullptr) {
+        abilityContext->SetJsWindowStage(sharedJsWindowStage);
+        HandleScope handleScope(jsRuntime_);
+        auto env = jsRuntime_.GetNapiEnv();
+        napi_value contextObj = shellContextRef_->GetNapiValue();
+        if (contextObj != nullptr) {
+            napi_set_named_property(env, contextObj, "windowStage", stageValue);
+        }
+    }
+    napi_value argv[] = { stageValue };
     CallObjectMethod("onWindowStageCreate", argv, ArraySize(argv));
 
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
@@ -365,8 +379,7 @@ void JsAbility::OnWindowStageCreated()
         HILOG_DEBUG("Call AbilityDelegator::PostPerformScenceCreated");
         delegator->PostPerformScenceCreated(CreateADelegatorAbilityProperty());
     }
-
-    jsWindowStageObj_ = std::shared_ptr<NativeReference>(jsAppWindowStage.release());
+    jsWindowStageObj_ = sharedJsWindowStage;
     auto applicationContext = ApplicationContext::GetInstance();
     if (applicationContext == nullptr) {
         HILOG_ERROR("onWindowStageCreate applicationContext is nullptr");
