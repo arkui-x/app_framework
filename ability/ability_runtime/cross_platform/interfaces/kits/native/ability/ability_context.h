@@ -17,6 +17,7 @@
 #define FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_ABILITYKIT_ABILITY_CONTEXT_H
 
 #include "context.h"
+#include "native_engine/native_reference.h"
 #include "want.h"
 
 namespace OHOS {
@@ -38,6 +39,10 @@ public:
     virtual int32_t CloseAbility() = 0;
 
     virtual std::shared_ptr<Configuration> GetConfiguration() override;
+
+    virtual std::shared_ptr<NativeReference> GetJsWindowStage() = 0;
+
+    virtual void SetJsWindowStage(const std::shared_ptr<NativeReference> jsWindowStage) = 0;
 
     virtual int32_t StartAbilityForResult(const AAFwk::Want& want, int32_t requestCode, RuntimeTask&& task) = 0;
 

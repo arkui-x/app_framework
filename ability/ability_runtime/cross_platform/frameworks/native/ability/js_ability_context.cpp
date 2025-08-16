@@ -332,6 +332,11 @@ napi_value CreateJsAbilityContext(napi_env env, const std::shared_ptr<AbilityCon
     if (config != nullptr) {
         napi_set_named_property(env, object, "config", CreateJsConfiguration(env, *config));
     }
+    auto windowStage = context->GetJsWindowStage();
+    if (windowStage != nullptr) {
+        napi_value stageValue = windowStage->GetNapiValue();
+        napi_set_named_property(env, object, "windowStage", stageValue);
+    }
 
     const char* moduleName = "JsAbilityContext";
     BindNativeFunction(env, object, "startAbility", moduleName, JsAbilityContext::StartAbility);

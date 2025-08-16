@@ -21,6 +21,7 @@ class AbilityContext extends Context {
         this.abilityInfo = obj.abilityInfo;
         this.currentHapModuleInfo = obj.currentHapModuleInfo;
         this.config = obj.config;
+        this.windowStage = obj.windowStage;
     }
 
     onUpdateConfiguration(config) {

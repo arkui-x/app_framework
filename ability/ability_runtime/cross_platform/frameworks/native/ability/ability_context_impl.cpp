@@ -110,6 +110,16 @@ std::shared_ptr<AppExecFwk::AbilityInfo> AbilityContextImpl::GetAbilityInfo() co
     return abilityInfo_;
 }
 
+void AbilityContextImpl::SetJsWindowStage(const std::shared_ptr<NativeReference> jsWindowStage)
+{
+    jsWindowStage_ = jsWindowStage;
+}
+
+std::shared_ptr<NativeReference> AbilityContextImpl::GetJsWindowStage()
+{
+    return jsWindowStage_;
+}
+
 void AbilityContextImpl::SetAbilityStageContext(const std::shared_ptr<Context>& abilityStageContext)
 {
     stageContext_ = abilityStageContext;
