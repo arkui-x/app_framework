@@ -116,6 +116,11 @@ bool RSSystemProperties::IsPhoneType()
     return true;
 }
 
+bool RSSystemProperties::IsBetaRelease()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return {};
@@ -170,6 +175,11 @@ HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetHardCursorEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 {
     return {};
@@ -191,6 +201,11 @@ float RSSystemProperties::GetAnimationScale()
 }
 
 bool RSSystemProperties::GetProxyNodeDebugEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetCacheOptimizeRotateEnable()
 {
     return false;
 }
@@ -392,6 +407,16 @@ uint32_t RSSystemProperties::GetUnMarshParallelSize()
     return UINT32_MAX;
 }
 
+bool RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetOptBatchRemovingOnRemoteDiedEnabled()
+{
+    return false;
+}
+
 std::string RSSystemProperties::GetVersionType()
 {
     return "";
@@ -460,6 +485,11 @@ bool RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 uint32_t RSSystemProperties::GetHybridRenderTextBlobLenCount()
 {
     return 0;
+}
+
+bool RSSystemProperties::GetSupportScreenFreezeEnabled()
+{
+    return false;
 }
 
 } // namespace Rosen

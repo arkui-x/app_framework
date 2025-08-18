@@ -544,6 +544,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRe
     return true;
 }
 
+bool RSMarshallingHelper::CheckReadPosition(Parcel& parcel)
+{
+    return true;
+}
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
 {
     return true;
@@ -557,6 +562,16 @@ bool RSMarshallingHelper::UnmarshallingPidPlusId(Parcel& parcel, uint64_t& val)
 bool RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(Parcel& parcel, uint64_t& val)
 {
     return true;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSRenderParticleVector& val)
+{
+    return false;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSRenderParticleVector& val)
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS
