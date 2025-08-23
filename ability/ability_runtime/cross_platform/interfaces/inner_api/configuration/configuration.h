@@ -46,6 +46,7 @@ constexpr const char* SYSTEM_FONT_SIZE_SCALE = "system.font.size.scale";
 constexpr const char* APP_FONT_SIZE_SCALE = "ohos.app.fontSizeScale";
 constexpr const char* APP_FONT_MAX_SCALE = "ohos.app.fontMaxScale";
 constexpr const char* APPLICATION_FONT = "ohos.application.font";
+constexpr const char* IS_APP_FONT_FOLLOW_SYSTEM = "followSystem";
 }; // namespace ConfigurationInner
 
 class Configuration {

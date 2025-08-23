@@ -63,6 +63,8 @@ public:
 private:
     std::shared_ptr<AbilityStage> FindAbilityStage(const std::string& moduleName);
     bool IsUpdateColorNeeded(Configuration &config, SetLevel level);
+    bool IsUpdateFontSizeNeeded(Configuration& config, SetLevel level);
+    bool IsUpdateLanguageNeeded(Configuration& config, SetLevel level);
 
 private:
     std::unique_ptr<AbilityRuntime::Runtime> runtime_;

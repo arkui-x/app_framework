@@ -40,6 +40,7 @@ constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
+constexpr double FONT_SIZE = 0.0;
 } // namespace
 
 void JsApplicationContextUtils::Finalizer(napi_env env, void* data, void* hint)
@@ -575,15 +576,22 @@ napi_value JsApplicationContextUtils::SetFont(napi_env env, napi_callback_info i
 
 napi_value JsApplicationContextUtils::OnSetFont(napi_env env, NapiCallbackInfo& info)
 {
+    if (info.argc == ARGC_ZERO) {
+        HILOG_ERROR("Not enough params");
+        ThrowInvalidParamError(env, "Not enough params.");
+        return CreateJsUndefined(env);
+    }
+
     std::string fontName;
     if (!ConvertFromJsValue(env, info.argv[0], fontName)) {
         HILOG_ERROR("Parse fontName failed");
-        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        ThrowInvalidParamError(env, "Parse param font failed, font must be string.");
         return CreateJsUndefined(env);
     }
     auto applicationContext = applicationContext_.lock();
     if (applicationContext == nullptr) {
-        HILOG_WARN("applicationContext is already released");
+        HILOG_ERROR("ApplicationContext is already released");
+        CreateJsError(env, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST, "ApplicationContext if already released.");
         return CreateJsUndefined(env);
     }
     applicationContext->SetFont(fontName);
@@ -598,18 +606,57 @@ napi_value JsApplicationContextUtils::SetFontSizeScale(napi_env env, napi_callba
 
 napi_value JsApplicationContextUtils::OnSetFontSizeScale(napi_env env, NapiCallbackInfo& info)
 {
-    double fontSizeScale;
+    if (info.argc == ARGC_ZERO) {
+        HILOG_ERROR("Not enough params");
+        ThrowInvalidParamError(env, "Not enough params.");
+        return CreateJsUndefined(env);
+    }
+
+    double fontSizeScale = 1.0;
     if (!ConvertFromJsValue(env, info.argv[0], fontSizeScale)) {
         HILOG_ERROR("Parse fontSizeScale failed");
-        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        ThrowInvalidParamError(env, "Parse fontSizeScale failed, fontSizeScale must be number.");
+        return CreateJsUndefined(env);
+    }
+    if (fontSizeScale < FONT_SIZE) {
+        HILOG_ERROR("Invalid font size");
+        ThrowInvalidParamError(env, "Invalid font size.");
         return CreateJsUndefined(env);
     }
     auto applicationContext = applicationContext_.lock();
     if (applicationContext == nullptr) {
-        HILOG_WARN("applicationContext is already released");
+        HILOG_ERROR("ApplicationContext is already released");
         return CreateJsUndefined(env);
     }
     applicationContext->SetFontSizeScale(fontSizeScale);
+    return CreateJsUndefined(env);
+}
+
+napi_value JsApplicationContextUtils::SetLanguage(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils, OnSetLanguage, APPLICATION_CONTEXT_NAME);
+}
+
+napi_value JsApplicationContextUtils::OnSetLanguage(napi_env env, NapiCallbackInfo& info)
+{
+    if (info.argc == ARGC_ZERO) {
+        HILOG_ERROR("Not enough params");
+        ThrowInvalidParamError(env, "Not enough params.");
+        return CreateJsUndefined(env);
+    }
+    std::string language;
+    if (!ConvertFromJsValue(env, info.argv[0], language)) {
+        HILOG_ERROR("Parse language failed");
+        ThrowInvalidParamError(env, "Parse param language failed, language must be string.");
+        return CreateJsUndefined(env);
+    }
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        HILOG_ERROR("ApplicationContext is already released");
+        CreateJsError(env, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST, "ApplicationContext if already released.");
+        return CreateJsUndefined(env);
+    }
+    applicationContext->SetLanguage(language);
     return CreateJsUndefined(env);
 }
 
@@ -631,6 +678,7 @@ void JsApplicationContextUtils::BindNativeApplicationContext(napi_env env, napi_
     BindNativeFunction(env, object, "setColorMode", MD_NAME, JsApplicationContextUtils::SetColorMode);
     BindNativeFunction(env, object, "setFont", MD_NAME, JsApplicationContextUtils::SetFont);
     BindNativeFunction(env, object, "setFontSizeScale", MD_NAME, JsApplicationContextUtils::SetFontSizeScale);
+    BindNativeFunction(env, object, "setLanguage", MD_NAME, JsApplicationContextUtils::SetLanguage);
 }
 } // namespace Platform
 } // namespace AbilityRuntime

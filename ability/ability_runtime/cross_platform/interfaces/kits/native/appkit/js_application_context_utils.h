@@ -51,6 +51,7 @@ public:
     static napi_value SetColorMode(napi_env env, napi_callback_info info);
     static napi_value SetFont(napi_env env, napi_callback_info info);
     static napi_value SetFontSizeScale(napi_env env, napi_callback_info info);
+    static napi_value SetLanguage(napi_env env, napi_callback_info info);
 
 protected:
     std::weak_ptr<ApplicationContext> applicationContext_;
@@ -74,6 +75,7 @@ private:
     napi_value OnSetColorMode(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetFont(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetFontSizeScale(napi_env env, NapiCallbackInfo& info);
+    napi_value OnSetLanguage(napi_env env, NapiCallbackInfo& info);
 
     static void BindNativeApplicationContext(napi_env env, napi_value object);
 

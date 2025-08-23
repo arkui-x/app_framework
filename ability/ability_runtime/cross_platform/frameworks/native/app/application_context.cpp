@@ -368,13 +368,11 @@ void ApplicationContext::SetLanguage(const std::string &language)
 {
     HILOG_DEBUG("language:%{public}s", language.c_str());
     UErrorCode status = U_ZERO_ERROR;
-    icu::Locale locale = icu::Locale::forLanguageTag(icu::StringPiece(language), status);
+    icu::Locale::forLanguageTag(icu::StringPiece(language), status);
     if (status != U_ZERO_ERROR) {
         HILOG_ERROR("language is invalid");
         return;
     }
-    StageApplicationInfoAdapter::GetInstance()->SetLocale(
-        locale.getLanguage(), locale.getCountry(), locale.getScript());
     Configuration config;
     config.AddItem(ConfigurationInner::APPLICATION_LANGUAGE, language);
     if (appConfigChangeCallback_ != nullptr) {
