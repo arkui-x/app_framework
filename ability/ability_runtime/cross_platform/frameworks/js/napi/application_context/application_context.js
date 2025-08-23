@@ -157,6 +157,10 @@ class ApplicationContext {
     setFontSizeScale(fontSizeScale) {
       return this.__contextImpl__.setFontSizeScale(fontSizeScale);
     }
+
+    setLanguage(language) {
+      return this.__contextImpl__.setLanguage(language);
+    }
 }
 
 export default ApplicationContext;

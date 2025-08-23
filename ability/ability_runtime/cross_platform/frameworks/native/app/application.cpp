@@ -163,7 +163,9 @@ void Application::OnConfigurationUpdate(Configuration& configuration, SetLevel l
     }
 
     bool isUpdateAppColor = IsUpdateColorNeeded(configuration, level);
-    if (!isUpdateAppColor && configuration.GetItemSize() == 0) {
+    bool isUpdateAppFontSize = IsUpdateFontSizeNeeded(configuration, level);
+    bool isUpdateAppLanguage = IsUpdateLanguageNeeded(configuration, level);
+    if (!isUpdateAppColor && !isUpdateAppFontSize && !isUpdateAppLanguage && configuration.GetItemSize() == 0) {
         HILOG_DEBUG("configuration need not updated");
         return;
     }
@@ -282,6 +284,47 @@ bool Application::IsUpdateColorNeeded(Configuration& config, SetLevel level)
     }
 
     return needUpdate;
+}
+
+bool Application::IsUpdateFontSizeNeeded(Configuration &config, SetLevel level)
+{
+    std::string fontSize = config.GetItem(ConfigurationInner::SYSTEM_FONT_SIZE_SCALE);
+    if (fontSize.empty()) {
+        return false;
+    }
+
+    auto preLevel = ApplicationConfigurationManager::GetInstance().GetFontSizeSetLevel();
+    if (level < preLevel) {
+        config.RemoveItem(ConfigurationInner::SYSTEM_FONT_SIZE_SCALE);
+        return false;
+    }
+
+    std::string fontFollowSystem = configuration_->GetItem(ConfigurationInner::APP_FONT_SIZE_SCALE);
+    if (level == preLevel && !fontFollowSystem.empty()) {
+        if (fontFollowSystem.compare(ConfigurationInner::IS_APP_FONT_FOLLOW_SYSTEM) == 0) {
+            return true;
+        }
+        config.RemoveItem(ConfigurationInner::SYSTEM_FONT_SIZE_SCALE);
+        return false;
+    }
+    configuration_->RemoveItem(ConfigurationInner::APP_FONT_SIZE_SCALE);
+    ApplicationConfigurationManager::GetInstance().SetFontSizeSetLevel(level);
+    return true;
+}
+
+bool Application::IsUpdateLanguageNeeded(Configuration &config, SetLevel level)
+{
+    std::string language = config.GetItem(ConfigurationInner::APPLICATION_LANGUAGE);
+    if (language.empty()) {
+        return false;
+    }
+    auto preLevel = ApplicationConfigurationManager::GetInstance().GetLanguageSetLevel();
+    if (level < preLevel) {
+        config.RemoveItem(ConfigurationInner::APPLICATION_LANGUAGE);
+        return false;
+    }
+    ApplicationConfigurationManager::GetInstance().SetLanguageSetLevel(level);
+    return true;
 }
 } // namespace Platform
 } // namespace AbilityRuntime

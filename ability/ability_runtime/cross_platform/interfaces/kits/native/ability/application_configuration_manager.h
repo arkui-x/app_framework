@@ -41,10 +41,16 @@ public:
     std::string SetColorModeSetLevel(SetLevel colorModeSetLevel, const std::string &value);
     SetLevel GetColorModeSetLevel() const;
     bool ColorModeHasSetByApplication() const;
+    void SetFontSizeSetLevel(SetLevel fontSizeSetLevel);
+    SetLevel GetFontSizeSetLevel() const;
+    void SetLanguageSetLevel(SetLevel languageSetLevel);
+    SetLevel GetLanguageSetLevel() const;
 
 private:
     std::mutex mtx;
     SetLevel colorModeSetLevel_ = SetLevel::System;
+    SetLevel fontSizeSetLevel_ = SetLevel::System;
+    SetLevel languageSetLevel_ = SetLevel::System;
     std::vector<std::string> colorModeVal_ = std::vector<std::string>(static_cast<uint8_t>(SetLevel::SetLevelCount));
 };
 } // namespace Platform

@@ -63,6 +63,26 @@ bool ApplicationConfigurationManager::ColorModeHasSetByApplication() const
 {
     return !colorModeVal_[static_cast<uint8_t>(SetLevel::Application)].empty();
 }
+
+void ApplicationConfigurationManager::SetFontSizeSetLevel(SetLevel fontSizeSetLevel)
+{
+    fontSizeSetLevel_ = fontSizeSetLevel;
+}
+
+SetLevel ApplicationConfigurationManager::GetFontSizeSetLevel() const
+{
+    return fontSizeSetLevel_;
+}
+
+void ApplicationConfigurationManager::SetLanguageSetLevel(SetLevel languageSetLevel)
+{
+    languageSetLevel_ = languageSetLevel;
+}
+
+SetLevel ApplicationConfigurationManager::GetLanguageSetLevel() const
+{
+    return languageSetLevel_;
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS
