@@ -260,16 +260,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMask>&
     return {};
 }
 
-// RSRenderFilter
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderFilter>& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderFilter>& val)
-{
-    return {};
-}
-
 // RSNGRenderFilterBase
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNGRenderFilterBase>& val)
 {
@@ -460,7 +450,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                         \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSRenderFilter>)                    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderFilterBase>)              \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderMaskBase>)                \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderShaderBase>)              \
