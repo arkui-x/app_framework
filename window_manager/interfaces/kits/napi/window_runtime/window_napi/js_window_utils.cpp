@@ -182,6 +182,26 @@ napi_value WindowErrorInit(napi_env env)
     return CreateObject(env, nullptr, props, sizeof(props) / sizeof(props[0]));
 }
 
+napi_value WindowStatusTypeInit(napi_env env)
+{
+    WLOGD("WindowStatusTypeInit");
+    const napi_property_descriptor props[] = {
+        DECLARE_NAPI_PROPERTY(
+            "UNDEFINED", CreateJsValue(env, static_cast<int32_t>(WindowStatus::WINDOW_STATUS_UNDEFINED))),
+        DECLARE_NAPI_PROPERTY(
+            "FULL_SCREEN", CreateJsValue(env, static_cast<int32_t>(WindowStatus::WINDOW_STATUS_FULLSCREEN))),
+        DECLARE_NAPI_PROPERTY(
+            "MAXIMIZE", CreateJsValue(env, static_cast<int32_t>(WindowStatus::WINDOW_STATUS_MAXIMIZE))),
+        DECLARE_NAPI_PROPERTY(
+            "MINIMIZE", CreateJsValue(env, static_cast<int32_t>(WindowStatus::WINDOW_STATUS_MINIMIZE))),
+        DECLARE_NAPI_PROPERTY(
+            "FLOATING", CreateJsValue(env, static_cast<int32_t>(WindowStatus::WINDOW_STATUS_FLOATING))),
+        DECLARE_NAPI_PROPERTY(
+            "SPLIT_SCREEN", CreateJsValue(env, static_cast<int32_t>(WindowStatus::WINDOW_STATUS_SPLITSCREEN))),
+    };
+    return CreateObject(env, nullptr, props, sizeof(props) / sizeof(props[0]));
+}
+
 napi_value WindowErrorCodeInit(napi_env env)
 {
     WLOGD("WindowErrorCodeInit");

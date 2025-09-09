@@ -171,6 +171,7 @@ napi_value WindowEventTypeInit(napi_env env);
 napi_value WindowStageEventTypeInit(napi_env env);
 napi_value WindowErrorCodeInit(napi_env env);
 napi_value WindowErrorInit(napi_env env);
+napi_value WindowStatusTypeInit(napi_env env);
 napi_value WindowColorSpaceInit(napi_env env);
 bool SetWindowObjectProperties(napi_env env,
     napi_value object, const char *moduleName, const napi_property_descriptor *props, size_t size);
