@@ -252,10 +252,15 @@ public:
         return nullptr;
     }
 
-    bool IsRegisteredObjectEvent(const std::string& eventId)
+    bool IsRegisteredOnInterceptRequest(const std::string& eventId)
     {
-        auto event = eventObjectWithResponseReturnMap_.find(eventId);
-        return event != eventObjectWithResponseReturnMap_.end() && event->second;
+        auto event = eventObjectWithBoolReturnMap_.find(eventId);
+        if (event != eventObjectWithBoolReturnMap_.end() && event->second) {
+            return event->second("", nullptr);
+        } else {
+            LOGW("failed to find object eventIdWithResponseReturn = %{public}s", eventId.c_str());
+        }
+        return false;
     }
 
     const RefPtr<WebResourceRequestObject>& GetResourceRequestObject()

@@ -79,6 +79,7 @@ constexpr char WEB_EVENT_PAGEFINISH[] = "onPageFinished";
 constexpr char WEB_EVENT_DOWNLOADSTART[] = "onDownloadStart";
 constexpr char WEB_EVENT_LOADINTERCEPT[] = "onLoadIntercept";
 constexpr char WEB_EVENT_ONINTERCEPTREQUEST[] = "onInterceptRequest";
+constexpr char WEB_EVENT_REGISTEREDONINTERCEPTREQUEST[] = "IsRegisteredOnInterceptRequest";
 constexpr char WEB_EVENT_RUNJSCODE_RECVVALUE[] = "onRunJSRecvValue";
 constexpr char WEB_EVENT_SCROLL[] = "onScroll";
 constexpr char WEB_EVENT_SCALECHANGE[] = "onScaleChange";
@@ -949,6 +950,15 @@ void WebDelegateCross::RegisterWebObjectEvent()
             }
             return nullptr;
         });
+    WebObjectEventManager::GetInstance().RegisterObjectEventWithBoolReturn(
+        MakeEventHash(WEB_EVENT_REGISTEREDONINTERCEPTREQUEST),
+        [weak = WeakClaim(this)](const std::string& param, void* object) -> bool {
+            auto delegate = weak.Upgrade();
+            if (delegate) {
+                return delegate->IsRegisteredOnInterceptRequest();
+            }
+            return false;
+        });
     WebObjectEventManager::GetInstance().RegisterObjectEvent(
         MakeEventHash(WEB_EVENT_REFRESH_HISTORY),
         [weak = WeakClaim(this)](const std::string& param, void* object) {
@@ -1547,6 +1557,17 @@ RefPtr<WebResponse> WebDelegateCross::OnInterceptRequest(void* object)
 #endif
     }
     return result;
+}
+
+bool WebDelegateCross::IsRegisteredOnInterceptRequest()
+{
+    auto webPattern = webPattern_.Upgrade();
+    CHECK_NULL_RETURN(webPattern, false);
+    auto webEventHub = webPattern->GetWebEventHub();
+    CHECK_NULL_RETURN(webEventHub, false);
+    auto propOnInterceptRequestEvent = webEventHub->GetOnInterceptRequestEvent();
+    CHECK_NULL_RETURN(propOnInterceptRequestEvent, false);
+    return true;
 }
 
 void WebDelegateCross::OnPageVisible(const std::string& param)
