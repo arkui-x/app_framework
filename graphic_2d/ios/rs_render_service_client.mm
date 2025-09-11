@@ -241,7 +241,7 @@ bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>&
     return {};
 }
 
-bool RSRenderServiceClient::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+bool RSRenderServiceClient::UnRegisterTypeface(uint32_t uniqueId)
 {
     return {};
 }
