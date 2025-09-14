@@ -496,6 +496,7 @@ private:
     void RecordWebEvent(Recorder::EventType eventType, const std::string& param) const;
     void RunJsProxyCallback();
     RefPtr<WebResponse> OnInterceptRequest(void* object);
+    bool IsRegisteredOnInterceptRequest();
 
     WeakPtr<NG::WebPattern> webPattern_;
     WeakPtr<PipelineBase> context_;
