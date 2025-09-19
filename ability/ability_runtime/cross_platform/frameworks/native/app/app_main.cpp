@@ -249,14 +249,14 @@ void AppMain::DispatchOnCreate(const std::string& instanceName, const std::strin
     eventHandler_->PostTask(task);
 }
 
-void AppMain::DispatchOnNewWant(const std::string& instanceName)
+void AppMain::DispatchOnNewWant(const std::string& instanceName, const std::string& params)
 {
     HILOG_INFO("DispatchOnNewWant called.");
     if (!eventHandler_) {
         HILOG_ERROR("eventHandler_ is nullptr");
         return;
     }
-    auto task = [instanceName]() { AppMain::GetInstance()->HandleDispatchOnNewWant(instanceName); };
+    auto task = [instanceName, params]() { AppMain::GetInstance()->HandleDispatchOnNewWant(instanceName, params); };
     eventHandler_->PostTask(task);
 }
 
@@ -407,7 +407,7 @@ void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std:
     application_->HandleAbilityStage(TransformToWant(instanceName, params));
 }
 
-void AppMain::HandleDispatchOnNewWant(const std::string& instanceName)
+void AppMain::HandleDispatchOnNewWant(const std::string& instanceName, const std::string& params)
 {
     HILOG_INFO("HandleDispatchOnNewWant called.");
     if (application_ == nullptr) {
@@ -415,7 +415,7 @@ void AppMain::HandleDispatchOnNewWant(const std::string& instanceName)
         return;
     }
 
-    application_->DispatchOnNewWant(TransformToWant(instanceName));
+    application_->DispatchOnNewWant(TransformToWant(instanceName, params));
 }
 
 void AppMain::HandleDispatchOnForeground(const std::string& instanceName)
