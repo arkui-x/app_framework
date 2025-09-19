@@ -90,6 +90,8 @@ public:
     using DefaultFileSelectorShowCallback = std::function<void(const std::shared_ptr<BaseEventInfo>&)>;
     using OnOpenAppLinkCallback = std::function<void(const std::shared_ptr<BaseEventInfo>&)>;
     using SetFaviconCallback = std::function<void(const std::shared_ptr<BaseEventInfo>&)>;
+    using OnWebNativeMessageConnectCallback = std::function<void(const std::shared_ptr<BaseEventInfo>&)>;
+    using OnWebNativeMessageDisConnectCallback = std::function<void(const std::shared_ptr<BaseEventInfo>&)>;
     WebPattern();
     WebPattern(const std::string& webSrc, const RefPtr<WebController>& webController,
                RenderMode type = RenderMode::ASYNC_RENDER, bool incognitoMode = false,
@@ -489,6 +491,26 @@ public:
     {
         return onOpenAppLinkCallback_;
     }
+    
+    void SetWebNativeMessageConnectCallback(OnWebNativeMessageConnectCallback &&callback)
+    {
+        onWebNativeMessageConnectCallback_ = std::move(callback);
+    }
+
+    OnWebNativeMessageConnectCallback GetWebNativeMessageConnectCallback() const
+    {
+        return onWebNativeMessageConnectCallback_;
+    }
+
+    void SetWebNativeMessageDisConnectCallback(OnWebNativeMessageDisConnectCallback &&callback)
+    {
+        onWebNativeMessageDisConnectCallback_ = std::move(callback);
+    }
+
+    OnWebNativeMessageDisConnectCallback GetWebNativeMessageDisConnectCallback() const
+    {
+        return onWebNativeMessageDisConnectCallback_;
+    }
 
     void SetFaviconFunction(OnOpenAppLinkCallback&& callback)
     {
@@ -680,6 +702,8 @@ private:
     OnOpenAppLinkCallback onOpenAppLinkCallback_ = nullptr;
     SetFaviconCallback setFaviconCallback_ = nullptr;
     DefaultFileSelectorShowCallback defaultFileSelectorShowCallback_ = nullptr;
+    OnWebNativeMessageConnectCallback onWebNativeMessageConnectCallback_ = nullptr;
+    OnWebNativeMessageDisConnectCallback onWebNativeMessageDisConnectCallback_ = nullptr;
     RefPtr<TouchEventImpl> touchEvent_;
     RefPtr<InputEvent> mouseEvent_;
     RefPtr<InputEvent> hoverEvent_;
