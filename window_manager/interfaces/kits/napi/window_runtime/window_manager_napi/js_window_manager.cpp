@@ -295,6 +295,7 @@ napi_value JsWindowManagerInit(napi_env env, napi_value exportObj)
         DECLARE_NAPI_PROPERTY("WindowStageEventType", WindowStageEventTypeInit(env)),
         DECLARE_NAPI_PROPERTY("WmErrorCode", WindowErrorCodeInit(env)),
         DECLARE_NAPI_PROPERTY("WMError", WindowErrorInit(env)),
+        DECLARE_NAPI_PROPERTY("WindowStatusType", WindowStatusTypeInit(env)),
         DECLARE_NAPI_PROPERTY("ColorSpace", WindowColorSpaceInit(env)),
         DECLARE_NAPI_FUNCTION("createWindow", JsWindowManager::CreateWindow),
         DECLARE_NAPI_FUNCTION("findWindow", JsWindowManager::FindWindowSync),
