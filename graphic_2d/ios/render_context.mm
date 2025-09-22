@@ -138,23 +138,31 @@ void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context)
         // Nothing to since the stoage size is already consistent with the layer.
         return;
     }
-    ROSEN_LOGE("renderbufferStorage");
+    ROSEN_LOGD("renderbufferStorage");
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
     glBindRenderbuffer(GL_RENDERBUFFER, colorbuffer_);
     __block bool res = false;
     if (@available(iOS 18, *)) {
         dispatch_sync(dispatch_get_main_queue(), ^{
-            res = [eglContext_ renderbufferStorage:GL_RENDERBUFFER fromDrawable:static_cast<CAEAGLLayer *>(layer_)];
+            res = [eglContext_ renderbufferStorage:GL_RENDERBUFFER fromDrawable:static_cast<CAEAGLLayer *>(layer)];
         });
     } else {
-       res = [eglContext_ renderbufferStorage:GL_RENDERBUFFER fromDrawable:static_cast<CAEAGLLayer *>(layer_)];
+       res = [eglContext_ renderbufferStorage:GL_RENDERBUFFER fromDrawable:static_cast<CAEAGLLayer *>(layer)];
     }
     if (!res) {
         ROSEN_LOGE("eglContext_ renderbufferStorage:GL_RENDERBUFFER Failed");
+        storage_width_ = 0;
+        storage_height_ = 0;
+        [static_cast<CAEAGLLayer *>(layer_) release];
+        layer_ = nullptr;
         return;
     }
     glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &storage_width_);
     glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &storage_height_);
+    if (layer_ != layer) {
+        [static_cast<CAEAGLLayer *>(layer_) release];
+        layer_ = [layer retain];
+    }
 }
 
 bool RenderContext::UpdateStorageSizeIfNecessary()
@@ -207,19 +215,16 @@ void RenderContext::DestroyEGLSurface(EGLSurface surface)
 
 EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
 {
-    if (layer_ == eglNativeWindow) {
-        return layer_;
+    CAEAGLLayer* layer = static_cast<CAEAGLLayer*>(eglNativeWindow);
+    const CGSize layer_size = [layer bounds].size;
+    const CGFloat contents_scale = layer.contentsScale;
+    const GLint size_width = layer_size.width * contents_scale;
+    const GLint size_height = layer_size.height * contents_scale;
+
+    if (size_width == 0 || size_height == 0) {
+        return nullptr;
     }
-    [static_cast<CAEAGLLayer*>(layer_) release];
-    layer_ = [static_cast<CAEAGLLayer*>(eglNativeWindow) retain];
-    if (static_cast<CAEAGLLayer*>(layer_) == nullptr) {
-       ROSEN_LOGE("RenderContextEAGL layer_ is null");
-       return nullptr;
-    }
-    // use new layer, reset width and height
-    storage_width_ = 0;
-    storage_height_ = 0;
-    return layer_;
+    return eglNativeWindow;
 }
 
 bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext)
