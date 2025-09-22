@@ -60,6 +60,8 @@ public:
     std::vector<uint8_t> GetAotBuffer(const std::string &fileName);
     void InitModuleVersionCode();
     void isDynamicModule(const std::string& moduleName, bool needUpdate);
+    void SetBundleName(const std::string& bundleName);
+    std::string GetSplicingModuleName(const std::string& moduleName);
     bool IsDynamicUpdateModule(const std::string& moduleName);
 
 private:

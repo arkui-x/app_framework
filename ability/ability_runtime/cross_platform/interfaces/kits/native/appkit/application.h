@@ -47,6 +47,7 @@ public:
         bundleContainer_ = bundleContainer;
     }
 
+    void UpdateAbilityBundleName(const std::string& bundleName);
     void HandleAbilityStage(const AAFwk::Want& want);
     void DispatchOnNewWant(const AAFwk::Want& want);
     void DispatchOnForeground(const AAFwk::Want& want);

@@ -220,7 +220,8 @@ void AbilityStageContext::GetResourcePaths(std::vector<std::string>& appResource
     for (const auto& dependency : dependencies) {
         std::string appResPath = "";
         std::string sysResPath = "";
-        StageAssetManager::GetInstance()->GetResIndexPath(dependency, appResPath, sysResPath);
+        std::string moduleName = StageAssetManager::GetInstance()->GetSplicingModuleName(dependency);
+        StageAssetManager::GetInstance()->GetResIndexPath(moduleName, appResPath, sysResPath);
         auto appFisrtPos = appResPath.find_last_of('/');
         appResourcePath = appResPath.substr(0, appFisrtPos);
         if (!appResourcePath.empty()) {

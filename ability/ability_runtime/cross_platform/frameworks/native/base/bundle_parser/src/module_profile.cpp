@@ -16,11 +16,13 @@
 #include "module_profile.h"
 
 #include <algorithm>
+#include <dirent.h>
 #include <set>
 #include <sstream>
 
 #include "bundle_constants.h"
 #include "common_profile.h"
+#include "stage_asset_manager.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -969,6 +971,26 @@ bool ToInnerBundleInfo(
     innerBundleInfo.InsertInnerModuleInfo(moduleJson.module.name, innerModuleInfo);
     return true;
 }
+
+bool ExistDir(std::string& target)
+{
+    DIR* dir = opendir(target.c_str());
+    if (dir) {
+        closedir(dir);
+        return true;
+    }
+    return false;
+}
+
+bool SplicingModuleName(const Profile::ModuleJson& moduleJson, std::string& fullModuleName)
+{
+    std::string bundleName = moduleJson.app.bundleName;
+    std::string moduleName = moduleJson.module.name;
+    fullModuleName = bundleName + "." + moduleName;
+    std::string modulePath =
+        AbilityRuntime::Platform::StageAssetManager::GetInstance()->GetAppDataModuleDir() + '/' + fullModuleName;
+    return ExistDir(modulePath);
+}
 } // namespace
 
 ErrCode ModuleProfile::TransformTo(const std::vector<uint8_t>& buf, InnerBundleInfo& innerBundleInfo) const
@@ -983,6 +1005,11 @@ ErrCode ModuleProfile::TransformTo(const std::vector<uint8_t>& buf, InnerBundleI
     }
 
     Profile::ModuleJson moduleJson = jsonObject.get<Profile::ModuleJson>();
+    std::string fullModuleName {""};
+    if (SplicingModuleName(moduleJson, fullModuleName)) {
+        moduleJson.module.name = fullModuleName;
+        moduleJson.module.packageName = fullModuleName;
+    }
     if (Profile::parseResult != ERR_OK) {
         HILOG_ERROR("parseResult is %{public}d", Profile::parseResult);
         int32_t ret = Profile::parseResult;

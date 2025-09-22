@@ -163,6 +163,15 @@ void BundleContainer::SetAppCodePath(const std::string& codePath)
     bundleInfo_->SetAppCodePath(codePath);
 }
 
+void BundleContainer::SetBundleName(const std::string& bundleName)
+{
+    if (bundleInfo_ == nullptr) {
+        HILOG_ERROR("bundleInfo_ is nullptr");
+        return;
+    }
+    bundleInfo_->SetBundleName(bundleName);
+}
+
 void BundleContainer::SetPidAndUid(int32_t pid, int32_t uid)
 {
     if (bundleInfo_ == nullptr) {

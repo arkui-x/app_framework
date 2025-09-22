@@ -522,13 +522,17 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
     napi_value classValue = nullptr;
 
     bool isDynamicUpdate = IsNeedUpdate(moduleName_, modulePath);
+    panda::JSNApi::SetBundleName(vm_, bundleName_);
     auto it = modules_.find(modulePath);
     if (it != modules_.end()) {
         classValue = it->second->GetNapiValue();
     } else {
         if (esmodule) {
             std::string fileName;
-            fileName.append(moduleName_).append("/").append(srcEntrance);
+            std::string moduleNamePath = (moduleName_.find_last_of('.') != std::string::npos)
+                                             ? moduleName_.substr(moduleName_.find_last_of('.') + 1)
+                                             : moduleName_;
+            fileName.append(moduleNamePath).append("/").append(srcEntrance);
             fileName.erase(fileName.rfind("."));
             fileName.append(".abc");
             std::regex pattern(std::string("\\.") + std::string("/"));

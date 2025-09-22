@@ -44,6 +44,7 @@ public:
     std::vector<std::shared_ptr<AbilityInfo>> GetAbilityInfos() const;
     void dump(const std::string& pathName);
     void SetAppCodePath(const std::string& codePath);
+    void SetBundleName(const std::string& bundleName);
     void SetPidAndUid(int32_t pid, int32_t uid);
     std::string GetBundleName() const;
     ErrCode GetBundleInfoForSelf(int32_t flags, BundleInfo& bundleInfo);
