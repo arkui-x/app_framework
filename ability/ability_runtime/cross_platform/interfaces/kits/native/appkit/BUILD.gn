@@ -37,7 +37,6 @@ config("appkit_native_config") {
     "//commonlibrary/c_utils/base/include",
     "//foundation/arkui/ace_engine",
     "//foundation/arkui/ace_engine/interfaces/inner_api/ace_kit/include",
-    "//third_party/flutter/engine",
     "//third_party/json/include",
     "$skia_root_new",
   ]
