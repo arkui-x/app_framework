@@ -171,6 +171,7 @@ public:
 private:
     void OnFileDescriptorEvent(int32_t fd, int32_t event) override
     {
+        HILOG_INFO("PlatformIoWaiter::OnFileDescriptorEvent fd %{public}d ", fd);
         if (callback_) {
             callback_(fd, event);
         }
