@@ -80,6 +80,7 @@ bool RSSurfaceGPU::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t u
     }
 
     /* gpu render flush */
+    renderContext_->MakeCurrent(layer_, nullptr);
     renderContext_->RenderFrame();
     renderContext_->SwapBuffers(nullptr);
     if (auto grContext = renderContext_->GetDrGPUContext()) {
