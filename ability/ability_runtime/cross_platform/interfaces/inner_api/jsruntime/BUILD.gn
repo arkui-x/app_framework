@@ -19,7 +19,6 @@ config("jsruntime_config") {
     "//foundation/appframework/resource_management/interfaces/js/innerkits/core/include",
     "//base/global/resource_management/interfaces/inner_api/include",
     "//foundation/arkui/napi",
-    "//third_party/flutter/engine",
     "//third_party/libuv/include",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/ability_manager",
     "${ability_runtime_cross_platform_path}/interfaces/inner_api/app_manager",

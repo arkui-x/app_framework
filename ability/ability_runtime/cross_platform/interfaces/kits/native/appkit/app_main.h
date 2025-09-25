@@ -40,7 +40,7 @@ public:
     static std::shared_ptr<AppMain> GetInstance();
     void LaunchApplication(bool isCopyNativeLibs = true);
     void DispatchOnCreate(const std::string& instanceName, const std::string& params);
-    void DispatchOnNewWant(const std::string& instanceName);
+    void DispatchOnNewWant(const std::string& instanceName, const std::string& params = "");
     void DispatchOnForeground(const std::string& instanceName);
     void DispatchOnBackground(const std::string& instanceName);
     void DispatchOnDestroy(const std::string& instanceName);
@@ -66,7 +66,7 @@ private:
     void ParseBundleComplete();
     void HandleDispatchOnCreate(const std::string& instanceName, const std::string& params);
     void UpdateAbilityBundleName(const std::string& bundleName);
-    void HandleDispatchOnNewWant(const std::string& instanceName);
+    void HandleDispatchOnNewWant(const std::string& instanceName, const std::string& params = "");
     void HandleDispatchOnForeground(const std::string& instanceName);
     void HandleDispatchOnBackground(const std::string& instanceName);
     void HandleDispatchOnDestroy(const std::string& instanceName);
