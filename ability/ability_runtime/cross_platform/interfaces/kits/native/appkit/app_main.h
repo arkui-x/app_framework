@@ -65,6 +65,7 @@ private:
     bool CreateRuntime(const std::string& bundleName, bool isBundle);
     void ParseBundleComplete();
     void HandleDispatchOnCreate(const std::string& instanceName, const std::string& params);
+    void UpdateAbilityBundleName(const std::string& bundleName);
     void HandleDispatchOnNewWant(const std::string& instanceName, const std::string& params = "");
     void HandleDispatchOnForeground(const std::string& instanceName);
     void HandleDispatchOnBackground(const std::string& instanceName);

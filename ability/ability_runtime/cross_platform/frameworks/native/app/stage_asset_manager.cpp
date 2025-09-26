@@ -170,6 +170,16 @@ void StageAssetManager::isDynamicModule(const std::string& moduleName, bool need
     StageAssetProvider::GetInstance()->UpdateVersionCode(moduleName, needUpdate);
 }
 
+void StageAssetManager::SetBundleName(const std::string& bundleName)
+{
+    StageAssetProvider::GetInstance()->SetBundleName(bundleName);
+}
+
+std::string StageAssetManager::GetSplicingModuleName(const std::string& moduleName)
+{
+    return StageAssetProvider::GetInstance()->GetSplicingModuleName(moduleName);
+}
+
 void StageAssetManager::InitModuleVersionCode()
 {
     StageAssetProvider::GetInstance()->InitModuleVersionCode();

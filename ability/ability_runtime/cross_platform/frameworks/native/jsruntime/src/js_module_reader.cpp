@@ -41,6 +41,7 @@ bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, si
     moduleBuffer_.clear();
     std::string moduleName = GetModuleName(inputPath);
     std::string modulePath;
+    moduleName = Platform::StageAssetManager::GetInstance()->GetSplicingModuleName(moduleName);
     Platform::StageAssetManager::GetInstance()->isDynamicModule(moduleName, true);
     bool isDynamicModule = Platform::StageAssetManager::GetInstance()->IsDynamicUpdateModule(moduleName);
     if (isDynamicModule) {

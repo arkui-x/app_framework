@@ -366,6 +366,8 @@ void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std:
     }
     auto want = TransformToWant(instanceName);
     std::string moduleName = want.GetModuleName();
+    std::string bundleName = want.GetBundleName();
+    UpdateAbilityBundleName(bundleName);
     StageAssetManager::GetInstance()->isDynamicModule(moduleName, true);
     bool isDynamicModule = StageAssetManager::GetInstance()->IsDynamicUpdateModule(moduleName);
     if (isDynamicModule) {
@@ -397,14 +399,25 @@ void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std:
         auto dependencies = hapModuleInfo->dependencies;
         if (!dependencies.empty()) {
             for (const auto& dependency : dependencies) {
-                StageAssetManager::GetInstance()->CopyHspResourcePath(dependency);
-                moduleNames.emplace_back(dependency);
+                std::string moduleName = StageAssetManager::GetInstance()->GetSplicingModuleName(dependency);
+                StageAssetManager::GetInstance()->CopyHspResourcePath(moduleName);
+                moduleNames.emplace_back(moduleName);
             }
         }
     }
     StageAssetManager::GetInstance()->SetNativeLibPaths(hapModuleInfo->bundleName, moduleNames);
 #endif
     application_->HandleAbilityStage(TransformToWant(instanceName, params));
+}
+
+void AppMain::UpdateAbilityBundleName(const std::string& bundleName)
+{
+    if (bundleContainer_ == nullptr) {
+        HILOG_ERROR("bundleContainer_ is nullptr");
+        return;
+    }
+    bundleContainer_->SetBundleName(bundleName);
+    StageAssetManager::GetInstance()->SetBundleName(bundleName);
 }
 
 void AppMain::HandleDispatchOnNewWant(const std::string& instanceName, const std::string& params)
@@ -425,8 +438,10 @@ void AppMain::HandleDispatchOnForeground(const std::string& instanceName)
         HILOG_ERROR("application_ is nullptr");
         return;
     }
-
-    application_->DispatchOnForeground(TransformToWant(instanceName));
+    auto want = TransformToWant(instanceName);
+    std::string bundleName = want.GetBundleName();
+    UpdateAbilityBundleName(bundleName);
+    application_->DispatchOnForeground(want);
 }
 
 void AppMain::HandleDispatchOnBackground(const std::string& instanceName)

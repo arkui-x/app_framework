@@ -17,7 +17,9 @@
 
 #include "ability_stage_context.h"
 #include "hilog.h"
+#include "js_runtime.h"
 #include "base/log/ace_trace.h"
+#include "core/common/ace_application_info.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -46,6 +48,21 @@ void Application::SetApplicationContext(const std::shared_ptr<ApplicationContext
     applicationContext_ = applicationContext;
 }
 
+void Application::UpdateAbilityBundleName(const std::string& bundleName)
+{
+    if (applicationContext_ == nullptr || runtime_ == nullptr) {
+        HILOG_ERROR("abilityRuntimeContext_ or runtime_ is nullptr.");
+        return;
+    }
+    auto& jsRuntime = static_cast<JsRuntime&>(*runtime_);
+    jsRuntime.SetBundleName(bundleName);
+    auto applicationInfo = applicationContext_->GetApplicationInfo();
+    if (applicationInfo != nullptr) {
+        applicationInfo->bundleName = bundleName;
+    }
+    Ace::AceApplicationInfo::GetInstance().SetPackageName(bundleName);
+}
+
 void Application::HandleAbilityStage(const AAFwk::Want& want)
 {
     HILOG_INFO("Application::HandleAbilityStage");
@@ -61,6 +78,8 @@ void Application::HandleAbilityStage(const AAFwk::Want& want)
     }
 
     std::string moduleName = want.GetModuleName();
+    std::string bundleName = want.GetBundleName();
+    UpdateAbilityBundleName(bundleName);
     auto stage = FindAbilityStage(moduleName);
     if (stage != nullptr) {
         stage->LaunchAbility(want, runtime_);
@@ -117,6 +136,8 @@ void Application::DispatchOnForeground(const AAFwk::Want& want)
 {
     HILOG_INFO("Application::DispatchOnForeground");
     std::string moduleName = want.GetModuleName();
+    std::string bundleName = want.GetBundleName();
+    UpdateAbilityBundleName(bundleName);
     auto stage = FindAbilityStage(moduleName);
     if (stage == nullptr) {
         HILOG_ERROR("stage is nullptr");

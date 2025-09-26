@@ -465,6 +465,14 @@ public:
             baseApplicationInfo_->uid = uid;
         }
     }
+
+    void SetBundleName(const std::string& bundleName)
+    {
+        if (baseApplicationInfo_) {
+            baseApplicationInfo_->bundleName = bundleName;
+        }
+    }
+
     /**
      * @brief Insert innerModuleInfos.
      * @param modulePackage Indicates the modulePackage object as key.

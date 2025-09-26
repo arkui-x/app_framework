@@ -77,6 +77,10 @@ public:
         const DebuggerPostTask& debuggerPostTask = {});
     void RegisterUncaughtExceptionHandler(const JsEnv::UncaughtExceptionInfo& uncaughtExceptionInfo);
     bool IsNeedUpdate(const std::string& moduleName, const std::string& modulePath);
+    void SetBundleName(const std::string& bundleName)
+    {
+        bundleName_ = bundleName;
+    }
 
 protected:
     JsRuntime() = default;
