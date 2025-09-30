@@ -1094,6 +1094,11 @@ void WebPattern::OnWindowHide()
     isWindowShow_ = false;
 }
 
+void WebPattern::WebRotateRenderEffect(WindowSizeChangeReason type)
+{
+    // cross platform is not support now;
+}
+
 void WebPattern::OnWindowSizeChanged(int32_t width, int32_t height, WindowSizeChangeReason type) {}
 
 void WebPattern::OnCompleteSwapWithNewSize()
@@ -1328,6 +1333,11 @@ void  WebPattern::OnSelectionMenuOptionsUpdate(const WebMenuOptionsParam& webMen
     // cross platform is not support now;
 }
 
+void WebPattern::OnBlankScreenDetectionConfigUpdate(const BlankScreenDetectionConfig &config)
+{
+    // cross platform is not support now;
+}
+
 void WebPattern::OnNativeVideoPlayerConfigUpdate(const std::tuple<bool, bool>& config)
 {
     // cross platform is not support now;
@@ -1375,7 +1385,17 @@ void WebPattern::UpdateEditMenuOptions(const NG::OnCreateMenuCallback&& onCreate
     // cross platform is not support now;
 }
 
-void WebPattern::UpdateDataDetectorConfig(const TextDetectConfig& config)
+void WebPattern::UpdateDataDetectorConfig(const TextDetectConfig &config)
+{
+    // cross platform is not support now;
+}
+
+void WebPattern::UpdateEnableSelectDataDetector(bool isEnabled)
+{
+    // cross platform is not support now;
+}
+
+void WebPattern::UpdateSelectedDataDetectorConfig(const TextDetectConfig &config)
 {
     // cross platform is not support now;
 }
@@ -1466,6 +1486,11 @@ void WebPattern::SetDefaultBackgroundColor()
 }
 
 void WebPattern::OnGestureFocusModeUpdate(GestureFocusMode mode)
+{
+    // cross platform is not support now;
+}
+
+void WebPattern::OnRotateRenderEffectUpdate(WebRotateEffect effect)
 {
     // cross platform is not support now;
 }

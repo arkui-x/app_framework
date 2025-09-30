@@ -400,7 +400,9 @@ public:
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, EnableDataDetector, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, BypassVsyncCondition, WebBypassVsyncCondition);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, EnableFollowSystemFontWeight, bool);
+    ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, BlankScreenDetectionConfig, BlankScreenDetectionConfig);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, GestureFocusMode, GestureFocusMode);
+    ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, RotateRenderEffect, WebRotateEffect);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, ForceEnableZoom, bool);
     void RequestFullScreen();
     void ExitFullScreen();
@@ -465,10 +467,13 @@ public:
 
     SizeF GetDragPixelMapSize() const;
     bool Backward();
+    void OnBlankScreenDetectionConfigUpdate(const BlankScreenDetectionConfig &config);
     void OnSelectionMenuOptionsUpdate(const WebMenuOptionsParam& webMenuOption);
     void UpdateEditMenuOptions(const NG::OnCreateMenuCallback&& onCreateMenuCallback,
         const NG::OnMenuItemClickCallback&& onMenuItemClick, const NG::OnPrepareMenuCallback&& onPrepareMenuCallback);
     void UpdateDataDetectorConfig(const TextDetectConfig& config);
+    void UpdateEnableSelectDataDetector(bool isEnabled);
+    void UpdateSelectedDataDetectorConfig(const TextDetectConfig& config);
     WebInfoType GetWebInfoType();
     void SetUpdateInstanceIdCallback(std::function<void(int32_t)> &&callabck);
 
@@ -626,6 +631,8 @@ private:
     void OnEnableDataDetectorUpdate(bool enable);
     void OnEnableFollowSystemFontWeightUpdate(bool value);
     void OnGestureFocusModeUpdate(GestureFocusMode mode);
+    void OnRotateRenderEffectUpdate(WebRotateEffect effect);
+    void WebRotateRenderEffect(WindowSizeChangeReason type);
     void OnForceEnableZoomUpdate(bool isEnabled);
 
     void InitEvent();
