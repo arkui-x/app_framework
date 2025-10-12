@@ -1499,4 +1499,14 @@ void WebPattern::OnForceEnableZoomUpdate(bool isEnabled)
 {
     // cross platform is not support now;
 }
+
+void WebPattern::OnBackToTopUpdate(bool isBackToTop)
+{
+    // cross platform is not support now;
+}
+
+void WebPattern::OnZoomControlAccessUpdate(bool zoomControlAccess)
+{
+    // cross platform is not support now;
+}
 } // namespace OHOS::Ace::NG

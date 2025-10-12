@@ -451,6 +451,16 @@ public:
         return isEnhanced_;
     }
 
+    inline void SetEmitterId(uint32_t emitterId)
+    {
+        emitterId_ = emitterId;
+    }
+
+    inline uint32_t GetEmitterId()
+    {
+        return emitterId_;
+    }
+
 private:
     using SmartPtrDestructor = void (*)(void*);
 
@@ -571,6 +581,8 @@ private:
     std::shared_ptr<HiTraceId> hiTraceId_;
 
     bool isEnhanced_ = false;
+
+    uint32_t emitterId_ = 0;
 };
 } // namespace AppExecFwk
 } // namespace OHOS
