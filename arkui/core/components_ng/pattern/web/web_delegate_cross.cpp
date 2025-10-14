@@ -16,10 +16,7 @@
 #include "web_delegate_cross.h"
 
 #include "bridge/js_frontend/frontend_delegate_impl.h"
-
-#ifdef IOS_PLATFORM
-#include <dispatch/dispatch.h>
-#endif
+#include <atomic>
 
 namespace OHOS::Ace {
 namespace {
@@ -79,7 +76,6 @@ constexpr char WEB_EVENT_PAGEFINISH[] = "onPageFinished";
 constexpr char WEB_EVENT_DOWNLOADSTART[] = "onDownloadStart";
 constexpr char WEB_EVENT_LOADINTERCEPT[] = "onLoadIntercept";
 constexpr char WEB_EVENT_ONINTERCEPTREQUEST[] = "onInterceptRequest";
-constexpr char WEB_EVENT_REGISTEREDONINTERCEPTREQUEST[] = "IsRegisteredOnInterceptRequest";
 constexpr char WEB_EVENT_RUNJSCODE_RECVVALUE[] = "onRunJSRecvValue";
 constexpr char WEB_EVENT_SCROLL[] = "onScroll";
 constexpr char WEB_EVENT_SCALECHANGE[] = "onScaleChange";
@@ -108,6 +104,9 @@ constexpr char WEB_EVENT_ONHTTPERRORRECEIVE[] = "onHttpErrorReceive";
 constexpr char WEB_EVENT_ONPAGEVISIBLE[] = "onPageVisible";
 constexpr char WEB_EVENT_ONHTTPAUTHREQUEST[] = "onHttpAuthRequest";
 constexpr char WEB_EVENT_ONPERMISSIONREQUEST[] = "onPermissionRequest";
+constexpr char WEB_EVENT_ONOVERRIDEURLLOADING[] = "onOverrideUrlLoading";
+constexpr char WEB_EVENT_ONSSLERROREVENTRECEIVE[] = "onSslErrorEventReceive";
+constexpr char WEB_EVENT_ONSSLERROREVENT[] = "onSslErrorEvent";
 
 constexpr char WEB_CREATE[] = "web";
 constexpr char NTC_PARAM_WEB[] = "web";
@@ -158,6 +157,10 @@ constexpr char WEB_CACHE_MODE[] = "cacheMode";
 constexpr char NTC_CACHE_MODE[] = "cacheMode";
 constexpr char WEB_IMAGE_ACCESS[] = "imageAccess";
 constexpr char NTC_IMAGE_ACCESS[] = "imageAccess";
+constexpr char WEB_TEXT_ZOOM_RATIO[] = "textZoomRatio";
+constexpr char NTC_TEXT_ZOOM_RATIO[] = "textZoomRatio";
+constexpr char WEB_FILE_ACCESS[] = "fileAccess";
+constexpr char NTC_FILE_ACCESS[] = "fileAccess";
 
 const char WEB_PARAM_NONE[] = "";
 const char WEB_PARAM_AND[] = "#HWJS-&-#";
@@ -180,10 +183,17 @@ constexpr int TIMEOUT_DURATION_MS = 15000;
 constexpr int POLLING_INTERVAL_MS = 50;
 constexpr int HTTP_STATUS_GATEWAY_TIMEOUT = 504;
 constexpr int TIMEOUT_SEMAPHORE_S = 20;
+constexpr int TWO_BYTES_LENGTH = 16;
+constexpr int TWO_BYTES = 2;
 
 const std::string RESOURCE_VIDEO_CAPTURE = "TYPE_VIDEO_CAPTURE";
 const std::string RESOURCE_AUDIO_CAPTURE = "TYPE_AUDIO_CAPTURE";
 }
+#if defined(IOS_PLATFORM)
+static std::atomic<int64_t> g_atomicId{0};
+#else
+static std::atomic<int64_t> g_atomicId{-1};
+#endif
 
 std::map<std::string, std::string> WebResourceRequsetImpl::GetRequestHeader() const
 {
@@ -759,6 +769,217 @@ void Geolocation::Invoke(const std::string& origin, const bool& allow, const boo
     obj->Invoke(index_, origin, allow, retain);
 }
 
+void SslErrorResultImpl::HandleConfirm()
+{
+    auto obj = WebObjectEventManager::GetInstance().GetOnSslErrorEventReceiveEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB,
+            "WebObjectEventManager get GetOnSslErrorEventReceiveEventObject ConfirmCallback failed");
+        return;
+    }
+    obj->Confirm(object_, index_);
+}
+
+void SslErrorResultImpl::HandleCancel(bool abortLoading)
+{
+    auto obj = WebObjectEventManager::GetInstance().GetOnSslErrorEventReceiveEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB,
+            "WebObjectEventManager get GetOnSslErrorEventReceiveEventObject CancelCallback failed");
+        return;
+    }
+    obj->Cancel(object_, index_);
+}
+
+int SslErrorrEventImpl::GetError() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetOnSslErrorEventReceiveEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB,
+            "WebObjectEventManager get GetOnSslErrorEventReceiveEventObject Error failed");
+        return -1;
+    }
+    return obj->GetError(object_);
+}
+
+std::vector<std::string> SslErrorrEventImpl::GetCertChainData() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetOnSslErrorEventReceiveEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB,
+            "WebObjectEventManager get GetOnSslErrorEventReceiveEventObject CertChainData failed");
+        return std::vector<std::string>();
+    }
+    return obj->GetCertChainData(object_);
+}
+
+void AllSslErrorResultImpl::HandleConfirm()
+{
+    auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager get GetSslErrorEventObject ConfirmCallBack failed");
+        return;
+    }
+    obj->Confirm(object_, index_);
+}
+
+void AllSslErrorResultImpl::HandleCancel(bool abortLoading)
+{
+    auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager get GetSslErrorEventObject CancelCallBack failed");
+        return;
+    }
+    obj->Cancel(object_, abortLoading, index_);
+}
+
+int AllSslErrorrEventImpl::GetError() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager get GetSslErrorEventObject error failed");
+        return -1;
+    }
+    return obj->GetError(object_);
+}
+
+std::string AllSslErrorrEventImpl::GetUrl() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager get GetSslErrorEventObject url failed");
+        return std::string();
+    }
+    return obj->GetUrl(object_);
+}
+
+std::string AllSslErrorrEventImpl::GetOriginalUrl() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager get GetSslErrorEventObject originalUrl failed");
+        return std::string();
+    }
+    return obj->GetOriginalUrl(object_);
+}
+
+std::string AllSslErrorrEventImpl::GetReferrer() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager get GetSslErrorEventObject referrer failed");
+        return std::string();
+    }
+    return obj->GetReferrer(object_);
+}
+
+bool AllSslErrorrEventImpl::IsFatalError() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager get GetSslErrorEventObject isFatalError failed");
+        return false;
+    }
+    return obj->IsFatalError(object_);
+}
+
+std::vector<std::string> AllSslErrorrEventImpl::GetCertificateChain() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager get GetSslErrorEventObject isMainFrame failed");
+        return std::vector<std::string>();
+    }
+    return obj->GetCertificateChain(object_);
+}
+
+bool AllSslErrorrEventImpl::IsMainFrame() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager get GetSslErrorEventObject isMainFrame failed");
+        return false;
+    }
+    return obj->IsMainFrame(object_);
+}
+
+void SslSelectCertResultImpl::HandleConfirm(const std::string& privateKeyFile, const std::string& certChainFile)
+{
+    auto obj = WebObjectEventManager::GetInstance().GetOnClientAuthenticationEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB,
+            "WebObjectEventManager get GetOnClientAuthenticationEventObject ConfirmCallback failed");
+        return;
+    }
+    obj->Confirm(object_, privateKeyFile, certChainFile);
+}
+
+void SslSelectCertResultImpl::HandleCancel()
+{
+    auto obj = WebObjectEventManager::GetInstance().GetOnClientAuthenticationEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB,
+            "WebObjectEventManager get GetOnClientAuthenticationEventObject CancelCallback failed");
+        return;
+    }
+    obj->Cancel(object_);
+}
+
+void SslSelectCertResultImpl::HandleIgnore()
+{
+    auto obj = WebObjectEventManager::GetInstance().GetOnClientAuthenticationEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB,
+            "WebObjectEventManager get GetOnClientAuthenticationEventObject IgnoreCallback failed");
+        return;
+    }
+    obj->Ignore(object_);
+}
+
+std::string SslSelectCertEventImpl::GetHost()
+{
+    auto obj = WebObjectEventManager::GetInstance().GetOnClientAuthenticationEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB,
+            "WebObjectEventManager get GetOnClientAuthenticationEventObject host failed");
+        return std::string();
+    }
+    return obj->GetHost(object_);
+}
+
+int SslSelectCertEventImpl::GetPort()
+{
+    auto obj = WebObjectEventManager::GetInstance().GetOnClientAuthenticationEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB,
+            "WebObjectEventManager get GetOnClientAuthenticationEventObject port failed");
+        return -1;
+    }
+    return obj->GetPort(object_);
+}
+
+std::vector<std::string> SslSelectCertEventImpl::GetKeyTypes()
+{
+    auto obj = WebObjectEventManager::GetInstance().GetOnClientAuthenticationEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB,
+            "WebObjectEventManager get GetOnClientAuthenticationEventObject keyTypes failed");
+        return std::vector<std::string>();
+    }
+    return obj->GetKeyTypes(object_);
+}
+
+std::vector<std::string> SslSelectCertEventImpl::GetIssuers()
+{
+    auto obj = WebObjectEventManager::GetInstance().GetOnClientAuthenticationEventObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB,
+            "WebObjectEventManager get GetOnClientAuthenticationEventObject issuers failed");
+        return std::vector<std::string>();
+    }
+    return obj->GetIssuers(object_);
+}
+
 WebDelegateCross::~WebDelegateCross()
 {
     ReleasePlatformResource();
@@ -814,7 +1035,9 @@ void WebDelegateCross::CreatePluginResource(
         std::string pageUrl;
         int32_t pageId;
         OHOS::Ace::Framework::DelegateClient::GetInstance().GetWebPageUrl(pageUrl, pageId);
-
+        webDelegate->id_ = g_atomicId.fetch_add(1) + 1;
+        webDelegate->InitWebStatus();
+        webDelegate->RegisterWebInerceptAndOverrideEvent();
         std::stringstream paramStream;
         paramStream << NTC_PARAM_WEB << WEB_PARAM_EQUALS << webDelegate->id_ << WEB_PARAM_AND << NTC_PARAM_WIDTH
                     << WEB_PARAM_EQUALS << size.Width() * context->GetViewScale() << WEB_PARAM_AND << NTC_PARAM_HEIGHT
@@ -825,19 +1048,29 @@ void WebDelegateCross::CreatePluginResource(
                     << WEB_PARAM_EQUALS << pageUrl << WEB_PARAM_AND << NTC_PARAM_RICH_TEXT_INIT
                     << WEB_PARAM_EQUALS << webPattern->GetRichTextInit() << WEB_PARAM_AND << NTC_INCOGNITO_MODE
                     << WEB_PARAM_EQUALS << webPattern->GetIncognitoMode();
-
         std::string param = paramStream.str();
         webDelegate->id_ = resRegister->CreateResource(WEB_CREATE, param);
-
         if (webDelegate->id_ == INVALID_ID) {
-            webDelegate->OnError(WEB_ERROR_CODE_CREATEFAIL, WEB_ERROR_MSG_CREATEFAIL);
+            webDelegate->HandleCreateError();
             return;
         }
-        webDelegate->state_ = State::CREATED;
-        webDelegate->hash_ = webDelegate->MakeResourceHash();
+        webDelegate->InitWebStatus();
         webDelegate->RegisterWebEvent();
         webDelegate->RegisterWebObjectEvent();
         }, "ArkUIWebCreatePluginResource");
+}
+
+void WebDelegateCross::HandleCreateError()
+{
+    OnError(WEB_ERROR_CODE_CREATEFAIL, WEB_ERROR_MSG_CREATEFAIL);
+    UnRegisterWebObjectEvent();
+    state_ = State::CREATEFAILED;
+}
+
+void WebDelegateCross::InitWebStatus()
+{
+    state_ = State::CREATED;
+    hash_ = MakeResourceHash();
 }
 
 int WebDelegateCross::GetWebId()
@@ -941,24 +1174,6 @@ void WebDelegateCross::RegisterWebObjectEvent()
             }
             return false;
         });
-    WebObjectEventManager::GetInstance().RegisterObjectEventWithResponseReturn(
-        MakeEventHash(WEB_EVENT_ONINTERCEPTREQUEST),
-        [weak = WeakClaim(this)](const std::string& param, void* object) -> RefPtr<WebResponse> {
-            auto delegate = weak.Upgrade();
-            if (delegate) {
-                return delegate->OnInterceptRequest(object);
-            }
-            return nullptr;
-        });
-    WebObjectEventManager::GetInstance().RegisterObjectEventWithBoolReturn(
-        MakeEventHash(WEB_EVENT_REGISTEREDONINTERCEPTREQUEST),
-        [weak = WeakClaim(this)](const std::string& param, void* object) -> bool {
-            auto delegate = weak.Upgrade();
-            if (delegate) {
-                return delegate->IsRegisteredOnInterceptRequest();
-            }
-            return false;
-        });
     WebObjectEventManager::GetInstance().RegisterObjectEvent(
         MakeEventHash(WEB_EVENT_REFRESH_HISTORY),
         [weak = WeakClaim(this)](const std::string& param, void* object) {
@@ -1052,6 +1267,53 @@ void WebDelegateCross::RegisterWebObjectEvent()
             }
             return false;
         });
+    WebObjectEventManager::GetInstance().RegisterObjectEventWithBoolReturn(
+        MakeEventHash(WEB_EVENT_ONSSLERROREVENTRECEIVE),
+        [weak = WeakClaim(this)](const std::string& param, void* object) -> bool {
+            auto delegate = weak.Upgrade();
+            if (delegate) {
+                return delegate->OnSslErrorEventReceive(object);
+            }
+            return false;
+        });
+    WebObjectEventManager::GetInstance().RegisterObjectEventWithBoolReturn(MakeEventHash(WEB_EVENT_ONSSLERROREVENT),
+        [weak = WeakClaim(this)](const std::string& param, void* object) -> bool {
+            auto delegate = weak.Upgrade();
+            if (delegate) {
+                return delegate->OnSslErrorEvent(object);
+            }
+            return false;
+        });
+}
+
+void WebDelegateCross::RegisterWebInerceptAndOverrideEvent()
+{
+    WebObjectEventManager::GetInstance().RegisterObjectEventWithResponseReturn(
+        MakeEventHash(WEB_EVENT_ONINTERCEPTREQUEST),
+        [weak = WeakClaim(this)](const std::string& param, void* object) -> RefPtr<WebResponse> {
+            auto delegate = weak.Upgrade();
+            if (delegate) {
+                return delegate->OnInterceptRequest(object);
+            }
+            return nullptr;
+        });
+    WebObjectEventManager::GetInstance().RegisterObjectEventWithBoolReturn(
+        MakeEventHash(WEB_EVENT_ONOVERRIDEURLLOADING),
+        [weak = WeakClaim(this)](const std::string& param, void* object) -> bool {
+            auto delegate = weak.Upgrade();
+            if (delegate) {
+                return delegate->OnOverrideUrlLoading(object);
+            }
+            return false;
+        });
+}
+
+void WebDelegateCross::UnRegisterWebObjectEvent()
+{
+    WebObjectEventManager::GetInstance().UnRegisterObjectEventWithResponseReturn(
+        MakeEventHash(WEB_EVENT_ONINTERCEPTREQUEST));
+    WebObjectEventManager::GetInstance().UnRegisterObjectEventWithBoolReturn(
+        MakeEventHash(WEB_EVENT_ONOVERRIDEURLLOADING));
 }
 
 void WebDelegateCross::HandleTouchDown(
@@ -1454,6 +1716,44 @@ bool WebDelegateCross::OnLoadIntercept(void* object)
     return result;
 }
 
+bool WebDelegateCross::OnOverrideUrlLoading(void* object)
+{
+    CHECK_NULL_RETURN(object, false);
+    auto context = context_.Upgrade();
+    CHECK_NULL_RETURN(context, false);
+    auto taskExecutor = context->GetTaskExecutor();
+    CHECK_NULL_RETURN(taskExecutor, false);
+    ContainerScope scope(instanceId_);
+    bool result = false;
+    auto webResourceRequest = AceType::MakeRefPtr<WebResourceRequsetImpl>(object);
+    CHECK_NULL_RETURN(webResourceRequest, false);
+    auto requestHeader = webResourceRequest->GetRequestHeader();
+    auto method = webResourceRequest->GetMethod();
+    auto url = webResourceRequest->GetRequestUrl();
+    auto hasGesture = webResourceRequest->IsRequestGesture();
+    auto isMainFrame = webResourceRequest->IsMainFrame();
+    auto isRedirect = webResourceRequest->IsRedirect();
+    auto request = AceType::MakeRefPtr<WebRequest>(requestHeader, method, url, hasGesture, isMainFrame, isRedirect);
+
+    taskExecutor->PostSyncTask(
+        [weak = WeakClaim(this), request, &result]() {
+            auto delegate = weak.Upgrade();
+            if (Container::IsCurrentUseNewPipeline()) {
+                auto webPattern = delegate->webPattern_.Upgrade();
+                CHECK_NULL_VOID(webPattern);
+                auto webEventHub = webPattern->GetWebEventHub();
+                CHECK_NULL_VOID(webEventHub);
+                auto propOnOverrideUrlLoading = webEventHub->GetOnOverrideUrlLoadingEvent();
+                CHECK_NULL_VOID(propOnOverrideUrlLoading);
+                auto eventParam = std::make_shared<LoadOverrideEvent>(request);
+                CHECK_NULL_VOID(eventParam);
+                result = propOnOverrideUrlLoading(eventParam);
+            }
+        },
+        TaskExecutor::TaskType::JS, "ArkUIWebOverrideUrlLoadingEvent");
+    return result;
+}
+
 auto WaitForReady(std::function<bool()> checkFunc, int timeoutMs) -> bool
 {
     const auto start = std::chrono::steady_clock::now();
@@ -1484,28 +1784,6 @@ RefPtr<WebResponse> TimeoutResponse()
     CHECK_NULL_RETURN(timeoutResponse, nullptr);
     return timeoutResponse;
 }
-
-#ifdef IOS_PLATFORM
-RefPtr<WebResponse> WaitForResponse(const RefPtr<WebResponse>& result)
-{
-    __block auto realResult = result;
-    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        bool ready = WaitForReady([&] { return result->GetResponseStatus(); }, TIMEOUT_DURATION_MS);
-        if (!ready) {
-            realResult = TimeoutResponse();
-        }
-        dispatch_semaphore_signal(semaphore);
-        dispatch_release(semaphore);
-    });
-    dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(TIMEOUT_SEMAPHORE_S * NSEC_PER_SEC));
-    if (dispatch_semaphore_wait(semaphore, timeout) != 0) {
-        dispatch_semaphore_signal(semaphore);
-        dispatch_release(semaphore);
-    }
-    return realResult;
-}
-#endif
 
 RefPtr<WebResponse> WebDelegateCross::OnInterceptRequest(void* object)
 {
@@ -1541,33 +1819,19 @@ RefPtr<WebResponse> WebDelegateCross::OnInterceptRequest(void* object)
             }
         },
         "ArkUIWebInterceptRequest");
+#ifdef ANDROID_PLATFORM
     if (!result) {
         return nullptr;
     }
     auto isReady = result->GetResponseStatus();
     if (!isReady) {
-#ifdef ANDROID_PLATFORM
         isReady = WaitForReady([&] { return result->GetResponseStatus(); }, TIMEOUT_DURATION_MS);
         if (!isReady) {
             result = TimeoutResponse();
         }
-#endif
-#ifdef IOS_PLATFORM
-        result = WaitForResponse(result);
-#endif
     }
+#endif
     return result;
-}
-
-bool WebDelegateCross::IsRegisteredOnInterceptRequest()
-{
-    auto webPattern = webPattern_.Upgrade();
-    CHECK_NULL_RETURN(webPattern, false);
-    auto webEventHub = webPattern->GetWebEventHub();
-    CHECK_NULL_RETURN(webEventHub, false);
-    auto propOnInterceptRequestEvent = webEventHub->GetOnInterceptRequestEvent();
-    CHECK_NULL_RETURN(propOnInterceptRequestEvent, false);
-    return true;
 }
 
 void WebDelegateCross::OnPageVisible(const std::string& param)
@@ -1846,6 +2110,118 @@ bool WebDelegateCross::OnShowFileChooser(void* object)
     return isAllowed;
 }
 
+bool WebDelegateCross::OnSslErrorEventReceive(void* object)
+{
+    CHECK_NULL_RETURN(object, false);
+    auto context = context_.Upgrade();
+    CHECK_NULL_RETURN(context, false);
+    auto taskExecutor = context->GetTaskExecutor();
+    CHECK_NULL_RETURN(taskExecutor, false);
+    auto sslErrorEvent = AceType::MakeRefPtr<SslErrorrEventImpl>(object);
+    CHECK_NULL_RETURN(sslErrorEvent, false);
+    bool result = false;
+    auto sslErrorResult = AceType::MakeRefPtr<SslErrorResultImpl>(object);
+    int32_t error = sslErrorEvent->GetError();
+    std::vector<std::string> certChainData = sslErrorEvent->GetCertChainData();
+#ifdef ANDROID_PLATFORM
+    EncodeCertificateChainToDer(certChainData);
+#endif
+    taskExecutor->PostSyncTask(
+        [weak = WeakClaim(this), &sslErrorResult, error, &certChainData, &result]() {
+            auto delegate = weak.Upgrade();
+            CHECK_NULL_VOID(delegate);
+            auto webPattern = delegate->webPattern_.Upgrade();
+            CHECK_NULL_VOID(webPattern);
+            auto webEventHub = webPattern->GetWebEventHub();
+            CHECK_NULL_VOID(webEventHub);
+            auto propOnSslErrorRequest = webEventHub->GetOnSslErrorRequestEvent();
+            CHECK_NULL_VOID(propOnSslErrorRequest);
+            auto eventParam = std::make_shared<WebSslErrorEvent>(sslErrorResult, error, certChainData);
+            result = propOnSslErrorRequest(eventParam);
+        },
+        TaskExecutor::TaskType::JS, "ArkUIWebSslErrorEventReceive");
+    return result;
+}
+
+bool WebDelegateCross::OnSslErrorEvent(void* object)
+{
+    CHECK_NULL_RETURN(object, false);
+    auto context = context_.Upgrade();
+    CHECK_NULL_RETURN(context, false);
+    auto taskExecutor = context->GetTaskExecutor();
+    CHECK_NULL_RETURN(taskExecutor, false);
+    auto allSslErrorEvent = AceType::MakeRefPtr<AllSslErrorrEventImpl>(object);
+    CHECK_NULL_RETURN(allSslErrorEvent, false);
+    bool result = false;
+    auto allSslErrorResult = AceType::MakeRefPtr<AllSslErrorResultImpl>(object);
+    int32_t error = allSslErrorEvent->GetError();
+    std::string url = allSslErrorEvent->GetUrl();
+    std::string originalUrl = allSslErrorEvent->GetOriginalUrl();
+    std::string referrer = allSslErrorEvent->GetReferrer();
+    bool isFatalError = allSslErrorEvent->IsFatalError();
+    bool isMainFrame = allSslErrorEvent->IsMainFrame();
+    std::vector<std::string> certificateChain = allSslErrorEvent->GetCertificateChain();
+#ifdef ANDROID_PLATFORM
+    EncodeCertificateChainToDer(certificateChain);
+#endif
+    taskExecutor->PostSyncTask([weak = WeakClaim(this), &allSslErrorResult, error, url, originalUrl, referrer,
+        isFatalError, isMainFrame, &certificateChain, &result]() {
+            auto delegate = weak.Upgrade();
+            CHECK_NULL_VOID(delegate);
+            auto webPattern = delegate->webPattern_.Upgrade();
+            CHECK_NULL_VOID(webPattern);
+            auto webEventHub = webPattern->GetWebEventHub();
+            CHECK_NULL_VOID(webEventHub);
+            auto propOnAllSslErrorRequest = webEventHub->GetOnAllSslErrorRequestEvent();
+            auto propOnSslErrorRequest = webEventHub->GetOnSslErrorRequestEvent();
+            if (propOnAllSslErrorRequest == nullptr) {
+                if (propOnSslErrorRequest == nullptr || !isMainFrame) {
+                    CHECK_NULL_VOID(allSslErrorResult);
+                    allSslErrorResult->HandleCancel(false);
+                }
+                return;
+            }
+            auto eventParam = std::make_shared<WebAllSslErrorEvent>(allSslErrorResult, error, url, originalUrl,
+                referrer, isFatalError, isMainFrame, certificateChain);
+            result = propOnAllSslErrorRequest(eventParam);
+        },
+        TaskExecutor::TaskType::JS, "ArkUIWebSslErrorEvent");
+    return result;
+}
+
+bool WebDelegateCross::OnClientAuthenticationRequest(void* object)
+{
+    CHECK_NULL_RETURN(object, false);
+    auto context = context_.Upgrade();
+    CHECK_NULL_RETURN(context, false);
+    auto taskExecutor = context->GetTaskExecutor();
+    CHECK_NULL_RETURN(taskExecutor, false);
+    auto sslSelectCertEvent = AceType::MakeRefPtr<SslSelectCertEventImpl>(object);
+    CHECK_NULL_RETURN(sslSelectCertEvent, false);
+    bool result = false;
+    auto sslSelectCertResult = AceType::MakeRefPtr<SslSelectCertResultImpl>(object);
+    std::string host = sslSelectCertEvent->GetHost();
+    int32_t port = sslSelectCertEvent->GetPort();
+    std::vector<std::string> keyTypes = sslSelectCertEvent->GetKeyTypes();
+    std::vector<std::string> issuers = sslSelectCertEvent->GetIssuers();
+    taskExecutor->PostSyncTask(
+        [weak = WeakClaim(this), &sslSelectCertResult, host, port, &keyTypes, &issuers, &result]() {
+            auto delegate = weak.Upgrade();
+            CHECK_NULL_VOID(delegate);
+            auto webPattern = delegate->webPattern_.Upgrade();
+            CHECK_NULL_VOID(webPattern);
+            auto webEventHub = webPattern->GetWebEventHub();
+            CHECK_NULL_VOID(webEventHub);
+            auto propOnSslSelectCertRequest = webEventHub->GetOnSslSelectCertRequestEvent();
+            CHECK_NULL_VOID(propOnSslSelectCertRequest);
+            auto eventParam = std::make_shared<WebSslSelectCertEvent>(
+                sslSelectCertResult, host, port, keyTypes, issuers);
+            result = propOnSslSelectCertRequest(eventParam);
+        },
+        TaskExecutor::TaskType::JS, "ArkUIWebClientAuthenticationRequest");
+    return result;
+}
+
 void WebDelegateCross::OnGeolocationPermissionsShowPrompt(void* object)
 {
     ContainerScope scope(instanceId_);
@@ -1899,6 +2275,21 @@ void WebDelegateCross::OnGeolocationPermissionsHidePrompt()
         TaskExecutor::TaskType::JS, "ArkUIWebGeolocationHideEvent");
 }
 
+void WebDelegateCross::EncodeCertificateChainToDer(std::vector<std::string>& certificateChain)
+{
+    std::vector<std::string> finalCertChainData;
+    std::vector<uint8_t> bytes;
+    for (auto &data : certificateChain) {
+        for (size_t i = 0; i < data.length(); i += TWO_BYTES) {
+            std::string byteString = data.substr(i, TWO_BYTES);
+            bytes.push_back(static_cast<uint8_t>(strtol(byteString.c_str(), nullptr, TWO_BYTES_LENGTH)));
+        }
+        finalCertChainData.push_back(std::string(bytes.begin(), bytes.end()));
+        bytes.clear();
+    }
+    certificateChain = finalCertChainData;
+}
+
 void WebDelegateCross::UpdateUserAgent(const std::string& userAgent) {}
 
 void WebDelegateCross::UpdateBackgroundColor(const int backgroundColor)
@@ -1922,7 +2313,15 @@ void WebDelegateCross::UpdateJavaScriptEnabled(const bool& isJsEnabled)
     CallResRegisterMethod(updateJavaScriptEnabled_, param, nullptr);
 }
 
-void WebDelegateCross::UpdateAllowFileAccess(const bool& isFileAccessEnabled) {}
+void WebDelegateCross::UpdateAllowFileAccess(const bool& isFileAccessEnabled)
+{
+    hash_ = MakeResourceHash();
+    updateFileAccessMethod_ = MakeMethodHash(WEB_FILE_ACCESS);
+    std::stringstream paramStream;
+    paramStream << NTC_FILE_ACCESS << WEB_PARAM_EQUALS << isFileAccessEnabled;
+    std::string param = paramStream.str();
+    CallResRegisterMethod(updateFileAccessMethod_, param, nullptr);
+}
 
 void WebDelegateCross::UpdateBlockNetworkImage(const bool& onLineImageAccessEnabled)
 {
@@ -2019,7 +2418,18 @@ void WebDelegateCross::UpdateDatabaseEnabled(const bool& isDatabaseAccessEnabled
 {}
 
 void WebDelegateCross::UpdateTextZoomRatio(const int32_t& textZoomRatioNum)
-{}
+{
+    if (textZoomRatioNum <= 0 || textZoomRatioNum > INT32_MAX) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "textZoomRatioNum is out of range");
+        return;
+    }
+    hash_ = MakeResourceHash();
+    updateTextZoomRatioMethod_ = MakeMethodHash(WEB_TEXT_ZOOM_RATIO);
+    std::stringstream paramStream;
+    paramStream << NTC_TEXT_ZOOM_RATIO << WEB_PARAM_EQUALS << textZoomRatioNum;
+    std::string param = paramStream.str();
+    CallResRegisterMethod(updateTextZoomRatioMethod_, param, nullptr);
+}
 
 void WebDelegateCross::UpdateWebDebuggingAccess(bool isWebDebuggingAccessEnabled)
 {}

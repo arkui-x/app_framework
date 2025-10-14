@@ -373,6 +373,122 @@ private:
     void* object_ = nullptr;
 };
 
+class SslErrorResultImpl : public SslErrorResult {
+    DECLARE_ACE_TYPE(SslErrorResultImpl, SslErrorResult);
+public:
+    explicit SslErrorResultImpl(void* object) : object_(object)
+    {
+        auto obj = WebObjectEventManager::GetInstance().GetOnSslErrorEventReceiveEventObject();
+        if (!obj) {
+            TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager GetOnSslErrorEventReceiveEventObject failed");
+            return;
+        }
+        index_ = obj->AddObject(object_);
+    }
+
+    ~SslErrorResultImpl()
+    {
+        auto obj = WebObjectEventManager::GetInstance().GetOnSslErrorEventReceiveEventObject();
+        if (!obj) {
+            TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager GetOnSslErrorEventReceiveEventObject failed");
+            return;
+        }
+        obj->DelObject(index_);
+    }
+
+    void HandleConfirm() override;
+    void HandleCancel(bool abortLoading) override;
+
+private:
+    void* object_ = nullptr;
+    int index_;
+};
+
+class SslErrorrEventImpl : public AceType {
+    DECLARE_ACE_TYPE(SslErrorrEventImpl, AceType);
+public:
+    explicit SslErrorrEventImpl(void* object) : object_(object) {}
+
+    int GetError() const;
+    std::vector<std::string> GetCertChainData() const;
+
+private:
+    void* object_ = nullptr;
+};
+
+class SslSelectCertResultImpl : public SslSelectCertResult {
+    DECLARE_ACE_TYPE(SslSelectCertResultImpl, SslSelectCertResult);
+public:
+    explicit SslSelectCertResultImpl(void* object) : object_(object) {}
+
+    void HandleConfirm(const std::string& privateKeyFile, const std::string& certChainFile) override;
+    void HandleCancel() override;
+    void HandleIgnore() override;
+
+private:
+    void* object_ = nullptr;
+};
+
+class SslSelectCertEventImpl : public AceType {
+    DECLARE_ACE_TYPE(SslSelectCertEventImpl, AceType);
+public:
+    explicit SslSelectCertEventImpl(void* object) : object_(object) {}
+
+    std::string GetHost();
+    int GetPort();
+    std::vector<std::string> GetKeyTypes();
+    std::vector<std::string> GetIssuers();
+
+private:
+    void* object_ = nullptr;
+};
+
+class AllSslErrorResultImpl : public AllSslErrorResult {
+    DECLARE_ACE_TYPE(AllSslErrorResultImpl, AllSslErrorResult);
+public:
+    explicit AllSslErrorResultImpl(void* object) : object_(object)
+    {
+        auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
+        if (!obj) {
+            TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager GetSslErrorEventObject failed");
+            return;
+        }
+        index_ = obj->AddObject(object_);
+    }
+    ~AllSslErrorResultImpl()
+    {
+        auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
+        if (!obj) {
+            TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager GetSslErrorEventObject failed");
+            return;
+        }
+        obj->DelObject(index_);
+    }
+
+    void HandleConfirm() override;
+    void HandleCancel(bool abortLoading) override;
+
+private:
+    void* object_ = nullptr;
+    int index_;
+};
+
+class AllSslErrorrEventImpl : public AceType {
+    DECLARE_ACE_TYPE(AllSslErrorrEventImpl, AceType);
+public:
+    explicit AllSslErrorrEventImpl(void* object) : object_(object) {}
+
+    int GetError() const;
+    std::string GetUrl() const;
+    std::string GetOriginalUrl() const;
+    std::string GetReferrer() const;
+    bool IsFatalError() const;
+    bool IsMainFrame() const;
+    std::vector<std::string> GetCertificateChain() const;
+
+private:
+    void* object_ = nullptr;
+};
 class WebDelegateCross : public WebDelegateInterface,
                          public WebResource {
     DECLARE_ACE_TYPE(WebDelegateCross, WebResource);
@@ -495,8 +611,16 @@ private:
     void OnGeolocationPermissionsShowPrompt(void* object);
     void RecordWebEvent(Recorder::EventType eventType, const std::string& param) const;
     void RunJsProxyCallback();
+    void RegisterWebInerceptAndOverrideEvent();
+    void UnRegisterWebObjectEvent();
+    void InitWebStatus();
+    void HandleCreateError();
+    bool OnOverrideUrlLoading(void* object);
     RefPtr<WebResponse> OnInterceptRequest(void* object);
-    bool IsRegisteredOnInterceptRequest();
+    bool OnSslErrorEventReceive(void* object);
+    bool OnSslErrorEvent(void* object);
+    bool OnClientAuthenticationRequest(void* object);
+    void EncodeCertificateChainToDer(std::vector<std::string>& certificateChain);
 
     WeakPtr<NG::WebPattern> webPattern_;
     WeakPtr<PipelineBase> context_;
@@ -542,6 +666,7 @@ private:
     Method updateDomStorageEnabledMethod_;
     Method updateCacheModeMethod_;
     Method updateLoadsImagesAutomaticallyMethod_;
+    Method updateFileAccessMethod_;
 
     Method updateZoomAccess_;
     Method updateJavaScriptEnabled_;
@@ -550,6 +675,7 @@ private:
     Method updateVerticalScrollBarAccess_;
     Method updateBackgroundColor_;
     Method updateMediaPlayGestureAccess_;
+    Method updateTextZoomRatioMethod_;
 
     EventCallbackV2 onPageFinishedV2_;
     EventCallbackV2 onPageStartedV2_;

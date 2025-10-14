@@ -19,6 +19,7 @@
 #include <string>
 #include <unordered_map>
 #include <map>
+#include <vector>
 
 #include "base/json/json_util.h"
 #include "base/log/log.h"
@@ -178,6 +179,47 @@ public:
     virtual int GetErrorCode(void* object) = 0;
 };
 
+class WebOnSslErrorEventReceiveEventObject : public Referenced {
+public:
+    virtual int GetError(void* object) = 0;
+    virtual std::vector<std::string> GetCertChainData(void* object) = 0;
+    virtual int AddObject(void* object)
+    {
+        return 0;
+    };
+    virtual void DelObject(int index) {};
+    virtual void Confirm(void* object, int index) {};
+    virtual void Cancel(void* object, int index) {};
+};
+
+class WebSslErrorEventObject : public Referenced {
+public:
+    virtual int GetError(void* object) = 0;
+    virtual std::string GetUrl(void* object) = 0;
+    virtual std::string GetOriginalUrl(void* object) = 0;
+    virtual std::string GetReferrer(void* object) = 0;
+    virtual bool IsFatalError(void* object) = 0;
+    virtual bool IsMainFrame(void* object) = 0;
+    virtual int AddObject(void* object)
+    {
+        return 0;
+    };
+    virtual void DelObject(int index) {};
+    virtual std::vector<std::string> GetCertificateChain(void* object) = 0;
+    virtual void Confirm(void* object, int index) {};
+    virtual void Cancel(void* object, bool abortLoading, int index) {};
+};
+
+class WebOnClientAuthenticationEventObject : public Referenced {
+public:
+    virtual std::string GetHost(void* object) = 0;
+    virtual int GetPort(void* object) = 0;
+    virtual std::vector<std::string> GetKeyTypes(void* object) = 0;
+    virtual std::vector<std::string> GetIssuers(void* object) = 0;
+    virtual void Confirm(void* object, const std::string& privateKeyFile, const std::string& certChainFile) {};
+    virtual void Cancel(void* object) {};
+    virtual void Ignore(void* object) {};
+};
 class WebObjectEventManager : public Singleton<WebObjectEventManager> {
     DECLARE_SINGLETON(WebObjectEventManager)
 public:
@@ -251,18 +293,6 @@ public:
         }
         return nullptr;
     }
-
-    bool IsRegisteredOnInterceptRequest(const std::string& eventId)
-    {
-        auto event = eventObjectWithBoolReturnMap_.find(eventId);
-        if (event != eventObjectWithBoolReturnMap_.end() && event->second) {
-            return event->second("", nullptr);
-        } else {
-            LOGW("failed to find object eventIdWithResponseReturn = %{public}s", eventId.c_str());
-        }
-        return false;
-    }
-
     const RefPtr<WebResourceRequestObject>& GetResourceRequestObject()
     {
         return resourceRequestObject_;
@@ -413,6 +443,36 @@ public:
         GeolocationObject_ = object;
     }
 
+    const RefPtr<WebOnSslErrorEventReceiveEventObject>& GetOnSslErrorEventReceiveEventObject()
+    {
+        return onSslErrorEventReceiveEventObject_;
+    }
+
+    void SetOnSslErrorEventReceiveEventObject(const RefPtr<WebOnSslErrorEventReceiveEventObject>& object)
+    {
+        onSslErrorEventReceiveEventObject_ = object;
+    }
+
+    const RefPtr<WebSslErrorEventObject>& GetSslErrorEventObject()
+    {
+        return sslErrorEventObject_;
+    }
+
+    void SetSslErrorEventObject(const RefPtr<WebSslErrorEventObject>& object)
+    {
+        sslErrorEventObject_ = object;
+    }
+
+    const RefPtr<WebOnClientAuthenticationEventObject>& GetOnClientAuthenticationEventObject()
+    {
+        return onClientAuthenticationEventObject_;
+    }
+
+    void SetOnClientAuthenticationEventObject(const RefPtr<WebOnClientAuthenticationEventObject>& object)
+    {
+        onClientAuthenticationEventObject_ = object;
+    }
+
 private:
     RefPtr<WebResourceRequestObject> resourceRequestObject_;
     RefPtr<WebScrollObject> scrollObject_;
@@ -432,6 +492,9 @@ private:
     RefPtr<WebFullScreenExitObject> fullScreenExitObject_;
     std::unordered_map<std::string, EventObjectWithBoolReturnCallback> eventObjectWithBoolReturnMap_;
     std::unordered_map<std::string, EventObjectWithResponseReturnCallback> eventObjectWithResponseReturnMap_;
+    RefPtr<WebOnSslErrorEventReceiveEventObject> onSslErrorEventReceiveEventObject_;
+    RefPtr<WebSslErrorEventObject> sslErrorEventObject_;
+    RefPtr<WebOnClientAuthenticationEventObject> onClientAuthenticationEventObject_;
 };
 inline WebObjectEventManager::WebObjectEventManager() = default;
 inline WebObjectEventManager::~WebObjectEventManager() = default;
