@@ -404,10 +404,10 @@ private:
     int index_;
 };
 
-class SslErrorrEventImpl : public AceType {
-    DECLARE_ACE_TYPE(SslErrorrEventImpl, AceType);
+class SslErrorEventImpl : public AceType {
+    DECLARE_ACE_TYPE(SslErrorEventImpl, AceType);
 public:
-    explicit SslErrorrEventImpl(void* object) : object_(object) {}
+    explicit SslErrorEventImpl(void* object) : object_(object) {}
 
     int GetError() const;
     std::vector<std::string> GetCertChainData() const;
@@ -473,10 +473,10 @@ private:
     int index_;
 };
 
-class AllSslErrorrEventImpl : public AceType {
-    DECLARE_ACE_TYPE(AllSslErrorrEventImpl, AceType);
+class AllSslErrorEventImpl : public AceType {
+    DECLARE_ACE_TYPE(AllSslErrorEventImpl, AceType);
 public:
-    explicit AllSslErrorrEventImpl(void* object) : object_(object) {}
+    explicit AllSslErrorEventImpl(void* object) : object_(object) {}
 
     int GetError() const;
     std::string GetUrl() const;

@@ -791,7 +791,7 @@ void SslErrorResultImpl::HandleCancel(bool abortLoading)
     obj->Cancel(object_, index_);
 }
 
-int SslErrorrEventImpl::GetError() const
+int SslErrorEventImpl::GetError() const
 {
     auto obj = WebObjectEventManager::GetInstance().GetOnSslErrorEventReceiveEventObject();
     if (!obj) {
@@ -802,7 +802,7 @@ int SslErrorrEventImpl::GetError() const
     return obj->GetError(object_);
 }
 
-std::vector<std::string> SslErrorrEventImpl::GetCertChainData() const
+std::vector<std::string> SslErrorEventImpl::GetCertChainData() const
 {
     auto obj = WebObjectEventManager::GetInstance().GetOnSslErrorEventReceiveEventObject();
     if (!obj) {
@@ -833,7 +833,7 @@ void AllSslErrorResultImpl::HandleCancel(bool abortLoading)
     obj->Cancel(object_, abortLoading, index_);
 }
 
-int AllSslErrorrEventImpl::GetError() const
+int AllSslErrorEventImpl::GetError() const
 {
     auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
     if (!obj) {
@@ -843,7 +843,7 @@ int AllSslErrorrEventImpl::GetError() const
     return obj->GetError(object_);
 }
 
-std::string AllSslErrorrEventImpl::GetUrl() const
+std::string AllSslErrorEventImpl::GetUrl() const
 {
     auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
     if (!obj) {
@@ -853,7 +853,7 @@ std::string AllSslErrorrEventImpl::GetUrl() const
     return obj->GetUrl(object_);
 }
 
-std::string AllSslErrorrEventImpl::GetOriginalUrl() const
+std::string AllSslErrorEventImpl::GetOriginalUrl() const
 {
     auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
     if (!obj) {
@@ -863,7 +863,7 @@ std::string AllSslErrorrEventImpl::GetOriginalUrl() const
     return obj->GetOriginalUrl(object_);
 }
 
-std::string AllSslErrorrEventImpl::GetReferrer() const
+std::string AllSslErrorEventImpl::GetReferrer() const
 {
     auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
     if (!obj) {
@@ -873,7 +873,7 @@ std::string AllSslErrorrEventImpl::GetReferrer() const
     return obj->GetReferrer(object_);
 }
 
-bool AllSslErrorrEventImpl::IsFatalError() const
+bool AllSslErrorEventImpl::IsFatalError() const
 {
     auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
     if (!obj) {
@@ -883,7 +883,7 @@ bool AllSslErrorrEventImpl::IsFatalError() const
     return obj->IsFatalError(object_);
 }
 
-std::vector<std::string> AllSslErrorrEventImpl::GetCertificateChain() const
+std::vector<std::string> AllSslErrorEventImpl::GetCertificateChain() const
 {
     auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
     if (!obj) {
@@ -893,7 +893,7 @@ std::vector<std::string> AllSslErrorrEventImpl::GetCertificateChain() const
     return obj->GetCertificateChain(object_);
 }
 
-bool AllSslErrorrEventImpl::IsMainFrame() const
+bool AllSslErrorEventImpl::IsMainFrame() const
 {
     auto obj = WebObjectEventManager::GetInstance().GetSslErrorEventObject();
     if (!obj) {
@@ -2117,7 +2117,7 @@ bool WebDelegateCross::OnSslErrorEventReceive(void* object)
     CHECK_NULL_RETURN(context, false);
     auto taskExecutor = context->GetTaskExecutor();
     CHECK_NULL_RETURN(taskExecutor, false);
-    auto sslErrorEvent = AceType::MakeRefPtr<SslErrorrEventImpl>(object);
+    auto sslErrorEvent = AceType::MakeRefPtr<SslErrorEventImpl>(object);
     CHECK_NULL_RETURN(sslErrorEvent, false);
     bool result = false;
     auto sslErrorResult = AceType::MakeRefPtr<SslErrorResultImpl>(object);
@@ -2150,7 +2150,7 @@ bool WebDelegateCross::OnSslErrorEvent(void* object)
     CHECK_NULL_RETURN(context, false);
     auto taskExecutor = context->GetTaskExecutor();
     CHECK_NULL_RETURN(taskExecutor, false);
-    auto allSslErrorEvent = AceType::MakeRefPtr<AllSslErrorrEventImpl>(object);
+    auto allSslErrorEvent = AceType::MakeRefPtr<AllSslErrorEventImpl>(object);
     CHECK_NULL_RETURN(allSslErrorEvent, false);
     bool result = false;
     auto allSslErrorResult = AceType::MakeRefPtr<AllSslErrorResultImpl>(object);
