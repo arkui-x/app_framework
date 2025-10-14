@@ -160,11 +160,6 @@ std::vector<uint8_t> StageAssetManager::GetBufferByAppDataPath(const std::string
     return StageAssetProvider::GetInstance()->GetBufferByAppDataPath(fileFullPath);
 }
 
-std::vector<uint8_t> StageAssetManager::GetAotBuffer(const std::string &fileName)
-{
-    return StageAssetProvider::GetInstance()->GetAotBuffer(fileName);
-}
-
 void StageAssetManager::isDynamicModule(const std::string& moduleName, bool needUpdate)
 {
     StageAssetProvider::GetInstance()->UpdateVersionCode(moduleName, needUpdate);

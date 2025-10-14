@@ -70,7 +70,6 @@ template("ability_runtime_jsruntime") {
 
     sources = [
       "${ability_runtime_cross_platform_path}/frameworks/native/base/error/ability_business_error.cpp",
-      "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_aot_reader.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_console_log.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_data_struct_converter.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/jsruntime/src/js_error_utils.cpp",
@@ -95,7 +94,6 @@ template("ability_runtime_jsruntime") {
     ]
 
     if (is_arkui_x) {
-      defines += [ "CROSS_PLATFORM" ]
       include_dirs = [
         "${cross_platform_napi_path}/js_environment/uncaught_exception_callback.h",
         "//commonlibrary/ets_utils/js_concurrent_module/common",
