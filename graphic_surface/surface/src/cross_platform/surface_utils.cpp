@@ -44,10 +44,7 @@ SurfaceError SurfaceUtils::AddNativeWindow(uint64_t uniqueId, void *nativeWindow
         return GSERROR_INVALID_ARGUMENTS;
     }
     std::lock_guard<std::mutex> lockGuard(nativeWindowLock_);
-    if (nativeWindowCache_.count(uniqueId) == 0) {
-        nativeWindowCache_[uniqueId] = nativeWindow;
-        return GSERROR_OK;
-    }
+    nativeWindowCache_[uniqueId] = nativeWindow;
     return GSERROR_OK;
 }
 
