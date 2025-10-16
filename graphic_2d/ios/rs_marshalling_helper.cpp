@@ -20,7 +20,8 @@
 #include <unistd.h>
 
 #include "securec.h"
-
+#include "animation/rs_particle_ripple_field.h"
+#include "animation/rs_particle_velocity_field.h"
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interpolating_spring_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
@@ -186,6 +187,26 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Part
     return {};
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleNoiseFields>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleRippleFields>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleRippleFields>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleVelocityFields>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleVelocityFields>& val)
 {
     return {};
 }
@@ -456,6 +477,8 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<EmitterUpdater>)                    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<EmitterUpdater>>)       \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseFields>)               \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRippleFields>)              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleVelocityFields>)            \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<std::vector<ParticleRenderParams>>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)                             \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                           \
