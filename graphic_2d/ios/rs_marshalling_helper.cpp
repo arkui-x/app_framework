@@ -32,7 +32,6 @@
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
-#include "modifier/rs_render_modifier.h"
 #include "pixel_map.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_blur_filter.h"
@@ -390,15 +389,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderKeyframeAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderSpringAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderPathAnimation)
 #undef MARSHALLING_AND_UNMARSHALLING
-
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderModifier>& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderModifier>& val)
-{
-    return {};
-}
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ModifierNG::RSRenderModifier>& val)
 {
