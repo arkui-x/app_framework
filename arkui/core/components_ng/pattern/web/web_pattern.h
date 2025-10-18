@@ -43,6 +43,7 @@
 #include "core/components_ng/render/render_surface.h"
 #include "core/components_ng/pattern/scrollable/nestable_scroll_container.h"
 #include "core/components_ng/pattern/scroll/scroll_pattern.h"
+#include "core/components_ng/pattern/scrollable/scrollable_properties.h"
 
 #include "core/components_ng/pattern/web/web_delegate_interface.h"
 
@@ -77,8 +78,16 @@ enum class WebInfoType : int32_t {
     TYPE_UNKNOWN
 };
 
-class WebPattern : public Pattern, public SelectionHost {
-    DECLARE_ACE_TYPE(WebPattern, Pattern, SelectionHost);
+enum class ScrollDirection {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT,
+    UNKNOWN
+};
+
+class WebPattern : public NestableScrollContainer, public SelectionHost {
+    DECLARE_ACE_TYPE(WebPattern, NestableScrollContainer, SelectionHost);
 
 public:
     using SetWebIdCallback = std::function<void(int32_t)>;
@@ -329,9 +338,8 @@ public:
 
     void SetNestedScroll(const NestedScrollOptions& nestedOpt);
 
-    void SetNestedScrollExt(const NestedScrollOptionsExt& nestedOpt);
+    void SetNestedScrollExt(const NestedScrollOptionsExt& nestedScroll);
 
-    void OnScrollStart(const float x, const float y);
     /**
      *  End of NestableScrollContainer implementations
      */
@@ -562,6 +570,31 @@ public:
     void OnWebMediaAVSessionEnabledUpdate(bool enable);
     void SetDefaultBackgroundColor();
     void OnBackToTopUpdate(bool isBackToTop);
+
+    NestedScrollOptionsExt GetNestedScrollExt() const
+    {
+        return nestedScroll_;
+    }
+    Axis GetAxis() const override
+    {
+        return axis_;
+    }
+    void OnScroll(float currentX, float currentY, float cWidth, float cHeight, float fWidth, float fHeight);
+    void OnScrollWillStart(float x, float y);
+    void OnScrollStart(float x, float y);
+    bool OnNestedScroll(float x, float y, float xVelocity, float yVelocity, bool isAvailable);
+    bool IsRtl();
+    ScrollResult HandleScroll(float offset, int32_t source, NestedState state, float velocity = 0.f) override;
+    ScrollResult HandleScroll(RefPtr<NestableScrollContainer> parent, float offset, int32_t source, NestedState state);
+    bool HandleScrollVelocity(float velocity, const RefPtr<NestableScrollContainer>& child = nullptr) override;
+    bool HandleScrollVelocity(const RefPtr<NestableScrollContainer>& parent, float velocity);
+    void OnScrollStartRecursive(WeakPtr<NestableScrollContainer> child, float position, float velocity = 0.f) override;
+    void OnScrollStartRecursive(float position);
+    void OnScrollEndRecursive(const std::optional<float>& velocity) override;
+    void GetParentAxis();
+    RefPtr<NestableScrollContainer> SearchParent() override;
+    RefPtr<NestableScrollContainer> SearchParent(Axis scrollAxis);
+    void OnParentScrollDragEndRecursive(RefPtr<NestableScrollContainer> parent);
 private:
     void RegistVirtualKeyBoardListener();
     bool ProcessVirtualKeyBoard(int32_t width, int32_t height, double keyboard);
@@ -760,6 +793,97 @@ private:
     bool richTextInit_ = false;
     ACE_DISALLOW_COPY_AND_MOVE(WebPattern);
     bool needSetDefaultBackgroundColor_ = false;
+
+    NestedScrollOptionsExt nestedScroll_ = {
+        .scrollUp = NestedScrollMode::SELF_ONLY,
+        .scrollDown = NestedScrollMode::SELF_ONLY,
+        .scrollLeft = NestedScrollMode::SELF_ONLY,
+        .scrollRight = NestedScrollMode::SELF_ONLY,
+    };
+    Axis axis_ = Axis::FREE;
+    bool isScrollStarted_ = false;
+    bool isParentReachEdge_ = false;
+    bool isSelfReachEdge_ = false;
+    bool isParentReverseReachEdge_ = false;
+    bool isTouchpadSliding_ = false;
+    WeakPtr<NestableScrollContainer> dragEndRecursiveParent_;
+    Axis expectedScrollAxis_ = Axis::FREE;
+    std::unordered_map<Axis, WeakPtr<NestableScrollContainer>> parentsMap_;
+    float prevX_ = 0.0f;
+    float prevY_ = 0.0f;
+    float averageDistanceX_ = 0.0f;
+    float averageDistanceY_ = 0.0f;
+    bool isDragEnd_ = false;
+    TouchInfo prevOffset_;
+
+    bool FilterScrollEventHandleOffset(float offset);
+    bool FilterScrollEventHandleVelocity(float velocity);
+    bool CheckParentScroll(float directValue, const NestedScrollMode &scrollMode);
+    std::string GetStringToMode(const NestedScrollMode& mode);
+    struct ScrollDirectionContext {
+        void Set(bool isMinValueX, bool isMaxValueX, bool isMinValueY, bool isMaxValueY, float cX, float cY, float pX,
+            float pY, float cWidth, float cHeight, float fWidth, float fHeight)
+        {
+            this->isMinX = isMinValueX;
+            this->isMaxX = isMaxValueX;
+            this->isMinY = isMinValueY;
+            this->isMaxY = isMaxValueY;
+            this->prevX = pX;
+            this->prevY = pY;
+            this->currentX = cX;
+            this->currentY = cY;
+            this->currentWidth = cWidth;
+            this->currentHeight = cHeight;
+            this->frameWidth = fWidth;
+            this->frameHeight = fHeight;
+        }
+        bool isMinX { false };
+        bool isMaxX { false };
+        bool isMinY { false };
+        bool isMaxY { false };
+        float currentX { 0.0f };
+        float currentY { 0.0f };
+        float prevX { 0.0f };
+        float prevY { 0.0f };
+        float currentWidth { 0.0f };
+        float currentHeight { 0.0f };
+        float frameWidth { 0.0f };
+        float frameHeight { 0.0f };
+    };
+
+    void InitPanGesture(const RefPtr<GestureEventHub>&);
+    bool webPanActive_ = false;
+    RefPtr<PanGesture> webPanGesture_;
+    bool webPanEnable_ = true;
+
+    ScrollDirection direction_;
+    NestedScrollMode mode_;
+    ScrollDirectionContext directionCtx_;
+    bool isFirstFlingScrollVelocity_ = false;
+
+    ScrollDirection GetScrollDirection(const ScrollDirectionContext& ctx);
+    bool IsScrollReachEdge(const ScrollDirection& direction, bool isMinX, bool isMaxX, bool isMinY, bool isMaxY);
+
+    void CalcScrollParamsAndBorder(
+        const TouchInfo& touchPoint, float& dx, float& dy, float& scrollOffset, bool& isAtBorder);
+
+    void HandleParentFirstScroll(
+        float dx, float dy, float scrollOffset, bool isAtBorder, const TouchInfo& touchPoint, bool fromOverlay);
+
+    void HandleSelfFirstScroll(
+        float scrollOffset, bool isAtBorder, const TouchInfo& touchPoint, bool fromOverlay, float dy);
+
+    bool IsAtBorder();
+    void SetNestedScrollOptionsExt(NestedScrollOptionsExt nestedOpt);
+    void SetScrollLocked(bool value);
+    void SetOnActionStartId();
+    void SetOnActionUpdateId();
+    void SetOnActionEndId();
+    void SetOnActionCancelId();
+    void SetDirectionMode();
+    void HandleTouchMoveIOS(TouchInfo &touchPoint, bool fromOverlay);
+    void HandleTouchMoveAndroid(TouchInfo &touchPoint, bool fromOverlay);
+    bool GetScrollBoundary(float currentX, float currentY, float fWidth, float fHeight, float cWidth, float cHeight);
 };
 } // namespace OHOS::Ace::NG
 

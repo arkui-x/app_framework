@@ -44,6 +44,10 @@ class WebScrollObject : public Referenced {
 public:
     virtual float GetX(void* object) = 0;
     virtual float GetY(void* object) = 0;
+    virtual float GetContentWidth(void* object) = 0;
+    virtual float GetContentHeight(void* object) = 0;
+    virtual float GetFrameWidth(void* object) = 0;
+    virtual float GetFrameHeight(void* object) = 0;
 };
 
 class WebScaleChangeObject : public Referenced {
