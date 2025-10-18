@@ -34,7 +34,7 @@
 #include "core/event/touch_event.h"
 #include "core/pipeline_ng/pipeline_context.h"
 #include "frameworks/base/utils/system_properties.h"
-
+#include "core/components_ng/pattern/refresh/refresh_pattern.h"
 #include "web_delegate_cross.h"
 
 namespace OHOS::Ace::NG {
@@ -54,6 +54,10 @@ const std::string VISIBLE_ACTIVE_ENABLE = "persist.web.visible_active_enable";
 const std::string MEMORY_LEVEL_ENABEL = "persist.web.memory_level_enable";
 const std::vector<int32_t> DEFAULT_HEIGHT_GEAR {7998, 7999, 8001, 8002, 8003};
 const std::vector<int32_t> DEFAULT_ORIGN_GEAR {0, 2000, 4000, 6000, 8000};
+
+#if defined(IOS_PLATFORM)
+extern "C" void SetIsPointInsideWebForceResult(bool enable, bool result);
+#endif
 
 WebPattern::WebPattern() = default;
 
@@ -102,6 +106,9 @@ void WebPattern::OnAttachToFrameNode()
 
 void WebPattern::OnDetachFromFrameNode(FrameNode* frameNode)
 {
+#if defined(IOS_PLATFORM)
+    SetIsPointInsideWebForceResult(false, false);
+#endif
     CHECK_NULL_VOID(delegate_);
     isFocus_ = false;
     delegate_->OnBlur();
@@ -125,6 +132,9 @@ void WebPattern::InitEvent()
     CHECK_NULL_VOID(gestureHub);
 
     InitTouchEvent(gestureHub);
+#if defined(ANDROID_PLATFORM)
+    InitPanGesture(gestureHub);
+#endif
 
     auto inputHub = eventHub->GetOrCreateInputEventHub();
     CHECK_NULL_VOID(inputHub);
@@ -218,6 +228,137 @@ void WebPattern::InitHoverEvent(const RefPtr<InputEventHub>& inputHub)
 
     hoverEvent_ = MakeRefPtr<InputEvent>(std::move(hoverTask));
     inputHub->AddOnHoverEvent(hoverEvent_);
+}
+
+void WebPattern::InitPanGesture(const RefPtr<GestureEventHub>& gestureHub)
+{
+    if (!gestureHub || !webPanEnable_) {
+        return;
+    }
+    if (webPanGesture_) {
+        if (gestureHub->WillRecreateGesture()) {
+            gestureHub->AddGesture(webPanGesture_);
+        }
+        return;
+    }
+    auto option = MakeRefPtr<PanGestureOption>();
+    PanDirection panDirection;
+    panDirection.type = PanDirection::ALL;
+    option->SetDirection(panDirection);
+    option->SetDistance(0.0);
+    option->SetFingers(1);
+    webPanGesture_ = MakeRefPtr<PanGesture>(option);
+    CHECK_NULL_VOID(webPanGesture_);
+    webPanGesture_->SetPriority(GesturePriority::High);
+
+    SetOnActionStartId();
+    SetOnActionUpdateId();
+    SetOnActionEndId();
+    SetOnActionCancelId();
+    gestureHub->AddGesture(webPanGesture_);
+}
+
+void WebPattern::SetOnActionStartId()
+{
+    CHECK_NULL_VOID(webPanGesture_);
+    webPanGesture_->SetOnActionStartId([weak = WeakClaim(this)](const GestureEvent& event) {
+        auto pattern = weak.Upgrade();
+        CHECK_NULL_VOID(pattern);
+        pattern->webPanActive_ = true;
+        auto delta = event.GetDelta();
+        pattern->expectedScrollAxis_ =
+            (std::abs(delta.GetX()) > std::abs(delta.GetY())) ? Axis::HORIZONTAL : Axis::VERTICAL;
+    });
+}
+
+void WebPattern::SetOnActionUpdateId()
+{
+    CHECK_NULL_VOID(webPanGesture_);
+    webPanGesture_->SetOnActionUpdateId([weak = WeakClaim(this)](const GestureEvent& event) {
+        auto pattern = weak.Upgrade();
+        CHECK_NULL_VOID(pattern);
+        if (!pattern->webPanActive_) {
+            return;
+        }
+        pattern->isFirstFlingScrollVelocity_ = true;
+        pattern->GetParentAxis();
+        float dx = pattern->directionCtx_.currentX - pattern->directionCtx_.prevX;
+        float dy = pattern->directionCtx_.currentY - pattern->directionCtx_.prevY;
+        pattern->expectedScrollAxis_ = (abs(dx) > abs(dy) ? Axis::HORIZONTAL : Axis::VERTICAL);
+    });
+}
+
+void WebPattern::SetOnActionEndId()
+{
+    CHECK_NULL_VOID(webPanGesture_);
+    webPanGesture_->SetOnActionEndId([weak = WeakClaim(this)](const GestureEvent& event) {
+        auto pattern = weak.Upgrade();
+        CHECK_NULL_VOID(pattern);
+        float directVelocity = (pattern->expectedScrollAxis_ == Axis::HORIZONTAL)
+                                 ? event.GetVelocity().GetVelocityX()
+                                 : event.GetVelocity().GetVelocityY();
+        if (pattern->IsRtl() && pattern->expectedScrollAxis_ == Axis::HORIZONTAL) {
+            directVelocity = -directVelocity;
+        }
+        auto it = pattern->parentsMap_.find(pattern->expectedScrollAxis_);
+        CHECK_EQUAL_VOID(it, pattern->parentsMap_.end());
+        auto parent = it->second;
+
+        bool isAtBorder = pattern->IsAtBorder();
+
+        if (pattern->mode_ == NestedScrollMode::SELF_ONLY) {
+            return;
+        }
+
+        if ((!pattern->isParentReachEdge_ && pattern->mode_ == NestedScrollMode::PARENT_FIRST) ||
+             (!pattern->isParentReachEdge_ && pattern->mode_ == NestedScrollMode::PARALLEL) ||
+             (pattern->isFirstFlingScrollVelocity_ && isAtBorder)) {
+            pattern->HandleScrollVelocity(parent.Upgrade(), directVelocity);
+            pattern->isFirstFlingScrollVelocity_ = false;
+        }
+        pattern->webPanActive_ = false;
+    });
+}
+
+void WebPattern::SetOnActionCancelId()
+{
+    CHECK_NULL_VOID(webPanGesture_);
+    webPanGesture_->SetOnActionCancelId([weak = WeakClaim(this)](const GestureEvent&) {
+        auto pattern = weak.Upgrade();
+        CHECK_NULL_VOID(pattern);
+        pattern->webPanActive_ = false;
+    });
+}
+
+bool WebPattern::IsAtBorder()
+{
+    float dx = directionCtx_.currentX - directionCtx_.prevX;
+    float dy = directionCtx_.currentY - directionCtx_.prevY;
+    float scrollDistance = 0.1f;
+    float scrollOffset = 0;
+    auto parent = SearchParent();
+    if (parent) {
+        Axis scrollAxis = parent->GetAxis();
+        mode_ = NestedScrollMode::SELF_ONLY;
+        if (scrollAxis == Axis::HORIZONTAL) {
+            scrollOffset = dx;
+            mode_ = dx > 0 ? GetNestedScrollExt().scrollLeft : GetNestedScrollExt().scrollRight;
+        } else if (scrollAxis == Axis::VERTICAL) {
+            scrollOffset = dy;
+            mode_ = dy > 0 ? GetNestedScrollExt().scrollUp : GetNestedScrollExt().scrollDown;
+        } else {
+            TAG_LOGW(AceLogTag::ACE_WEB, "Unknown scroll axis in IsAtBorder");
+        }
+    }
+    directionCtx_.isMinX = LessOrEqual(directionCtx_.currentX, 0.0) && expectedScrollAxis_ == Axis::HORIZONTAL;
+    directionCtx_.isMaxX = GreatOrEqual(directionCtx_.currentX + directionCtx_.frameWidth, directionCtx_.currentWidth)
+        && (expectedScrollAxis_ == Axis::HORIZONTAL);
+    directionCtx_.isMinY = LessOrEqual(directionCtx_.currentY, 0.0) && expectedScrollAxis_ == Axis::VERTICAL;
+    directionCtx_.isMaxY = GreatOrEqual(directionCtx_.currentY + directionCtx_.frameHeight, directionCtx_.currentHeight)
+                        && expectedScrollAxis_ == Axis::VERTICAL;
+    bool isAtBorder = IsScrollReachEdge(
+        direction_, directionCtx_.isMinX, directionCtx_.isMaxX, directionCtx_.isMinY, directionCtx_.isMaxY);
+    return isAtBorder;
 }
 
 void WebPattern::HandleMouseEvent(MouseInfo& info)
@@ -799,8 +940,12 @@ void WebPattern::OnModifyDone()
 #if defined(IOS_PLATFORM) || defined(ANDROID_PLATFORM)
         WeakPtr<PipelineContext> context = WeakPtr<PipelineContext>(PipelineContext::GetCurrentContext());
         delegate_ = AceType::MakeRefPtr<WebDelegateCross>(PipelineContext::GetCurrentContext(), nullptr, "web");
+        CHECK_NULL_VOID(delegate_);
         delegate_->SetNGWebPattern(Claim(this));
         delegate_->CreatePlatformResource(Size(0, 0), Offset(0, 0), context);
+        SetScrollLocked(false);
+        auto nestedScrollExt = GetNestedScrollExt();
+        SetNestedScrollOptionsExt(nestedScrollExt);
         if (setWebIdCallback_) {
             setWebIdCallback_(delegate_->GetWebId());
         }
@@ -970,6 +1115,7 @@ void WebPattern::HandleTouchDown(const TouchEventInfo& info, bool fromOverlay)
         return;
     }
     for (auto& touchPoint : touchInfos) {
+        prevOffset_ = touchPoint;
         if (fromOverlay) {
             touchPoint.x -= webOffset_.GetX();
             touchPoint.y -= webOffset_.GetY();
@@ -997,6 +1143,40 @@ void WebPattern::HandleTouchUp(const TouchEventInfo& info, bool fromOverlay)
     }
 }
 
+void WebPattern::CalcScrollParamsAndBorder(
+    const TouchInfo& touchPoint, float& dx, float& dy, float& scrollOffset, bool& isAtBorder)
+{
+    dx = touchPoint.x - prevOffset_.x;
+    dy = touchPoint.y - prevOffset_.y;
+    expectedScrollAxis_ = (abs(dx) > abs(dy)) ? Axis::HORIZONTAL : Axis::VERTICAL;
+    if (expectedScrollAxis_ == Axis::VERTICAL) {
+        direction_ = (touchPoint.y < prevOffset_.y) ? ScrollDirection::DOWN : ScrollDirection::UP;
+    } else {
+        direction_ = (touchPoint.x < prevOffset_.x) ? ScrollDirection::RIGHT : ScrollDirection::LEFT;
+    }
+    scrollOffset = 0;
+    auto parent = SearchParent(expectedScrollAxis_);
+    if (parent) {
+        Axis scrollAxis = parent->GetAxis();
+        mode_ = NestedScrollMode::SELF_ONLY;
+        if (scrollAxis == Axis::HORIZONTAL) {
+            scrollOffset = dx;
+            mode_ = (dx > 0) ? GetNestedScrollExt().scrollLeft : GetNestedScrollExt().scrollRight;
+        } else if (scrollAxis == Axis::VERTICAL) {
+            scrollOffset = dy;
+            mode_ = (dy > 0) ? GetNestedScrollExt().scrollUp : GetNestedScrollExt().scrollDown;
+        }
+    }
+    directionCtx_.isMinX = (directionCtx_.currentX <= 0) && (expectedScrollAxis_ == Axis::HORIZONTAL);
+    directionCtx_.isMaxX = (directionCtx_.currentX + directionCtx_.frameWidth >= directionCtx_.currentWidth)
+        && (expectedScrollAxis_ == Axis::HORIZONTAL);
+    directionCtx_.isMinY = (directionCtx_.currentY <= 0) && (expectedScrollAxis_ == Axis::VERTICAL);
+    directionCtx_.isMaxY = (directionCtx_.currentY + directionCtx_.frameHeight >= directionCtx_.currentHeight)
+        && (expectedScrollAxis_ == Axis::VERTICAL);
+    isAtBorder = IsScrollReachEdge(
+        direction_, directionCtx_.isMinX, directionCtx_.isMaxX, directionCtx_.isMinY, directionCtx_.isMaxY);
+}
+
 void WebPattern::HandleTouchMove(const TouchEventInfo& info, bool fromOverlay)
 {
     if (isDragging_) {
@@ -1019,7 +1199,111 @@ void WebPattern::HandleTouchMove(const TouchEventInfo& info, bool fromOverlay)
             touchPoint.x -= webOffset_.GetX();
             touchPoint.y -= webOffset_.GetY();
         }
+#if defined(IOS_PLATFORM)
+        HandleTouchMoveIOS(touchPoint, fromOverlay);
+#else
+        HandleTouchMoveAndroid(touchPoint, fromOverlay);
+#endif
+    }
+}
+
+void WebPattern::HandleTouchMoveIOS(TouchInfo &touchPoint, bool fromOverlay)
+{
+    delegate_->HandleTouchMove(touchPoint.id, touchPoint.x, touchPoint.y, fromOverlay);
+    auto parent = SearchParent();
+    if (parent) {
+        float dx = touchPoint.x - prevOffset_.x;
+        float dy = touchPoint.y - prevOffset_.y;
+        float scrollDistance = 0.1f;
+        float scrollOffset = 0;
+        Axis scrollAxis = parent->GetAxis();
+        NestedScrollMode mode = NestedScrollMode::SELF_ONLY;
+        if (scrollAxis == Axis::HORIZONTAL) {
+            scrollOffset = dx > 0 ? scrollDistance : (dx < 0 ? -scrollDistance : 0);
+            mode = dx > 0 ? GetNestedScrollExt().scrollLeft : GetNestedScrollExt().scrollRight;
+        } else if (scrollAxis == Axis::VERTICAL) {
+            scrollOffset = dy > 0 ? scrollDistance : (dy < 0 ? -scrollDistance : 0);
+            mode = dy > 0 ? GetNestedScrollExt().scrollUp : GetNestedScrollExt().scrollDown;
+        } else {
+            TAG_LOGW(AceLogTag::ACE_WEB, "Unknown scroll axis in HandleTouchMoveIOS");
+        }
+        auto result = parent->HandleScroll(scrollOffset, SCROLL_FROM_UPDATE, NestedState::CHILD_SCROLL);
+        isParentReachEdge_ = result.reachEdge;
+        if (mode == NestedScrollMode::PARENT_FIRST) {
+            SetScrollLocked(!isParentReachEdge_);
+        } else {
+            SetScrollLocked(false);
+        }
+        prevOffset_ = touchPoint;
+    } else {
+        SetScrollLocked(false);
+    }
+}
+
+void WebPattern::HandleTouchMoveAndroid(TouchInfo &touchPoint, bool fromOverlay)
+{
+    float dx = 0;
+    float dy = 0;
+    float scrollOffset = 0;
+    bool isAtBorder = false;
+    CalcScrollParamsAndBorder(touchPoint, dx, dy, scrollOffset, isAtBorder);
+    switch (mode_) {
+        case NestedScrollMode::PARENT_FIRST:
+            HandleParentFirstScroll(dx, dy, scrollOffset, isAtBorder, touchPoint, fromOverlay);
+            break;
+        case NestedScrollMode::SELF_ONLY:
+            delegate_->HandleTouchMove(touchPoint.id, touchPoint.x, touchPoint.y, fromOverlay);
+            break;
+        case NestedScrollMode::SELF_FIRST:
+            HandleSelfFirstScroll(scrollOffset, isAtBorder, touchPoint, fromOverlay, dy);
+            break;
+        case NestedScrollMode::PARALLEL:
+            delegate_->HandleTouchMove(touchPoint.id, touchPoint.x, touchPoint.y, fromOverlay);
+            if (auto parent = SearchParent(expectedScrollAxis_)) {
+                isParentReachEdge_ = parent->HandleScroll(
+                    scrollOffset, SCROLL_FROM_UPDATE, NestedState::CHILD_OVER_SCROLL).reachEdge;
+            }
+            break;
+        default:
+            break;
+    }
+    prevOffset_ = touchPoint;
+}
+
+void WebPattern::HandleParentFirstScroll(
+    float dx, float dy, float scrollOffset, bool isAtBorder, const TouchInfo& touchPoint, bool fromOverlay)
+{
+    CHECK_NULL_VOID(delegate_);
+    auto parent = SearchParent(expectedScrollAxis_);
+    CHECK_NULL_VOID(parent);
+    float offset = 0;
+    Axis scrollAxis = parent->GetAxis();
+    offset = (scrollAxis == Axis::HORIZONTAL) ?
+            (dx > 0 ? 0.1f : (dx < 0 ? -0.1f : 0)) : (dy > 0 ? 0.1f : (dy < 0 ? -0.1f : 0));
+    isParentReachEdge_ = parent->HandleScroll(offset, SCROLL_FROM_UPDATE, NestedState::CHILD_SCROLL).reachEdge;
+    if (isParentReachEdge_) {
         delegate_->HandleTouchMove(touchPoint.id, touchPoint.x, touchPoint.y, fromOverlay);
+        if (isAtBorder) {
+            auto result = parent->HandleScroll(scrollOffset, SCROLL_FROM_UPDATE, NestedState::CHILD_OVER_SCROLL);
+            isParentReachEdge_ = result.reachEdge;
+        }
+    } else {
+        auto result = parent->HandleScroll(scrollOffset, SCROLL_FROM_UPDATE, NestedState::CHILD_OVER_SCROLL);
+        isParentReachEdge_ = result.reachEdge;
+    }
+}
+
+void WebPattern::HandleSelfFirstScroll(
+    float scrollOffset, bool isAtBorder, const TouchInfo& touchPoint, bool fromOverlay, float dy)
+{
+    CHECK_NULL_VOID(delegate_);
+    delegate_->HandleTouchMove(touchPoint.id, touchPoint.x, touchPoint.y, fromOverlay);
+    if (isAtBorder) {
+        auto parent = SearchParent(expectedScrollAxis_);
+        if (parent) {
+            auto result = parent->HandleScroll(scrollOffset, SCROLL_FROM_UPDATE, NestedState::CHILD_OVER_SCROLL);
+            isParentReachEdge_ = result.reachEdge;
+        }
     }
 }
 
@@ -1214,14 +1498,423 @@ void WebPattern::SetNestedScroll(const NestedScrollOptions& nestedOpt)
     // cross platform is not support now;
 }
 
-void WebPattern::SetNestedScrollExt(const NestedScrollOptionsExt& nestedOpt)
+void WebPattern::SetNestedScrollExt(const NestedScrollOptionsExt& nestedScroll)
 {
-    // cross platform is not support now;
+    SetScrollLocked(false);
+    NestedScrollOptions nestedOpt = {
+        .forward = NestedScrollMode::SELF_FIRST,
+        .backward = NestedScrollMode::SELF_FIRST,
+    };
+    if (nestedScroll.scrollUp == nestedScroll.scrollLeft) {
+        nestedOpt.backward = nestedScroll.scrollUp;
+    }
+    if (nestedScroll.scrollDown == nestedScroll.scrollRight) {
+        nestedOpt.forward = nestedScroll.scrollDown;
+    }
+    auto instance = ViewStackProcessor::GetInstance();
+    CHECK_NULL_VOID(instance);
+    auto pattern = instance->GetMainFrameNodePattern<NestableScrollContainer>();
+    if (pattern) {
+        pattern->SetNestedScroll(nestedOpt);
+    }
+
+    SetNestedScrollOptionsExt(nestedScroll);
+    nestedScroll_ = nestedScroll;
 }
 
-void WebPattern::OnScrollStart(const float x, const float y)
+void WebPattern::OnScrollWillStart(float x, float y)
 {
-    // cross platform is not support now;
+    prevX_ = x;
+    prevY_ = y;
+    averageDistanceX_ = 0;
+    averageDistanceY_ = 0;
+}
+
+void WebPattern::OnScrollStart(float x, float y)
+{
+    GetParentAxis();
+    expectedScrollAxis_ = (abs(x) > abs(y) ? Axis::HORIZONTAL : Axis::VERTICAL);
+    OnScrollStartRecursive(0.0);
+}
+
+void WebPattern::OnScroll(float currentX, float currentY, float cWidth, float cHeight, float fWidth, float fHeight)
+{
+    float dx = ((LessOrEqual(currentX, 0.0) && currentX > prevX_) ||
+    (GreatOrEqual(currentX + fWidth, cWidth) && currentX < prevX_)) ? currentX - prevX_ : prevX_ - currentX;
+    float dy = ((LessOrEqual(currentY, 0.0) && currentY > prevY_) ||
+    (GreatOrEqual(currentY + fHeight, cHeight) && currentY < prevY_)) ? currentY - prevY_ : prevY_ - currentY;
+    bool minX = LessOrEqual(currentX, 0.0) && expectedScrollAxis_ == Axis::HORIZONTAL;
+    bool maxX = GreatOrEqual(currentX + fWidth, cWidth) && expectedScrollAxis_ == Axis::HORIZONTAL;
+    bool minY = LessOrEqual(currentY, 0.0) && expectedScrollAxis_ == Axis::VERTICAL;
+    bool maxY = GreatOrEqual(currentY + fHeight, cHeight) && expectedScrollAxis_ == Axis::VERTICAL;
+    directionCtx_.Set(minX, maxX, minY, maxY, currentX, currentY, prevX_, prevY_, cWidth, cHeight, fWidth, fHeight);
+    direction_ = GetScrollDirection(directionCtx_);
+    SetDirectionMode();
+    prevX_ = currentX;
+    prevY_ = currentY;
+#if defined(IOS_PLATFORM)
+    bool isAtBorder = IsScrollReachEdge(direction_, minX, maxX, minY, maxY);
+    if (mode_ == NestedScrollMode::PARENT_FIRST) {
+        if (isAtBorder) {
+            SetScrollLocked(true);
+        } else {
+            float offset = (direction_ == ScrollDirection::LEFT || direction_ == ScrollDirection::UP) ? 0.1 : -0.1;
+            FilterScrollEventHandleOffset(offset);
+            SetScrollLocked(!isParentReachEdge_);
+        }
+    } else if (mode_ == NestedScrollMode::SELF_ONLY) {
+        SetScrollLocked(false);
+    } else if (mode_ == NestedScrollMode::SELF_FIRST ||mode_ == NestedScrollMode::PARALLEL) {
+        SetScrollLocked(false);
+        float xVelocity = 0.0f;
+        float yVelocity = 0.0f;
+        bool isAvailable = true;
+        if (GetScrollBoundary(currentX, currentY, fWidth, fHeight, cWidth, cHeight)) {
+            if (expectedScrollAxis_ == Axis::VERTICAL) {
+                averageDistanceY_ += dy;
+            } else if (expectedScrollAxis_ == Axis::HORIZONTAL) {
+                averageDistanceX_ += dx;
+            }
+            OnNestedScroll(averageDistanceX_, averageDistanceY_, xVelocity, yVelocity, isAvailable);
+            return;
+        }
+        if (mode_ == NestedScrollMode::PARALLEL) {
+            OnNestedScroll(dx, dy, xVelocity, yVelocity, isAvailable);
+        }
+    }
+#endif
+}
+
+bool WebPattern::GetScrollBoundary(
+    float currentX, float currentY, float fWidth, float fHeight, float cWidth, float cHeight)
+{
+    return currentX < 0 && expectedScrollAxis_ == Axis::HORIZONTAL ||
+            currentX + fWidth > cWidth && expectedScrollAxis_ == Axis::HORIZONTAL ||
+            currentY < 0 && expectedScrollAxis_ == Axis::VERTICAL ||
+            currentY + fHeight > cHeight && expectedScrollAxis_ == Axis::VERTICAL;
+}
+
+bool WebPattern::OnNestedScroll(float x, float y, float xVelocity, float yVelocity, bool isAvailable)
+{
+    isAvailable = true;
+    bool hasHorizontalParent = parentsMap_.find(Axis::HORIZONTAL) != parentsMap_.end();
+    bool hasVerticalParent = parentsMap_.find(Axis::VERTICAL) != parentsMap_.end();
+    if (!hasHorizontalParent && !hasVerticalParent) {
+        return false;
+    }
+    float offset = y;
+    float velocity = yVelocity;
+    if (expectedScrollAxis_ == Axis::HORIZONTAL) {
+        offset = x;
+        velocity = xVelocity;
+        if (isScrollStarted_) {
+            y = 0.0f;
+            yVelocity = 0.0f;
+        }
+    } else {
+        if (isScrollStarted_) {
+            x = 0.0f;
+            xVelocity = 0.0f;
+        }
+    }
+    bool isConsumed = !NearEqual(offset, 0.0f) ? FilterScrollEventHandleOffset(offset) :
+        FilterScrollEventHandleVelocity(velocity);
+    return isConsumed;
+}
+
+bool WebPattern::IsRtl()
+{
+    auto host = GetHost();
+    CHECK_NULL_RETURN(host, false);
+    auto layoutProperty = host->GetLayoutProperty();
+    CHECK_NULL_RETURN(layoutProperty, false);
+    auto dir = layoutProperty->GetLayoutDirection();
+    if (TextDirection::RTL == dir) {
+        return true;
+    } else if (TextDirection::LTR == dir) {
+        return false;
+    } else {
+        return AceApplicationInfo::GetInstance().IsRightToLeft();
+    }
+}
+
+bool WebPattern::FilterScrollEventHandleOffset(float offset)
+{
+    float directOffset = offset;
+    if (IsRtl() && expectedScrollAxis_ == Axis::HORIZONTAL) {
+        directOffset = -offset;
+    }
+    isSelfReachEdge_ = false;
+    auto it = parentsMap_.find(expectedScrollAxis_);
+    CHECK_EQUAL_RETURN(it, parentsMap_.end(), false);
+    auto parent = it->second;
+    auto parentPtr = parent.Upgrade();
+    if (parentPtr && !NearZero(directOffset)) {
+        auto res =
+            HandleScroll(parentPtr, directOffset, SCROLL_FROM_UPDATE, NestedState::CHILD_CHECK_OVER_SCROLL);
+        if (NearZero(res.remain)) {
+            isParentReverseReachEdge_ = true;
+            return true;
+        }
+        isParentReverseReachEdge_ = false;
+        directOffset = res.remain;
+    }
+    if (CheckParentScroll(offset, NestedScrollMode::PARENT_FIRST)) {
+        auto result = HandleScroll(parentPtr, directOffset, SCROLL_FROM_UPDATE, NestedState::CHILD_SCROLL);
+        CHECK_EQUAL_RETURN(isParentReachEdge_ && result.reachEdge, true, false);
+        isParentReachEdge_ = result.reachEdge;
+        return true;
+    } else if (CheckParentScroll(offset, NestedScrollMode::PARALLEL)) {
+        HandleScroll(parentPtr, directOffset, SCROLL_FROM_UPDATE, NestedState::CHILD_SCROLL);
+    } else if (CheckParentScroll(offset, NestedScrollMode::SELF_FIRST)) {
+        if (AceType::DynamicCast<ScrollPattern>(parentPtr)) {
+            HandleScroll(parentPtr, offset, SCROLL_FROM_UPDATE, NestedState::CHILD_SCROLL);
+        } else {
+            HandleScroll(parentPtr, offset, SCROLL_FROM_UPDATE, NestedState::CHILD_OVER_SCROLL);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool WebPattern::CheckParentScroll(float directValue, const NestedScrollMode &scrollMode)
+{
+    auto nestedScroll = GetNestedScrollExt();
+    return (directValue > 0 && nestedScroll.scrollUp == scrollMode &&
+            expectedScrollAxis_ != Axis::HORIZONTAL) ||
+        (directValue > 0 && nestedScroll.scrollLeft == scrollMode &&
+            expectedScrollAxis_ == Axis::HORIZONTAL) ||
+        (directValue < 0 && nestedScroll.scrollDown == scrollMode &&
+            expectedScrollAxis_ != Axis::HORIZONTAL) ||
+        (directValue < 0 && nestedScroll.scrollRight == scrollMode &&
+            expectedScrollAxis_ == Axis::HORIZONTAL);
+}
+
+bool WebPattern::FilterScrollEventHandleVelocity(float velocity)
+{
+    float directVelocity = velocity;
+    if (IsRtl() && expectedScrollAxis_ == Axis::HORIZONTAL) {
+        directVelocity = -velocity;
+    }
+    auto it = parentsMap_.find(expectedScrollAxis_);
+    CHECK_EQUAL_RETURN(it, parentsMap_.end(), false);
+    auto parent = it->second;
+    auto parentPtr = parent.Upgrade();
+    if (parentPtr && parentPtr->NestedScrollOutOfBoundary()) {
+        if (isSelfReachEdge_ || isParentReverseReachEdge_) {
+            return HandleScrollVelocity(parentPtr, directVelocity);
+        }
+        dragEndRecursiveParent_ = parentPtr;
+        return false;
+    }
+    if (CheckParentScroll(velocity, NestedScrollMode::PARENT_FIRST)) {
+        if (isParentReachEdge_) {
+            return false;
+        }
+        return HandleScrollVelocity(parentPtr, directVelocity);
+    } else if (CheckParentScroll(velocity, NestedScrollMode::PARALLEL)) {
+        HandleScrollVelocity(parentPtr, directVelocity);
+    }
+    return false;
+}
+
+void WebPattern::GetParentAxis()
+{
+    auto parent = GetNestedScrollParent();
+    if (parent) {
+        axis_ = parent->GetAxis();
+        parentsMap_ = { { axis_, parent } };
+        auto oppositeParent = SearchParent(axis_ == Axis::HORIZONTAL ? Axis::VERTICAL : Axis::HORIZONTAL);
+        if (oppositeParent) {
+            parentsMap_.emplace(oppositeParent->GetAxis(), oppositeParent);
+        }
+    } else {
+        auto verticalParent = SearchParent(Axis::VERTICAL);
+        auto horizontalParent = SearchParent(Axis::HORIZONTAL);
+        if (verticalParent) {
+            parentsMap_.emplace(verticalParent->GetAxis(), verticalParent);
+        }
+        if (horizontalParent) {
+            parentsMap_.emplace(horizontalParent->GetAxis(), horizontalParent);
+        }
+    }
+}
+
+RefPtr<NestableScrollContainer> WebPattern::SearchParent()
+{
+    return SearchParent(Axis::NONE);
+}
+
+RefPtr<NestableScrollContainer> WebPattern::SearchParent(Axis scrollAxis)
+{
+    auto host = GetHost();
+    CHECK_NULL_RETURN(host, nullptr);
+    for (auto parent = host->GetParent(); parent != nullptr; parent = parent->GetParent()) {
+        RefPtr<FrameNode> frameNode = AceType::DynamicCast<FrameNode>(parent);
+        if (!frameNode) {
+            continue;
+        }
+        auto pattern = frameNode->GetPattern<NestableScrollContainer>();
+        if (!pattern ||
+            (!AceApplicationInfo::GetInstance().GreatOrEqualTargetAPIVersion(PlatformVersion::VERSION_TWELVE) &&
+                InstanceOf<RefreshPattern>(pattern))) {
+            continue;
+        }
+        if (scrollAxis == Axis::NONE || scrollAxis == pattern->GetAxis()) {
+            return pattern;
+        }
+    }
+    return nullptr;
+}
+
+ScrollResult WebPattern::HandleScroll(float offset, int32_t source, NestedState state, float velocity)
+{
+    return HandleScroll(GetNestedScrollParent(), offset, source, state);
+}
+
+ScrollResult WebPattern::HandleScroll(RefPtr<NestableScrollContainer> parent, float offset,
+    int32_t source, NestedState state)
+{
+    TAG_LOGD(AceLogTag::ACE_WEB,
+        "WebPattern::HandleScroll scroll direction: %{public}d, find parent component: %{public}d",
+        expectedScrollAxis_,
+        (parent != nullptr));
+    if (parent) {
+        return parent->HandleScroll(offset, source, state);
+    }
+    return { 0.0f, false };
+}
+
+bool WebPattern::HandleScrollVelocity(float velocity, const RefPtr<NestableScrollContainer>& child)
+{
+    return HandleScrollVelocity(GetNestedScrollParent(), velocity);
+}
+
+bool WebPattern::HandleScrollVelocity(const RefPtr<NestableScrollContainer>& parent, float velocity)
+{
+    CHECK_NULL_RETURN(parent, false);
+    if (parent->HandleScrollVelocity(velocity)) {
+        OnParentScrollDragEndRecursive(parent);
+        return true;
+    }
+    return false;
+}
+
+void WebPattern::OnParentScrollDragEndRecursive(RefPtr<NestableScrollContainer> parent)
+{
+    if (isDragEnd_) {
+        return;
+    }
+    if (parent) {
+        parent->OnScrollDragEndRecursive();
+    }
+    isDragEnd_ = true;
+}
+
+void WebPattern::OnScrollStartRecursive(WeakPtr<NestableScrollContainer> child, float position, float velocity)
+{
+    OnScrollStartRecursive(position);
+}
+
+void WebPattern::OnScrollStartRecursive(float position)
+{
+    SetIsNestedInterrupt(false);
+    isFirstFlingScrollVelocity_ = true;
+    isScrollStarted_ = true;
+    isDragEnd_ = false;
+    auto it = parentsMap_.find(expectedScrollAxis_);
+    CHECK_EQUAL_VOID(it, parentsMap_.end());
+    auto parent = it->second.Upgrade();
+    if (parent) {
+        parent->OnScrollStartRecursive(WeakClaim(this), position);
+    }
+}
+
+void WebPattern::OnScrollEndRecursive(const std::optional<float>& velocity)
+{
+    CHECK_EQUAL_VOID(isScrollStarted_, false);
+    auto it = parentsMap_.find(expectedScrollAxis_);
+    if (it != parentsMap_.end()) {
+        auto parent = it->second.Upgrade();
+        if (parent) {
+            OnParentScrollDragEndRecursive(parent);
+            parent->OnScrollEndRecursive(std::nullopt);
+        }
+    }
+    isScrollStarted_ = false;
+    SetIsNestedInterrupt(false);
+    expectedScrollAxis_ = Axis::FREE;
+}
+
+void WebPattern::SetNestedScrollOptionsExt(NestedScrollOptionsExt nestedOpt)
+{
+    auto webDelegateCross = AceType::DynamicCast<WebDelegateCross>(delegate_);
+    if (webDelegateCross) {
+        webDelegateCross->SetNestedScrollOptionsExt(nestedOpt);
+    }
+}
+
+void WebPattern::SetScrollLocked(bool value)
+{
+#if defined(IOS_PLATFORM)
+    SetIsPointInsideWebForceResult(true, value);
+    auto webDelegateCross = AceType::DynamicCast<WebDelegateCross>(delegate_);
+    if (webDelegateCross) {
+        webDelegateCross->SetScrollLocked(value);
+    }
+#endif
+}
+
+ScrollDirection WebPattern::GetScrollDirection(const ScrollDirectionContext& ctx)
+{
+    if (expectedScrollAxis_ == Axis::VERTICAL) {
+        if (ctx.isMinY || ctx.currentY < ctx.prevY) {
+            return ScrollDirection::UP;
+        }
+        if (ctx.isMaxY || ctx.currentY > ctx.prevY) {
+            return ScrollDirection::DOWN;
+        }
+    } else if (expectedScrollAxis_ == Axis::HORIZONTAL) {
+        if (ctx.isMinX || ctx.currentX < ctx.prevX) {
+            return ScrollDirection::LEFT;
+        }
+        if (ctx.isMaxX || ctx.currentX > ctx.prevX) {
+            return ScrollDirection::RIGHT;
+        }
+    }
+    return ScrollDirection::UNKNOWN;
+}
+
+bool WebPattern::IsScrollReachEdge(
+    const ScrollDirection& direction, bool isMinX, bool isMaxX, bool isMinY, bool isMaxY)
+{
+    switch (direction) {
+        case ScrollDirection::LEFT:
+            return isMinX;
+        case ScrollDirection::RIGHT:
+            return isMaxX;
+        case ScrollDirection::UP:
+            return isMinY;
+        case ScrollDirection::DOWN:
+            return isMaxY;
+        default:
+            return false;
+    }
+}
+
+void WebPattern::SetDirectionMode()
+{
+    mode_ = NestedScrollMode::SELF_ONLY;
+    const auto& nestedMode = GetNestedScrollExt();
+    if (direction_ == ScrollDirection::UP) {
+        mode_ = nestedMode.scrollUp;
+    } else if (direction_ == ScrollDirection::DOWN) {
+        mode_ = nestedMode.scrollDown;
+    } else if (direction_ == ScrollDirection::LEFT) {
+        mode_ = nestedMode.scrollLeft;
+    } else if (direction_ == ScrollDirection::RIGHT) {
+        mode_ = nestedMode.scrollRight;
+    }
 }
 
 void WebPattern::JavaScriptOnDocumentStart(const ScriptItems& scriptItems)

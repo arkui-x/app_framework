@@ -47,6 +47,10 @@ public:
     explicit WebOffsetImpl(void* object) : object_(object) {}
     double GetX() const;
     double GetY() const;
+    double GetContentWidth() const;
+    double GetContentHeight() const;
+    double GetFrameWidth() const;
+    double GetFrameHeight() const;
 private:
     void* object_ = nullptr;
 };
@@ -591,6 +595,8 @@ public:
     void SetBoundsOrResize(const Size& drawSize, const Offset& offset) override;
     void UpdateOptimizeParserBudgetEnabled(const bool enable);
     void MaximizeResize() override;
+    void SetScrollLocked(const bool value);
+    void SetNestedScrollOptionsExt(NestedScrollOptionsExt nestedOpt);
 private:
     void ReleasePlatformResource();
     void CreatePluginResource(const Size& size, const Offset& position, const WeakPtr<NG::PipelineContext>& context);
@@ -599,6 +605,9 @@ private:
     void RegisterWebObjectEvent();
     void OnErrorReceive(void* object);
     void OnScroll(void* object);
+    void OnScrollWillStart(void* object);
+    void OnScrollStart(void* object);
+    void OnScrollEnd(void* object);
     void OnScaleChange(void* object);
     void OnHttpErrorReceive(void* object);
     bool OnConsoleMessage(void* object);
@@ -676,6 +685,7 @@ private:
     Method updateBackgroundColor_;
     Method updateMediaPlayGestureAccess_;
     Method updateTextZoomRatioMethod_;
+    Method setNestedScrollExtMethod_;
 
     EventCallbackV2 onPageFinishedV2_;
     EventCallbackV2 onPageStartedV2_;

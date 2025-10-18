@@ -18,6 +18,10 @@
 #include "bridge/js_frontend/frontend_delegate_impl.h"
 #include <atomic>
 
+#if defined(IOS_PLATFORM)
+#include "adapter/ios/capability/web/AceWebPatternOCBridge.h"
+#endif
+
 namespace OHOS::Ace {
 namespace {
 constexpr char WEB_METHOD_RELOAD[] = "reload";
@@ -54,6 +58,7 @@ constexpr char WEB_METHOD_TOUCH_CANCEL[] = "touchCancel";
 constexpr char WEB_METHOD_UPDATE_LAYOUT[] = "updateLayout";
 constexpr char WEB_METHOD_ZOOM[] = "zoom";
 constexpr char WEB_METHOD_UPDATE_CONTENT[] = "updateWebContent";
+constexpr char WEB_METHOD_SET_NESTED_SCROLL_EXT[] = "setNestedScrollExt";
 
 // The parameters in Java and C++ must be same.
 constexpr char NTC_PARAM_ACCESS_STEP[] = "accessStep";
@@ -70,13 +75,19 @@ constexpr char NTC_PARAM_LOADDATA_MIMETYPE[] = "load_data_mimetype";
 constexpr char NTC_PARAM_LOADDATA_ENCODING[] = "load_data_encoding";
 constexpr char NTC_PARAM_LOADDATA_HISTORY[] = "load_data_history_url";
 constexpr char NTC_PARAM_ZOOM_FACTOR[] = "zoom";
-
+constexpr char NTC_PARAM_SET_NESTED_SCROLL_EXT_UP[] = "scrollUp";
+constexpr char NTC_PARAM_SET_NESTED_SCROLL_EXT_DOWN[] = "scrollDown";
+constexpr char NTC_PARAM_SET_NESTED_SCROLL_EXT_LEFT[] = "scrollLeft";
+constexpr char NTC_PARAM_SET_NESTED_SCROLL_EXT_RIGHT[] = "scrollRight";
 constexpr char WEB_EVENT_PAGESTART[] = "onPageStarted";
 constexpr char WEB_EVENT_PAGEFINISH[] = "onPageFinished";
 constexpr char WEB_EVENT_DOWNLOADSTART[] = "onDownloadStart";
 constexpr char WEB_EVENT_LOADINTERCEPT[] = "onLoadIntercept";
 constexpr char WEB_EVENT_ONINTERCEPTREQUEST[] = "onInterceptRequest";
 constexpr char WEB_EVENT_RUNJSCODE_RECVVALUE[] = "onRunJSRecvValue";
+constexpr char WEB_EVENT_ONWILLSCROLLSTART[] = "onWillScrollStart";
+constexpr char WEB_EVENT_ONSCROLLSTART[] = "onScrollStart";
+constexpr char WEB_EVENT_ONSCROLLEND[] = "onScrollEnd";
 constexpr char WEB_EVENT_SCROLL[] = "onScroll";
 constexpr char WEB_EVENT_SCALECHANGE[] = "onScaleChange";
 constexpr char WEB_EVENT_JS_INVOKE_METHOD[] = "onJSInvokeMethod";
@@ -350,6 +361,46 @@ double WebOffsetImpl::GetY() const
         return 0.0;
     }
     return obj->GetY(object_);
+}
+
+double WebOffsetImpl::GetContentWidth() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetScrollObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager get WebOffsetImpl ContentWidth failed");
+        return 0.0;
+    }
+    return obj->GetContentWidth(object_);
+}
+
+double WebOffsetImpl::GetContentHeight() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetScrollObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager get WebOffsetImpl ContentHeight failed");
+        return 0.0;
+    }
+    return obj->GetContentHeight(object_);
+}
+
+double WebOffsetImpl::GetFrameWidth() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetScrollObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager get WebOffsetImpl FrameWidth failed");
+        return 0.0;
+    }
+    return obj->GetFrameWidth(object_);
+}
+
+double WebOffsetImpl::GetFrameHeight() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetScrollObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager get WebOffsetImpl FrameHeight failed");
+        return 0.0;
+    }
+    return obj->GetFrameHeight(object_);
 }
 
 std::string WebConsoleMessage::GetMessage() const
@@ -1145,6 +1196,27 @@ void WebDelegateCross::RegisterWebObjectEvent()
             }
         });
     WebObjectEventManager::GetInstance().RegisterObjectEvent(
+        MakeEventHash(WEB_EVENT_ONWILLSCROLLSTART), [weak = WeakClaim(this)](const std::string& param, void* object) {
+            auto delegate = weak.Upgrade();
+            if (delegate) {
+                delegate->OnScrollWillStart(object);
+            }
+        });
+    WebObjectEventManager::GetInstance().RegisterObjectEvent(
+        MakeEventHash(WEB_EVENT_ONSCROLLSTART), [weak = WeakClaim(this)](const std::string& param, void* object) {
+            auto delegate = weak.Upgrade();
+            if (delegate) {
+                delegate->OnScrollStart(object);
+            }
+        });
+    WebObjectEventManager::GetInstance().RegisterObjectEvent(
+        MakeEventHash(WEB_EVENT_ONSCROLLEND), [weak = WeakClaim(this)](const std::string& param, void* object) {
+            auto delegate = weak.Upgrade();
+            if (delegate) {
+                delegate->OnScrollEnd(object);
+            }
+        });
+    WebObjectEventManager::GetInstance().RegisterObjectEvent(
         MakeEventHash(WEB_EVENT_SCALECHANGE), [weak = WeakClaim(this)](const std::string& param, void* object) {
             auto delegate = weak.Upgrade();
             if (delegate) {
@@ -1543,29 +1615,93 @@ void WebDelegateCross::OnErrorReceive(void* object)
 
 void WebDelegateCross::OnScroll(void* object)
 {
-    ContainerScope scope(instanceId_);
     CHECK_NULL_VOID(object);
+    ContainerScope scope(instanceId_);
     auto context = context_.Upgrade();
     CHECK_NULL_VOID(context);
     auto webScrollOffset = AceType::MakeRefPtr<WebOffsetImpl>(object);
     CHECK_NULL_VOID(webScrollOffset);
     auto offsetX = webScrollOffset->GetX();
     auto offsetY = webScrollOffset->GetY();
+    auto contentWidth = webScrollOffset->GetContentWidth();
+    auto contentHeight = webScrollOffset->GetContentHeight();
+    auto frameWidth = webScrollOffset->GetFrameWidth();
+    auto frameHeight = webScrollOffset->GetFrameHeight();
+    context->GetTaskExecutor()->PostTask(
+        [weak = WeakClaim(this), offsetX, offsetY, contentWidth, contentHeight, frameWidth, frameHeight]() {
+            auto delegate = weak.Upgrade();
+            CHECK_NULL_VOID(delegate);
+            auto webPattern = delegate->webPattern_.Upgrade();
+            CHECK_NULL_VOID(webPattern);
+            webPattern->OnScroll(offsetX, offsetY, contentWidth, contentHeight, frameWidth, frameHeight);
+            auto webEventHub = webPattern->GetWebEventHub();
+            CHECK_NULL_VOID(webEventHub);
+            auto propOnScroll = webEventHub->GetOnScrollEvent();
+            CHECK_NULL_VOID(propOnScroll);
+            auto eventParam = std::make_shared<WebOnScrollEvent>(offsetX, offsetY);
+            propOnScroll(eventParam);
+        },
+        TaskExecutor::TaskType::JS, "ArkUIWebScrollEvent");
+}
+
+void WebDelegateCross::OnScrollWillStart(void* object)
+{
+    CHECK_NULL_VOID(object);
+    ContainerScope scope(instanceId_);
+    auto context = context_.Upgrade();
+    CHECK_NULL_VOID(context);
+    auto webScrollOffset = AceType::MakeRefPtr<WebOffsetImpl>(object);
+    CHECK_NULL_VOID(webScrollOffset);
+    auto offsetX = webScrollOffset->GetX();
+    auto offsetY = webScrollOffset->GetY();
+
     context->GetTaskExecutor()->PostTask(
         [weak = WeakClaim(this), offsetX, offsetY]() {
             auto delegate = weak.Upgrade();
             CHECK_NULL_VOID(delegate);
-            if (Container::IsCurrentUseNewPipeline()) {
-                auto webPattern = delegate->webPattern_.Upgrade();
-                CHECK_NULL_VOID(webPattern);
-                auto webEventHub = webPattern->GetWebEventHub();
-                CHECK_NULL_VOID(webEventHub);
-                auto propOnScroll = webEventHub->GetOnScrollEvent();
-                CHECK_NULL_VOID(propOnScroll);
-                auto eventParam = std::make_shared<WebOnScrollEvent>(offsetX, offsetY);
-                propOnScroll(eventParam);
-                return;
-            }
+            auto webPattern = delegate->webPattern_.Upgrade();
+            CHECK_NULL_VOID(webPattern);
+            webPattern->OnScrollWillStart(offsetX, offsetY);
+        },
+        TaskExecutor::TaskType::JS, "ArkUIWebScrollEvent");
+}
+
+void WebDelegateCross::OnScrollStart(void* object)
+{
+    CHECK_NULL_VOID(object);
+    ContainerScope scope(instanceId_);
+    auto context = context_.Upgrade();
+    CHECK_NULL_VOID(context);
+    auto webScrollOffset = AceType::MakeRefPtr<WebOffsetImpl>(object);
+    CHECK_NULL_VOID(webScrollOffset);
+    auto offsetX = webScrollOffset->GetX();
+    auto offsetY = webScrollOffset->GetY();
+
+    context->GetTaskExecutor()->PostTask(
+        [weak = WeakClaim(this), offsetX, offsetY]() {
+            auto delegate = weak.Upgrade();
+            CHECK_NULL_VOID(delegate);
+            auto webPattern = delegate->webPattern_.Upgrade();
+            CHECK_NULL_VOID(webPattern);
+            webPattern->OnScrollStart(offsetX, offsetY);
+        },
+        TaskExecutor::TaskType::JS, "ArkUIWebScrollEvent");
+}
+
+void WebDelegateCross::OnScrollEnd(void* object)
+{
+    CHECK_NULL_VOID(object);
+    ContainerScope scope(instanceId_);
+    auto context = context_.Upgrade();
+    CHECK_NULL_VOID(context);
+
+    context->GetTaskExecutor()->PostTask(
+        [weak = WeakClaim(this)]() {
+            auto delegate = weak.Upgrade();
+            CHECK_NULL_VOID(delegate);
+            auto webPattern = delegate->webPattern_.Upgrade();
+            CHECK_NULL_VOID(webPattern);
+            webPattern->OnScrollEndRecursive(std::nullopt);
         },
         TaskExecutor::TaskType::JS, "ArkUIWebScrollEvent");
 }
@@ -1819,7 +1955,7 @@ RefPtr<WebResponse> WebDelegateCross::OnInterceptRequest(void* object)
             }
         },
         "ArkUIWebInterceptRequest");
-#ifdef ANDROID_PLATFORM
+#if defined ANDROID_PLATFORM
     if (!result) {
         return nullptr;
     }
@@ -2123,7 +2259,7 @@ bool WebDelegateCross::OnSslErrorEventReceive(void* object)
     auto sslErrorResult = AceType::MakeRefPtr<SslErrorResultImpl>(object);
     int32_t error = sslErrorEvent->GetError();
     std::vector<std::string> certChainData = sslErrorEvent->GetCertChainData();
-#ifdef ANDROID_PLATFORM
+#if defined ANDROID_PLATFORM
     EncodeCertificateChainToDer(certChainData);
 #endif
     taskExecutor->PostSyncTask(
@@ -2161,7 +2297,7 @@ bool WebDelegateCross::OnSslErrorEvent(void* object)
     bool isFatalError = allSslErrorEvent->IsFatalError();
     bool isMainFrame = allSslErrorEvent->IsMainFrame();
     std::vector<std::string> certificateChain = allSslErrorEvent->GetCertificateChain();
-#ifdef ANDROID_PLATFORM
+#if defined ANDROID_PLATFORM
     EncodeCertificateChainToDer(certificateChain);
 #endif
     taskExecutor->PostSyncTask([weak = WeakClaim(this), &allSslErrorResult, error, url, originalUrl, referrer,
@@ -2595,5 +2731,35 @@ void WebDelegateCross::RunJsProxyCallback()
     auto pattern = webPattern_.Upgrade();
     CHECK_NULL_VOID(pattern);
     pattern->CallJsProxyCallback();
+}
+
+void WebDelegateCross::SetNestedScrollOptionsExt(NestedScrollOptionsExt nestedOpt)
+{
+#if defined(IOS_PLATFORM)
+    auto webId = GetWebId();
+    SetNestedScrollOptionsExtOC(webId, static_cast<void*>(&nestedOpt));
+#else
+    hash_ = MakeResourceHash();
+    setNestedScrollExtMethod_ = MakeMethodHash(WEB_METHOD_SET_NESTED_SCROLL_EXT);
+    std::stringstream paramStream;
+    paramStream << NTC_PARAM_SET_NESTED_SCROLL_EXT_UP << WEB_PARAM_EQUALS
+                << (int)nestedOpt.scrollUp << WEB_PARAM_AND
+                << NTC_PARAM_SET_NESTED_SCROLL_EXT_DOWN << WEB_PARAM_EQUALS
+                << (int)nestedOpt.scrollDown << WEB_PARAM_AND
+                << NTC_PARAM_SET_NESTED_SCROLL_EXT_LEFT << WEB_PARAM_EQUALS
+                << (int)nestedOpt.scrollLeft << WEB_PARAM_AND
+                << NTC_PARAM_SET_NESTED_SCROLL_EXT_RIGHT << WEB_PARAM_EQUALS
+                << (int)nestedOpt.scrollRight;
+    std::string param = paramStream.str();
+    CallResRegisterMethod(setNestedScrollExtMethod_, param, nullptr);
+#endif
+}
+
+void WebDelegateCross::SetScrollLocked(const bool value)
+{
+#if defined(IOS_PLATFORM)
+    auto webId = GetWebId();
+    SetScrollLockedRegisterOC(webId, value);
+#endif
 }
 }
