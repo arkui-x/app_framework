@@ -33,7 +33,6 @@
 #include "ecmascript/napi/include/jsnapi.h"
 #include "event_handler.h"
 #include "hilog.h"
-#include "js_aot_reader.h"
 #include "js_console_log.h"
 #include "js_module_reader.h"
 #include "js_runtime_utils.h"
@@ -255,7 +254,6 @@ private:
 #endif
         bundleName_ = options.bundleName;
         isBundle_ = options.isBundle;
-        appLibPath_ = options.appLibPath;
         panda::JSNApi::SetBundle(vm_, options.isBundle);
         panda::JSNApi::SetBundleName(vm_, options.bundleName);
         panda::JSNApi::SetHostResolveBufferTracker(vm_, JsModuleReader(options.bundleName));
@@ -556,12 +554,6 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
         HILOG_ERROR("Failed to create object instance");
         return std::unique_ptr<NativeReference>();
     }
-
-#if defined(ANDROID_PLATFORM) && defined(CROSS_PLATFORM)
-    panda::JSNApi::LoadAotFile(vm_, bundleName_, moduleName_, JsAotReader());
-#else
-    panda::JSNApi::LoadAotFile(vm_, moduleName_);
-#endif
 
     napi_ref resultRef = nullptr;
     napi_create_reference(env_, instanceValue, 1, &resultRef);

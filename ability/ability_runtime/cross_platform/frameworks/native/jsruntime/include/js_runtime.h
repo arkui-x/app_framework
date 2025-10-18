@@ -97,7 +97,6 @@ protected:
     bool isBundle_ = true;
     napi_env env_ = nullptr;
     std::string codePath_;
-    std::string appLibPath_;
     std::string moduleName_;
     std::unique_ptr<NativeReference> methodRequireNapiRef_;
     std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
