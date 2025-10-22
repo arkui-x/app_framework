@@ -44,7 +44,7 @@
 #include "core/components_ng/pattern/scrollable/nestable_scroll_container.h"
 #include "core/components_ng/pattern/scroll/scroll_pattern.h"
 #include "core/components_ng/pattern/scrollable/scrollable_properties.h"
-
+#include "core/components_ng/pattern/swiper/swiper_pattern.h"
 #include "core/components_ng/pattern/web/web_delegate_interface.h"
 
 namespace OHOS::Ace::NG {
@@ -806,6 +806,7 @@ private:
     bool isSelfReachEdge_ = false;
     bool isParentReverseReachEdge_ = false;
     bool isTouchpadSliding_ = false;
+    bool isStartTouch_ = true;
     WeakPtr<NestableScrollContainer> dragEndRecursiveParent_;
     Axis expectedScrollAxis_ = Axis::FREE;
     std::unordered_map<Axis, WeakPtr<NestableScrollContainer>> parentsMap_;
@@ -857,11 +858,11 @@ private:
     bool webPanEnable_ = true;
 
     ScrollDirection direction_;
-    NestedScrollMode mode_;
+    NestedScrollMode mode_ = NestedScrollMode::SELF_ONLY;
     ScrollDirectionContext directionCtx_;
     bool isFirstFlingScrollVelocity_ = false;
 
-    ScrollDirection GetScrollDirection(const ScrollDirectionContext& ctx);
+    ScrollDirection GetScrollDirection(float dx, float dy);
     bool IsScrollReachEdge(const ScrollDirection& direction, bool isMinX, bool isMaxX, bool isMinY, bool isMaxY);
 
     void CalcScrollParamsAndBorder(
@@ -872,6 +873,12 @@ private:
 
     void HandleSelfFirstScroll(
         float scrollOffset, bool isAtBorder, const TouchInfo& touchPoint, bool fromOverlay, float dy);
+
+    RefPtr<SheetPresentationPattern> SearchSheetParent(RefPtr<NestableScrollContainer> pattern,
+        Axis scrollAxis = Axis::NONE);
+    RefPtr<OHOS::Ace::NG::SwiperPattern> SearchSwiperParent(RefPtr<NestableScrollContainer> pattern,
+        Axis scrollAxis = Axis::NONE);
+    bool ParentHostTagIsRefresh(RefPtr<NestableScrollContainer> container);
 
     bool IsAtBorder();
     void SetNestedScrollOptionsExt(NestedScrollOptionsExt nestedOpt);
