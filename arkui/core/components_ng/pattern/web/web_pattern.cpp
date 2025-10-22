@@ -54,6 +54,8 @@ const std::string VISIBLE_ACTIVE_ENABLE = "persist.web.visible_active_enable";
 const std::string MEMORY_LEVEL_ENABEL = "persist.web.memory_level_enable";
 const std::vector<int32_t> DEFAULT_HEIGHT_GEAR {7998, 7999, 8001, 8002, 8003};
 const std::vector<int32_t> DEFAULT_ORIGN_GEAR {0, 2000, 4000, 6000, 8000};
+const float MIN_SCROLL_OFFSET = 0.1f;
+const std::string TAG_REFRESH = "Refresh";
 
 #if defined(IOS_PLATFORM)
 extern "C" void SetIsPointInsideWebForceResult(bool enable, bool result);
@@ -282,9 +284,6 @@ void WebPattern::SetOnActionUpdateId()
         }
         pattern->isFirstFlingScrollVelocity_ = true;
         pattern->GetParentAxis();
-        float dx = pattern->directionCtx_.currentX - pattern->directionCtx_.prevX;
-        float dy = pattern->directionCtx_.currentY - pattern->directionCtx_.prevY;
-        pattern->expectedScrollAxis_ = (abs(dx) > abs(dy) ? Axis::HORIZONTAL : Axis::VERTICAL);
     });
 }
 
@@ -336,16 +335,13 @@ bool WebPattern::IsAtBorder()
     float dy = directionCtx_.currentY - directionCtx_.prevY;
     float scrollDistance = 0.1f;
     float scrollOffset = 0;
-    auto parent = SearchParent();
+    auto parent = SearchParent(expectedScrollAxis_);
     if (parent) {
         Axis scrollAxis = parent->GetAxis();
-        mode_ = NestedScrollMode::SELF_ONLY;
         if (scrollAxis == Axis::HORIZONTAL) {
             scrollOffset = dx;
-            mode_ = dx > 0 ? GetNestedScrollExt().scrollLeft : GetNestedScrollExt().scrollRight;
         } else if (scrollAxis == Axis::VERTICAL) {
             scrollOffset = dy;
-            mode_ = dy > 0 ? GetNestedScrollExt().scrollUp : GetNestedScrollExt().scrollDown;
         } else {
             TAG_LOGW(AceLogTag::ACE_WEB, "Unknown scroll axis in IsAtBorder");
         }
@@ -1122,6 +1118,7 @@ void WebPattern::HandleTouchDown(const TouchEventInfo& info, bool fromOverlay)
         }
         delegate_->HandleTouchDown(touchPoint.id, touchPoint.x, touchPoint.y, fromOverlay);
     }
+    isStartTouch_ = false;
 }
 
 void WebPattern::HandleTouchUp(const TouchEventInfo& info, bool fromOverlay)
@@ -1148,7 +1145,7 @@ void WebPattern::CalcScrollParamsAndBorder(
 {
     dx = touchPoint.x - prevOffset_.x;
     dy = touchPoint.y - prevOffset_.y;
-    expectedScrollAxis_ = (abs(dx) > abs(dy)) ? Axis::HORIZONTAL : Axis::VERTICAL;
+
     if (expectedScrollAxis_ == Axis::VERTICAL) {
         direction_ = (touchPoint.y < prevOffset_.y) ? ScrollDirection::DOWN : ScrollDirection::UP;
     } else {
@@ -1165,13 +1162,16 @@ void WebPattern::CalcScrollParamsAndBorder(
         } else if (scrollAxis == Axis::VERTICAL) {
             scrollOffset = dy;
             mode_ = (dy > 0) ? GetNestedScrollExt().scrollUp : GetNestedScrollExt().scrollDown;
+        } else {
+            TAG_LOGW(AceLogTag::ACE_WEB, "Unknown scroll axis in CalcScrollParamsAndBorder");
         }
     }
-    directionCtx_.isMinX = (directionCtx_.currentX <= 0) && (expectedScrollAxis_ == Axis::HORIZONTAL);
-    directionCtx_.isMaxX = (directionCtx_.currentX + directionCtx_.frameWidth >= directionCtx_.currentWidth)
+
+    directionCtx_.isMinX = LessOrEqual(directionCtx_.currentX, 0.0) && (expectedScrollAxis_ == Axis::HORIZONTAL);
+    directionCtx_.isMaxX = GreatOrEqual(directionCtx_.currentX + directionCtx_.frameWidth, directionCtx_.currentWidth)
         && (expectedScrollAxis_ == Axis::HORIZONTAL);
-    directionCtx_.isMinY = (directionCtx_.currentY <= 0) && (expectedScrollAxis_ == Axis::VERTICAL);
-    directionCtx_.isMaxY = (directionCtx_.currentY + directionCtx_.frameHeight >= directionCtx_.currentHeight)
+    directionCtx_.isMinY = LessOrEqual(directionCtx_.currentY, 0.0) && (expectedScrollAxis_ == Axis::VERTICAL);
+    directionCtx_.isMaxY = GreatOrEqual(directionCtx_.currentY + directionCtx_.frameHeight, directionCtx_.currentHeight)
         && (expectedScrollAxis_ == Axis::VERTICAL);
     isAtBorder = IsScrollReachEdge(
         direction_, directionCtx_.isMinX, directionCtx_.isMaxX, directionCtx_.isMinY, directionCtx_.isMaxY);
@@ -1210,34 +1210,29 @@ void WebPattern::HandleTouchMove(const TouchEventInfo& info, bool fromOverlay)
 void WebPattern::HandleTouchMoveIOS(TouchInfo &touchPoint, bool fromOverlay)
 {
     delegate_->HandleTouchMove(touchPoint.id, touchPoint.x, touchPoint.y, fromOverlay);
-    auto parent = SearchParent();
+    float dx = touchPoint.x - prevOffset_.x;
+    float dy = touchPoint.y - prevOffset_.y;
+    if (!isStartTouch_) {
+        OnScrollStart(dx, dy);
+        isStartTouch_ = true;
+    }
+    direction_ = GetScrollDirection(dx, dy);
+    auto parent = SearchParent(expectedScrollAxis_);
     if (parent) {
-        float dx = touchPoint.x - prevOffset_.x;
-        float dy = touchPoint.y - prevOffset_.y;
-        float scrollDistance = 0.1f;
-        float scrollOffset = 0;
-        Axis scrollAxis = parent->GetAxis();
-        NestedScrollMode mode = NestedScrollMode::SELF_ONLY;
-        if (scrollAxis == Axis::HORIZONTAL) {
-            scrollOffset = dx > 0 ? scrollDistance : (dx < 0 ? -scrollDistance : 0);
-            mode = dx > 0 ? GetNestedScrollExt().scrollLeft : GetNestedScrollExt().scrollRight;
-        } else if (scrollAxis == Axis::VERTICAL) {
-            scrollOffset = dy > 0 ? scrollDistance : (dy < 0 ? -scrollDistance : 0);
-            mode = dy > 0 ? GetNestedScrollExt().scrollUp : GetNestedScrollExt().scrollDown;
-        } else {
-            TAG_LOGW(AceLogTag::ACE_WEB, "Unknown scroll axis in HandleTouchMoveIOS");
-        }
-        auto result = parent->HandleScroll(scrollOffset, SCROLL_FROM_UPDATE, NestedState::CHILD_SCROLL);
-        isParentReachEdge_ = result.reachEdge;
-        if (mode == NestedScrollMode::PARENT_FIRST) {
+        SetDirectionMode();
+        if (mode_ == NestedScrollMode::PARENT_FIRST) {
+            float offset = (direction_ == ScrollDirection::LEFT || direction_ == ScrollDirection::UP) ?
+                MIN_SCROLL_OFFSET : -MIN_SCROLL_OFFSET;
+            auto result = parent->HandleScroll(offset, SCROLL_FROM_UPDATE, NestedState::CHILD_SCROLL);
+            isParentReachEdge_ = result.reachEdge;
             SetScrollLocked(!isParentReachEdge_);
         } else {
             SetScrollLocked(false);
         }
-        prevOffset_ = touchPoint;
     } else {
         SetScrollLocked(false);
     }
+    prevOffset_ = touchPoint;
 }
 
 void WebPattern::HandleTouchMoveAndroid(TouchInfo &touchPoint, bool fromOverlay)
@@ -1260,8 +1255,12 @@ void WebPattern::HandleTouchMoveAndroid(TouchInfo &touchPoint, bool fromOverlay)
         case NestedScrollMode::PARALLEL:
             delegate_->HandleTouchMove(touchPoint.id, touchPoint.x, touchPoint.y, fromOverlay);
             if (auto parent = SearchParent(expectedScrollAxis_)) {
-                isParentReachEdge_ = parent->HandleScroll(
-                    scrollOffset, SCROLL_FROM_UPDATE, NestedState::CHILD_OVER_SCROLL).reachEdge;
+                ScrollResult result = {0.f, true};
+                auto sheetParent = SearchSheetParent(parent, expectedScrollAxis_);
+                result = parent->HandleScroll(scrollOffset,
+                SCROLL_FROM_UPDATE,
+                (sheetParent || ParentHostTagIsRefresh(parent)) ?
+                NestedState::CHILD_SCROLL : NestedState::CHILD_OVER_SCROLL);
             }
             break;
         default:
@@ -1281,10 +1280,23 @@ void WebPattern::HandleParentFirstScroll(
     offset = (scrollAxis == Axis::HORIZONTAL) ?
             (dx > 0 ? 0.1f : (dx < 0 ? -0.1f : 0)) : (dy > 0 ? 0.1f : (dy < 0 ? -0.1f : 0));
     isParentReachEdge_ = parent->HandleScroll(offset, SCROLL_FROM_UPDATE, NestedState::CHILD_SCROLL).reachEdge;
+    auto swiperParent = SearchSwiperParent(parent, expectedScrollAxis_);
+    if (swiperParent) {
+        int32_t index = swiperParent->GetCurrentShownIndex();
+        int32_t total = swiperParent->TotalCount();
+        if (index != total - 1 && index != 0) {
+            isParentReachEdge_ = false;
+        }
+    }
     if (isParentReachEdge_) {
         delegate_->HandleTouchMove(touchPoint.id, touchPoint.x, touchPoint.y, fromOverlay);
         if (isAtBorder) {
-            auto result = parent->HandleScroll(scrollOffset, SCROLL_FROM_UPDATE, NestedState::CHILD_OVER_SCROLL);
+            ScrollResult result = {0.f, true};
+            auto sheetParent = SearchSheetParent(parent, expectedScrollAxis_);
+            result = parent->HandleScroll(
+                scrollOffset,
+                SCROLL_FROM_UPDATE,
+                sheetParent ? NestedState::CHILD_SCROLL : NestedState::CHILD_OVER_SCROLL);
             isParentReachEdge_ = result.reachEdge;
         }
     } else {
@@ -1301,10 +1313,72 @@ void WebPattern::HandleSelfFirstScroll(
     if (isAtBorder) {
         auto parent = SearchParent(expectedScrollAxis_);
         if (parent) {
-            auto result = parent->HandleScroll(scrollOffset, SCROLL_FROM_UPDATE, NestedState::CHILD_OVER_SCROLL);
+            ScrollResult result = {0.f, true};
+            auto sheetParent = SearchSheetParent(parent, expectedScrollAxis_);
+            result = parent->HandleScroll(scrollOffset,
+            SCROLL_FROM_UPDATE,
+            sheetParent ? NestedState::CHILD_SCROLL : NestedState::CHILD_OVER_SCROLL);
             isParentReachEdge_ = result.reachEdge;
         }
     }
+}
+
+RefPtr<SheetPresentationPattern> WebPattern::SearchSheetParent(RefPtr<NestableScrollContainer> pattern,
+    Axis scrollAxis)
+{
+    if (pattern == nullptr) {
+        return nullptr;
+    }
+    auto host = pattern->GetHost();
+    CHECK_NULL_RETURN(host, nullptr);
+    for (auto parent = host->GetParent(); parent != nullptr; parent = parent->GetParent()) {
+        RefPtr<FrameNode> frameNode = AceType::DynamicCast<FrameNode>(parent);
+        if (!frameNode) {
+            continue;
+        }
+        auto pattern = frameNode->GetPattern<SheetPresentationPattern>();
+        if (!pattern ||
+            (!AceApplicationInfo::GetInstance().GreatOrEqualTargetAPIVersion(PlatformVersion::VERSION_TWELVE) &&
+                InstanceOf<RefreshPattern>(pattern))) {
+            continue;
+        }
+        if (scrollAxis == Axis::NONE || scrollAxis == pattern->GetAxis()) {
+            return pattern;
+        }
+    }
+    return nullptr;
+}
+
+RefPtr<SwiperPattern> WebPattern::SearchSwiperParent(RefPtr<NestableScrollContainer> pattern,
+    Axis scrollAxis)
+{
+    if (pattern == nullptr) {
+        return nullptr;
+    }
+    auto host = pattern->GetHost();
+    CHECK_NULL_RETURN(host, nullptr);
+    for (auto parent = host->GetParent(); parent != nullptr; parent = parent->GetParent()) {
+        RefPtr<FrameNode> frameNode = AceType::DynamicCast<FrameNode>(parent);
+        if (!frameNode) {
+            continue;
+        }
+        auto pattern = frameNode->GetPattern<OHOS::Ace::NG::SwiperPattern>();
+        if (!pattern ||
+            (!AceApplicationInfo::GetInstance().GreatOrEqualTargetAPIVersion(PlatformVersion::VERSION_TWELVE) &&
+                InstanceOf<RefreshPattern>(pattern))) {
+            continue;
+        }
+        return pattern;
+    }
+    return nullptr;
+}
+
+bool WebPattern::ParentHostTagIsRefresh(RefPtr<NestableScrollContainer> container)
+{
+    CHECK_NULL_RETURN(container, false);
+    auto host = container->GetHost();
+    CHECK_NULL_RETURN(host, false);
+    return host->GetHostTag() == TAG_REFRESH;
 }
 
 void WebPattern::HandleTouchCancel(const TouchEventInfo& info)
@@ -1548,7 +1622,7 @@ void WebPattern::OnScroll(float currentX, float currentY, float cWidth, float cH
     bool minY = LessOrEqual(currentY, 0.0) && expectedScrollAxis_ == Axis::VERTICAL;
     bool maxY = GreatOrEqual(currentY + fHeight, cHeight) && expectedScrollAxis_ == Axis::VERTICAL;
     directionCtx_.Set(minX, maxX, minY, maxY, currentX, currentY, prevX_, prevY_, cWidth, cHeight, fWidth, fHeight);
-    direction_ = GetScrollDirection(directionCtx_);
+    direction_ = GetScrollDirection(dx, dy);
     SetDirectionMode();
     prevX_ = currentX;
     prevY_ = currentY;
@@ -1865,22 +1939,12 @@ void WebPattern::SetScrollLocked(bool value)
 #endif
 }
 
-ScrollDirection WebPattern::GetScrollDirection(const ScrollDirectionContext& ctx)
+ScrollDirection WebPattern::GetScrollDirection(float dx, float dy)
 {
     if (expectedScrollAxis_ == Axis::VERTICAL) {
-        if (ctx.isMinY || ctx.currentY < ctx.prevY) {
-            return ScrollDirection::UP;
-        }
-        if (ctx.isMaxY || ctx.currentY > ctx.prevY) {
-            return ScrollDirection::DOWN;
-        }
+        return dy < 0 ? ScrollDirection::DOWN : ScrollDirection::UP;
     } else if (expectedScrollAxis_ == Axis::HORIZONTAL) {
-        if (ctx.isMinX || ctx.currentX < ctx.prevX) {
-            return ScrollDirection::LEFT;
-        }
-        if (ctx.isMaxX || ctx.currentX > ctx.prevX) {
-            return ScrollDirection::RIGHT;
-        }
+        return dx < 0 ? ScrollDirection::RIGHT : ScrollDirection::LEFT;
     }
     return ScrollDirection::UNKNOWN;
 }
