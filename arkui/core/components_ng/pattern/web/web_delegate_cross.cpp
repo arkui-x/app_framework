@@ -987,6 +987,10 @@ void SslSelectCertResultImpl::HandleIgnore()
     obj->Ignore(object_);
 }
 
+void SslSelectCertResultImpl::HandleConfirm(const std::string &identity, int32_t type)
+{
+}
+
 std::string SslSelectCertEventImpl::GetHost()
 {
     auto obj = WebObjectEventManager::GetInstance().GetOnClientAuthenticationEventObject();

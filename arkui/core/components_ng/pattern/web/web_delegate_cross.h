@@ -428,6 +428,7 @@ public:
     void HandleConfirm(const std::string& privateKeyFile, const std::string& certChainFile) override;
     void HandleCancel() override;
     void HandleIgnore() override;
+    void HandleConfirm(const std::string& identity, int32_t type) override;
 
 private:
     void* object_ = nullptr;

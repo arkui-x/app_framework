@@ -104,10 +104,10 @@ public:
     WebPattern();
     WebPattern(const std::string& webSrc, const RefPtr<WebController>& webController,
                RenderMode type = RenderMode::ASYNC_RENDER, bool incognitoMode = false,
-			   const std::string& sharedRenderProcessToken = "");
+			   const std::string& sharedRenderProcessToken = "", bool emulateTouchFromMouseEvent = false);
     WebPattern(const std::string& webSrc, const SetWebIdCallback& setWebIdCallback,
                RenderMode type = RenderMode::ASYNC_RENDER, bool incognitoMode = false,
-			   const std::string& sharedRenderProcessToken = "");
+			   const std::string& sharedRenderProcessToken = "", bool emulateTouchFromMouseEvent = false);
 
     ~WebPattern() override;
 
@@ -264,6 +264,16 @@ public:
         onControllerAttachedCallback_ = std::move(callback);
     }
 
+    void SetEmulateTouchFromMouseEvent(bool emulateTouchFromMouseEvent)
+    {
+        emulateTouchFromMouseEvent_ = emulateTouchFromMouseEvent;
+    }
+
+    bool GetEmulateTouchFromMouseEvent() const override
+    {
+        return emulateTouchFromMouseEvent_;
+    }
+
     void SetPermissionClipboardCallback(PermissionClipboardCallback&& Callback)
     {
         permissionClipboardCallback_ = std::move(Callback);
@@ -406,6 +416,7 @@ public:
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, EnabledHapticFeedback, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, OptimizeParserBudgetEnabled, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, WebMediaAVSessionEnabled, bool);
+    ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, EnableSelectedDataDetector, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, EnableDataDetector, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, BypassVsyncCondition, WebBypassVsyncCondition);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, EnableFollowSystemFontWeight, bool);
@@ -482,7 +493,6 @@ public:
     void UpdateEditMenuOptions(const NG::OnCreateMenuCallback&& onCreateMenuCallback,
         const NG::OnMenuItemClickCallback&& onMenuItemClick, const NG::OnPrepareMenuCallback&& onPrepareMenuCallback);
     void UpdateDataDetectorConfig(const TextDetectConfig& config);
-    void UpdateEnableSelectDataDetector(bool isEnabled);
     void UpdateSelectedDataDetectorConfig(const TextDetectConfig& config);
     WebInfoType GetWebInfoType();
     void SetUpdateInstanceIdCallback(std::function<void(int32_t)> &&callabck);
@@ -666,6 +676,7 @@ private:
     void OnEnabledHapticFeedbackUpdate(bool enable);
     void OnOptimizeParserBudgetEnabledUpdate(bool value);
     void OnEnableDataDetectorUpdate(bool enable);
+    void OnEnableSelectedDataDetectorUpdate(bool enable);
     void OnEnableFollowSystemFontWeightUpdate(bool value);
     void OnGestureFocusModeUpdate(GestureFocusMode mode);
     void OnRotateRenderEffectUpdate(WebRotateEffect effect);
@@ -785,6 +796,7 @@ private:
     std::function<void(int32_t)> updateInstanceIdCallback_;
     RefPtr<WebDelegateInterface> delegate_ = nullptr;
     std::optional<std::string> sharedRenderProcessToken_;
+    bool emulateTouchFromMouseEvent_ = false;
 
     bool selectPopupMenuShowing_ = false;
     WebLayoutMode layoutMode_ = WebLayoutMode::NONE;
