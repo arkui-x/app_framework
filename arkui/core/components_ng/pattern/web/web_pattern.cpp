@@ -64,15 +64,16 @@ extern "C" void SetIsPointInsideWebForceResult(bool enable, bool result);
 WebPattern::WebPattern() = default;
 
 WebPattern::WebPattern(const std::string& webSrc, const RefPtr<WebController>& webController, RenderMode renderMode,
-    bool incognitoMode, const std::string& sharedRenderProcessToken)
+    bool incognitoMode, const std::string& sharedRenderProcessToken, bool emulateTouchFromMouseEvent)
     : webSrc_(std::move(webSrc)), webController_(webController), renderMode_(renderMode), incognitoMode_(incognitoMode),
-      sharedRenderProcessToken_(sharedRenderProcessToken)
+      sharedRenderProcessToken_(sharedRenderProcessToken), emulateTouchFromMouseEvent_(emulateTouchFromMouseEvent)
 {}
 
 WebPattern::WebPattern(const std::string& webSrc, const SetWebIdCallback& setWebIdCallback, RenderMode renderMode,
-    bool incognitoMode, const std::string& sharedRenderProcessToken)
+    bool incognitoMode, const std::string& sharedRenderProcessToken, bool emulateTouchFromMouseEvent)
     : webSrc_(std::move(webSrc)), setWebIdCallback_(setWebIdCallback), renderMode_(renderMode),
-      incognitoMode_(incognitoMode), sharedRenderProcessToken_(sharedRenderProcessToken)
+      incognitoMode_(incognitoMode), sharedRenderProcessToken_(sharedRenderProcessToken),
+      emulateTouchFromMouseEvent_(emulateTouchFromMouseEvent)
 {}
 
 WebPattern::~WebPattern()
@@ -2147,11 +2148,6 @@ void WebPattern::UpdateDataDetectorConfig(const TextDetectConfig &config)
     // cross platform is not support now;
 }
 
-void WebPattern::UpdateEnableSelectDataDetector(bool isEnabled)
-{
-    // cross platform is not support now;
-}
-
 void WebPattern::UpdateSelectedDataDetectorConfig(const TextDetectConfig &config)
 {
     // cross platform is not support now;
@@ -2228,6 +2224,11 @@ void WebPattern::OnWebMediaAVSessionEnabledUpdate(bool value)
 }
 
 void WebPattern::OnEnableDataDetectorUpdate(bool enable)
+{
+    // cross platform is not support now;
+}
+
+void WebPattern::OnEnableSelectedDataDetectorUpdate(bool enable)
 {
     // cross platform is not support now;
 }
