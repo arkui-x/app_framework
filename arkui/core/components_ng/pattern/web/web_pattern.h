@@ -884,7 +884,7 @@ private:
         float dx, float dy, float scrollOffset, bool isAtBorder, const TouchInfo& touchPoint, bool fromOverlay);
 
     void HandleSelfFirstScroll(
-        float scrollOffset, bool isAtBorder, const TouchInfo& touchPoint, bool fromOverlay, float dy);
+        const TouchEventInfo& info, float scrollOffset, bool isAtBorder, const TouchInfo& touchPoint, bool fromOverlay);
 
     RefPtr<SheetPresentationPattern> SearchSheetParent(RefPtr<NestableScrollContainer> pattern,
         Axis scrollAxis = Axis::NONE);
@@ -901,8 +901,10 @@ private:
     void SetOnActionCancelId();
     void SetDirectionMode();
     void HandleTouchMoveIOS(TouchInfo &touchPoint, bool fromOverlay);
-    void HandleTouchMoveAndroid(TouchInfo &touchPoint, bool fromOverlay);
+    void HandleTouchMoveAndroid(const TouchEventInfo& info, TouchInfo &touchPoint, bool fromOverlay);
     bool GetScrollBoundary(float currentX, float currentY, float fWidth, float fHeight, float cWidth, float cHeight);
+    void HandleIOSSwiperNestedScroll(float dx, float dy);
+    void HandleIOSNestedScroll(float dx, float dy, const ScrollDirectionContext& ctx);
 };
 } // namespace OHOS::Ace::NG
 
