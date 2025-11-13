@@ -245,6 +245,21 @@ public:
         return mimeType_;
     }
 
+    std::string GetDefaultPath() override
+    {
+        return "";
+    }
+
+    std::vector<std::string> GetDescriptions() override
+    {
+        return std::vector<std::string>();
+    }
+
+    bool IsAcceptAllOptionExcluded() override
+    {
+        return false;
+    }
+
 private:
     std::string title_;
     int mode_;
