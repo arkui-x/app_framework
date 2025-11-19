@@ -24,6 +24,7 @@ config("composer_public_config") {
     "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/platform/darwin",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/composer",
     "//foundation/appframework/graphic_2d/android",
   ]
@@ -38,6 +39,7 @@ ohos_source_set("android") {
     "rs_ashmem_helper.cpp",
     "rs_frame_report.cpp",
     "rs_marshalling_helper.cpp",
+    "rs_render_pipeline_client.cpp",
     "rs_render_service_client.cpp",
     "rs_surface_android.cpp",
     "rs_surface_frame_android.cpp",
