@@ -128,18 +128,6 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     return std::make_shared<VSyncReceiverIOS>(looper);
 }
 
-bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
-    const Drawing::Rect& specifiedAreaRect)
-{
-    return false;
-}
-
-int32_t RSRenderServiceClient::SetFocusAppInfo(const FocusAppInfo& info)
-{
-    return false;
-}
-
 ScreenId RSRenderServiceClient::GetDefaultScreenId()
 {
     return 0;
@@ -330,18 +318,6 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 
 int32_t RSRenderServiceClient::GetCurrentRefreshRateMode()
 {
-}
-
-bool RSRenderServiceClient::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
-    std::function<void()> callback)
-{
-    return false;
-}
-
-bool RSRenderServiceClient::TakeUICaptureInRange(
-    NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
-{
-    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

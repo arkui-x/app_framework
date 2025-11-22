@@ -28,6 +28,7 @@ config("uicontent_config") {
     "$root_out_dir/arkui/framework",
     "//third_party/node/src",
     "//arkcompiler/runtime_core/common_interfaces",
+    "//arkcompiler/runtime_core/libpandabase/include",
   ]
 }
 
