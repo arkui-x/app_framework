@@ -75,10 +75,15 @@ public:
     }
     void UpdateSurfaceExtConfig(const RSSurfaceExtConfig& config) override
     {
-        config_.additionalData = config.additionalData;
+        if (config.additionalData != config_.additionalData) {
+            config_.additionalData = config.additionalData;
+        }
     }
 private:
     void InitializePlatformEglContext();
+    // this function is used to check if the texture is a video or not.
+    bool IsVideo();
+    bool IsObjectiveCObject(const void* candidate);
 
     std::atomic<bool> bufferAvailable_ = false;
     GLuint textureId_ = 0;
@@ -89,6 +94,7 @@ private:
     bool active_ = false;
     std::vector<float> matrix {};
     EAGLContext* platformEglContext_ = nullptr;
+    void *currentSharePtr_ = nullptr;
 
     // for video
     void EnsureTextureCacheExists();
