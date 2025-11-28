@@ -33,6 +33,7 @@
 #include "platform/drawing/rs_surface.h"
 #include "platform/drawing/rs_surface_frame.h"
 #include "surface/surface_type.h"
+#include "render_context/new_render_context/render_context_gl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -52,8 +53,8 @@ public:
         int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC = true, bool isProtected = false) override;
 
     bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
-    RenderContext* GetRenderContext() override;
-    void SetRenderContext(RenderContext* context) override;
+    std::shared_ptr<RenderContext> GetRenderContext() override;
+    void SetRenderContext(std::shared_ptr<RenderContext> context) override;
     uint32_t GetQueueSize() const override;
     void ClearBuffer() override;
     void ClearAllBuffer() override;
@@ -66,7 +67,7 @@ private:
     void YInvert(void *addr, int32_t width, int32_t height);
     bool SetupGrContext();
 
-    RenderContext* renderContext_ = nullptr;
+    std::shared_ptr<RenderContextGL> renderContext_ = nullptr;
     ANativeWindow* nativeWindow_ = nullptr;
     EGLSurface eglSurface_ = EGL_NO_SURFACE;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;

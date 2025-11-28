@@ -31,7 +31,9 @@ void RSSurfaceFrameAndroid::SetDamageRegion(int32_t left, int32_t top, int32_t w
     RS_TRACE_NAME("SetDamageRegion:" + std::to_string(left) + "," +
         std::to_string(top) + "," + std::to_string(width) + "," + std::to_string(height));
     ROSEN_LOGD("SetDamageRegion, left=%d, top=%d, width=%d, height=%d", left, top, width, height);
-    renderContext_->DamageFrame(left, top, width, height);
+    std::vector<RectI> rects;
+    rects.emplace_back(left, top, width, height);
+    renderContext_->DamageFrame(rects);
 }
 
 int32_t RSSurfaceFrameAndroid::GetBufferAge() const
@@ -59,9 +61,9 @@ std::shared_ptr<Drawing::Surface> RSSurfaceFrameAndroid::GetSurface()
     return surface_;
 }
 
-void RSSurfaceFrameAndroid::SetRenderContext(RenderContext* context)
+void RSSurfaceFrameAndroid::SetRenderContext(std::shared_ptr<RenderContext> context)
 {
-    renderContext_ = context;
+    renderContext_ = std::static_pointer_cast<RenderContextGL>(context);
 }
 
 bool RSSurfaceFrameAndroid::CreateSurface()

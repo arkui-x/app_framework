@@ -14,6 +14,7 @@
  */
 
 #include "render_context/render_context.h"
+#include "render_context/new_render_context/render_context_gl.h"
 
 #include <MacTypes.h>
 #include <__nullptr>
@@ -32,26 +33,37 @@
 
 namespace OHOS {
 namespace Rosen {
-std::mutex RenderContext::resourceContextMutex;
-EGLContext RenderContext::resourceContext = nullptr;
+std::mutex RenderContextGL::resourceContextMutex;
+EGLContext RenderContextGL::resourceContext = nullptr;
 constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 constexpr char CHARACTER_WHITESPACE = ' ';
 constexpr const char* CHARACTER_STRING_WHITESPACE = " ";
 constexpr const char* EGL_KHR_SURFACELESS_CONTEXT = "EGL_KHR_surfaceless_context";
 
-RenderContext::RenderContext()
-    : drGPUContext_(nullptr),
-      surface_(nullptr),
-      nativeWindow_(nullptr),
-      eglDisplay_(EGL_NO_DISPLAY),
-      eglContext_(EGL_NO_CONTEXT),
-      eglSurface_(EGL_NO_SURFACE),
-      config_(nullptr),
-      mHandler_(nullptr)
+std::shared_ptr<RenderContext> RenderContext::Create()
 {
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::IsUseVulkan()) {
+        ROSEN_LOGE("arkui-x is use vulkan is true, RenderContext::Create() return nullptr!!")
+        return nullptr;
+    }
+#endif
+    return std::make_shared<RenderContextGL>();
 }
 
-RenderContext::~RenderContext()
+RenderContextGL::RenderContextGL()
+{
+    surface_ = nullptr;
+    drGPUContext_ = nullptr;
+    nativeWindow_ = nullptr;
+    eglDisplay_ = EGL_NO_DISPLAY;
+    eglContext_ = EGL_NO_CONTEXT;
+    eglSurface_ = EGL_NO_SURFACE;
+    config_ = nullptr;
+    mHandler_ = nullptr;
+}
+
+RenderContextGL::~RenderContextGL()
 {
     EAGLContext* context = EAGLContext.currentContext;
     [EAGLContext setCurrentContext:static_cast<EAGLContext*>(eglContext_)];
@@ -62,26 +74,26 @@ RenderContext::~RenderContext()
     [EAGLContext setCurrentContext:context];
 }
 
-void RenderContext::CreatePbufferSurface()
+void RenderContextGL::CreatePbufferSurface()
 {
 }
 
-const EGLContext RenderContext::GetResourceContext()
+const EGLContext RenderContextGL::GetResourceContext()
 {
-    std::lock_guard<std::mutex> lock(RenderContext::resourceContextMutex);
-    if (!RenderContext::resourceContext) {
-        RenderContext::resourceContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+    std::lock_guard<std::mutex> lock(RenderContextGL::resourceContextMutex);
+    if (!RenderContextGL::resourceContext) {
+        RenderContextGL::resourceContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
     }
-    if (!RenderContext::resourceContext) {
-        RenderContext::resourceContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    if (!RenderContextGL::resourceContext) {
+        RenderContextGL::resourceContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     }
-    return RenderContext::resourceContext;
+    return RenderContextGL::resourceContext;
 }
 
-void RenderContext::InitializeEglContext()
+bool RenderContextGL::Init()
 {   
     if (IsEglContextReady()) {
-        return;
+         return true;
     }
     eglContext_ = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3
             sharegroup:static_cast<EAGLContext*>(GetResourceContext()).sharegroup];
@@ -92,7 +104,7 @@ void RenderContext::InitializeEglContext()
 
     if (eglContext_ == nullptr) {
         ROSEN_LOGE("eglContext_ is null");
-        return;
+        return false;
     }
     color_space_ = Drawing::ColorSpace::CreateSRGB();
     if (@available(iOS 10, *)) {
@@ -108,13 +120,13 @@ void RenderContext::InitializeEglContext()
     }
 
     if (valid_) {
-        return;
+        return false;
     }
     
     bool isContentCurrent = [EAGLContext setCurrentContext:static_cast<EAGLContext*>(eglContext_)];
     if (!isContentCurrent){
         ROSEN_LOGE("Failed to set current OpenGL context");
-        return;
+        return false;
     }
 
     glGenFramebuffers(1, &framebuffer_);
@@ -123,9 +135,10 @@ void RenderContext::InitializeEglContext()
     glBindRenderbuffer(GL_RENDERBUFFER, colorbuffer_);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colorbuffer_);
     valid_ = true;
+    return true;
 }
 
-void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context) 
+void RenderContextGL::MakeCurrent(EGLSurface surface, EGLContext context)
 {
     [EAGLContext setCurrentContext:static_cast<EAGLContext*>(eglContext_)];
     CAEAGLLayer* layer = static_cast<CAEAGLLayer*>(surface);
@@ -165,35 +178,23 @@ void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context)
     }
 }
 
-bool RenderContext::UpdateStorageSizeIfNecessary()
+bool RenderContextGL::UpdateStorageSizeIfNecessary()
 {
 
     return true;
 }
 
-bool RenderContext::ResourceMakeCurrent() 
+bool RenderContextGL::ResourceMakeCurrent()
 {
     return [EAGLContext setCurrentContext:static_cast<EAGLContext*>(resourceContext)];
 }
 
-void RenderContext::ShareMakeCurrent(EGLContext shareContext)
+void RenderContextGL::CreateShareContext()
 {
+    return;
 }
 
-void RenderContext::ShareMakeCurrentNoSurface(EGLContext shareContext)
-{
-}
-
-void RenderContext::MakeSelfCurrent()
-{
-}
-
-EGLContext RenderContext::CreateShareContext()
-{
-    return nullptr;
-}
-
-void RenderContext::SwapBuffers(EGLSurface surface) const
+bool RenderContextGL::SwapBuffers(EGLSurface surface) const
 {
     const GLenum discards[] = {
         GL_DEPTH_ATTACHMENT,
@@ -204,16 +205,17 @@ void RenderContext::SwapBuffers(EGLSurface surface) const
     glBindRenderbuffer(GL_RENDERBUFFER, colorbuffer_);
     [[EAGLContext currentContext] presentRenderbuffer:GL_RENDERBUFFER];
     [CATransaction flush];
+    return true;
 }
 
-void RenderContext::DestroyEGLSurface(EGLSurface surface)
+void RenderContextGL::DestroyEGLSurface(EGLSurface surface)
 {
     ROSEN_LOGD("RenderContext::DestroyEGLSurface");
     [static_cast<CAEAGLLayer*>(layer_) release];
     layer_ = nullptr;
 }
 
-EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
+EGLSurface RenderContextGL::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
 {
     CAEAGLLayer* layer = static_cast<CAEAGLLayer*>(eglNativeWindow);
     const CGSize layer_size = [layer bounds].size;
@@ -227,7 +229,7 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
     return eglNativeWindow;
 }
 
-bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext)
+bool RenderContextGL::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext)
 {
     if (drGPUContext_ != nullptr) {
         ROSEN_LOGD("Drawing GPUContext has already created");
@@ -243,7 +245,7 @@ bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawing
     return true;
 }
 
-std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int height)
+std::shared_ptr<Drawing::Surface> RenderContextGL::AcquireSurface(int width, int height)
 {
     if (!SetUpGpuContext()) {
         ROSEN_LOGE("GPUContext is not ready!!!");
@@ -280,7 +282,7 @@ std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int h
     return surface_;
 }
 
-void RenderContext::RenderFrame()
+void RenderContextGL::RenderFrame()
 {
     RS_TRACE_FUNC();
     // flush commands
@@ -292,39 +294,36 @@ void RenderContext::RenderFrame()
     }
 }
 
-EGLint RenderContext::QueryEglBufferAge()
+int32_t RenderContextGL::QueryEglBufferAge()
 {
-    return EGL_UNKNOWN;
+    return static_cast<int32_t>(EGL_UNKNOWN);
 }
 
-void RenderContext::DamageFrame(int32_t left, int32_t top, int32_t width, int32_t height)
-{
-}
-
-void RenderContext::DamageFrame(const std::vector<RectI> &rects)
+void RenderContextGL::DamageFrame(const std::vector<RectI> &rects)
 {
 }
 
-void RenderContext::ClearRedundantResources()
+void RenderContextGL::ClearRedundantResources()
 {
 }
 
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-std::string RenderContext::GetShaderCacheSize() const
+std::string RenderContextGL::GetShaderCacheSize() const
 {
     return "";
 }
 
-std::string RenderContext::CleanAllShaderCache() const
+std::string RenderContextGL::CleanAllShaderCache() const
 {
     return "";
 }
-#endif
 
-RenderContextFactory& RenderContextFactory::GetInstance()
+bool RenderContextGL::AbandonContext()
 {
-    static RenderContextFactory rf;
-    return rf;
+    return true;
+}
+
+void RenderContextGL::DestroyShareContext()
+{
 }
 } // namespace Rosen
 } // namespace OHOS

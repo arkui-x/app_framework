@@ -72,7 +72,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceAndroid::RequestFrame(
     renderContext_->MakeCurrent(eglSurface_);
 
     ROSEN_LOGD("RSSurfaceAndroid:RequestFrame, eglsurface is %p, width is %d, height is %d, renderContext_ %p",
-        eglSurface_, width, height, renderContext_);
+        eglSurface_, width, height, renderContext_.get());
 
     frame->SetRenderContext(renderContext_);
 
@@ -96,14 +96,14 @@ bool RSSurfaceAndroid::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64
     return true;
 }
 
-RenderContext* RSSurfaceAndroid::GetRenderContext()
+std::shared_ptr<RenderContext> RSSurfaceAndroid::GetRenderContext()
 {
     return renderContext_;
 }
 
-void RSSurfaceAndroid::SetRenderContext(RenderContext* context)
+void RSSurfaceAndroid::SetRenderContext(std::shared_ptr<RenderContext> context)
 {
-    renderContext_ = context;
+    renderContext_ = std::static_pointer_cast<RenderContextGL>(context);
 }
 
 void RSSurfaceAndroid::YInvert(void *addr, int32_t width, int32_t height)
@@ -113,7 +113,7 @@ void RSSurfaceAndroid::YInvert(void *addr, int32_t width, int32_t height)
 bool RSSurfaceAndroid::SetupGrContext()
 {
     if (renderContext_) {
-        renderContext_->InitializeEglContext();
+        renderContext_->Init();
         renderContext_->SetUpGpuContext();
         renderContext_->SetColorSpace(colorSpace_);
     }

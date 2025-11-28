@@ -89,20 +89,20 @@ bool RSSurfaceGPU::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t u
     return true;
 }
 
-RenderContext* RSSurfaceGPU::GetRenderContext()
+std::shared_ptr<RenderContext> RSSurfaceGPU::GetRenderContext()
 {
     return renderContext_;
 }
 
-void RSSurfaceGPU::SetRenderContext(RenderContext* context)
+void RSSurfaceGPU::SetRenderContext(std::shared_ptr<RenderContext> context)
 {
-    renderContext_ = context;
+    renderContext_ = std::static_pointer_cast<RenderContextGL>(context);
 }
 
 bool RSSurfaceGPU::SetupGrContext()
 {
     if (renderContext_) {
-        renderContext_->InitializeEglContext();
+        renderContext_->Init();
         renderContext_->SetUpGpuContext();
     }
     return true;
