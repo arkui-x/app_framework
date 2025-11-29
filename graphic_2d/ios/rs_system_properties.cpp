@@ -96,6 +96,11 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetRenderNodeLazyLoadEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetOcclusionEnabled()
 {
     return {};
@@ -492,5 +497,9 @@ bool RSSystemProperties::GetClipRRectOptimizationEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRSNodeExceedKillEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

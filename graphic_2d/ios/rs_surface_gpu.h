@@ -24,6 +24,7 @@
 #include "platform/drawing/rs_surface_frame.h"
 #include "platform/ios/cf_ref.h"
 #include "render_context/render_context.h"
+#include "render_context/new_render_context/render_context_gl.h"
 
 #ifdef __OBJC__
 @class CAEAGLLayer;
@@ -56,8 +57,8 @@ public:
     void ClearAllBuffer() override
     {
     }
-    RenderContext* GetRenderContext() override;
-    void SetRenderContext(RenderContext* context) override;
+    std::shared_ptr<RenderContext> GetRenderContext() override;
+    void SetRenderContext(std::shared_ptr<RenderContext> context) override;
     void ResetBufferAge() override
     {
     }
@@ -69,7 +70,7 @@ private:
     bool SetupGrContext();
 
     CAEAGLLayer* layer_ = nullptr;
-    RenderContext *renderContext_ = nullptr;
+    std::shared_ptr<RenderContextGL> renderContext_ = nullptr;
     RSSurfaceExtPtr texture_;
 };
 

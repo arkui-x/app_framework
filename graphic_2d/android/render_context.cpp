@@ -14,6 +14,7 @@
  */
 
 #include "render_context/render_context.h"
+#include "render_context/new_render_context/render_context_gl.h"
 
 #include <sstream>
 #include <string>
@@ -38,14 +39,25 @@ constexpr const char* EGL_KHR_SURFACELESS_CONTEXT = "EGL_KHR_surfaceless_context
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
 constexpr int DEFAULT_SKIA_CACHE_COUNT          = 2 * (1 << 12);
 
+std::shared_ptr<RenderContext> RenderContext::Create()
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::IsUseVulkan()) {
+        ROSEN_LOGE("arkui-x is use vulkan is true, RenderContext::Create() return nullptr!!")
+        return nullptr;
+    }
+#endif
+    return std::make_shared<RenderContextGL>();
+}
+
 // use functor to call gel*KHR API
-static PFNEGLSETDAMAGEREGIONKHRPROC GetEGLSetDamageRegionKHRFunc()
+PFNEGLSETDAMAGEREGIONKHRPROC RenderContextGL::GetEGLSetDamageRegionKHRFunc()
 {
     static auto func = reinterpret_cast<PFNEGLSETDAMAGEREGIONKHRPROC>(eglGetProcAddress("eglSetDamageRegionKHR"));
     return func;
 }
 
-static bool CheckEglExtension(const char* extensions, const char* extension)
+bool RenderContextGL::CheckEglExtension(const char* extensions, const char* extension)
 {
     size_t extlen = strlen(extension);
     const char* end = extensions + strlen(extensions);
@@ -68,23 +80,24 @@ static bool CheckEglExtension(const char* extensions, const char* extension)
     return false;
 }
 
-static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* native_display, const EGLint* attrib_list)
+EGLDisplay RenderContextGL::GetPlatformEglDisplay(EGLenum platform, void* native_display, const EGLint* attrib_list)
 {
     return eglGetDisplay((EGLNativeDisplayType)native_display);
 }
 
-RenderContext::RenderContext()
-    : drGPUContext_(nullptr),
-      surface_(nullptr),
-      nativeWindow_(nullptr),
-      eglDisplay_(EGL_NO_DISPLAY),
-      eglContext_(EGL_NO_CONTEXT),
-      eglSurface_(EGL_NO_SURFACE),
-      config_(nullptr),
-      mHandler_(nullptr)
-{}
+RenderContextGL::RenderContextGL()
+{
+    surface_ = nullptr;
+    drGPUContext_ = nullptr;
+    nativeWindow_ = nullptr;
+    eglDisplay_ = EGL_NO_DISPLAY;
+    eglContext_ = EGL_NO_CONTEXT;
+    eglSurface_ = EGL_NO_SURFACE;
+    config_ = nullptr;
+    mHandler_ = nullptr;
+}
 
-RenderContext::~RenderContext()
+RenderContextGL::~RenderContextGL()
 {
     if (eglDisplay_ == EGL_NO_DISPLAY) {
         return;
@@ -107,7 +120,7 @@ RenderContext::~RenderContext()
     mHandler_ = nullptr;
 }
 
-void RenderContext::CreatePbufferSurface()
+void RenderContextGL::CreatePbufferSurface()
 {
     const char* extensions = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
 
@@ -161,28 +174,28 @@ void DumpEglConfigs(EGLDisplay display)
 }
 }
 
-void RenderContext::InitializeEglContext()
+bool RenderContextGL::Init()
 {
     if (IsEglContextReady()) {
-        return;
+        return true;
     }
 
-    ROSEN_LOGD("RenderContext Creating EGLContext!!!");
+    ROSEN_LOGD("RenderContextGL Creating EGLContext!!!");
     eglDisplay_ = GetPlatformEglDisplay(0, EGL_DEFAULT_DISPLAY, NULL);
     if (eglDisplay_ == EGL_NO_DISPLAY) {
-        ROSEN_LOGW("RenderContext Failed to create EGLDisplay gl errno : %x", eglGetError());
-        return;
+        ROSEN_LOGW("RenderContextGL Failed to create EGLDisplay gl errno : %x", eglGetError());
+        return false;
     }
 
     EGLint major, minor;
     if (eglInitialize(eglDisplay_, &major, &minor) == EGL_FALSE) {
-        ROSEN_LOGE("RenderContext Failed to initialize EGLDisplay");
-        return;
+        ROSEN_LOGE("RenderContextGL Failed to initialize EGLDisplay");
+        return false;
     }
 
     if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
-        ROSEN_LOGE("RenderContext Failed to bind OpenGL ES API");
-        return;
+        ROSEN_LOGE("RenderContextGL Failed to bind OpenGL ES API");
+        return false;
     }
 
     unsigned int ret;
@@ -198,9 +211,9 @@ void RenderContext::InitializeEglContext()
     if (!(ret && static_cast<unsigned int>(count) >= 1)) {
         ret = eglChooseConfig(eglDisplay_, config_attribs_ES2, &config_, 1, &count);
         if (!(ret && static_cast<unsigned int>(count) >= 1)) {
-            ROSEN_LOGE("RenderContext Failed to eglChooseConfig");
+            ROSEN_LOGE("RenderContextGL Failed to eglChooseConfig");
             DumpEglConfigs(eglDisplay_);
-            return;
+            return false;
         }
     }
 
@@ -208,19 +221,20 @@ void RenderContext::InitializeEglContext()
 
     eglContext_ = eglCreateContext(eglDisplay_, config_, EGL_NO_CONTEXT, context_attribs);
     if (eglContext_ == EGL_NO_CONTEXT) {
-        ROSEN_LOGE("RenderContext Failed to create egl context %x", eglGetError());
-        return;
+        ROSEN_LOGE("RenderContextGL Failed to create egl context %x", eglGetError());
+        return false;
     }
     CreatePbufferSurface();
     if (!eglMakeCurrent(eglDisplay_, pbufferSurface_, pbufferSurface_, eglContext_)) {
-        ROSEN_LOGE("RenderContext Failed to make current on surface %p, error is %x", pbufferSurface_, eglGetError());
-        return;
+        ROSEN_LOGE("RenderContextGL Failed to make current on surface %p, error is %x", pbufferSurface_, eglGetError());
+        return false;
     }
 
-    ROSEN_LOGD("RenderContext Create EGL context successfully, version %d.%d", major, minor);
+    ROSEN_LOGD("RenderContextGL Create EGL context successfully, version %d.%d", major, minor);
+    return true;
 }
 
-void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context)
+void RenderContextGL::MakeCurrent(EGLSurface surface, EGLContext context)
 {
     if (surface == EGL_NO_SURFACE) {
         if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, context)) {
@@ -233,48 +247,37 @@ void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context)
     }
 }
 
-void RenderContext::ShareMakeCurrent(EGLContext shareContext)
-{
-    eglMakeCurrent(eglDisplay_, eglSurface_, eglSurface_, shareContext);
-}
-
-void RenderContext::ShareMakeCurrentNoSurface(EGLContext shareContext)
-{
-    eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, shareContext);
-}
-
-void RenderContext::MakeSelfCurrent()
-{
-    eglMakeCurrent(eglDisplay_, eglSurface_, eglSurface_, eglContext_);
-}
-
-EGLContext RenderContext::CreateShareContext()
+void RenderContextGL::CreateShareContext()
 {
     std::unique_lock<std::mutex> lock(shareContextMutex_);
     static const EGLint context_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, EGL_CONTEXT_CLIENT_VERSION_NUM, EGL_NONE};
-    auto eglShareContext = eglCreateContext(eglDisplay_, config_, eglContext_, context_attribs);
-    lock.unlock();
-    return eglShareContext;
+    eglShareContext_ = eglCreateContext(eglDisplay_, config_, eglContext_, context_attribs);
+    if (eglShareContext_ == EGL_NO_CONTEXT) {
+        ROSEN_LOGE("eglShareContext_ is EGL_NO_CONTEXT");
+        return;
+    }
 }
 
-void RenderContext::SwapBuffers(EGLSurface surface) const
+bool RenderContextGL::SwapBuffers(EGLSurface surface) const
 {
     RS_TRACE_FUNC();
     if (!eglSwapBuffers(eglDisplay_, surface)) {
         ROSEN_LOGE("Failed to SwapBuffers on surface %p, error is %x", surface, eglGetError());
+        return false;
     } else {
         ROSEN_LOGD("SwapBuffers successfully, surface is %p", surface);
+        return true;
     }
 }
 
-void RenderContext::DestroyEGLSurface(EGLSurface surface)
+void RenderContextGL::DestroyEGLSurface(EGLSurface surface)
 {
     if (!eglDestroySurface(eglDisplay_, surface)) {
         ROSEN_LOGE("Failed to DestroyEGLSurface surface %p, error is %x", surface, eglGetError());
     }
 }
 
-EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
+EGLSurface RenderContextGL::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
 {
     if (!IsEglContextReady()) {
         ROSEN_LOGE("EGL context has not initialized");
@@ -296,7 +299,7 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
     return surface;
 }
 
-bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext)
+bool RenderContextGL::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext)
 {
     if (drGPUContext_ != nullptr) {
         return true;
@@ -321,7 +324,7 @@ bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawing
     return true;
 }
 
-std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int height)
+std::shared_ptr<Drawing::Surface> RenderContextGL::AcquireSurface(int width, int height)
 {
     if (!SetUpGpuContext()) {
         ROSEN_LOGE("GPUContext is not ready!!!");
@@ -361,7 +364,7 @@ std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int h
     return surface_;
 }
 
-void RenderContext::RenderFrame()
+void RenderContextGL::RenderFrame()
 {
     RS_TRACE_FUNC();
     // flush commands
@@ -372,7 +375,7 @@ void RenderContext::RenderFrame()
     }
 }
 
-EGLint RenderContext::QueryEglBufferAge()
+EGLint RenderContextGL::QueryEglBufferAge()
 {
     if ((eglDisplay_ == nullptr) || (eglSurface_ == nullptr)) {
         ROSEN_LOGE("eglDisplay or eglSurface is nullptr");
@@ -387,31 +390,37 @@ EGLint RenderContext::QueryEglBufferAge()
     return bufferAge;
 }
 
-void RenderContext::DamageFrame(int32_t left, int32_t top, int32_t width, int32_t height)
+void RenderContextGL::DamageFrame(const std::vector<RectI> &rects)
 {
-    RS_TRACE_FUNC();
-    if ((eglDisplay_ == nullptr) || (eglSurface_ == nullptr)) {
+    if ((eglDisplay_ == EGL_NO_DISPLAY) || (eglSurface_ == EGL_NO_SURFACE)) {
         ROSEN_LOGE("eglDisplay or eglSurface is nullptr");
         return;
     }
+    RS_TRACE_FUNC();
 
-    EGLint rect[4];
-    rect[0] = left;
-    rect[1] = top;
-    rect[2] = width;
-    rect[3] = height;
+    size_t size = rects.size();
+    if (size == 0) {
+        ROSEN_LOGD("invalid rects size");
+        return;
+    }
 
-    EGLBoolean ret = GetEGLSetDamageRegionKHRFunc()(eglDisplay_, eglSurface_, rect, 1);
+    EGLint eglRect[size * 4]; // 4 is size of RectI.
+    int index = 0;
+    for (const RectI& rect : rects) {
+        eglRect[index * 4] = rect.left_; // 4 is size of RectI.
+        eglRect[index * 4 + 1] = rect.top_; // 4 is size of RectI.
+        eglRect[index * 4 + 2] = rect.width_; // 4 is size of RectI, 2 is the index of the width_ subscript.
+        eglRect[index * 4 + 3] = rect.height_; // 4 is size of RectI, 3 is the index of the height_ subscript.
+        index++;
+    }
+
+    EGLBoolean ret = GetEGLSetDamageRegionKHRFunc()(eglDisplay_, eglSurface_, eglRect, size);
     if (ret == EGL_FALSE) {
         ROSEN_LOGE("eglSetDamageRegionKHR is failed");
     }
 }
 
-void RenderContext::DamageFrame(const std::vector<RectI> &rects)
-{
-}
-
-void RenderContext::ClearRedundantResources()
+void RenderContextGL::ClearRedundantResources()
 {
     RS_TRACE_FUNC();
     if (drGPUContext_ != nullptr) {
@@ -422,22 +431,27 @@ void RenderContext::ClearRedundantResources()
     }
 }
 
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-std::string RenderContext::GetShaderCacheSize() const
+bool RenderContextGL::AbandonContext()
+{
+    eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    return true;
+}
+
+void RenderContextGL::DestroyShareContext()
+{
+    eglDestroyContext(GetEGLDisplay(), eglShareContext_);
+    eglShareContext_ = EGL_NO_CONTEXT;
+    eglMakeCurrent(GetEGLDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+}
+
+std::string RenderContextGL::GetShaderCacheSize() const
 {
     return "";
 }
 
-std::string RenderContext::CleanAllShaderCache() const
+std::string RenderContextGL::CleanAllShaderCache() const
 {
     return "";
-}
-#endif
-
-RenderContextFactory& RenderContextFactory::GetInstance()
-{
-    static RenderContextFactory rf;
-    return rf;
 }
 } // namespace Rosen
 } // namespace OHOS

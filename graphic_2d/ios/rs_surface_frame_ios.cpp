@@ -55,18 +55,18 @@ std::shared_ptr<Drawing::Surface> RSSurfaceFrameIOS::GetSurface()
     return surface_;
 }
 
-void RSSurfaceFrameIOS::SetRenderContext(RenderContext* context)
+void RSSurfaceFrameIOS::SetRenderContext(std::shared_ptr<RenderContext> context)
 {
-    context_ = context;
+    renderContext_ = std::static_pointer_cast<RenderContextGL>(context);
 }
 
 void RSSurfaceFrameIOS::CreateSurface()
 {
-    if (context_ == nullptr) {
+    if (renderContext_ == nullptr) {
         ROSEN_LOGE("RSSurfaceFrameIOS::CreateSurface, context_ is null!");
         return;
     }
-    surface_ = context_->AcquireSurface(width_,height_);
+    surface_ = renderContext_->AcquireSurface(width_, height_);
 }
 } // namespace Rosen
 } // namespace OHOS

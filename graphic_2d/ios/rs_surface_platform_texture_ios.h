@@ -29,6 +29,7 @@
 #include "platform/common/rs_surface_ext.h"
 #include "platform/ios/cf_ref.h"
 #include "platform/common/rs_log.h"
+#include "render_context/new_render_context/render_context_gl.h"
 
 namespace OHOS {
 namespace Rosen {

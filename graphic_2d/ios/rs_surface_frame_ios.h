@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_SRC_PLATFORM_DARWIN_RS_SURFACE_FRAME_DARWIN_H
 
 #include "platform/drawing/rs_surface_frame.h"
+#include "render_context/new_render_context/render_context_gl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -29,7 +30,7 @@ public:
     int32_t GetBufferAge() const override;
     Drawing::Canvas* GetCanvas() override;
     std::shared_ptr<Drawing::Surface> GetSurface() override;
-    void SetRenderContext(RenderContext* context) override;
+    void SetRenderContext(std::shared_ptr<RenderContext> context) override;
 
 private:
     friend class RSSurfaceGPU;
@@ -38,7 +39,7 @@ private:
     int32_t height_ = 0;
     int32_t bpp_ = 0;
     std::shared_ptr<Drawing::Surface> surface_ = nullptr;
-    RenderContext* context_ = nullptr;
+    std::shared_ptr<RenderContextGL> renderContext_ = nullptr;
 };
 
 } // namespace Rosen

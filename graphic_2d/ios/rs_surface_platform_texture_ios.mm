@@ -107,10 +107,10 @@ void RSSurfacePlatformTextureIOS::UpdateSurfaceDefaultSize(float width, float he
 void RSSurfacePlatformTextureIOS::InitializePlatformEglContext()
 {
     platformEglContext_ = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3
-        sharegroup:static_cast<EAGLContext*>(RenderContext::GetResourceContext()).sharegroup];
+        sharegroup:static_cast<EAGLContext*>(RenderContextGL::GetResourceContext()).sharegroup];
     if (platformEglContext_ == nullptr) {
         platformEglContext_ = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2
-            sharegroup:static_cast<EAGLContext*>(RenderContext::GetResourceContext()).sharegroup];
+            sharegroup:static_cast<EAGLContext*>(RenderContextGL::GetResourceContext()).sharegroup];
     }
 }
 
