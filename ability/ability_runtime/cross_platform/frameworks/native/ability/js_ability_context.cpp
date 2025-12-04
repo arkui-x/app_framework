@@ -17,6 +17,7 @@
 
 #include "ability_manager_errors.h"
 #include "errors.h"
+#include "event_handler.h"
 #include "hilog.h"
 #include "js_context_utils.h"
 #include "js_data_struct_converter.h"
@@ -332,10 +333,13 @@ napi_value CreateJsAbilityContext(napi_env env, const std::shared_ptr<AbilityCon
     if (config != nullptr) {
         napi_set_named_property(env, object, "config", CreateJsConfiguration(env, *config));
     }
-    auto windowStage = context->GetJsWindowStage();
-    if (windowStage != nullptr) {
-        napi_value stageValue = windowStage->GetNapiValue();
-        napi_set_named_property(env, object, "windowStage", stageValue);
+    auto currentRunner = AppExecFwk::EventRunner::Current();
+    if (currentRunner != nullptr && currentRunner->IsAppMainThread()) {
+        auto windowStage = context->GetJsWindowStage();
+        if (windowStage != nullptr) {
+            napi_value stageValue = windowStage->GetNapiValue();
+            napi_set_named_property(env, object, "windowStage", stageValue);
+        }
     }
 
     const char* moduleName = "JsAbilityContext";
