@@ -29,6 +29,7 @@ group("napi_packages") {
       "${cross_platform_napi_path}/bundle_manager:bundle_bundlemanager_source_set",
       "${cross_platform_napi_path}/configuration_constant:app_ability_configurationconstant_source_set",
       "${cross_platform_napi_path}/context:application_context_source_set",
+      "${cross_platform_napi_path}/module_loader:module_loader_source_set",
       "//foundation/appframework/hiviewdfx/hiappevent/js/napi:napi_hiviewdfx_hiappevent",
     ]
   } else {
@@ -45,6 +46,7 @@ group("napi_packages") {
       "${cross_platform_napi_path}/bundle_manager:bundle_bundlemanager",
       "${cross_platform_napi_path}/configuration_constant:app_ability_configurationconstant",
       "${cross_platform_napi_path}/context:application_context",
+      "${cross_platform_napi_path}/module_loader:moduleLoader",
     ]
   }
 }

@@ -38,7 +38,7 @@ public:
     AppMain();
     ~AppMain();
     static std::shared_ptr<AppMain> GetInstance();
-    void LaunchApplication(bool isCopyNativeLibs = true);
+    void LaunchApplication(bool isCopyNativeLibs = true, bool shouldLoadUI = true);
     void DispatchOnCreate(const std::string& instanceName, const std::string& params);
     void DispatchOnNewWant(const std::string& instanceName, const std::string& params = "");
     void DispatchOnForeground(const std::string& instanceName);
@@ -56,12 +56,13 @@ public:
     void NotifyApplicationForeground();
     void NotifyApplicationBackground();
     void PreloadModule(const std::string& moduleName, const std::string& abilityName);
+    void LoadModule(const std::string& moduleName, const std::string& entryFile);
 #ifdef IOS_PLATFORM
     void SetResourceFilePrefixPath();
 #endif
 
 private:
-    void ScheduleLaunchApplication(bool isCopyNativeLibs);
+    void ScheduleLaunchApplication(bool isCopyNativeLibs, bool shouldLoadUI = true);
     bool CreateRuntime(const std::string& bundleName, bool isBundle);
     void ParseBundleComplete();
     void HandleDispatchOnCreate(const std::string& instanceName, const std::string& params);
@@ -81,6 +82,7 @@ private:
     void HandleApplicationBackground();
     void LoadIcuData();
     void HandlePreloadModule(const std::string& moduleName, const std::string& abilityName);
+    void HandleLoadModule(const std::string& moduleName, const std::string& entryFile);
     void RegisterUncaughtExceptionHandler(Runtime* runtime);
     void FillUncaughtExceptionInfo(JsEnv::UncaughtExceptionInfo& info, const std::string& hapPath);
 
@@ -93,6 +95,7 @@ private:
     int32_t uid_ { 0 };
     static std::shared_ptr<AppMain> instance_;
     static std::mutex mutex_;
+    bool shouldLoadUI_ = true;
 };
 } // namespace Platform
 } // namespace AbilityRuntime

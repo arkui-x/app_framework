@@ -36,6 +36,9 @@ public:
     void PreloadModule(
         const std::unique_ptr<Runtime>& runtime, const std::shared_ptr<AppExecFwk::AbilityInfo>& abilityInfo);
 
+    void LoadModule(const std::unique_ptr<Runtime>& runtime,
+        const std::shared_ptr<AppExecFwk::HapModuleInfo>& hapModuleInfo, const std::string& moduleEntryPath);
+
 private:
     static std::shared_ptr<PreloadManager> instance_;
     static std::mutex mutex_;
