@@ -445,9 +445,9 @@ public:
     void JavaScriptOnDocumentStart(const ScriptItems& scriptItems);
     void JavaScriptOnDocumentEnd(const ScriptItems& scriptItems);
     void JavaScriptOnDocumentStartByOrder(const ScriptItems& scriptItems,
-        const ScriptItemsByOrder& scriptItemsByOrder);
+        const ScriptRegexItems& scriptRegexItems, const ScriptItemsByOrder& scriptItemsByOrder);
     void JavaScriptOnDocumentEndByOrder(const ScriptItems& scriptItems,
-        const ScriptItemsByOrder& scriptItemsByOrder);
+        const ScriptRegexItems& scriptRegexItems, const ScriptItemsByOrder& scriptItemsByOrder);
     bool IsImageDrag();
     Offset GetDragOffset() const;
     void RemovePreviewMenuNode();
@@ -577,7 +577,7 @@ public:
     bool RunJavascriptAsync(const std::string& jsCode, std::function<void(const std::string&)>&& callback);
 
     void JavaScriptOnHeadReadyByOrder(const ScriptItems& scriptItems,
-        const ScriptItemsByOrder& scriptItemsByOrder);
+        const ScriptRegexItems& scriptRegexItems, const ScriptItemsByOrder& scriptItemsByOrder);
 
     void OnWebMediaAVSessionEnabledUpdate(bool enable);
     void SetDefaultBackgroundColor();

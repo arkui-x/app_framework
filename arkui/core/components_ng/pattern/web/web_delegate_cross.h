@@ -250,6 +250,12 @@ public:
         return "";
     }
 
+    AcceptFileTypeLists GetAccepts() override
+    {
+        AcceptFileTypeLists result;
+        return result;
+    }
+
     std::vector<std::string> GetDescriptions() override
     {
         return std::vector<std::string>();
