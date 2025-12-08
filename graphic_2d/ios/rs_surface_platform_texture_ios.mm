@@ -119,9 +119,6 @@ void RSSurfacePlatformTextureIOS::DrawTextureImage(RSPaintFilterCanvas& canvas, 
 {
     if (active_ == false || currentSharePtr_ != config_.additionalData) {
         currentSharePtr_ = config_.additionalData;
-        if (!bufferAvailable_.load()){
-            return;
-        }
         if (config_.additionalData == nullptr) {
             return;
         }
@@ -157,14 +154,15 @@ void RSSurfacePlatformTextureIOS::DrawTextureImage(RSPaintFilterCanvas& canvas, 
 bool RSSurfacePlatformTextureIOS::IsVideo()
 {
     void* additionalData = config_.additionalData;
-    if (isVideo_ && IsObjectiveCObject(additionalData)) {
+    if (IsObjectiveCObject(additionalData)) {
         id additionalObj = (__bridge id)additionalData;
         if ([additionalObj isKindOfClass:[AVPlayerItemVideoOutput class]]) {
-            return true;
+            isVideo_ = true;
+            return isVideo_;
         }
     }
     isVideo_ = false;
-    return false;
+    return isVideo_;
 }
 
 void RSSurfacePlatformTextureIOS::DrawTextureImageGL(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect)
