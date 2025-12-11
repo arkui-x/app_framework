@@ -24,7 +24,6 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-class JsRuntime;
 namespace Platform {
 
 class PreloadManager {
@@ -35,9 +34,6 @@ public:
     static std::shared_ptr<PreloadManager> GetInstance();
     void PreloadModule(
         const std::unique_ptr<Runtime>& runtime, const std::shared_ptr<AppExecFwk::AbilityInfo>& abilityInfo);
-
-    void LoadModule(const std::unique_ptr<Runtime>& runtime,
-        const std::shared_ptr<AppExecFwk::HapModuleInfo>& hapModuleInfo, const std::string& moduleEntryPath);
 
 private:
     static std::shared_ptr<PreloadManager> instance_;
