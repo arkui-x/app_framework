@@ -33,6 +33,7 @@
 #include "js_error_logger.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
+#include "load_module_helper.h"
 #include "preload_manager.h"
 #include "runtime.h"
 
@@ -781,7 +782,7 @@ void AppMain::HandleLoadModule(const std::string& moduleName, const std::string&
     }
 
     auto hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
-    PreloadManager::GetInstance()->LoadModule(application_->GetRuntime(), hapModuleInfo, entryFile);
+    LoadModuleHelper::LoadModule(application_->GetRuntime(), hapModuleInfo, entryFile);
 }
 
 #ifdef IOS_PLATFORM
