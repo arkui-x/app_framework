@@ -30,7 +30,8 @@ void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSync
 }
 
 void RSRenderPipelineClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-    std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<Media::PixelMap> pixelmapHDR)
+    std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,
+    std::shared_ptr<Media::PixelMap> pixelmapHDR)
 {
 }
 
