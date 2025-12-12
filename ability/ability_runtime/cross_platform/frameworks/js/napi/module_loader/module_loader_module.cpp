@@ -50,7 +50,7 @@ extern "C" __attribute__((visibility("default"))) void NAPI_Module_Loader_GetABC
 
 static napi_module_with_js _module = {
     .nm_version = 0,
-    .nm_modname = "moduleload",
+    .nm_modname = "ModuleLoader",
     .nm_filename = "app/ability/libmoduleload.so/module_loader.js",
     .nm_get_js_code = NAPI_Module_Loader_GetJSCode,
     .nm_get_abc_code = NAPI_Module_Loader_GetABCCode,
@@ -60,4 +60,3 @@ extern "C" __attribute__((constructor)) void NAPI_Module_Loader_AutoRegister()
 {
     napi_module_with_js_register(&_module);
 }
-
