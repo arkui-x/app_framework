@@ -29,7 +29,10 @@ ohos_source_set("crossplatform_error_logger") {
 
   sources = [ "js_error_logger.cpp" ]
 
-  deps = [ "//foundation/appframework/hiviewdfx/hiappevent/native:native_hiviewdfx_hiappevent" ]
+  deps = [
+    "//foundation/appframework/hiviewdfx/hiappevent/native:native_hiviewdfx_hiappevent",
+    "//third_party/jsoncpp:jsoncpp_static",
+  ]
 
   if (target_os == "android") {
     defines = [ "ANDROID_PLATFORM" ]

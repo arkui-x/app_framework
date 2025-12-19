@@ -28,7 +28,10 @@ ohos_source_set("napi_hiviewdfx_hiappevent") {
     "//foundation/appframework/hiviewdfx/hiappevent/js/napi/src/napi_util.cpp",
   ]
 
-  deps = [ "//foundation/appframework/hiviewdfx/hiappevent/native:native_hiviewdfx_hiappevent" ]
+  deps = [
+    "//foundation/appframework/hiviewdfx/hiappevent/native:native_hiviewdfx_hiappevent",
+    "//third_party/jsoncpp:jsoncpp_static",
+  ]
 
   subsystem_name = "hiappevent_napi"
   part_name = "hiviewdfx_hiappevent"
