@@ -426,6 +426,7 @@ public:
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, RotateRenderEffect, WebRotateEffect);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, ForceEnableZoom, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, BackToTop, bool);
+    ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, EnableAutoFill, bool);
     void RequestFullScreen();
     void ExitFullScreen();
     bool IsFullScreen() const
@@ -684,6 +685,7 @@ private:
     void OnRotateRenderEffectUpdate(WebRotateEffect effect);
     void WebRotateRenderEffect(WindowSizeChangeReason type);
     void OnForceEnableZoomUpdate(bool isEnabled);
+    void OnEnableAutoFillUpdate(bool isEnabled);
 
     void InitEvent();
     void InitTouchEvent(const RefPtr<GestureEventHub>& gestureHub);
