@@ -17,9 +17,12 @@
 #include "render_context/new_render_context/render_context_gl.h"
 
 #include <MacTypes.h>
+#include <__config>
 #include <__nullptr>
 #include <sstream>
+#include <chrono>
 #include <UIKit/UIKit.h>
+#include <CoreFoundation/CoreFoundation.h>
 #include "OpenGLES/EAGL.h"
 #include "OpenGLES/ES2/gl.h"
 #include "OpenGLES/ES2/glext.h"
@@ -208,11 +211,79 @@ bool RenderContextGL::SwapBuffers(EGLSurface surface) const
     return true;
 }
 
+void RenderContextGL::AddSurface()
+{
+    surface_count_++;
+}
+
+void RenderContextGL::SetCleanUpHelper(std::function<void()> func)
+{
+    cleanUpHelper_ = func;
+}
+
 void RenderContextGL::DestroyEGLSurface(EGLSurface surface)
 {
-    ROSEN_LOGD("RenderContext::DestroyEGLSurface");
-    [static_cast<CAEAGLLayer*>(layer_) release];
-    layer_ = nullptr;
+    if (layer_ != nullptr) {
+        [static_cast<CAEAGLLayer*>(layer_) release];
+        layer_ = nullptr;
+    }
+    ROSEN_LOGD("DestroyEGLSurface");
+    surface_count_--;
+    storage_width_ = 0;
+    storage_height_ = 0;
+
+    if (cleanUpHelper_ != nullptr && surface_count_ == 0) {
+        ROSEN_LOGD("DestroyEGLSurface cleanUpHelper_ - All surfaces destroyed, cleaning up shared resources");
+        cleanUpHelper_();
+    }
+}
+
+/* 
+ *  Destroy the shared source when all rssurface are destroyed, this must be called on the render thread, 
+ *  otherwise it will cause memory leak,iosurface will not be released.
+ */
+void RenderContextGL::DestroySharedSource()
+{
+    ROSEN_LOGD("DestroySharedSource surface_count_ %{public}d", surface_count_);
+
+    if (surface_count_ > 0) {
+        return;
+    }
+
+    if (drGPUContext_ != nullptr) {
+        ROSEN_LOGD("DestroySharedSource: Cleaning GPUContext resources to release ioaccelerator");
+        drGPUContext_->PurgeUnlockedResources(false);
+        drGPUContext_->FreeGpuResources();
+        drGPUContext_->PerformDeferredCleanup(std::chrono::milliseconds(0));
+        drGPUContext_ = nullptr;
+    }
+    surface_ = nullptr;
+
+    if (eglContext_ != nullptr) {
+        ROSEN_LOGD("DestroySharedSource eglContext_ is not nullptr");
+        [EAGLContext setCurrentContext:static_cast<EAGLContext*>(eglContext_)];      
+        if (framebuffer_ != 0) {
+            glDeleteFramebuffers(1, &framebuffer_);
+            glFinish();
+            framebuffer_ = 0; 
+        }
+
+        if (colorbuffer_ != 0) {
+            glDeleteRenderbuffers(1, &colorbuffer_);
+            glFinish();
+            colorbuffer_ = 0;
+        }
+        [EAGLContext setCurrentContext:nil];
+        glFinish();
+        [static_cast<EAGLContext*>(eglContext_) release];
+        eglContext_ = nullptr;
+    } else {
+        ROSEN_LOGD("DestroySharedSource eglContext_ is nullptr");
+    }
+    
+    storage_width_ = 0;
+    storage_height_ = 0;
+    valid_ = false;
 }
 
 EGLSurface RenderContextGL::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
@@ -287,7 +358,6 @@ void RenderContextGL::RenderFrame()
     RS_TRACE_FUNC();
     // flush commands
     if (surface_ != nullptr && surface_->GetCanvas() != nullptr) {
-        ROSEN_LOGD("RenderFrame: Canvas");
         surface_->GetCanvas()->Flush();
     } else {
         ROSEN_LOGE("canvas is nullptr!!!");
