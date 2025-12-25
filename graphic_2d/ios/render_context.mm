@@ -213,7 +213,19 @@ bool RenderContextGL::SwapBuffers(EGLSurface surface) const
 
 void RenderContextGL::AddSurface()
 {
-    surface_count_++;
+    int32_t count = surface_count_.fetch_add(1, std::memory_order_relaxed) + 1;
+    ROSEN_LOGD("AddSurface: surface_count_ = %{public}d", count);
+}
+
+void RenderContextGL::DeleteSurface()
+{
+    int32_t count = surface_count_.fetch_sub(1, std::memory_order_acq_rel) - 1;
+    ROSEN_LOGI("DeleteSurface: surface_count_ = %{public}d", count);
+
+    if (cleanUpHelper_ != nullptr && count <= 0) {
+        ROSEN_LOGI("DeleteSurface: All surfaces destroyed, calling cleanUpHelper_");
+        cleanUpHelper_();
+    }
 }
 
 void RenderContextGL::SetCleanUpHelper(std::function<void()> func)
@@ -228,14 +240,9 @@ void RenderContextGL::DestroyEGLSurface(EGLSurface surface)
         layer_ = nullptr;
     }
     ROSEN_LOGD("DestroyEGLSurface");
-    surface_count_--;
     storage_width_ = 0;
     storage_height_ = 0;
-
-    if (cleanUpHelper_ != nullptr && surface_count_ == 0) {
-        ROSEN_LOGD("DestroyEGLSurface cleanUpHelper_ - All surfaces destroyed, cleaning up shared resources");
-        cleanUpHelper_();
-    }
+    DeleteSurface();
 }
 
 /* 
@@ -244,9 +251,10 @@ void RenderContextGL::DestroyEGLSurface(EGLSurface surface)
  */
 void RenderContextGL::DestroySharedSource()
 {
-    ROSEN_LOGD("DestroySharedSource surface_count_ %{public}d", surface_count_);
+    int32_t count = surface_count_.load(std::memory_order_acquire);
+    ROSEN_LOGI("DestroySharedSource surface_count_ %{public}d", count);
 
-    if (surface_count_ > 0) {
+    if (count > 0) {
         return;
     }
 
