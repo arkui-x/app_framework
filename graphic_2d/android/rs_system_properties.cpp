@@ -501,5 +501,10 @@ bool RSSystemProperties::GetRSNodeExceedKillEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetTransactionDataTraceEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS
