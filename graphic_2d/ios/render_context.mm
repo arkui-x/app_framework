@@ -16,9 +16,12 @@
 #include "render_context/render_context.h"
 
 #include <MacTypes.h>
+#include <__config>
 #include <__nullptr>
 #include <sstream>
+#include <chrono>
 #include <UIKit/UIKit.h>
+#include <CoreFoundation/CoreFoundation.h>
 #include "OpenGLES/EAGL.h"
 #include "OpenGLES/ES2/gl.h"
 #include "OpenGLES/ES2/glext.h"
@@ -206,11 +209,87 @@ void RenderContext::SwapBuffers(EGLSurface surface) const
     [CATransaction flush];
 }
 
+void RenderContext::AddSurface()
+{
+    int32_t count = surface_count_.fetch_add(1, std::memory_order_relaxed) + 1;
+    ROSEN_LOGD("AddSurface: surface_count_ = %{public}d", count);
+}
+
+void RenderContext::DeleteSurface()
+{
+    int32_t count = surface_count_.fetch_sub(1, std::memory_order_acq_rel) - 1;
+    ROSEN_LOGD("DeleteSurface: surface_count_ = %{public}d", count);
+
+    if (cleanUpHelper_ != nullptr && count == 0) {
+        ROSEN_LOGD("DeleteSurface: All surfaces destroyed, calling cleanUpHelper_");
+        cleanUpHelper_();
+    }
+}
+
+void RenderContext::SetCleanUpHelper(std::function<void()> func)
+{
+    cleanUpHelper_ = func;
+}
+
 void RenderContext::DestroyEGLSurface(EGLSurface surface)
 {
-    ROSEN_LOGD("RenderContext::DestroyEGLSurface");
-    [static_cast<CAEAGLLayer*>(layer_) release];
-    layer_ = nullptr;
+    if (layer_ != nullptr) {
+        [static_cast<CAEAGLLayer*>(layer_) release];
+        layer_ = nullptr;
+    }
+    ROSEN_LOGD("DestroyEGLSurface");
+    storage_width_ = 0;
+    storage_height_ = 0;
+    DeleteSurface();
+}
+
+/*
+ *  Destroy the shared source when all rssurface are destroyed, this must be called on the render thread,
+ *  otherwise it will cause memory leak,iosurface will not be released.
+ */
+void RenderContext::DestroySharedSource()
+{
+    int32_t count = surface_count_.load(std::memory_order_acquire);
+    ROSEN_LOGD("DestroySharedSource surface_count_ %{public}d", count);
+
+    if (count > 0) {
+        return;
+    }
+
+    if (drGPUContext_ != nullptr) {
+        ROSEN_LOGD("DestroySharedSource: Cleaning GPUContext resources to release ioaccelerator");
+        drGPUContext_->PurgeUnlockedResources(false);
+        drGPUContext_->FreeGpuResources();
+        drGPUContext_->PerformDeferredCleanup(std::chrono::milliseconds(0));
+        drGPUContext_ = nullptr;
+    }
+    surface_ = nullptr;
+
+    if (eglContext_ != nullptr) {
+        ROSEN_LOGD("DestroySharedSource eglContext_ is not nullptr");
+        [EAGLContext setCurrentContext:static_cast<EAGLContext*>(eglContext_)];
+        if (framebuffer_ != 0) {
+            glDeleteFramebuffers(1, &framebuffer_);
+            glFinish();
+            framebuffer_ = 0;
+        }
+
+        if (colorbuffer_ != 0) {
+            glDeleteRenderbuffers(1, &colorbuffer_);
+            glFinish();
+            colorbuffer_ = 0;
+        }
+        [EAGLContext setCurrentContext:nil];
+        glFinish();
+        [static_cast<EAGLContext*>(eglContext_) release];
+        eglContext_ = nullptr;
+    } else {
+        ROSEN_LOGD("DestroySharedSource eglContext_ is nullptr");
+    }
+
+    storage_width_ = 0;
+    storage_height_ = 0;
+    valid_ = false;
 }
 
 EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)

@@ -96,7 +96,15 @@ RenderContext* RSSurfaceGPU::GetRenderContext()
 
 void RSSurfaceGPU::SetRenderContext(RenderContext* context)
 {
-    renderContext_ = context;
+    if (renderContext_ != context) {
+        if (renderContext_ != nullptr) {
+            renderContext_->DeleteSurface();
+        }
+         renderContext_ = context;
+        if (renderContext_ != nullptr) {
+            renderContext_->AddSurface();
+        }
+    }
 }
 
 bool RSSurfaceGPU::SetupGrContext()
