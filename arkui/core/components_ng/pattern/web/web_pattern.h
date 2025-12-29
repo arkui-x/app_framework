@@ -555,7 +555,10 @@ public:
         return false;
     }
 
-    void SetNewDragStyle(bool isNewDragStyle) {}
+    void SetNewDragStyle(bool isNewDragStyle)
+    {
+        (void)isNewDragStyle;
+    }
 
     bool IsNewDragStyle() const
     {
@@ -706,7 +709,10 @@ private:
     void CalculateHorizontalDrawRect();
     void CalculateVerticalDrawRect();
     void UpdateSlideOffset(bool isNeedReset = false);
-    void OnNativeEmbedModeEnabledUpdate(bool value) {};
+    void OnNativeEmbedModeEnabledUpdate(bool value)
+    {
+        (void)value;
+    }
     void OnIntrinsicSizeEnabledUpdate(bool value);
     void OnCssDisplayChangeEnabledUpdate(bool value);
     void OnNativeEmbedRuleTagUpdate(const std::string& tag);

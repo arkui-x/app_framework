@@ -833,6 +833,7 @@ void SslErrorResultImpl::HandleConfirm()
 
 void SslErrorResultImpl::HandleCancel(bool abortLoading)
 {
+    (void)abortLoading;
     auto obj = WebObjectEventManager::GetInstance().GetOnSslErrorEventReceiveEventObject();
     if (!obj) {
         TAG_LOGE(AceLogTag::ACE_WEB,
@@ -989,6 +990,8 @@ void SslSelectCertResultImpl::HandleIgnore()
 
 void SslSelectCertResultImpl::HandleConfirm(const std::string &identity, int32_t type)
 {
+    (void)identity;
+    (void)type;
 }
 
 std::string SslSelectCertEventImpl::GetHost()
@@ -1395,6 +1398,10 @@ void WebDelegateCross::UnRegisterWebObjectEvent()
 void WebDelegateCross::HandleTouchDown(
     const int32_t& id, const double& x, const double& y, bool from_overlay)
 {
+    (void)id;
+    (void)x;
+    (void)y;
+    (void)from_overlay;
     hash_ = MakeResourceHash();
     touchDownMethod_ = MakeMethodHash(WEB_METHOD_TOUCH_DOWN);
     CallResRegisterMethod(touchDownMethod_, "", nullptr);
@@ -1403,6 +1410,10 @@ void WebDelegateCross::HandleTouchDown(
 void WebDelegateCross::HandleTouchUp(
     const int32_t& id, const double& x, const double& y, bool from_overlay)
 {
+    (void)id;
+    (void)x;
+    (void)y;
+    (void)from_overlay;
     hash_ = MakeResourceHash();
     touchUpMethod_ = MakeMethodHash(WEB_METHOD_TOUCH_UP);
     CallResRegisterMethod(touchUpMethod_, "", nullptr);
@@ -1411,6 +1422,10 @@ void WebDelegateCross::HandleTouchUp(
 void WebDelegateCross::HandleTouchMove(
     const int32_t& id, const double& x, const double& y, bool from_overlay)
 {
+    (void)id;
+    (void)x;
+    (void)y;
+    (void)from_overlay;
     hash_ = MakeResourceHash();
     touchMoveMethod_ = MakeMethodHash(WEB_METHOD_TOUCH_MOVE);
     CallResRegisterMethod(touchMoveMethod_, "", nullptr);
@@ -1426,16 +1441,28 @@ void WebDelegateCross::HandleTouchCancel()
 void WebDelegateCross::HandleAxisEvent(const double& x, const double& y, const double& deltaX, const double& deltaY)
 {
     // cross platform is not support now;
+    (void)x;
+    (void)y;
+    (void)deltaX;
+    (void)deltaY;
 }
 
 bool WebDelegateCross::OnKeyEvent(int32_t keyCode, int32_t keyAction)
 {
+    (void)keyCode;
+    (void)keyAction;
     return true;
 }
 
 void WebDelegateCross::OnMouseEvent(
     int32_t x, int32_t y, const MouseButton button, const MouseAction action, int count)
-{}
+{
+    (void)x;
+    (void)y;
+    (void)button;
+    (void)action;
+    (void)count;
+}
 
 void WebDelegateCross::OnFocus()
 {}
@@ -1528,7 +1555,9 @@ void WebDelegateCross::OnPageFinished(const std::string& param)
 }
 
 void WebDelegateCross::OnPageError(const std::string& param)
-{}
+{
+    (void)param;
+}
 
 void WebDelegateCross::OnProgressChanged(const std::string& param)
 {
