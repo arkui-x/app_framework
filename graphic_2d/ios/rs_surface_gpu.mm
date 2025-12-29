@@ -96,7 +96,15 @@ std::shared_ptr<RenderContext> RSSurfaceGPU::GetRenderContext()
 
 void RSSurfaceGPU::SetRenderContext(std::shared_ptr<RenderContext> context)
 {
-    renderContext_ = std::static_pointer_cast<RenderContextGL>(context);
+    if (renderContext_ != context) {
+        if (renderContext_ != nullptr) {
+            renderContext_->DeleteSurface();
+        }
+        renderContext_ = std::static_pointer_cast<RenderContextGL>(context);
+        if (renderContext_ != nullptr) {
+            renderContext_->AddSurface();
+        }
+    }
 }
 
 bool RSSurfaceGPU::SetupGrContext()
