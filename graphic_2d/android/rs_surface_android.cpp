@@ -138,6 +138,8 @@ void RSSurfaceAndroid::ResetBufferAge()
     ROSEN_LOGD("RSSurfaceAndroid: Reset Buffer Age!");
 }
 
+void RSSurfaceAndroid::SetCleanUpHelper(std::function<void()> func) {}
+
 GraphicColorGamut RSSurfaceAndroid::GetColorSpace() const
 {
     if (renderContext_ == nullptr) {

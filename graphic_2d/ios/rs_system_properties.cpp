@@ -56,6 +56,11 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetTestModeEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
 {
     return false;
