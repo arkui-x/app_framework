@@ -268,16 +268,14 @@ void RenderContext::DestroySharedSource()
     if (eglContext_ != nullptr) {
         ROSEN_LOGD("DestroySharedSource eglContext_ is not nullptr");
         [EAGLContext setCurrentContext:static_cast<EAGLContext*>(eglContext_)];
-        if (framebuffer_ != 0) {
-            glDeleteFramebuffers(1, &framebuffer_);
-            glFinish();
-            framebuffer_ = 0;
-        }
 
         if (colorbuffer_ != 0) {
             glDeleteRenderbuffers(1, &colorbuffer_);
-            glFinish();
             colorbuffer_ = 0;
+        }
+        if (framebuffer_ != 0) {
+            glDeleteFramebuffers(1, &framebuffer_);
+            framebuffer_ = 0;
         }
         [EAGLContext setCurrentContext:nil];
         glFinish();
