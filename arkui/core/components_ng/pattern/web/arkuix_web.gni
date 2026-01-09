@@ -13,6 +13,7 @@
 
 arkuix_web_source = [
   "//foundation/appframework/arkui/core/components_ng/pattern/web/web_delegate_cross.cpp",
+  "//foundation/appframework/arkui/core/components_ng/pattern/web/web_object_event.cpp",
   "//foundation/appframework/arkui/core/components_ng/pattern/web/web_pattern.cpp",
   "//foundation/appframework/arkui/core/components_ng/pattern/web/web_resource.cpp",
 ]
