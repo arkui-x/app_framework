@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,6 +38,8 @@ namespace AAFwk {
 const std::string Want::ABILITY_ID("ability_id");
 const std::string Want::INSTANCE_NAME("instance_name");
 const std::string Want::ELEMENT_BUNDLE_NAME("elementBundleName");
+const std::string Want::ACTION_VIEWDATA("ohos.want.action.viewData");
+const std::string Want::ENTITY_BROWSER("entity.system.browsable");
 namespace {
 using Json = nlohmann::json;
 const std::regex NUMBER_REGEX("^[-+]?([0-9]+)([.]([0-9]+))?$");
@@ -174,11 +176,17 @@ Want& Want::operator=(const Want& want)
  */
 void Want::ClearWant(Want* want)
 {
+    if (want == nullptr) {
+        return;
+    }
     want->wantParams_ = std::make_shared<WantParams>();
     want->bundleName_ = "";
     want->moduleName_ = "";
     want->abilityName_ = "";
     want->type_ = "";
+    want->action_ = "";
+    want->uri_ = "";
+    want->entities_.clear();
 }
 
 /**
@@ -670,6 +678,43 @@ void Want::SetType(const std::string& type)
     type_ = type;
 }
 
+void Want::SetAction(const std::string& action)
+{
+    action_ = action;
+}
+
+void Want::SetUri(const std::string& uri)
+{
+    uri_ = uri;
+}
+
+void Want::SetEntities(const std::vector<std::string>& entities)
+{
+    entities_ = entities;
+}
+
+void Want::AddEntity(const std::string& entity)
+{
+    if (!HasEntity(entity)) {
+        entities_.emplace_back(entity);
+    }
+}
+
+void Want::RemoveEntity(const std::string& entity)
+{
+    if (!entities_.empty()) {
+        auto it = std::find(entities_.begin(), entities_.end(), entity);
+        if (it != entities_.end()) {
+            entities_.erase(it);
+        }
+    }
+}
+
+bool Want::HasEntity(const std::string& entity) const
+{
+    return std::find(entities_.begin(), entities_.end(), entity) != entities_.end();
+}
+
 /**
  * @description: Sets a parameter value of the string type.
  * @param key Indicates the key matching the parameter.
@@ -805,6 +850,9 @@ void Want::InnerCopyWant(const Want& want)
     abilityName_ = want.abilityName_;
     wantParams_ = want.wantParams_;
     type_ = want.type_;
+    action_ = want.action_;
+    uri_ = want.uri_;
+    entities_ = want.entities_;
 }
 } // namespace AAFwk
 } // namespace OHOS
