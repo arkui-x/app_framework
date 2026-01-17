@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,7 @@
 #include "rs_trace.h"
 
 #include "platform/common/rs_log.h"
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
 #include "platform/common/rs_system_properties.h"
 #endif
 
@@ -43,7 +43,7 @@ std::shared_ptr<RenderContext> RenderContext::Create()
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
-        ROSEN_LOGE("arkui-x is use vulkan is true, RenderContext::Create() return nullptr!!")
+        ROSEN_LOGE("arkui-x is use vulkan is true, RenderContext::Create() return nullptr!!");
         return nullptr;
     }
 #endif
