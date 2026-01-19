@@ -81,6 +81,8 @@ public:
     {
         bundleName_ = bundleName;
     }
+    void UpdateRuntimePkgContextInfo(const std::map<std::string, std::vector<uint8_t>>& contextInfoMap,
+        const std::map<std::string, std::string> &packageNameList);
 
 protected:
     JsRuntime() = default;
