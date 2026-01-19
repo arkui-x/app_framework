@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -351,6 +351,79 @@ public:
         return wantParams_;
     }
 
+    /**
+     * @description: Sets the description of an action in a want.
+     * @param action Indicates the action description to set.
+     */
+    void SetAction(const std::string& action);
+
+    /**
+     * @description: Obtains the description of an action in a want.
+     * @return Returns the string value of the action.
+     */
+    std::string GetAction() const
+    {
+        return action_;
+    }
+
+    /**
+     * @description: Sets the description of a URI in a Want.
+     * @param uri Indicates the URI description.
+     */
+    void SetUri(const std::string& uri);
+
+    /**
+     * @description: Obtains the description of a URI in a Want.
+     * @return Returns the string of the URI.
+     */
+    std::string GetUri() const
+    {
+        return uri_;
+    }
+
+    /**
+     * @description: Sets the entities of this Want.
+     * @param entities Indicates entities to set.
+     */
+    void SetEntities(const std::vector<std::string>& entities);
+
+    /**
+     * @description: Obtains the description of all entities in a Want
+     * @return Returns a set of entities
+     */
+    const std::vector<std::string>& GetEntities() const
+    {
+        return entities_;
+    }
+
+    /**
+     * @description: Adds the description of an entity to a Want. Duplicate entities will be ignored.
+     * @param entity Indicates the entity description to add.
+     */
+    void AddEntity(const std::string& entity);
+
+    /**
+     * @description: Removes the description of an entity from a Want
+     * @param entity Indicates the entity description to remove.
+     */
+    void RemoveEntity(const std::string& entity);
+
+    /**
+     * @description: Checks whether a Want contains the given entity
+     * @param entity Indicates the entity to check
+     * @return Returns true if the given entity is contained; returns false otherwise
+     */
+    bool HasEntity(const std::string& entity) const;
+
+    /**
+     * @description: Obtains the number of entities in a Want
+     * @return Returns the entity quantity
+     */
+    size_t CountEntities() const
+    {
+        return entities_.size();
+    }
+
     bool HasParameter(const std::string& key) const;
     void RemoveParam(const std::string& key);
     std::string ToJson() const;
@@ -361,6 +434,8 @@ public:
     static const std::string ABILITY_ID;
     static const std::string INSTANCE_NAME;
     static const std::string ELEMENT_BUNDLE_NAME;
+    static const std::string ACTION_VIEWDATA;
+    static const std::string ENTITY_BROWSER;
 
 private:
     void InnerCopyWant(const Want& want);
@@ -369,6 +444,9 @@ private:
     std::string bundleName_;
     std::string moduleName_;
     std::string abilityName_;
+    std::string action_;
+    std::string uri_;
+    std::vector<std::string> entities_;
 };
 } // namespace AAFwk
 } // namespace OHOS
