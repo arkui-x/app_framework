@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,52 +26,10 @@ RSSurfaceFrameAndroid::RSSurfaceFrameAndroid(int32_t width, int32_t height)
 {
 }
 
-void RSSurfaceFrameAndroid::SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height)
-{
-    RS_TRACE_NAME("SetDamageRegion:" + std::to_string(left) + "," +
-        std::to_string(top) + "," + std::to_string(width) + "," + std::to_string(height));
-    ROSEN_LOGD("SetDamageRegion, left=%d, top=%d, width=%d, height=%d", left, top, width, height);
-    std::vector<RectI> rects;
-    rects.emplace_back(left, top, width, height);
-    renderContext_->DamageFrame(rects);
-}
-
-int32_t RSSurfaceFrameAndroid::GetBufferAge() const
-{
-    return static_cast<int32_t>(renderContext_->QueryEglBufferAge());
-}
-
-Drawing::Canvas* RSSurfaceFrameAndroid::GetCanvas()
-{
-    if (surface_ == nullptr) {
-        CreateSurface();
-    }
-
-    if (surface_ != nullptr) {
-        return surface_->GetCanvas().get();
-    }
-    return nullptr;
-}
-
-std::shared_ptr<Drawing::Surface> RSSurfaceFrameAndroid::GetSurface()
-{
-    if (surface_ == nullptr) {
-        CreateSurface();
-    }
-    return surface_;
-}
-
 void RSSurfaceFrameAndroid::SetRenderContext(std::shared_ptr<RenderContext> context)
 {
-    renderContext_ = std::static_pointer_cast<RenderContextGL>(context);
+    renderContext_ = context;
 }
 
-bool RSSurfaceFrameAndroid::CreateSurface()
-{
-    if (renderContext_ != nullptr) {
-        surface_ = renderContext_->AcquireSurface(width_, height_);
-    }
-    return surface_ != nullptr;
-}
 } // namespace Rosen
 } // namespace OHOS
