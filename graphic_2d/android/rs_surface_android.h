@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,8 +32,9 @@
 #include "platform/common/rs_surface_ext.h"
 #include "platform/drawing/rs_surface.h"
 #include "platform/drawing/rs_surface_frame.h"
-#include "surface/surface_type.h"
+#include "surface_type.h"
 #include "render_context/new_render_context/render_context_gl.h"
+#include "rs_surface_texture_android.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -48,11 +49,6 @@ public:
     bool IsValid() const override;
 
     void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp = 0) override;
-
-    std::unique_ptr<RSSurfaceFrame> RequestFrame(
-        int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC = true, bool isProtected = false) override;
-
-    bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
     std::shared_ptr<RenderContext> GetRenderContext() override;
     void SetRenderContext(std::shared_ptr<RenderContext> context) override;
     uint32_t GetQueueSize() const override;
@@ -64,66 +60,13 @@ public:
     void SetColorSpace(GraphicColorGamut colorSpace) override;
     RSSurfaceExtPtr CreateSurfaceExt(const RSSurfaceExtConfig& config) override;
     RSSurfaceExtPtr GetSurfaceExt(const RSSurfaceExtConfig& config) override;
-private:
+protected:
+    virtual bool SetupGrContext() = 0;
     void YInvert(void *addr, int32_t width, int32_t height);
-    bool SetupGrContext();
-
-    std::shared_ptr<RenderContextGL> renderContext_ = nullptr;
+    std::shared_ptr<RenderContext> renderContext_;
     ANativeWindow* nativeWindow_ = nullptr;
-    EGLSurface eglSurface_ = EGL_NO_SURFACE;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     std::shared_ptr<AndroidSurfaceTexture> texture_;
-};
-
-class AndroidSurfaceTexture : public RSSurfaceExt {
-public:
-    static inline constexpr RSSurfaceExtType Type = RSSurfaceExtType::SURFACE_TEXTURE;
-
-    AndroidSurfaceTexture(RSSurfaceAndroid* surface, const RSSurfaceExtConfig& config);
-    ~AndroidSurfaceTexture();
-    void DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect) override;
-
-    void SetAttachCallback(const RSSurfaceTextureAttachCallBack& attachCallback) override
-    {
-        if (attachCallback_ == nullptr) {
-            attachCallback_ = attachCallback;
-        }
-    }
-    void SetUpdateCallback(const RSSurfaceTextureUpdateCallBack& updateCallback) override
-    {
-        if (updateCallback_ == nullptr) {
-            updateCallback_ = updateCallback;
-        }
-    }
-    void SetInitTypeCallback(const RSSurfaceTextureInitTypeCallBack& initTypeCallback) override
-    {
-    }
-    void MarkUiFrameAvailable(bool available) override;
-    bool IsUiFrameAvailable() const override
-    {
-        return bufferAvailable_.load();
-    }
-
-    void UpdateSurfaceDefaultSize(float width, float height) override;
-    RSSurfaceExtConfig GetSurfaceExtConfig() override
-    {
-        return RSSurfaceExtConfig{};
-    }
-    void UpdateSurfaceExtConfig(const RSSurfaceExtConfig& config) override
-    {
-    }
-private:
-    void updateTransform();
-    enum class AttachmentState { uninitialized, attached, detached };
-    AttachmentState state_ = AttachmentState::uninitialized;
-    GLuint textureId_ = 0;
-    RSSurfaceTextureAttachCallBack attachCallback_;
-    RSSurfaceTextureUpdateCallBack updateCallback_;
-    std::atomic<bool> bufferAvailable_ = false;
-    RSSurfaceExtConfig config_;
-    Drawing::Matrix transform_;
-    float width_ = 0;
-    float height_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,10 @@
 #include <event_handler.h>
 #include "platform/common/rs_log.h"
 #include "rs_surface_android.h"
+#include "gl/rs_surface_android_gl.h"
+#ifdef RS_ENABLE_VK
+#include "vulkan/rs_surface_android_vulkan.h"
+#endif
 #include "rs_vsync_client_android.h"
 
 namespace OHOS {
@@ -62,7 +66,13 @@ uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
     bool unobscured)
 {
-    return std::make_shared<RSSurfaceAndroid>(static_cast<ANativeWindow *>(config.additionalData));
+#if defined (RS_ENABLE_VK)
+    if (RSSystemProperties::IsUseVulkan()) {
+        return std::make_shared<RSSurfaceAndroidVulkan>(
+            static_cast<ANativeWindow *>(config.additionalData)); // GPU render
+    }
+#endif
+    return std::make_shared<RSSurfaceAndroidGL>(static_cast<ANativeWindow *>(config.additionalData));
 }
 
 class VSyncReceiverAndroid : public VSyncReceiver {
