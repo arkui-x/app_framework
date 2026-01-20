@@ -109,7 +109,11 @@ class Context {
     get stageMode() {
         return true;
     }
-    
+
+    get area() {
+      return this.__contextImpl__.area;
+    }
+
     getApplicationContext() {
         return this.__contextImpl__.getApplicationContext();
     }
