@@ -87,6 +87,7 @@ napi_value CreateJsApplicationInfo(napi_env env, const AppExecFwk::ApplicationIn
     napi_set_named_property(env, object, "icon", CreateJsValue(env, applicationInfo.iconPath));
     napi_set_named_property(env, object, "iconId", CreateJsValue(env, applicationInfo.iconId));
     napi_set_named_property(env, object, "codePath", CreateJsValue(env, applicationInfo.codePath));
+    napi_set_named_property(env, object, "systemApp", CreateJsValue(env, applicationInfo.isSystemApp));
     return object;
 }
 
