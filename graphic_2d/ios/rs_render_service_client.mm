@@ -266,10 +266,6 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateModeChangeCallback(
     return {};
 }
 
-void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
-{
-}
-
 void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
 }

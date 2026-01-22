@@ -122,8 +122,6 @@ uint32_t RSSurfaceGPU::GetQueueSize() const
     return 0x3;
 }
 
-void RSSurfaceGPU::SetCleanUpHelper(std::function<void()> func) {}
-
 GraphicColorGamut RSSurfaceGPU::GetColorSpace() const
 {
     if (renderContext_ == nullptr) {
