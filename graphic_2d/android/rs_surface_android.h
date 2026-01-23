@@ -55,7 +55,6 @@ public:
     void ClearBuffer() override;
     void ClearAllBuffer() override;
     void ResetBufferAge() override;
-    void SetCleanUpHelper(std::function<void()> func) override;
     GraphicColorGamut GetColorSpace() const override;
     void SetColorSpace(GraphicColorGamut colorSpace) override;
     RSSurfaceExtPtr CreateSurfaceExt(const RSSurfaceExtConfig& config) override;
