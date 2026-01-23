@@ -33,6 +33,7 @@
 #include "js_error_logger.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
+#include "load_module_helper.h"
 #include "preload_manager.h"
 #include "runtime.h"
 
@@ -73,24 +74,27 @@ std::shared_ptr<AppMain> AppMain::GetInstance()
     return instance_;
 }
 
-void AppMain::LaunchApplication(bool isCopyNativeLibs)
+void AppMain::LaunchApplication(bool isCopyNativeLibs, bool shouldLoadUI)
 {
     if (!eventHandler_) {
         HILOG_ERROR("eventHandler_ is nullptr");
         return;
     }
 
-    auto task = [isCopyNativeLibs]() { AppMain::GetInstance()->ScheduleLaunchApplication(isCopyNativeLibs); };
+    auto task = [isCopyNativeLibs, shouldLoadUI]() {
+        AppMain::GetInstance()->ScheduleLaunchApplication(isCopyNativeLibs, shouldLoadUI);
+    };
     eventHandler_->PostTask(task);
 }
 
-void AppMain::ScheduleLaunchApplication(bool isCopyNativeLibs)
+void AppMain::ScheduleLaunchApplication(bool isCopyNativeLibs, bool shouldLoadUI)
 {
     HILOG_INFO("AppMain schedule launch application.");
     Ace::AceScopedTrace trace("ScheduleLaunchApplication");
 
     LoadIcuData();
 
+    shouldLoadUI_ = shouldLoadUI;
     bundleContainer_ = std::make_shared<AppExecFwk::BundleContainer>();
     if (bundleContainer_ == nullptr) {
         HILOG_ERROR("bundleContainer_ is nullptr");
@@ -173,7 +177,7 @@ void AppMain::CreateAbilityDelegator(const std::string& bundleName, const std::s
 bool AppMain::CreateRuntime(const std::string& bundleName, bool isBundle)
 {
     OHOS::AbilityRuntime::Runtime::Options options;
-    options.loadAce = true;
+    options.loadAce = shouldLoadUI_;
     options.eventRunner = runner_;
     options.codePath = StageAssetManager::GetInstance()->GetBundleCodeDir();
     options.bundleName = bundleName;
@@ -741,6 +745,29 @@ void AppMain::HandlePreloadModule(const std::string& moduleName, const std::stri
         HILOG_ERROR("PreloadManager::GetInstance() is nullptr");
         return;
     }
+}
+
+void AppMain::LoadModule(const std::string& moduleName, const std::string& entryFile)
+{
+    if (!eventHandler_) {
+        HILOG_ERROR("eventHandler_ is nullptr");
+        return;
+    }
+    auto task = [moduleName, entryFile]() {
+        AppMain::GetInstance()->HandleLoadModule(moduleName, entryFile);
+    };
+    eventHandler_->PostTask(task);
+}
+
+void AppMain::HandleLoadModule(const std::string& moduleName, const std::string& entryFile)
+{
+    if (application_ == nullptr || bundleContainer_ == nullptr) {
+        HILOG_ERROR("application_ or bundleContainer_ nullptr");
+        return;
+    }
+
+    auto hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
+    LoadModuleHelper::LoadModule(application_->GetRuntime(), hapModuleInfo, entryFile);
 }
 
 #ifdef IOS_PLATFORM

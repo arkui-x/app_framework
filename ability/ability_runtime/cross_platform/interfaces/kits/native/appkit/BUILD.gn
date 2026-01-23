@@ -86,6 +86,7 @@ template("ability_runtime_appkit_native") {
       "${ability_runtime_cross_platform_path}/frameworks/native/app/js_ability_stage_context.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/app/js_application_context_utils.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/app/js_context_utils.cpp",
+      "${ability_runtime_cross_platform_path}/frameworks/native/app/load_module_helper.cpp",
       "${ability_runtime_cross_platform_path}/frameworks/native/app/stage_asset_manager.cpp",
     ]
 

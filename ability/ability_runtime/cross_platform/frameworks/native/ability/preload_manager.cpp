@@ -25,6 +25,7 @@ namespace AbilityRuntime {
 namespace Platform {
 std::shared_ptr<PreloadManager> PreloadManager::instance_ = nullptr;
 std::mutex PreloadManager::mutex_;
+
 std::shared_ptr<PreloadManager> PreloadManager::GetInstance()
 {
     if (instance_ == nullptr) {
