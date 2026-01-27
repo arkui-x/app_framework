@@ -18,6 +18,7 @@
 
 #include <list>
 #include <mutex>
+#include <utility>
 #include <vector>
 
 namespace OHOS {
@@ -31,6 +32,7 @@ public:
     static std::shared_ptr<StageAssetManager> GetInstance();
     std::vector<uint8_t> GetPkgJsonBuffer(const std::string& moduleName);
     std::list<std::vector<uint8_t>> GetModuleJsonBufferList();
+    std::pair<std::string, std::vector<uint8_t>> GetPkgPairByAppDataPath(const std::string& moduleName);
     std::vector<uint8_t> GetFontConfigJsonBuffer(const std::string& moduleName);
     std::vector<uint8_t> GetModuleBuffer(const std::string& moduleName, std::string& modulePath, bool esmodule);
     std::vector<uint8_t> GetModuleAbilityBuffer(
