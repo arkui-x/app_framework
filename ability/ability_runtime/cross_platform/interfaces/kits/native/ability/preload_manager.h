@@ -24,7 +24,6 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-class JsRuntime;
 namespace Platform {
 
 class PreloadManager {
