@@ -18,8 +18,10 @@
 #import <OpenGLES/EAGL.h>
 #import <OpenGLES/ES2/gl.h>
 #import <OpenGLES/ES2/glext.h>
+#import <objc/runtime.h>
 #include "platform/common/rs_log.h"
 #include "render_context/render_context.h"
+#include <dlfcn.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -32,9 +34,7 @@ RSSurfacePlatformTextureIOS::RSSurfacePlatformTextureIOS(const RSSurfaceExtConfi
 
 RSSurfacePlatformTextureIOS::~RSSurfacePlatformTextureIOS()
 {
-    if (isVideo_) {
-        [videoOutput_ release];
-    }
+    [videoOutput_ release];
 
     if (textureId_ > 0 && attachCallback_ != nullptr) {
         attachCallback_(textureId_, false);
@@ -117,17 +117,16 @@ void RSSurfacePlatformTextureIOS::InitializePlatformEglContext()
 void RSSurfacePlatformTextureIOS::DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze,
     const Drawing::Rect& clipRect)
 {
-    if (active_ == false) {
-        if (!bufferAvailable_.load()){
-            return;
-        }
+    if (active_ == false || currentSharePtr_ != config_.additionalData) {
+        currentSharePtr_ = config_.additionalData;
         if (config_.additionalData == nullptr) {
             return;
         }
         if (initTypeCallback_) {
             initTypeCallback_(isVideo_);
         }
-        if (isVideo_) {
+        if (IsVideo()) {
+            [videoOutput_ release];
             videoOutput_ = [static_cast<AVPlayerItemVideoOutput*>(config_.additionalData) retain];
             active_ = true;
             return;
@@ -150,6 +149,20 @@ void RSSurfacePlatformTextureIOS::DrawTextureImage(RSPaintFilterCanvas& canvas, 
     } else {
         DrawTextureImageGL(canvas, freeze, clipRect);
     }
+}
+
+bool RSSurfacePlatformTextureIOS::IsVideo()
+{
+    void* additionalData = config_.additionalData;
+    if (IsObjectiveCObject(additionalData)) {
+        id additionalObj = (__bridge id)additionalData;
+        if ([additionalObj isKindOfClass:[AVPlayerItemVideoOutput class]]) {
+            isVideo_ = true;
+            return isVideo_;
+        }
+    }
+    isVideo_ = false;
+    return isVideo_;
 }
 
 void RSSurfacePlatformTextureIOS::DrawTextureImageGL(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect)
@@ -225,6 +238,23 @@ void RSSurfacePlatformTextureIOS::DrawTextureImageForVideo(RSPaintFilterCanvas& 
         return;
     }
     canvas.DrawImage(*image, clipRect.GetLeft(), clipRect.GetTop(), Drawing::SamplingOptions());
+}
+
+bool RSSurfacePlatformTextureIOS::IsObjectiveCObject(const void* candidate)
+{
+    if (candidate == nullptr) {
+        return false;
+    }
+    uintptr_t raw = reinterpret_cast<uintptr_t>(candidate);
+    if ((raw & (sizeof(void*) - 1)) != 0) {
+        return false;
+    }
+    const void* isa = *reinterpret_cast<const void *const *>(candidate);
+    if (isa == nullptr) {
+        return false;
+    }
+    Dl_info info {};
+    return dladdr(isa, &info) != 0;
 }
 } // namespace Rosen
 } // namespace OHOS
