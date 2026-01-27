@@ -57,6 +57,8 @@ public:
     void NotifyApplicationBackground();
     void PreloadModule(const std::string& moduleName, const std::string& abilityName);
     void LoadModule(const std::string& moduleName, const std::string& entryFile);
+    void UpdateRuntimeHSPPkgContextInfo(const std::vector<std::string>& moduleNames);
+    void UpdateRuntimePkgContextInfo(const std::string& moduleName);
 #ifdef IOS_PLATFORM
     void SetResourceFilePrefixPath();
 #endif

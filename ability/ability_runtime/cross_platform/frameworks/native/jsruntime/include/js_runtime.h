@@ -77,6 +77,8 @@ public:
         const DebuggerPostTask& debuggerPostTask = {});
     void RegisterUncaughtExceptionHandler(const JsEnv::UncaughtExceptionInfo& uncaughtExceptionInfo);
     bool IsNeedUpdate(const std::string& moduleName, const std::string& modulePath);
+    void UpdateRuntimePkgContextInfo(const std::map<std::string, std::vector<uint8_t>>& contextInfoMap,
+        const std::map<std::string, std::string> &packageNameList);
 
 protected:
     JsRuntime() = default;

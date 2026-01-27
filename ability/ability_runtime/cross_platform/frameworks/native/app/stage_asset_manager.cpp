@@ -15,6 +15,7 @@
 
 #include "stage_asset_manager.h"
 
+#include <dirent.h>
 #include <string>
 
 #include "hilog.h"
@@ -178,6 +179,10 @@ void StageAssetManager::InitModuleVersionCode()
 bool StageAssetManager::IsDynamicUpdateModule(const std::string& moduleName)
 {
     return StageAssetProvider::GetInstance()->IsDynamicUpdateModule(moduleName);
+}
+std::pair<std::string, std::vector<uint8_t>> StageAssetManager::GetPkgPairByAppDataPath(const std::string& moduleName)
+{
+    return StageAssetProvider::GetInstance()->GetPkgPairByAppDataPath(moduleName);
 }
 } // namespace Platform
 } // namespace AbilityRuntime
