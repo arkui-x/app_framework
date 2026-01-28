@@ -242,6 +242,62 @@ void AppMain::ParseBundleComplete()
     }
 }
 
+void AppMain::UpdateRuntimePkgContextInfo(const std::string& moduleName)
+{
+    if (application_ == nullptr || bundleContainer_ == nullptr) {
+        HILOG_ERROR("application_ or bundleContainer_ is nullptr");
+        return;
+    }
+
+    if (application_->GetRuntime() == nullptr) {
+        HILOG_ERROR("runtime is nullptr");
+        return;
+    }
+
+    auto hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
+    if (hapModuleInfo == nullptr) {
+        HILOG_ERROR("hapModuleInfo is nullptr, moduleName: %{public}s", moduleName.c_str());
+        return;
+    }
+
+    std::vector<uint8_t> buffer = StageAssetManager::GetInstance()->GetPkgJsonBuffer(moduleName);
+    if (buffer.empty()) {
+        HILOG_ERROR("GetPkgJsonBuffer empty, moduleName: %{public}s", moduleName.c_str());
+        return;
+    }
+    buffer.push_back('\0');
+
+    std::map<std::string, std::vector<uint8_t>> pkgContextInfoJsonBufferMap;
+    std::map<std::string, std::string> packageNameList;
+    pkgContextInfoJsonBufferMap[moduleName] = std::move(buffer);
+    packageNameList[moduleName] = hapModuleInfo->packageName;
+
+    static_cast<JsRuntime&>(
+        *application_->GetRuntime()).UpdateRuntimePkgContextInfo(pkgContextInfoJsonBufferMap, packageNameList);
+    UpdateRuntimeHSPPkgContextInfo(hapModuleInfo->dependencies);
+}
+
+void AppMain::UpdateRuntimeHSPPkgContextInfo(const std::vector<std::string>& moduleNames)
+{
+    if (moduleNames.empty()) {
+        return;
+    }
+
+    for (const auto& moduleName : moduleNames) {
+        auto dynamicPkg = StageAssetManager::GetInstance()->GetPkgPairByAppDataPath(moduleName);
+        if (!dynamicPkg.first.empty() && !dynamicPkg.second.empty()) {
+            auto buffer = dynamicPkg.second;
+            buffer.push_back('\0');
+            std::map<std::string, std::vector<uint8_t>> pkgContextInfoJsonBufferMap;
+            std::map<std::string, std::string> packageNameList;
+            pkgContextInfoJsonBufferMap[moduleName] = std::move(buffer);
+            packageNameList[moduleName] = dynamicPkg.first;
+            static_cast<JsRuntime&>(
+                *application_->GetRuntime()).UpdateRuntimePkgContextInfo(pkgContextInfoJsonBufferMap, packageNameList);
+        }
+    }
+}
+
 void AppMain::DispatchOnCreate(const std::string& instanceName, const std::string& params)
 {
     HILOG_INFO("DispatchOnCreate called");
@@ -392,6 +448,7 @@ void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std:
                 ParseBundleComplete();
                 hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
             }
+            UpdateRuntimePkgContextInfo(moduleName);
         }
     }
 
@@ -400,6 +457,7 @@ void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std:
     if (hapModuleInfo != nullptr) {
         auto dependencies = hapModuleInfo->dependencies;
         if (!dependencies.empty()) {
+            UpdateRuntimeHSPPkgContextInfo(hapModuleInfo->dependencies);
             for (const auto& dependency : dependencies) {
                 StageAssetManager::GetInstance()->CopyHspResourcePath(dependency);
                 moduleNames.emplace_back(dependency);
