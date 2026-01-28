@@ -76,6 +76,7 @@ std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToColorSpace(GraphicColorG
         // [planning] in order to stay consistant with the colorspace used before, we disabled
         // GRAPHIC_COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
         case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+        case GRAPHIC_COLOR_GAMUT_DCI_P3:
             colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
                 Drawing::CMSMatrixType::DCIP3);
             break;
@@ -454,7 +455,18 @@ bool RSSurfaceAndroidVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, 
 void RSSurfaceAndroidVulkan::SetColorSpace(GraphicColorGamut colorSpace)
 {
     ROSEN_LOGD("RSSurfaceAndroidVulkan::SetColorSpace colorSpace %{public}d", colorSpace);
+    if (colorSpace_ == colorSpace) {
+        ROSEN_LOGD("RSSurfaceAndroidVulkan::SetColorSpace colorspace unchanged, skip");
+        return;
+    }
     colorSpace_ = colorSpace;
+    for (size_t i = 0; i < skiaSurfaces_.size(); i++) {
+        if (skiaSurfaces_[i]) {
+            skiaSurfaces_[i].reset();
+        }
+    }
+    skiaSurfaces_.clear();
+    skiaSurfaces_.shrink_to_fit();
 }
 
 void RSSurfaceAndroidVulkan::ClearBuffer()
