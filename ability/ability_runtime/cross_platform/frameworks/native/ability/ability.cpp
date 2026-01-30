@@ -183,6 +183,7 @@ void Ability::OnConfigurationUpdate(const Configuration& configuration)
         HILOG_ERROR("resConfig is nullptr");
         return;
     }
+    resourceManager->GetResConfig(*resConfig);
     std::string language { "" };
     std::string country { "" };
     std::string script { "" };
