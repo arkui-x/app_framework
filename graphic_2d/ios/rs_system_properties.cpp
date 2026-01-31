@@ -507,11 +507,6 @@ bool RSSystemProperties::GetClipRRectOptimizationEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetRSNodeExceedKillEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetTransactionDataTraceEnabled()
 {
     return false;
