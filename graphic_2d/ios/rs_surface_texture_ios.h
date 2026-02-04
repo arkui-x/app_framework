@@ -63,7 +63,7 @@ private:
     void CreateTextureFromPixelBuffer();
     CVPixelBufferRef GetPixelBuffer();
 
-    AVPlayerItemVideoOutput* videoOutput_;
+    AVPlayerItemVideoOutput* videoOutput_ = nullptr;
     OHOS::CFRef<CVOpenGLESTextureCacheRef> cache_ref_;
     OHOS::CFRef<CVOpenGLESTextureRef> texture_ref_;
     OHOS::CFRef<CVPixelBufferRef> buffer_ref_;
