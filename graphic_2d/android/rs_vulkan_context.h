@@ -21,7 +21,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include "sync_fence.h"
 #include "include/third_party/vulkan/vulkan/vulkan_core.h"
 #include "platform/common/rs_log.h"
 
@@ -323,12 +322,6 @@ private:
     PFN_vkVoidFunction AcquireProc(const char* proc_name, const VkDevice& device) const;
     std::shared_ptr<Drawing::GPUContext> CreateNewDrawingContext(bool isProtected = false);
 
-    struct semaphoreFence {
-        VkSemaphore semaphore;
-        std::unique_ptr<SyncFence> fence;
-    };
-    std::list<semaphoreFence> usedSemaphoreFenceList_;
-    std::mutex semaphoreLock_;
     std::atomic<VulkanDeviceStatus> deviceStatus_ = VulkanDeviceStatus::UNINITIALIZED;
 };
 

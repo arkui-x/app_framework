@@ -85,9 +85,6 @@ static const std::vector<const char*> gOptionalDeviceExtensionsDebug = {
 static const int GR_CACHE_MAX_COUNT = 8192;
 static const size_t GR_CACHE_MAX_BYTE_SIZE = 96 * (1 << 20);
 static const int32_t CACHE_LIMITS_TIMES = 2;  // this will change RS memory!
-// Log print interval: print semaphore fence statistics once every ~20 minutes
-// Assuming 120fps: 144000 frames / 120 fps / 60 seconds = 20 minutes
-static constexpr uint64_t SEMAPHORE_FENCE_LOG_INTERVAL = 144000;
 std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfofdDupCnt_ = 0;
 std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfoRSDerefCnt_ = 0;
 std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfo2DEngineDerefCnt_ = 0;
@@ -109,7 +106,6 @@ void RsVulkanInterface::Init(VulkanInterfaceType vulkanInterfaceType, bool isPro
 
 RsVulkanInterface::~RsVulkanInterface()
 {
-    usedSemaphoreFenceList_.clear();
     if (protectedMemoryFeatures_) {
         delete protectedMemoryFeatures_;
         protectedMemoryFeatures_ = nullptr;
@@ -612,7 +608,6 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::DoCreateDrawingContext(s
     auto drawingContext = std::make_shared<Drawing::GPUContext>();
     Drawing::GPUContextOptions options;
     std::string vkVersion = std::to_string(VK_API_VERSION_1_3);
-    auto size = vkVersion.size();
     drawingContext->BuildFromVK(backendContext_, options);
     return drawingContext;
 }
@@ -636,12 +631,6 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std
 
 void RsVulkanInterface::DestroyAllSemaphoreFence()
 {
-    std::lock_guard<std::mutex> lock(semaphoreLock_);
-    ROSEN_LOGE("Device lost clear all semaphore fences, count [%{public}zu] ", usedSemaphoreFenceList_.size());
-    for (auto&& semaphoreFence : usedSemaphoreFenceList_) {
-        vkDestroySemaphore(device_, semaphoreFence.semaphore, nullptr);
-    }
-    usedSemaphoreFenceList_.clear();
 }
 
 void RsVulkanInterface::SetVulkanDeviceStatus(VulkanDeviceStatus status)
@@ -656,56 +645,14 @@ VulkanDeviceStatus RsVulkanInterface::GetVulkanDeviceStatus()
 
 void RsVulkanInterface::CleanupUsedSemaphoreFences()
 {
-    // 3000 means too many used semaphore fences
-    if (usedSemaphoreFenceList_.size() >= 3000) {
-        ROSEN_LOGE("Too many used semaphore fences, count [%{public}zu] ", usedSemaphoreFenceList_.size());
-        for (auto&& semaphoreFence : usedSemaphoreFenceList_) {
-            if (semaphoreFence.fence != nullptr) {
-                semaphoreFence.fence->Wait(-1);
-            }
-            vkDestroySemaphore(device_, semaphoreFence.semaphore, nullptr);
-        }
-        usedSemaphoreFenceList_.clear();
-    }
-    for (auto it = usedSemaphoreFenceList_.begin(); it != usedSemaphoreFenceList_.end();) {
-        auto& fence = it->fence;
-        if (fence == nullptr || fence->GetStatus() == FenceStatus::SIGNALED) {
-            vkDestroySemaphore(device_, it->semaphore, nullptr);
-            it->semaphore = VK_NULL_HANDLE;
-            it = usedSemaphoreFenceList_.erase(it);
-        } else {
-            it++;
-        }
-    }
 }
 
 void RsVulkanInterface::LogSemaphoreFenceStatistics()
 {
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN &&
-        RsVulkanInterface::callbackSemaphoreInfofdDupCnt_.load(
-            std::memory_order_relaxed) % SEMAPHORE_FENCE_LOG_INTERVAL == 0) {
-        ROSEN_LOGI("used fences, surface flush count[%{public}" PRIu64 "],"
-            "dup fence count[%{public}" PRIu64 "], rs deref count[%{public}" PRIu64 "],"
-            "call 2DEngineDeref count[%{public}" PRIu64 "], 2DEngine deref count[%{public}" PRIu64 "],"
-            "Defensive 2DEngine deref count[%{public}" PRIu64 "], wait close fence count[%{public}zu]",
-            RsVulkanInterface::callbackSemaphoreInfoFlushCnt_.load(std::memory_order_relaxed),
-            RsVulkanInterface::callbackSemaphoreInfofdDupCnt_.load(std::memory_order_relaxed),
-            RsVulkanInterface::callbackSemaphoreInfoRSDerefCnt_.load(std::memory_order_relaxed),
-            RsVulkanInterface::callbackSemaphoreInfo2DEngineCallCnt_.load(std::memory_order_relaxed),
-            RsVulkanInterface::callbackSemaphoreInfo2DEngineDerefCnt_.load(std::memory_order_relaxed),
-            RsVulkanInterface::callbackSemaphoreInfo2DEngineDefensiveDerefCnt_.load(std::memory_order_relaxed),
-            usedSemaphoreFenceList_.size());
-    }
 }
 
 VkSemaphore RsVulkanInterface::RequireSemaphore()
 {
-    {
-        std::lock_guard<std::mutex> lock(semaphoreLock_);
-        CleanupUsedSemaphoreFences();
-        LogSemaphoreFenceStatistics();
-    }
-
     VkSemaphoreCreateInfo semaphoreInfo;
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreInfo.pNext = nullptr;
