@@ -96,7 +96,7 @@ int32_t RSRenderPipelineClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrSt
     return 0;
 }
 
-void RSRenderPipelineClient::DropFrameByPid(const std::vector<int32_t> pidList)
+void RSRenderPipelineClient::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
 }
 

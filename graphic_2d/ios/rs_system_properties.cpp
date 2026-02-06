@@ -121,16 +121,6 @@ bool RSSystemProperties::GetHighContrastStatus()
     return {};
 }
 
-bool RSSystemProperties::IsPhoneType()
-{
-    return true;
-}
-
-bool RSSystemProperties::IsBetaRelease()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return {};

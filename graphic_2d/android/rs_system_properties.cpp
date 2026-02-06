@@ -32,16 +32,6 @@ int RSSystemProperties::GetRecordingEnabled()
     return 0;
 }
 
-bool RSSystemProperties::IsPhoneType()
-{
-    return true;
-}
-
-bool RSSystemProperties::IsBetaRelease()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return {};
