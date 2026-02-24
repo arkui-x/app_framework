@@ -43,6 +43,9 @@ constexpr char CHARACTER_WHITESPACE = ' ';
 constexpr const char* CHARACTER_STRING_WHITESPACE = " ";
 constexpr const char* EGL_KHR_SURFACELESS_CONTEXT = "EGL_KHR_surfaceless_context";
 
+constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
+constexpr int DEFAULT_SKIA_CACHE_COUNT          = 2 * (1 << 12);
+
 std::shared_ptr<RenderContext> RenderContext::Create()
 {
 #ifdef RS_ENABLE_VK
@@ -317,6 +320,16 @@ bool RenderContextGL::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawi
     if (!drGPUContext->BuildFromGL(options)) {
         ROSEN_LOGE("SetUpGpuContext drGPUContext is null");
         return false;
+    }
+    int maxResources = 0;
+    size_t maxResourcesSize = 0;
+    drGPUContext->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
+    if (maxResourcesSize > 0) {
+        int cacheLimitsTimes = 2;
+        drGPUContext->SetResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes *
+            std::fmin(maxResourcesSize, DEFAULT_SKIA_CACHE_SIZE));
+    } else {
+        drGPUContext->SetResourceCacheLimits(DEFAULT_SKIA_CACHE_COUNT, DEFAULT_SKIA_CACHE_SIZE);
     }
     drGPUContext_ = std::move(drGPUContext);
     return true;
