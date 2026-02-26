@@ -502,15 +502,5 @@ bool RSSystemProperties::GetTransactionDataTraceEnabled()
 {
     return false;
 }
-
-bool RSSystemProperties::GetUnmarshalParallelEnabled()
-{
-    return false;
-}
-
-uint32_t RSSystemProperties::GetUnmarshalParallelMinDataSize()
-{
-    return 0;
-}
 } // namespace Rosen
 } // namespace OHOS

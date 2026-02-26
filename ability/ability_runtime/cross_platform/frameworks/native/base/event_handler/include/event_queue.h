@@ -31,6 +31,15 @@ namespace OHOS {
 namespace AppExecFwk {
 class IoWaiter;
 
+enum class VsyncBarrierOption : int32_t {
+    // Not required handling the designated task before handling the vsync.
+    NO_BARRIER = 0,
+    // Required handling the designated task before handling vsync when it is sended by the main thread itself.
+    NEED_BARRIER = 1,
+    // Required handling the designated task before handling vsync for all situations.
+    FORCE_BARRIER = 2,
+};
+
 class EventQueue final {
 public:
     // Priority for the events

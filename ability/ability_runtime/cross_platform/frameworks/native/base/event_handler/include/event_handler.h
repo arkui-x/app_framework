@@ -414,6 +414,23 @@ public:
     }
 
     /**
+     * Post a task at tail of queue.
+     *
+     * @param callback Task callback.
+     * @param name Name of the task.
+     * @param priority Priority of the event queue for this event.
+     * @param caller Caller info of the event, default is caller's file, func and line.
+     * @param option VsyncBarrierOption of the event, default is no barrier.
+     * @return Returns true if task has been sent successfully.
+     */
+    inline bool PostTaskAtTail(const Callback &callback, const std::string &name = std::string(),
+                        Priority priority = Priority::LOW, const Caller &caller = {},
+                        VsyncBarrierOption option = VsyncBarrierOption::NO_BARRIER)
+    {
+        return SendEvent(InnerEvent::Get(callback, name.empty() ? Caller(caller).ToString() : name), 0, priority);
+    }
+
+    /**
      * Set delivery time out callback.
      *
      * @param callback Delivery Time out callback.
