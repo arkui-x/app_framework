@@ -75,6 +75,8 @@ private:
     void UpdateTransform();
     bool InitializeTextureIfNeeded();
     std::shared_ptr<Drawing::Image> CreateTextureImage(RSPaintFilterCanvas& canvas);
+    bool ApplyClipForAlignment(RSPaintFilterCanvas& canvas);
+    bool ApplyTransformMatrix(RSPaintFilterCanvas& canvas);
     enum class AttachmentState { UNINITIALIZED, ATTACHED, DETACHED };
     AttachmentState state_ = AttachmentState::UNINITIALIZED;
     GLuint textureId_ = 0;
