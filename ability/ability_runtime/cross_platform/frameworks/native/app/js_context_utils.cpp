@@ -26,7 +26,6 @@ namespace AbilityRuntime {
 namespace Platform {
 namespace {
 constexpr char BASE_CONTEXT_NAME[] = "__base_context_ptr__";
-constexpr int32_t DEFAULT_AREA = 0;
 }
 
 void JsBaseContext::Finalizer(napi_env env, void* data, void* hint)
@@ -344,12 +343,6 @@ napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, b
         } else {
             HILOG_ERROR("jsResourceManager is nullptr");
         }
-    }
-
-    napi_value areaValue = nullptr;
-    napi_create_int32(env, DEFAULT_AREA, &areaValue);
-    if (areaValue != nullptr) {
-        napi_set_named_property(env, object, "area", areaValue);
     }
 
     const char* moduleName = "JsBaseContext";
