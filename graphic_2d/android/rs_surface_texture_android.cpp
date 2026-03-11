@@ -15,11 +15,14 @@
 
 #include "rs_surface_texture_android.h"
 
+#include <cmath>
 #include <cstdint>
 #include <securec.h>
 
+#include "draw/paint.h"
+#include "effect/shader_effect.h"
 #include "platform/common/rs_log.h"
-const float TRANSLATE_VALUE = 0.5f;
+
 namespace OHOS {
 namespace Rosen {
 AndroidSurfaceTexture::AndroidSurfaceTexture(const RSSurfaceExtConfig& config)
@@ -42,25 +45,25 @@ void AndroidSurfaceTexture::MarkUiFrameAvailable(bool available)
     bufferAvailable_.store(available);
 }
 
-static inline Drawing::SizeF ScaleToFill(float scaleX, float scaleY)
-{
-    const double epsilon = std::numeric_limits<double>::epsilon();
-    /* scaleY is negative. */
-    const double minScale = fmin(scaleX, fabs(scaleY));
-    const double rescale = 1.0f / (minScale + epsilon);
-    return Drawing::SizeF(scaleX * rescale, scaleY * rescale);
-}
-
 void AndroidSurfaceTexture::UpdateTransform()
 {
     std::vector<float> matrix {};
     updateCallback_(matrix);
     if (matrix.size() == 16) { // 16 max len
-        const Drawing::SizeF scaled = ScaleToFill(matrix[0], matrix[5]); // 5 index
+        // the matrix is the same as the matrix in the surface texture, so we need to invert it
         Drawing::Matrix::Buffer matrix3 = {
-            scaled.Width(), matrix[1], matrix[2], matrix[4], // 2 4 index
-            scaled.Height(), matrix[6], matrix[8], matrix[9], matrix[10]}; // 6,8,9,10 index
-        transform_.SetAll(matrix3);
+            matrix[0], matrix[4], matrix[12],
+            matrix[1], matrix[5], matrix[13],
+            matrix[3], matrix[7], matrix[15]
+        };
+        Drawing::Matrix transformInvert;
+        transformInvert.SetAll(matrix3);
+        // invert the matrix to get the transform_
+        auto res = transformInvert.Invert(transform_);
+        if (!res) {
+            transform_.SetMatrix(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+            ROSEN_LOGE("AndroidSurfaceTexture::UpdateTransform Invert failed");
+        }
     }
 }
 
@@ -128,18 +131,28 @@ void AndroidSurfaceTexture::DrawTextureImage(RSPaintFilterCanvas& canvas, bool f
     if (image == nullptr) {
         return;
     }
-
-    canvas.Save();
-    canvas.Translate(clipRect.GetLeft(), clipRect.GetTop());
-    canvas.Scale(clipRect.GetWidth(), clipRect.GetHeight());
-    if (!transform_.IsIdentity()) {
-        Drawing::Matrix transformAroundCenter(transform_);
-        transformAroundCenter.PreTranslate(-TRANSLATE_VALUE, -TRANSLATE_VALUE);
-        transformAroundCenter.PostScale(1, -1);
-        transformAroundCenter.PostTranslate(TRANSLATE_VALUE, TRANSLATE_VALUE);
-        canvas.ConcatMatrix(transformAroundCenter);
+    // transform_ is identity, so no need to clip, just draw the image directly
+    if (transform_.IsIdentity()) {
+        canvas.DrawImage(*image, 0, 0, Drawing::SamplingOptions());
+        return;
     }
-    canvas.DrawImage(*image, 0, 0, Drawing::SamplingOptions());
+    canvas.Save();
+    canvas.Translate(clipRect.GetLeft(), clipRect.GetTop() + clipRect.GetHeight());
+    canvas.Scale(clipRect.GetWidth(),  -clipRect.GetHeight());
+    // draw the image with the transform_, but the image is upside down, so we need to scale the image vertically
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(
+        *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
+        Drawing::SamplingOptions(), transform_);
+    if (imageShader != nullptr) {
+        Drawing::Paint paint;
+        paint.SetShaderEffect(imageShader);
+        paint.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL);
+        canvas.AttachPaint(paint);
+        canvas.DrawRect(Drawing::Rect(0, 0, 1, 1));
+        canvas.DetachPaint();
+    } else {
+        ROSEN_LOGE("AndroidSurfaceTexture::DrawTextureImage failed,imageShader == nullptr");
+    }
     canvas.Restore();
 }
 } // namespace Rosen
