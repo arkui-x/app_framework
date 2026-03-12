@@ -2197,6 +2197,11 @@ void WebPattern::OnEnableAutoFillUpdate(bool isEnabled)
     // cross platform is not support now;
 }
 
+void WebPattern::OnEnableDefaultContextMenuUpdate(bool isEnabled)
+{
+    // cross platform is not support now;
+}
+
 void WebPattern::UpdateEditMenuOptions(const NG::OnCreateMenuCallback&& onCreateMenuCallback,
     const NG::OnMenuItemClickCallback&& onMenuItemClick, const NG::OnPrepareMenuCallback&& onPrepareMenuCallback)
 {
