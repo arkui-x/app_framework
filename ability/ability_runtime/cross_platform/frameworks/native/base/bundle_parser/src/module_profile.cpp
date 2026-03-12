@@ -880,11 +880,34 @@ bool ToInnerModuleInfo(const Profile::ModuleJson& moduleJson, const TransformPar
     return true;
 }
 
+bool CheckSplicingModuleNameIsValid(const std::string& bundleName, const std::string& moduleName)
+{
+    if (moduleName.empty()) {
+        return false;
+    }
+    std::string originalModuleName = moduleName;
+    if (!bundleName.empty() && moduleName.length() > bundleName.length()) {
+        size_t pos = moduleName.find(bundleName + ".");
+        if (pos == 0) {
+            // When there are multiple packages, the moduleName is: "com.example.[bundle Name].[module Name]"
+            originalModuleName = moduleName.substr(bundleName.length() + 1);
+        }
+    }
+    if (originalModuleName.size() > Constants::MAX_MODULE_NAME) {
+        return false;
+    }
+    if (moduleName.find(Constants::RELATIVE_PATH) != std::string::npos) {
+        return false;
+    }
+    return true;
+}
+
 bool ToInnerBundleInfo(
     const Profile::ModuleJson& moduleJson, const OverlayMsg& overlayMsg, InnerBundleInfo& innerBundleInfo)
 {
     HILOG_INFO("transform ModuleJson to InnerBundleInfo");
-    if (!CheckBundleNameIsValid(moduleJson.app.bundleName) || !CheckModuleNameIsValid(moduleJson.module.name)) {
+    if (!CheckBundleNameIsValid(moduleJson.app.bundleName) ||
+        !CheckSplicingModuleNameIsValid(moduleJson.app.bundleName, moduleJson.module.name)) {
         HILOG_ERROR("bundle name or module name is invalid");
         return false;
     }
