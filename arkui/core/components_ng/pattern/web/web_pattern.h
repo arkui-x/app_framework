@@ -428,6 +428,7 @@ public:
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, ForceEnableZoom, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, BackToTop, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, EnableAutoFill, bool);
+    ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, EnableDefaultContextMenu, bool);
     void RequestFullScreen();
     void ExitFullScreen();
     bool IsFullScreen() const
@@ -442,6 +443,14 @@ public:
     bool OnBackPressedForFullScreen() const;
     void SetFullScreenExitHandler(const std::shared_ptr<FullScreenEnterEvent>& fullScreenExitHandler);
     bool NotifyStartDragTask(bool isDelayed = false);
+    void SetEnableDefaultContextMenu(bool enable)
+    {
+        isEnableDefaultContextMenu_ = enable;
+    }
+    bool IsEnableDefaultContextMenu()
+    {
+        return isEnableDefaultContextMenu_;
+    }
     void OnContextMenuShow(const std::shared_ptr<BaseEventInfo>& info, bool isRichtext = true, bool result = false);
     void UpdateJavaScriptOnDocumentStart();
     void JavaScriptOnDocumentStart(const ScriptItems& scriptItems);
@@ -700,6 +709,7 @@ private:
     void WebRotateRenderEffect(WindowSizeChangeReason type);
     void OnForceEnableZoomUpdate(bool isEnabled);
     void OnEnableAutoFillUpdate(bool isEnabled);
+    void OnEnableDefaultContextMenuUpdate(bool isEnabled);
 
     void InitEvent();
     void InitTouchEvent(const RefPtr<GestureEventHub>& gestureHub);
@@ -827,6 +837,7 @@ private:
     bool richTextInit_ = false;
     ACE_DISALLOW_COPY_AND_MOVE(WebPattern);
     bool needSetDefaultBackgroundColor_ = false;
+    bool isEnableDefaultContextMenu_ = false;
 
     NestedScrollOptionsExt nestedScroll_ = {
         .scrollUp = NestedScrollMode::SELF_ONLY,
