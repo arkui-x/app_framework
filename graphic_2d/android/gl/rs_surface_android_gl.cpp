@@ -105,6 +105,19 @@ bool RSSurfaceAndroidGL::SetupGrContext()
     return true;
 }
 
+void RSSurfaceAndroidGL::SetRenderContext(std::shared_ptr<RenderContext> context)
+{
+    if (GetRenderContextGL() != context) {
+        if (GetRenderContextGL() != nullptr) {
+            GetRenderContextGL()->DeleteSurface();
+        }
+        RSSurfaceAndroid::SetRenderContext(context);
+        if (GetRenderContextGL() != nullptr) {
+            GetRenderContextGL()->AddSurface();
+        }
+    }
+}
+
 GraphicColorGamut RSSurfaceAndroidGL::GetColorSpace() const
 {
     if (GetRenderContextGL() == nullptr) {
