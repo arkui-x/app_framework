@@ -18,6 +18,8 @@
 
 #include <sstream>
 #include <string>
+#include <chrono>
+#include <__config>
 #include <sys/resource.h>
 
 #include "EGL/egl.h"
@@ -270,11 +272,62 @@ bool RenderContextGL::SwapBuffers(EGLSurface surface) const
     }
 }
 
+void RenderContextGL::AddSurface()
+{
+    int32_t count = surface_count_.fetch_add(1, std::memory_order_relaxed) + 1;
+    ROSEN_LOGE("AddSurface: surface_count_ = %{public}d", count);
+}
+ 	 
+void RenderContextGL::DeleteSurface()
+{
+    int32_t count = surface_count_.fetch_sub(1, std::memory_order_acq_rel) - 1;
+    ROSEN_LOGE("DeleteSurface: surface_count_ = %{public}d", count);
+
+    if (cleanUpHelper_ != nullptr && count <= 0) {
+        ROSEN_LOGE("DeleteSurface: All surfaces destroyed, calling cleanUpHelper_");
+        cleanUpHelper_();
+    }
+}
+ 	 
+void RenderContextGL::SetCleanUpHelper(std::function<void()> func)
+{
+    cleanUpHelper_ = func;
+}
+
+void RenderContextGL::DestroySharedSource()
+{
+    int32_t count = surface_count_.load(std::memory_order_acquire);
+    ROSEN_LOGE("DestroySharedSource: surface_count_= %{public}d", count);
+    if (count > 0) {
+        return;
+    }
+
+    if (drGPUContext_) {
+        ROSEN_LOGE("DestroySharedSource: Cleaning GPUContext resources");
+        drGPUContext_->PurgeUnlockedResources(false);
+        drGPUContext_->FreeGpuResources();
+        drGPUContext_->PerformDeferredCleanup(std::chrono::milliseconds(0));
+        drGPUContext_ = nullptr;
+    }
+
+    if (eglContext_ != EGL_NO_CONTEXT) {
+        ROSEN_LOGE("DestroySharedSource: eglContext_ is not null");
+        if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, eglContext_)) {
+            ROSEN_LOGE("DestroySharedSource: eglMakeCurrent failed");
+        }
+        glFinish();
+        eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    }
+
+    surface_ = nullptr;
+}
+
 void RenderContextGL::DestroyEGLSurface(EGLSurface surface)
 {
     if (!eglDestroySurface(eglDisplay_, surface)) {
         ROSEN_LOGE("Failed to DestroyEGLSurface surface %p, error is %x", surface, eglGetError());
     }
+    DeleteSurface();
 }
 
 EGLSurface RenderContextGL::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)

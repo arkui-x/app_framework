@@ -48,6 +48,7 @@ public:
 
     GraphicColorGamut GetColorSpace() const override;
     void SetColorSpace(GraphicColorGamut colorSpace) override;
+    void SetRenderContext(std::shared_ptr<RenderContext> context) override;
     
 private:
     bool SetupGrContext() override;
