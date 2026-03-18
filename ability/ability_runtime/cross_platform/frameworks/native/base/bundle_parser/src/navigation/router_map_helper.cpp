@@ -208,7 +208,15 @@ void RouterMapHelper::ProcessBundleRouterMap(BundleInfo& bundleInfo, int32_t fla
 #endif
         std::string routerJsonPath = appDataModuleDir + '/' + moduleName + '/' + routerJson;
         if (!ReadFromJson(routerJsonPath, routerMapString)) {
+#ifdef IOS_PLATFORM
+            appDataModuleDir = StageAssetManager::GetInstance()->GetAppDataModuleDir();
+            routerJsonPath = appDataModuleDir + '/' + moduleName + '/' + routerJson;
+            if (!ReadFromJson(routerJsonPath, routerMapString)) {
+                HILOG_ERROR("get json string from %{public}s failed", routerJsonPath.c_str());
+            }
+#else
             HILOG_ERROR("get json string from %{public}s failed", routerJsonPath.c_str());
+#endif
         }
         HILOG_INFO("routerMapString is %{public}s", routerMapString.c_str());
         BundleParser bundleParser;
