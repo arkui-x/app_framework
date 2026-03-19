@@ -48,7 +48,7 @@ RSVsyncClientIOS::RSVsyncClientIOS()
 
 RSVsyncClientIOS::~RSVsyncClientIOS()
 {
-    NSLog(@"RSVsyncClientIOS::dealloc");
+    ROSEN_LOGI("RSVsyncClientIOS::dealloc");
     [vsyncIOS_ invalidate];
     [vsyncIOS_ release];
 }
@@ -80,7 +80,7 @@ void RSVsyncClientIOS::SetVsyncCallback(VsyncCallback callback)
         float mainMaxFrameRate = [UIScreen mainScreen].maximumFramesPerSecond;
         if (@available(iOS 15.0,*)) {
             float maxFrameRate = fmax(mainMaxFrameRate, FRAME_RATE);
-            NSLog(@"RSVsyncIOS::maxFrameRate = %f",maxFrameRate);
+            ROSEN_LOGI("RSVsyncIOS::maxFrameRate = %{public}f",maxFrameRate);
             displayLink_.preferredFrameRateRange = CAFrameRateRangeMake(maxFrameRate, maxFrameRate, maxFrameRate);
         } else {
             displayLink_.preferredFramesPerSecond = mainMaxFrameRate;
@@ -115,7 +115,7 @@ void RSVsyncClientIOS::SetVsyncCallback(VsyncCallback callback)
 }
 
 - (void)dealloc {
-    NSLog(@"RSVsyncIOS::dealloc");
+    ROSEN_LOGI("RSVsyncIOS::dealloc");
     [displayLink_ release];
     [lock_ release];
     [super dealloc];
