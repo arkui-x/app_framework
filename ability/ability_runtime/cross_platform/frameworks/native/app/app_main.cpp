@@ -454,7 +454,11 @@ void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std:
             UpdateRuntimePkgContextInfo(moduleName);
         }
     }
-
+    auto& runtime = application_->GetRuntime();
+    // Automatically load the un-preloaded ACE modules.
+    if (runtime != nullptr && !static_cast<JsRuntime&>(*runtime).IsPreloadedAce()) {
+        static_cast<JsRuntime&>(*runtime).LoadAce();
+    }
 #ifdef ANDROID_PLATFORM
     std::vector<std::string> moduleNames { moduleName };
     if (hapModuleInfo != nullptr) {
