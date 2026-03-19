@@ -80,6 +80,8 @@ public:
     void UpdateRuntimePkgContextInfo(const std::map<std::string, std::vector<uint8_t>>& contextInfoMap,
         const std::map<std::string, std::string> &packageNameList);
 
+    void LoadAce();
+    bool IsPreloadedAce() { return isAcePreloaded_; }
 protected:
     JsRuntime() = default;
 
@@ -93,6 +95,7 @@ protected:
     bool preloaded_ = false;
     bool debugMode_ = false;
     bool isBundle_ = true;
+    bool isAcePreloaded_ = false;
     napi_env env_ = nullptr;
     std::string codePath_;
     std::string appLibPath_;
