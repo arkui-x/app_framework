@@ -463,6 +463,11 @@ bool RSSystemProperties::GetBehindWindowFilterEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetSubThreadControlFrameRate()
+{
+    return false;
+}
+
 bool RSSystemProperties::ViewDrawNodeType()
 {
     return false;

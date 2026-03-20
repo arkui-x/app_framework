@@ -15,11 +15,16 @@
 
 #include "transaction/rs_render_pipeline_client.h"
 #include "platform/common/rs_log.h"
-#include "rs_surface_darwin.h"
-#include "rs_vsync_client_darwin.h"
+#include "rs_surface_gpu.h"
+#include "rs_vsync_client_ios.h"
 namespace OHOS {
 namespace Rosen {
 
+std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderPiplineClient()
+{
+    static std::shared_ptr<RSIRenderClient> client = std::make_shared<RSRenderPipelineClient>();
+    return client;
+}
 
 void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
@@ -138,7 +143,53 @@ void RSRenderPipelineClient::ClearUifirstCache(NodeId id)
 {
 }
 
-void RSRenderPipelineClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+bool RSRenderPipelineClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
+{
+    return {};
+}
+
+std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+    bool unobscured)
+{
+    return std::make_shared<RSSurfaceGPU>(static_cast<void*>(config.additionalData));
+}
+
+bool RSRenderPipelineClient::RegisterBufferAvailableListener(
+    NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::RegisterBufferClearListener(
+    NodeId id, const BufferClearCallback &callback)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::UnregisterBufferAvailableListener(NodeId id)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+    const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
+{
+    return {};
+}
+
+
+int32_t RSRenderPipelineClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
+{
+    return {};
+}
+
+void RSRenderPipelineClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    bool dynamicHardwareEnable)
 {
 }
 } // namespace Rosen
