@@ -16,10 +16,17 @@
 #ifndef __VSNPRINTFP_S_H__
 #define __VSNPRINTFP_S_H__
 
-#include <hilog_base.h>
-
 #include <stddef.h>
 #include <stdarg.h>
+
+#if defined(__GNUC__) && (__GNUC__ >= 4)
+#define HILOG_PUBLIC_API __attribute__((visibility("default")))
+#define HILOG_LOCAL_API __attribute__((visibility("hidden")))
+#else
+#define HILOG_PUBLIC_API
+#define HILOG_LOCAL_API
+#endif
+
 /**
 * @Description: The vsnprintfp_s function is equivalent to the vsnprintf function except for the parameter destMax/count
 *               and the explicit runtime-constraints violation

@@ -126,7 +126,7 @@ static int SecIsSameSize(size_t sizeA, size_t sizeB)
 
 #define SECUREC_SAFE_PADDING(padChar, padLen, _stream, outChars) do { \
             for (ii = 0; ii < (padLen); ++ii) { \
-                *((SecChar *)(void *)(_stream->cur)) = (SecChar)(padChar); \
+                *((SecChar *)(void *)((_stream)->cur)) = (SecChar)(padChar); \
                 (_stream)->cur += sizeof(SecChar); \
             } \
             (_stream)->count -= (padLen) * (int)(sizeof(SecChar)); \
