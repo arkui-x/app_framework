@@ -45,11 +45,6 @@ bool RSRenderServiceClient::GetUniRenderEnabled()
     return {};
 }
 
-bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
-{
-    return {};
-}
-
 void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
 {
 }
@@ -61,18 +56,6 @@ void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
 uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
 {
     return {};
-}
-
-std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
-    bool unobscured)
-{
-#if defined (RS_ENABLE_VK)
-    if (RSSystemProperties::IsUseVulkan()) {
-        return std::make_shared<RSSurfaceAndroidVulkan>(
-            static_cast<ANativeWindow *>(config.additionalData)); // GPU render
-    }
-#endif
-    return std::make_shared<RSSurfaceAndroidGL>(static_cast<ANativeWindow *>(config.additionalData));
 }
 
 class VSyncReceiverAndroid : public VSyncReceiver {
@@ -161,22 +144,6 @@ void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
 {
 }
 
-bool RSRenderServiceClient::RegisterBufferAvailableListener(NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
-{
-    return {};
-}
-
-bool RSRenderServiceClient::RegisterBufferClearListener(
-    NodeId id, const BufferClearCallback &callback)
-{
-    return {};
-}
-
-bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
-{
-    return {};
-}
-
 int32_t RSRenderServiceClient::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
 {
     return {};
@@ -217,17 +184,6 @@ int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenTy
     return {};
 }
 
-bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
-{
-    return {};
-}
-
-bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-    const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
-{
-    return {};
-}
-
 bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
     return {};
@@ -239,11 +195,6 @@ bool RSRenderServiceClient::UnRegisterTypeface(uint32_t uniqueId)
 }
 
 int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
-{
-    return {};
-}
-
-int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
     return {};
 }
@@ -296,16 +247,15 @@ void RSRenderServiceClient::NotifyXComponentExpectedFrameRate(const std::string&
 {
 }
 
-void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
-    bool dynamicHardwareEnable)
-{
-}
-
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
 }
 
 int32_t RSRenderServiceClient::GetCurrentRefreshRateMode()
+{
+}
+
+void RSRenderServiceClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
 }
 } // namespace Rosen
