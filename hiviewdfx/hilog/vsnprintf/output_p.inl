@@ -93,59 +93,59 @@ static int SecIsSameSize(size_t sizeA, size_t sizeB)
 
 #define SECUREC_SAFE_WRITE_PREFIX(src, txtLen, _stream, outChars) do { \
             for (ii = 0; ii < (txtLen); ++ii) { \
-                *((SecChar *)(void *)(_stream->cur)) = *(src); \
-                _stream->cur += sizeof(SecChar);              \
+                *((SecChar *)(void *)((_stream)->cur)) = *(src); \
+                (_stream)->cur += sizeof(SecChar);              \
                 ++(src);                                      \
             } \
-            _stream->count -= (txtLen) * (int)(sizeof(SecChar)); \
+            (_stream)->count -= (txtLen) * (int)(sizeof(SecChar)); \
             *(outChars) = *(outChars) + (txtLen); \
         } SECUREC_WHILE_ZERO
 
 #define SECUREC_SAFE_WRITE_STR(src, txtLen, _stream, outChars) do { \
             if ((txtLen) < 12 /* for mobile number length */) { \
                 for (ii = 0; ii < (txtLen); ++ii) { \
-                    *((SecChar *)(void *)(_stream->cur)) = *(src); \
-                    _stream->cur += sizeof(SecChar); \
+                    *((SecChar *)(void *)((_stream)->cur)) = *(src); \
+                    (_stream)->cur += sizeof(SecChar); \
                     ++(src); \
                 } \
             } else { \
-                (void)memcpy_s(_stream->cur, _stream->count, src, \
+                (void)memcpy_s((_stream)->cur, (_stream)->count, src, \
                     ((size_t)(unsigned int)(txtLen) * (sizeof(SecChar)))); \
-                _stream->cur += (size_t)(unsigned int)(txtLen) * (sizeof(SecChar)); \
+                (_stream)->cur += (size_t)(unsigned int)(txtLen) * (sizeof(SecChar)); \
             } \
-            _stream->count -= (txtLen) * (int)(sizeof(SecChar)); \
+            (_stream)->count -= (txtLen) * (int)(sizeof(SecChar)); \
             *(outChars) = *(outChars) + (txtLen); \
         } SECUREC_WHILE_ZERO
 
 #define SECUREC_SAFE_WRITE_CHAR(_ch, _stream, outChars) do { \
-            *((SecChar *)(void *)(_stream->cur)) = (SecChar)(_ch); \
-            _stream->cur += sizeof(SecChar); \
-            _stream->count -= (int)(sizeof(SecChar)); \
+            *((SecChar *)(void *)((_stream)->cur)) = (SecChar)(_ch); \
+            (_stream)->cur += sizeof(SecChar); \
+            (_stream)->count -= (int)(sizeof(SecChar)); \
             *(outChars) = *(outChars) + 1; \
         } SECUREC_WHILE_ZERO
 
 #define SECUREC_SAFE_PADDING(padChar, padLen, _stream, outChars) do { \
             for (ii = 0; ii < (padLen); ++ii) { \
                 *((SecChar *)(void *)(_stream->cur)) = (SecChar)(padChar); \
-                _stream->cur += sizeof(SecChar); \
+                (_stream)->cur += sizeof(SecChar); \
             } \
-            _stream->count -= (padLen) * (int)(sizeof(SecChar)); \
+            (_stream)->count -= (padLen) * (int)(sizeof(SecChar)); \
             *(outChars) = *(outChars) + (padLen); \
         } SECUREC_WHILE_ZERO
 
 /* The count variable can be reduced to 0, and the external function complements the \0 terminator. */
-#define SECUREC_IS_REST_BUF_ENOUGH(needLen) ((int)(stream->count - (int)needLen * (int)(sizeof(SecChar)))  >= 0)
+#define SECUREC_IS_REST_BUF_ENOUGH(needLen) ((int)(stream->count - (int)(needLen) * (int)(sizeof(SecChar)))  >= 0)
 
 #define SECUREC_FMT_STATE_OFFSET  256
 #ifdef SECUREC_FOR_WCHAR
 #define SECUREC_FMT_TYPE(c, fmtTable)  ((((unsigned int)(int)(c)) <= (unsigned int)(int)SECUREC_CHAR('~')) ? \
-                                      (fmtTable[(unsigned char)(c)]) : 0)
-#define SECUREC_DECODE_STATE(c, fmtTable, laststate) (SecFmtState)(((fmtTable[(SECUREC_FMT_TYPE((c), fmtTable)) * \
+                                      ((fmtTable)[(unsigned char)(c)]) : 0)
+#define SECUREC_DECODE_STATE(c, fmtTable, laststate) (SecFmtState)((((fmtTable)[(SECUREC_FMT_TYPE((c), fmtTable)) * \
                                                                             ((unsigned char)STAT_INVALID + 1) + \
                                                                             (unsigned char)(laststate) + \
                                                                             SECUREC_FMT_STATE_OFFSET])))
 #else
-#define SECUREC_DECODE_STATE(c, fmtTable, laststate) (SecFmtState)((fmtTable[(fmtTable[(unsigned char)(c)]) * \
+#define SECUREC_DECODE_STATE(c, fmtTable, laststate) (SecFmtState)(((fmtTable)[((fmtTable)[(unsigned char)(c)]) * \
                                                                            ((unsigned char)STAT_INVALID + 1) + \
                                                                            (unsigned char)(laststate) + \
                                                                            SECUREC_FMT_STATE_OFFSET]))
@@ -895,7 +895,6 @@ OUTPUT_HEX:
 #else
                     prefixLen = 2;
 #endif
-
                 }
                 goto OUTPUT_INT;
             case SECUREC_CHAR('i'):    /* fall-through */ /* FALLTHRU */
