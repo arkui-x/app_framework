@@ -110,6 +110,10 @@ class Context {
         return true;
     }
 
+    get area() {
+      return this.__contextImpl__.area;
+    }
+
     getApplicationContext() {
         return this.__contextImpl__.getApplicationContext();
     }
