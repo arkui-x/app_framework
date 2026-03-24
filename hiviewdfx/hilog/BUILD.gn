@@ -37,9 +37,11 @@ ohos_static_library("hiviewdfx_hilog_base") {
   ]
 
   defines = [
-    "__RECV_MSG_WITH_UCRED_",
-    "HILOG_PROHIBIT_ALLOCATION",
   ]
+
+  if (target_os == "android" || target_os == "ios") {
+    defines += [ "SECUREC_COMPATIBLE_LINUX_FORMAT" ]
+  }
   configs = [ ":hiviewdfx_base_config" ]
   deps = ["//third_party/bounds_checking_function:libsec_static"]
 }

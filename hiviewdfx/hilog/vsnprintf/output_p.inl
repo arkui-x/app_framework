@@ -24,8 +24,6 @@
 #ifndef OUTPUT_P_INL_2B263E9C_43D8_44BB_B17A_6D2033DECEE5
 #define OUTPUT_P_INL_2B263E9C_43D8_44BB_B17A_6D2033DECEE5
 
-#undef SECUREC_COMPATIBLE_LINUX_FORMAT
-
 #define SECUREC_FLOAT_BUFSIZE (309 + 40)  /* max float point value */
 #define SECUREC_FLOAT_BUFSIZE_LB (4932 + 40)  /* max long double value */
 
@@ -615,7 +613,6 @@ NORMAL_CHAR:
             case SECUREC_CHAR('C'):
                 /* wide char */
                 if (!(formatAttr.flags & (SECUREC_FLAG_SHORT | SECUREC_FLAG_LONG | SECUREC_FLAG_WIDECHAR))) {
-
 #ifdef SECUREC_FOR_WCHAR
                     formatAttr.flags |= SECUREC_FLAG_SHORT;
 #else
