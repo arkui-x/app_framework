@@ -607,9 +607,7 @@ NORMAL_CHAR:
             break;
 
         case STAT_TYPE:
-
             switch (ch) {
-
             case SECUREC_CHAR('C'):
                 /* wide char */
                 if (!(formatAttr.flags & (SECUREC_FLAG_SHORT | SECUREC_FLAG_LONG | SECUREC_FLAG_WIDECHAR))) {
