@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace Rosen {
 
-static constexpr uint16_t MAX_FRAMES_IN_FLIGHT = 2;
+static constexpr uint16_t MAX_FRAMES_IN_FLIGHT = 3;
 // Number of queue families when graphics and present queues are different
 static constexpr uint32_t CONCURRENT_QUEUE_FAMILY_COUNT = 2;
 
@@ -82,6 +82,9 @@ VkSwapchainCreateInfoKHR RSSurfaceSwapChain::BuildSwapchainCreateInfo(int32_t wi
     VkSurfaceTransformFlagBitsKHR preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
     VkExtent2D extent = ChooseSwapExtent(swapChainSupport.capabilities, width, height, preTransform);
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount;
+    if (imageCount < MAX_FRAMES_IN_FLIGHT) {
+        imageCount = MAX_FRAMES_IN_FLIGHT;
+    }
 
     VkSwapchainCreateInfoKHR createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;

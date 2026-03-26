@@ -34,7 +34,7 @@
 namespace OHOS {
 namespace Rosen {
 
-static constexpr uint16_t MAX_FRAMES_IN_FLIGHT = 2;
+static constexpr uint16_t MAX_FRAMES_IN_FLIGHT = 3;
 
 RSSurfaceAndroidVulkan::RSSurfaceAndroidVulkan(ANativeWindow* data) : RSSurfaceAndroid(data)
 {
@@ -54,6 +54,7 @@ RSSurfaceAndroidVulkan::~RSSurfaceAndroidVulkan()
             }
         }
         mSkContext->FlushAndSubmit(true);
+        mSkContext->PurgeUnlockedResources(true);
     }
     
     for (size_t i = 0; i < skiaSurfaces_.size(); i++) {
@@ -212,6 +213,7 @@ bool RSSurfaceAndroidVulkan::RecreateSwapchainIfNeeded(int32_t width, int32_t he
     skiaSurfaces_.shrink_to_fit();
 
     if (mSkContext) {
+        mSkContext->PurgeUnlockedResources(true);
         Drawing::SkiaGPUContext* skiaGpuContext = mSkContext->GetImpl<Drawing::SkiaGPUContext>();
         if (skiaGpuContext) {
             sk_sp<GrDirectContext> grContext = skiaGpuContext->GetGrContext();
@@ -449,7 +451,11 @@ bool RSSurfaceAndroidVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, 
         vkGetDeviceQueue(device, indices.presentFamily, 0, &queue);
     }
 
-    return PresentSwapchainImage(queue, imageIndex, renderFinishedSemaphore);
+    bool result = PresentSwapchainImage(queue, imageIndex, renderFinishedSemaphore);
+    if (mSkContext) {
+        mSkContext->PurgeUnlockedResources(true);
+    }
+    return result;
 }
 
 void RSSurfaceAndroidVulkan::SetColorSpace(GraphicColorGamut colorSpace)
