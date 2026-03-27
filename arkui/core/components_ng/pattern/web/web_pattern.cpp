@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,9 +33,9 @@
 #include "core/event/key_event.h"
 #include "core/event/touch_event.h"
 #include "core/pipeline_ng/pipeline_context.h"
-#include "frameworks/base/utils/system_properties.h"
 #include "core/components_ng/pattern/refresh/refresh_pattern.h"
 #include "core/components_ng/pattern/swiper/swiper_pattern.h"
+#include "frameworks/base/utils/system_properties.h"
 #include "web_delegate_cross.h"
 
 namespace OHOS::Ace::NG {
@@ -2220,7 +2220,11 @@ void WebPattern::UpdateSelectedDataDetectorConfig(const TextDetectConfig &config
 
 void WebPattern::OnEnabledHapticFeedbackUpdate(bool enable)
 {
-    // cross platform is not support now;
+    isEnabledHapticFeedback_ = enable;
+    auto webDelegateCross = AceType::DynamicCast<WebDelegateCross>(delegate_);
+    if (webDelegateCross != nullptr) {
+        webDelegateCross->UpdateEnabledHapticFeedback(enable);
+    }
 }
 
 void WebPattern::OnBypassVsyncConditionUpdate(WebBypassVsyncCondition condition)
