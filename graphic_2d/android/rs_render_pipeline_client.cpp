@@ -201,5 +201,10 @@ void RSRenderPipelineClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfD
     bool dynamicHardwareEnable)
 {
 }
+
+int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    return 0;
+}
 } // namespace Rosen
 } // namespace OHOS
