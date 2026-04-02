@@ -1720,6 +1720,11 @@ bool WebPattern::GetScrollBoundary(
             currentY + fHeight > cHeight && expectedScrollAxis_ == Axis::VERTICAL;
 }
 
+void WebPattern::EnableScrollDirectionalLock(bool enabled, ScrollDirectionalLockType type)
+{
+    // cross platform is not support now;
+}
+
 bool WebPattern::OnNestedScroll(float x, float y, float xVelocity, float yVelocity, bool isAvailable)
 {
     isAvailable = true;
