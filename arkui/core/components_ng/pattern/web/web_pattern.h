@@ -46,6 +46,8 @@
 #include "core/components_ng/pattern/scrollable/scrollable_properties.h"
 #include "core/components_ng/pattern/swiper/swiper_pattern.h"
 #include "core/components_ng/pattern/web/web_delegate_interface.h"
+#include "core/components_ng/pattern/navigation/navdestination_pattern_base.h"
+#include "core/components_ng/pattern/overlay/sheet_presentation_pattern.h"
 
 namespace OHOS::Ace::NG {
 namespace {
@@ -619,6 +621,8 @@ public:
     void OnScrollWillStart(float x, float y);
     void OnScrollStart(float x, float y);
     bool OnNestedScroll(float x, float y, float xVelocity, float yVelocity, bool isAvailable);
+    void EnableScrollDirectionalLock(bool enabled,
+        ScrollDirectionalLockType type = ScrollDirectionalLockType::NESTED_SCROLL);
     bool IsRtl();
     ScrollResult HandleScroll(float offset, int32_t source, NestedState state, float velocity = 0.f) override;
     ScrollResult HandleScroll(RefPtr<NestableScrollContainer> parent, float offset, int32_t source, NestedState state);
