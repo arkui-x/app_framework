@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,9 @@
 
 #include "web_delegate_cross.h"
 
-#include "bridge/js_frontend/frontend_delegate_impl.h"
 #include <atomic>
+
+#include "bridge/js_frontend/frontend_delegate_impl.h"
 
 #if defined(IOS_PLATFORM)
 #include "adapter/ios/capability/web/AceWebPatternOCBridge.h"
@@ -170,6 +171,8 @@ constexpr char WEB_IMAGE_ACCESS[] = "imageAccess";
 constexpr char NTC_IMAGE_ACCESS[] = "imageAccess";
 constexpr char WEB_TEXT_ZOOM_RATIO[] = "textZoomRatio";
 constexpr char NTC_TEXT_ZOOM_RATIO[] = "textZoomRatio";
+constexpr char WEB_ATTRIBUTE_ENABLE_HAPTIC_FEEDBACK[] = "enableHapticFeedback";
+constexpr char NTC_ENABLE_HAPTIC_FEEDBACK[] = "enableHapticFeedback";
 constexpr char WEB_FILE_ACCESS[] = "fileAccess";
 constexpr char NTC_FILE_ACCESS[] = "fileAccess";
 
@@ -2598,6 +2601,16 @@ void WebDelegateCross::UpdateTextZoomRatio(const int32_t& textZoomRatioNum)
     paramStream << NTC_TEXT_ZOOM_RATIO << WEB_PARAM_EQUALS << textZoomRatioNum;
     std::string param = paramStream.str();
     CallResRegisterMethod(updateTextZoomRatioMethod_, param, nullptr);
+}
+
+void WebDelegateCross::UpdateEnabledHapticFeedback(bool isHapticFeedbackEnabled)
+{
+    hash_ = MakeResourceHash();
+    updateEnabledHapticFeedbackMethod_ = MakeMethodHash(WEB_ATTRIBUTE_ENABLE_HAPTIC_FEEDBACK);
+    std::stringstream paramStream;
+    paramStream << NTC_ENABLE_HAPTIC_FEEDBACK << WEB_PARAM_EQUALS << isHapticFeedbackEnabled;
+    std::string param = paramStream.str();
+    CallResRegisterMethod(updateEnabledHapticFeedbackMethod_, param, nullptr);
 }
 
 void WebDelegateCross::UpdateWebDebuggingAccess(bool isWebDebuggingAccessEnabled)
