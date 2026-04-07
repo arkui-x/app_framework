@@ -414,5 +414,28 @@ bool RenderContextGL::AbandonContext()
 void RenderContextGL::DestroyShareContext()
 {
 }
+
+bool RenderContextGL::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    ROSEN_LOGI("RenderContextGL::QueryMaxGpuBufferSize: using OpenGL backend");
+    GLint maxTextureSize = 0;
+    GLint maxRenderBufferSize = 0;
+
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+    glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxRenderBufferSize);
+
+    if (maxTextureSize <= 0 || maxRenderBufferSize <= 0) {
+        ROSEN_LOGE("RenderContextGL::QueryMaxGpuBufferSize: failed to get GPU buffer size");
+        return false;
+    }
+
+    maxWidth = static_cast<uint32_t>(std::min(maxTextureSize, maxRenderBufferSize));
+    maxHeight = static_cast<uint32_t>(std::min(maxTextureSize, maxRenderBufferSize));
+
+    ROSEN_LOGI("RenderContextGL::QueryMaxGpuBufferSize: GL_MAX_TEXTURE_SIZE = %{public}d,"
+        "GL_MAX_RENDERBUFFER_SIZE = %{public}d, result = %{public}u",
+        maxTextureSize, maxRenderBufferSize, maxWidth);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
