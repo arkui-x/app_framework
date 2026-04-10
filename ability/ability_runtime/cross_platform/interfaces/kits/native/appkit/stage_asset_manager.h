@@ -48,6 +48,7 @@ public:
     std::string GetResourceFilePrefixPath();
 #endif
 #ifdef ANDROID_PLATFORM
+    std::string GetStubFilePath() const;
     std::string GetAppDataLibDir() const;
     void CopyHspResourcePath(const std::string& moduleName);
     void CopyNativeLibToAppDataModuleDir(const std::string& bundleName);

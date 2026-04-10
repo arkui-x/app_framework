@@ -212,7 +212,18 @@ private:
         pandaOption.SetGcPoolSize(DEFAULT_GC_POOL_SIZE);
         pandaOption.SetLogLevel(panda::RuntimeOption::LOG_LEVEL::INFO);
         pandaOption.SetLogBufPrint(PrintVmLog);
+#ifdef ANDROID_PLATFORM
+        HILOG_INFO("ArkJsRuntime::Initialize stubFilePath: %{public}s", options.stubFilePath.c_str());
+        if (!options.stubFilePath.empty()) {
+            pandaOption.SetStubFile(options.stubFilePath);
+            pandaOption.SetEnableAsmInterpreter(true);
+        } else {
+            pandaOption.SetStubFile("");
+            pandaOption.SetEnableAsmInterpreter(false);
+        }
+#else
         pandaOption.SetEnableAsmInterpreter(true);
+#endif
         pandaOption.SetAsmOpcodeDisableRange("");
         pandaOption.SetEnableAOT(true);
         pandaOption.SetEnableProfile(false);

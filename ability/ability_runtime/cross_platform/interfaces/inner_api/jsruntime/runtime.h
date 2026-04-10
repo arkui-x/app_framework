@@ -51,6 +51,7 @@ public:
         std::map<std::string, std::vector<uint8_t>> pkgContextInfoJsonBufferMap;
         std::map<std::string, std::string> packageNameList;
 #ifdef ANDROID_PLATFORM
+        std::string stubFilePath = "";
         std::string appDataLibPath = "";
 #endif
     };

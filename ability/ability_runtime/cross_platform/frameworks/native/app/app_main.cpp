@@ -185,6 +185,7 @@ bool AppMain::CreateRuntime(const std::string& bundleName, bool isBundle)
     options.isBundle = isBundle;
     options.appLibPath = StageAssetManager::GetInstance()->GetAppLibDir();
 #ifdef ANDROID_PLATFORM
+    options.stubFilePath = StageAssetManager::GetInstance()->GetStubFilePath();
     options.appDataLibPath = StageAssetManager::GetInstance()->GetAppDataLibDir();
 #endif
     auto bundleinfo = bundleContainer_->GetBundleInfo();
