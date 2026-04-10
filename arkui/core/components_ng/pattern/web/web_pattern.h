@@ -49,6 +49,10 @@
 #include "core/components_ng/pattern/navigation/navdestination_pattern_base.h"
 #include "core/components_ng/pattern/overlay/sheet_presentation_pattern.h"
 
+namespace OHOS::Ace {
+struct TextDetectConfig;
+}
+
 namespace OHOS::Ace::NG {
 namespace {
 struct MouseClickInfo {
@@ -431,6 +435,8 @@ public:
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, BackToTop, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, EnableAutoFill, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, EnableDefaultContextMenu, bool);
+    ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, EnableDrag, bool);
+    ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, ScrollbarLayoutPolicy, ScrollbarLayoutPolicy);
     void RequestFullScreen();
     void ExitFullScreen();
     bool IsFullScreen() const
@@ -623,6 +629,7 @@ public:
     bool OnNestedScroll(float x, float y, float xVelocity, float yVelocity, bool isAvailable);
     void EnableScrollDirectionalLock(bool enabled,
         ScrollDirectionalLockType type = ScrollDirectionalLockType::NESTED_SCROLL);
+    void OnScrollbarLayoutPolicyUpdate(ScrollbarLayoutPolicy layoutPolicy);
     bool IsRtl();
     ScrollResult HandleScroll(float offset, int32_t source, NestedState state, float velocity = 0.f) override;
     ScrollResult HandleScroll(RefPtr<NestableScrollContainer> parent, float offset, int32_t source, NestedState state);
@@ -714,6 +721,7 @@ private:
     void OnForceEnableZoomUpdate(bool isEnabled);
     void OnEnableAutoFillUpdate(bool isEnabled);
     void OnEnableDefaultContextMenuUpdate(bool isEnabled);
+    void OnEnableDragUpdate(bool isEnabled);
 
     void InitEvent();
     void InitTouchEvent(const RefPtr<GestureEventHub>& gestureHub);
