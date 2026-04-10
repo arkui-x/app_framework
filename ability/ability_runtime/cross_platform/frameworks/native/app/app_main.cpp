@@ -34,6 +34,7 @@
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
 #include "load_module_helper.h"
+#include "module_load_callback.h"
 #include "preload_manager.h"
 #include "runtime.h"
 
@@ -713,6 +714,7 @@ void AppMain::ParseHspModuleJson(const std::string& moduleName)
     }
     std::list<std::vector<uint8_t>> moduleList { dynamicModuleJson };
     bundleContainer_->LoadBundleInfos(moduleList);
+    ModuleLoadCallbackManager::GetInstance().NotifyAll();
 }
 
 void AppMain::NotifyApplicationForeground()
