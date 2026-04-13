@@ -1725,6 +1725,11 @@ void WebPattern::EnableScrollDirectionalLock(bool enabled, ScrollDirectionalLock
     // cross platform is not support now;
 }
 
+void WebPattern::OnScrollbarLayoutPolicyUpdate(ScrollbarLayoutPolicy layoutPolicy)
+{
+    // cross platform is not support now;
+}
+
 bool WebPattern::OnNestedScroll(float x, float y, float xVelocity, float yVelocity, bool isAvailable)
 {
     isAvailable = true;
@@ -2203,6 +2208,11 @@ void WebPattern::OnEnableAutoFillUpdate(bool isEnabled)
 }
 
 void WebPattern::OnEnableDefaultContextMenuUpdate(bool isEnabled)
+{
+    // cross platform is not support now;
+}
+
+void WebPattern::OnEnableDragUpdate(bool isEnabled)
 {
     // cross platform is not support now;
 }
