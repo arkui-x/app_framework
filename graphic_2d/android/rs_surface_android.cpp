@@ -103,7 +103,7 @@ RSSurfaceExtPtr RSSurfaceAndroid::CreateSurfaceExt(const RSSurfaceExtConfig& con
     switch(config.type) {
         case RSSurfaceExtType::SURFACE_TEXTURE: {
             if (texture_ == nullptr) {
-                texture_ = std::make_shared<AndroidSurfaceTexture>(config);
+                texture_ = AndroidSurfaceTexture::Create(config);
             }
             return texture_;
         }
