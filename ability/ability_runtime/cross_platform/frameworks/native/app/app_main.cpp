@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +35,7 @@
 #include "js_runtime_utils.h"
 #include "load_module_helper.h"
 #include "module_load_callback.h"
+#include "native_module_manager.h"
 #include "preload_manager.h"
 #include "runtime.h"
 
@@ -51,6 +52,7 @@ namespace Platform {
 const std::string CONFIGURATION = "configuration";
 const std::string FONT_SIZE_SCALE = "fontSizeScale";
 const std::string FONT_SIZE_MAX_SCALE = "fontSizeMaxScale";
+const std::string INVALID_SOCKET = "-1";
 constexpr int64_t NANOSECONDS = 1000000000;
 constexpr int64_t MICROSECONDS = 1000000;
 std::shared_ptr<AppMain> AppMain::instance_ = nullptr;
@@ -140,16 +142,16 @@ void AppMain::ScheduleLaunchApplication(bool isCopyNativeLibs, bool shouldLoadUI
 }
 
 void AppMain::PrepareAbilityDelegator(const std::string& bundleName, const std::string& moduleName,
-    const std::string& testRunerName, const std::string& timeout)
+    const std::string& testRunerName, const std::string& timeout, const std::string& socket)
 {
-    auto task = [bundleName, moduleName, testRunerName, timeout]() {
-        AppMain::GetInstance()->CreateAbilityDelegator(bundleName, moduleName, testRunerName, timeout);
+    auto task = [bundleName, moduleName, testRunerName, timeout, socket]() {
+        AppMain::GetInstance()->CreateAbilityDelegator(bundleName, moduleName, testRunerName, timeout, socket);
     };
     eventHandler_->PostTask(task);
 }
 
 void AppMain::CreateAbilityDelegator(const std::string& bundleName, const std::string& moduleName,
-    const std::string& testRunerName, const std::string& timeout)
+    const std::string& testRunerName, const std::string& timeout, const std::string& socket)
 {
     HILOG_INFO("PrepareAbilityDelegator for Stage model.");
     Want want;
@@ -157,6 +159,9 @@ void AppMain::CreateAbilityDelegator(const std::string& bundleName, const std::s
     want.SetModuleName(moduleName);
     want.SetAbilityName(testRunerName);
     want.SetParam("timeout", timeout);
+    if (socket != INVALID_SOCKET) {
+        want.SetParam("socket", socket);
+    }
     auto args = std::make_shared<AppExecFwk::AbilityDelegatorArgs>(want);
     auto applicationContext = ApplicationContext::GetInstance();
     std::unique_ptr<AppExecFwk::TestRunner> testRunner = AppExecFwk::TestRunner::Create(application_->GetRuntime(),
@@ -172,7 +177,23 @@ void AppMain::CreateAbilityDelegator(const std::string& bundleName, const std::s
         return;
     }
     AppExecFwk::AbilityDelegatorRegistry::RegisterInstance(delegator, args);
+    LoadUiTestModuleBySocket(socket);
     delegator->Prepare();
+}
+
+void AppMain::LoadUiTestModuleBySocket(const std::string& socket)
+{
+    if (!socket.empty() && socket != INVALID_SOCKET) {
+        auto manager = NativeModuleManager::GetInstance();
+        std::string nativeModuleName = "UiTest";
+        bool isAppModule = false;
+        std::string errInfo = "";
+        auto module = manager->LoadNativeModule(nativeModuleName.c_str(),
+            nullptr, isAppModule, errInfo, false, "");
+        if (module != nullptr && module->registerCallback != nullptr) {
+            module->registerCallback(nullptr, nullptr);
+        }
+    }
 }
 
 bool AppMain::CreateRuntime(const std::string& bundleName, bool isBundle)

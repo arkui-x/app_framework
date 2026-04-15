@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -37,6 +37,7 @@ config("appkit_native_config") {
     "//commonlibrary/c_utils/base/include",
     "//foundation/arkui/ace_engine",
     "//foundation/arkui/ace_engine/interfaces/inner_api/ace_kit/include",
+    "//foundation/arkui/napi/module_manager",
     "//third_party/json/include",
     "$skia_root_new",
   ]
