@@ -16,6 +16,7 @@
 #include "resource_manager_addon.h"
 #include "resource_manager_napi_utils.h"
 #include "hilog/log_cpp.h"
+#include "system_resource_manager.h"
 
 namespace OHOS {
 namespace Global {
@@ -165,6 +166,17 @@ ResourceManagerAddon::ResourceManagerAddon(
 #endif
 {
     napiContext_ = std::make_shared<ResourceManagerNapiContext>();
+}
+
+napi_value ResourceManagerAddon::GetSysResourceManager(napi_env env)
+{
+    auto systemResManager = SystemResourceManager::CreateSysResourceManager();
+    if (systemResManager == nullptr) {
+        ResourceManagerNapiUtils::NapiThrow(env, ERROR_CODE_SYSTEM_RES_MANAGER_GET_FAILED);
+        return nullptr;
+    }
+    std::shared_ptr<ResourceManagerAddon> addon = std::make_shared<ResourceManagerAddon>(systemResManager, true);
+    return WrapResourceManager(env, addon);
 }
 
 ResourceManagerAddon::ResourceManagerAddon(const std::shared_ptr<ResourceManager>& resMgr, bool isSystem)
