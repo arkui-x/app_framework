@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,9 +20,11 @@
 #include <string>
 #include <vector>
 
+#include "base/memory/ace_type.h"
 #include "interfaces/inner_api/ace/viewport_config.h"
 #include "core/accessibility/accessibility_node.h"
 #include "foundation/appframework/arkui/uicontent/component_info.h"
+#include "core/common/display_info.h"
 
 namespace OHOS::Ace {
 struct TouchEvent;
@@ -112,6 +114,13 @@ public:
 
     // Receive memory level notification
     virtual void NotifyMemoryLevel(int32_t level) = 0;
+
+    // For UiTest
+    virtual void NotifyUiTestStart() {}
+    virtual void NotifyUiTestEnd() {}
+    virtual bool WaitEventIdle(uint32_t idleThresholdMs, uint32_t timeoutMs) { return false; }
+
+    virtual RefPtr<OHOS::Ace::DisplayInfo> GetDisplayInfo() { return nullptr; }
 
     virtual napi_value GetUINapiContext()
     {
