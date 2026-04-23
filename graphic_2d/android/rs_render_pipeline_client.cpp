@@ -89,7 +89,7 @@ bool RSRenderPipelineClient::TakeUICaptureInRange(
     return true;
 }
 
-bool RSRenderPipelineClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+bool RSRenderPipelineClient::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
     return true;
