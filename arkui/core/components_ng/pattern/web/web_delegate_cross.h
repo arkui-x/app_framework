@@ -617,6 +617,7 @@ public:
 
     void SetBoundsOrResize(const Size& drawSize, const Offset& offset) override;
     void UpdateOptimizeParserBudgetEnabled(const bool enable);
+    void UpdateKeyboardAppearanceMode(const WebKeyboardAppearanceMode& mode);
     void MaximizeResize() override;
     void SetScrollLocked(const bool value);
     void SetNestedScrollOptionsExt(NestedScrollOptionsExt nestedOpt);

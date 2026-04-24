@@ -96,7 +96,6 @@ RenderContextGL::RenderContextGL()
     eglContext_ = EGL_NO_CONTEXT;
     eglSurface_ = EGL_NO_SURFACE;
     config_ = nullptr;
-    mHandler_ = nullptr;
 }
 
 RenderContextGL::~RenderContextGL()
@@ -119,7 +118,6 @@ RenderContextGL::~RenderContextGL()
     pbufferSurface_ = EGL_NO_SURFACE;
     drGPUContext_ = nullptr;
     surface_ = nullptr;
-    mHandler_ = nullptr;
 }
 
 void RenderContextGL::CreatePbufferSurface()
@@ -495,16 +493,6 @@ void RenderContextGL::DestroyShareContext()
     eglDestroyContext(GetEGLDisplay(), eglShareContext_);
     eglShareContext_ = EGL_NO_CONTEXT;
     eglMakeCurrent(GetEGLDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-}
-
-std::string RenderContextGL::GetShaderCacheSize() const
-{
-    return "";
-}
-
-std::string RenderContextGL::CleanAllShaderCache() const
-{
-    return "";
 }
 
 bool RenderContextGL::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)

@@ -150,16 +150,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<MotionBl
     return {};
 }
 
-// MagnifierPara
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSMagnifierParams>& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMagnifierParams>& val)
-{
-    return {};
-}
-
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<EmitterUpdater>& val)
 {
     return {};
@@ -206,6 +196,16 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Part
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleVelocityFields>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleFieldCollection>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleFieldCollection>& val)
 {
     return {};
 }
@@ -482,7 +482,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                          \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)          \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<MotionBlurParam>)                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMagnifierParams>)                 \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<EmitterUpdater>)                    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<EmitterUpdater>>)       \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseFields>)               \

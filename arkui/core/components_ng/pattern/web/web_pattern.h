@@ -408,6 +408,7 @@ public:
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, OverScrollMode, int32_t);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, BlurOnKeyboardHideMode, int32_t);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, TextAutosizing, bool);
+    ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, KeyboardAppearanceMode, WebKeyboardAppearanceMode);
     using NativeVideoPlayerConfigType = std::tuple<bool, bool>;
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, NativeVideoPlayerConfig, NativeVideoPlayerConfigType);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, SelectionMenuOptions, WebMenuOptionsParam);
@@ -710,6 +711,7 @@ private:
     void OnMetaViewportUpdate(bool value);
     void OnOverlayScrollbarEnabledUpdate(bool value);
     void OnKeyboardAvoidModeUpdate(const WebKeyboardAvoidMode& mode);
+    void OnKeyboardAppearanceModeUpdate(const WebKeyboardAppearanceMode& mode);
     void OnEnabledHapticFeedbackUpdate(bool enable);
     void OnOptimizeParserBudgetEnabledUpdate(bool value);
     void OnEnableDataDetectorUpdate(bool enable);
