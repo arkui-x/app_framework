@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "foundation/arkui/ace_engine/adapter/ios/osal/high_contrast_observer.h"
 #include "platform/common/rs_accessibility.h"
 
 namespace OHOS {
@@ -20,6 +21,13 @@ namespace Rosen {
 class RSAccessibilityIOS : public RSAccessibility {
 public:
     void ListenHighContrastChange(OnHighContrastChange callback) override;
+
+private:
+    void ListenHighContrast();
+    void OnConfigChanged(bool newHighContrast);
+    bool listeningHighContrast_ = false;
+    Ace::Platform::ListenHighContrastCallback highContrastCallback_;
+    OnHighContrastChange onHighContrastChange_ = nullptr;
 };
 
 RSAccessibility &RSAccessibility::GetInstance()
@@ -30,6 +38,28 @@ RSAccessibility &RSAccessibility::GetInstance()
 
 void RSAccessibilityIOS::ListenHighContrastChange(OnHighContrastChange callback)
 {
+    onHighContrastChange_ = callback;
+    ListenHighContrast();
+}
+
+void RSAccessibilityIOS::ListenHighContrast()
+{
+    if (!listeningHighContrast_) {
+        highContrastCallback_ = [](bool highContrastEnabled) {
+            auto& accessibility = static_cast<RSAccessibilityIOS&>(RSAccessibility::GetInstance());
+            accessibility.OnConfigChanged(highContrastEnabled);
+        };
+        Ace::Platform::HighContrastObserver::GetInstance().SetListenHighContrastCallback(
+            Ace::Platform::ListenHighContrastCallback(highContrastCallback_));
+        listeningHighContrast_ = true;
+    }
+}
+
+void RSAccessibilityIOS::OnConfigChanged(bool newHighContrast)
+{
+    if (onHighContrastChange_ != nullptr) {
+        onHighContrastChange_(newHighContrast);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
