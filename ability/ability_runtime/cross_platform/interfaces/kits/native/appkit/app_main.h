@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,7 +49,7 @@ public:
     void InitConfiguration(const std::string& jsonConfiguration);
     bool IsSingleton(const std::string& moduleName, const std::string& abilityName);
     void PrepareAbilityDelegator(const std::string& bundleName, const std::string& moduleName,
-        const std::string& testRunerName, const std::string& timeout);
+        const std::string& testRunerName, const std::string& timeout, const std::string& socket);
     void DispatchOnAbilityResult(const std::string& instanceName, int32_t requestCode, int32_t resultCode,
         const std::string& wantParams);
     void ParseHspModuleJson(const std::string& moduleName);
@@ -77,7 +77,8 @@ private:
     void HandleInitConfiguration(const std::string& jsonConfiguration);
     Want TransformToWant(const std::string& instanceName, const std::string& params = "");
     void CreateAbilityDelegator(const std::string& bundleName, const std::string& moduleName,
-        const std::string& testRunerName, const std::string& timeout);
+        const std::string& testRunerName, const std::string& timeout, const std::string& socket);
+    void LoadUiTestModuleBySocket(const std::string& socket);
     void HandleDispatchOnAbilityResult(
         const std::string& instanceName, int32_t requestCode, int32_t resultCode, const std::string& resultWant);
     void HandleApplicationForeground();

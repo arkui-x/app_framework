@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -57,6 +57,10 @@ public:
      * Indicates the value of debug flag.
      */
     static const std::string VALUE_TEST_DEBUG;
+    /**
+     * Indicates the key of socket config.
+     */
+    static const std::string VALUE_TEST_SOCKET;
 
 public:
     /**
@@ -110,6 +114,13 @@ public:
      * @return the test cases name.
      */
     std::string GetTestCaseName() const;
+
+    /**
+     * Obtains the test socket.
+     *
+     * @return the test socket config.
+     */
+    std::string GetSocketConfig() const;
 
     /**
      * Obtains the test parameters.

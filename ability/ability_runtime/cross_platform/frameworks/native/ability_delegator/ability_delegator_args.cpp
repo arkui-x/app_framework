@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@ const std::string AbilityDelegatorArgs::KEY_TEST_WAIT_TIMEOUT {"-w"};
 
 const std::string AbilityDelegatorArgs::KEY_TEST_DEBUG {"-D"};
 const std::string AbilityDelegatorArgs::VALUE_TEST_DEBUG {"true"};
+const std::string AbilityDelegatorArgs::VALUE_TEST_SOCKET {"socket"};
 
 AbilityDelegatorArgs::AbilityDelegatorArgs()
 {}
@@ -41,6 +42,7 @@ AbilityDelegatorArgs::AbilityDelegatorArgs(const AAFwk::Want &want)
     params_["moduleName"] = moduleName_;
     params_["abilityName"] = abilityName_;
     params_["-s timeout"] = want.GetStringParam("timeout");
+    params_["socket"] = want.GetStringParam("socket");
 }
 
 AbilityDelegatorArgs::~AbilityDelegatorArgs()
@@ -71,6 +73,11 @@ std::string AbilityDelegatorArgs::GetTestCaseName() const
     return "";
 }
 
+std::string AbilityDelegatorArgs::GetSocketConfig() const
+{
+    return GetParamValue(AbilityDelegatorArgs::VALUE_TEST_SOCKET);
+}
+
 std::map<std::string, std::string> AbilityDelegatorArgs::GetTestParam() const
 {
     return params_;
@@ -83,7 +90,11 @@ bool AbilityDelegatorArgs::FindDebugFlag() const
 
 std::string AbilityDelegatorArgs::GetParamValue(const std::string &key) const
 {
-    return "";
+    auto it = params_.find(key);
+    if (it != params_.end()) {
+        return it->second;
+    }
+    return std::string();
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
