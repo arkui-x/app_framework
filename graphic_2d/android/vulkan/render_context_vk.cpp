@@ -64,6 +64,16 @@ bool RenderContextVK::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawi
     return true;
 }
 
+std::string RenderContextVK::GetShaderCacheSize() const
+{
+    return std::string();
+}
+
+std::string RenderContextVK::CleanAllShaderCache() const
+{
+    return std::string();
+}
+
 void RenderContextVK::SetRenderContextType(uint8_t type)
 {
     RenderContextVKType renderContextType = static_cast<RenderContextVKType>(type);

@@ -19,11 +19,8 @@
 #include "rs_vsync_client_ios.h"
 namespace OHOS {
 namespace Rosen {
-
-std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderPiplineClient()
+RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
 {
-    static std::shared_ptr<RSIRenderClient> client = std::make_shared<RSRenderPipelineClient>();
-    return client;
 }
 
 void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)

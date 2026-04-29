@@ -66,6 +66,7 @@ RenderContextGL::RenderContextGL()
     eglContext_ = EGL_NO_CONTEXT;
     eglSurface_ = EGL_NO_SURFACE;
     config_ = nullptr;
+    mHandler_ = nullptr;
 }
 
 RenderContextGL::~RenderContextGL()
@@ -393,6 +394,16 @@ void RenderContextGL::DamageFrame(const std::vector<RectI> &rects)
 
 void RenderContextGL::ClearRedundantResources()
 {
+}
+
+std::string RenderContextGL::GetShaderCacheSize() const
+{
+    return "";
+}
+
+std::string RenderContextGL::CleanAllShaderCache() const
+{
+    return "";
 }
 
 bool RenderContextGL::AbandonContext()
