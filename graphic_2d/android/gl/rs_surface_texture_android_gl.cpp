@@ -73,6 +73,8 @@ bool AndroidSurfaceTextureGL::OnInitializeTexture()
     glGenTextures(1, &textureId_); // 1: generate texture id count
     RSSurfaceTextureAttachCallBack attachCallback = GetAttach();
     if (attachCallback == nullptr) {
+        glDeleteTextures(1, &textureId_); // 1: delete texture id count
+        textureId_ = 0;
         ROSEN_LOGE("AndroidSurfaceTextureGL::OnInitializeTexture attachCallback is nullptr");
         return false;
     }

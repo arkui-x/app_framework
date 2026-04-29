@@ -15,7 +15,9 @@
 
 #include "rs_surface_android_vulkan.h"
 
+#include <atomic>
 #include <memory>
+#include <mutex>
 #include "platform/common/rs_log.h"
 #include "drawing/engine_adapter/skia_adapter/skia_gpu_context.h"
 #include "engine_adapter/skia_adapter/skia_surface.h"
@@ -35,28 +37,18 @@ namespace OHOS {
 namespace Rosen {
 
 static constexpr uint16_t MAX_FRAMES_IN_FLIGHT = 3;
+static std::atomic<int32_t> g_surfaceCount = 0;
+static std::mutex g_cleanupMutex;
 
 RSSurfaceAndroidVulkan::RSSurfaceAndroidVulkan(ANativeWindow* data) : RSSurfaceAndroid(data)
 {
-    ROSEN_LOGE("RSSurfaceAndroidVulkan entry with %p", nativeWindow_);
+    int32_t count = g_surfaceCount.fetch_add(1, std::memory_order_relaxed) + 1;
+    static_cast<void>(count);
     swapChain_.Initialize(nativeWindow_);
 }
 
 RSSurfaceAndroidVulkan::~RSSurfaceAndroidVulkan()
 {
-    if (mSkContext) {
-        Drawing::SkiaGPUContext* skiaGpuContext = mSkContext->GetImpl<Drawing::SkiaGPUContext>();
-        if (skiaGpuContext) {
-            sk_sp<GrDirectContext> grContext = skiaGpuContext->GetGrContext();
-            if (grContext) {
-                grContext->flushAndSubmit();
-                grContext->freeGpuResources();
-            }
-        }
-        mSkContext->FlushAndSubmit(true);
-        mSkContext->PurgeUnlockedResources(true);
-    }
-    
     for (size_t i = 0; i < skiaSurfaces_.size(); i++) {
         if (skiaSurfaces_[i]) {
             skiaSurfaces_[i].reset();
@@ -64,9 +56,32 @@ RSSurfaceAndroidVulkan::~RSSurfaceAndroidVulkan()
     }
     skiaSurfaces_.clear();
     skiaSurfaces_.shrink_to_fit();
-    
+
     swapChain_.Cleanup();
-    
+
+    int32_t count = g_surfaceCount.fetch_sub(1, std::memory_order_acq_rel) - 1;
+    if (count < 0) {
+        ROSEN_LOGE("RSSurfaceAndroidVulkan::Dtor invalid surface_count=%{public}d, reset to 0", count);
+        g_surfaceCount.store(0, std::memory_order_release);
+        count = 0;
+    }
+    if (count <= 0 && mSkContext) {
+        std::lock_guard<std::mutex> lock(g_cleanupMutex);
+        int32_t currentCount = g_surfaceCount.load(std::memory_order_acquire);
+        if (currentCount <= 0) {
+            Drawing::SkiaGPUContext* skiaGpuContext = mSkContext->GetImpl<Drawing::SkiaGPUContext>();
+            if (skiaGpuContext) {
+                sk_sp<GrDirectContext> grContext = skiaGpuContext->GetGrContext();
+                if (grContext) {
+                    grContext->flushAndSubmit();
+                    grContext->freeGpuResources();
+                }
+            }
+            mSkContext->FlushAndSubmit(true);
+            mSkContext->PurgeUnlockedResources(false);
+        }
+    }
+
     ROSEN_LOGD("RSSurfaceAndroidVulkan Destructor");
 }
 
@@ -117,7 +132,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceAndroidVulkan::CreateSkiaSurfaceFromS
     auto colorSpace = ConvertColorGamutToColorSpace(colorSpace_);
 
     auto& vkContext = RsVulkanContext::GetSingleton();
-    QueueFamilyIndices indices = vkContext.FindQueueFamilies();
+    QueueFamilyIndices indices = vkContext.FindQueueFamilies(swapChain_.GetSurface());
 
     Drawing::TextureInfo texture_info;
     texture_info.SetWidth(width);
@@ -189,11 +204,9 @@ bool RSSurfaceAndroidVulkan::RecreateSwapchainIfNeeded(int32_t width, int32_t he
     }
 
     if (swapChain_.IsRecreating()) {
-        ROSEN_LOGD("RequestFrame: Swapchain is being recreated, waiting...");
         return false;
     }
 
-    ROSEN_LOGD("RequestFrame: Need to recreate swapchain");
     int32_t recreateWidth = width;
     int32_t recreateHeight = height;
     swapChain_.GetPendingSize(&recreateWidth, &recreateHeight);
@@ -413,7 +426,6 @@ bool RSSurfaceAndroidVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, 
         return false;
     }
     if (swapChain_.IsRecreating() || swapChain_.NeedRecreate()) {
-        ROSEN_LOGD("FlushFrame: Swapchain is being recreated, dropping frame");
         return false;
     }
 
@@ -443,12 +455,14 @@ bool RSSurfaceAndroidVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, 
     WaitAndSubmitSkiaContext(waitSemaphore);
 
     auto& vkContext = RsVulkanContext::GetSingleton();
-    auto queue = vkContext.GetQueue();
+    auto queue = vkContext.GetPresentQueue();
     if (queue == VK_NULL_HANDLE) {
-        ROSEN_LOGE("RSSurfaceAndroidVulkan::FlushFrame, queue is null");
-        QueueFamilyIndices indices = vkContext.FindQueueFamilies();
-        VkDevice device = vkContext.GetDevice();
-        vkGetDeviceQueue(device, indices.presentFamily, 0, &queue);
+        // Unified family: presentQueue is always graphicsQueue. Calling
+        // vkGetDeviceQueue(device, presentFamily, 0, ...) here would be undefined
+        // when presentFamily was not declared in VkDeviceCreateInfo, so just reuse
+        // the graphics queue handle that was created at device creation time.
+        ROSEN_LOGE("RSSurfaceAndroidVulkan::FlushFrame, presentQueue is null, fallback to graphicsQueue");
+        queue = vkContext.GetGraphicsQueue();
     }
 
     bool result = PresentSwapchainImage(queue, imageIndex, renderFinishedSemaphore);

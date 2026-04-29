@@ -242,9 +242,7 @@ std::shared_ptr<Drawing::VKTextureInfo> MakeVKTextureInfoFromHardwareBuffer(stru
     imageInfo->vkProtected = false;
     imageInfo->imageUsageFlags = usageFlags;
     SetImageInfo(imageInfo, nbFormatProps);
-    QueueFamilyIndices indices = vkContext.FindQueueFamilies();
-    imageInfo->sharingMode =
-        (indices.graphicsFamily != indices.presentFamily) ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
+    imageInfo->sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     return imageInfo;
 }
 
