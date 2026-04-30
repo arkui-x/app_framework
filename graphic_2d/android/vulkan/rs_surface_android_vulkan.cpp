@@ -16,6 +16,7 @@
 #include "rs_surface_android_vulkan.h"
 
 #include <atomic>
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include "platform/common/rs_log.h"
@@ -37,8 +38,17 @@ namespace OHOS {
 namespace Rosen {
 
 static constexpr uint16_t MAX_FRAMES_IN_FLIGHT = 3;
+static constexpr int64_t FLUSH_STAGE_WARN_MS = 50;
+static constexpr int64_t SUBMIT_STAGE_WARN_MS = 50;
+static constexpr int64_t PRESENT_STAGE_WARN_MS = 50;
 static std::atomic<int32_t> g_surfaceCount = 0;
 static std::mutex g_cleanupMutex;
+
+static inline int64_t ElapsedMs(const std::chrono::steady_clock::time_point& begin,
+    const std::chrono::steady_clock::time_point& end)
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+}
 
 RSSurfaceAndroidVulkan::RSSurfaceAndroidVulkan(ANativeWindow* data) : RSSurfaceAndroid(data)
 {
@@ -339,10 +349,11 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceAndroidVulkan::RequestFrame(
 bool RSSurfaceAndroidVulkan::FlushSkiaSurface(
     std::shared_ptr<Drawing::Surface> surface, VkSemaphore renderFinishedSemaphore)
 {
+    auto stageBegin = std::chrono::steady_clock::now();
     auto& vkContext = RsVulkanContext::GetSingleton();
-    auto callbackInfoPtr = std::make_unique<RsVulkanInterface::CallbackSemaphoreInfo>(
-        vkContext.GetRsVulkanInterface(), renderFinishedSemaphore, -1);
-    auto* callbackInfo = callbackInfoPtr.get();
+    // auto callbackInfoPtr = std::make_unique<RsVulkanInterface::CallbackSemaphoreInfo>(
+    //     vkContext.GetRsVulkanInterface(), renderFinishedSemaphore, -1);
+    // auto* callbackInfo = callbackInfoPtr.get();
 
     RS_TRACE_NAME("SkiaFlush");
     VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
@@ -357,25 +368,35 @@ bool RSSurfaceAndroidVulkan::FlushSkiaSurface(
     flushInfo.backendSurfaceAccess = true;
     flushInfo.numSemaphores = signalSemaphoreVec.size();
     flushInfo.backendSemaphore = static_cast<void*>(signalSemaphoreVec.data());
-    flushInfo.finishedProc = [](void *context) {
-        if (context != nullptr) {
-            delete reinterpret_cast<RsVulkanInterface::CallbackSemaphoreInfo*>(context);
-        }
-    };
-    flushInfo.finishedContext = callbackInfo;
+    flushInfo.finishedProc = nullptr;
+    flushInfo.finishedContext = nullptr;
+    // flushInfo.finishedProc = [](void *context) {
+    //     if (context != nullptr) {
+    //         delete reinterpret_cast<RsVulkanInterface::CallbackSemaphoreInfo*>(context);
+    //     }
+    // };
+    // flushInfo.finishedContext = callbackInfo;
     auto res = surface->Flush(&flushInfo);
+    auto stageEnd = std::chrono::steady_clock::now();
+    int64_t flushCostMs = ElapsedMs(stageBegin, stageEnd);
     if (res == Drawing::SemaphoresSubmited::DRAWING_ENGINE_SUBMIT_NO) {
-        ROSEN_LOGI("FlushFrame Surface flush returned DRAWING_ENGINE_SUBMIT_NO, semaphores may not be submitted");
-        callbackInfoPtr.reset();
+        ROSEN_LOGE("FlushFrame flush stage failed: submit_no, cost=%{public}" PRId64
+            "ms currentFrame=%{public}zu", flushCostMs, currentFrame_);
+        // callbackInfoPtr.reset();
         return false;
     } else {
-        callbackInfoPtr.release();
+        // callbackInfoPtr.release();
+    }
+    if (flushCostMs > FLUSH_STAGE_WARN_MS) {
+        ROSEN_LOGE("FlushFrame flush stage slow: cost=%{public}" PRId64 "ms currentFrame=%{public}zu",
+            flushCostMs, currentFrame_);
     }
     return true;
 }
 
 void RSSurfaceAndroidVulkan::WaitAndSubmitSkiaContext(VkSemaphore waitSemaphore)
 {
+    auto stageBegin = std::chrono::steady_clock::now();
     RS_TRACE_NAME("Submit");
 #ifdef USE_M133_SKIA
     GrBackendSemaphore backendWaitSemaphore = GrBackendSemaphores::MakeVk(waitSemaphore);
@@ -391,12 +412,21 @@ void RSSurfaceAndroidVulkan::WaitAndSubmitSkiaContext(VkSemaphore waitSemaphore)
         }
     }
     mSkContext->Submit();
+    auto stageEnd = std::chrono::steady_clock::now();
+    int64_t submitCostMs = ElapsedMs(stageBegin, stageEnd);
+    if (submitCostMs > SUBMIT_STAGE_WARN_MS) {
+        ROSEN_LOGE("FlushFrame submit stage slow: cost=%{public}" PRId64 "ms currentFrame=%{public}zu",
+            submitCostMs, currentFrame_);
+    }
 }
 
 bool RSSurfaceAndroidVulkan::PresentSwapchainImage(
     VkQueue queue, uint32_t imageIndex, VkSemaphore renderFinishedSemaphore)
 {
+    auto stageBegin = std::chrono::steady_clock::now();
     VkResult result = swapChain_.Present(queue, imageIndex, renderFinishedSemaphore);
+    auto stageEnd = std::chrono::steady_clock::now();
+    int64_t presentCostMs = ElapsedMs(stageBegin, stageEnd);
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         ROSEN_LOGD("FlushFrame Swapchain out of date, will recreate next frame");
         swapChain_.SetNeedRecreate(true);
@@ -404,10 +434,17 @@ bool RSSurfaceAndroidVulkan::PresentSwapchainImage(
     } else if (result == VK_SUBOPTIMAL_KHR) {
         ROSEN_LOGD("FlushFrame Swapchain suboptimal");
     } else if (result != VK_SUCCESS) {
-        ROSEN_LOGD("FlushFrame Present failed: %d", result);
+        ROSEN_LOGE("FlushFrame present stage failed: VkResult=%{public}d, cost=%{public}" PRId64
+            "ms imageIndex=%{public}u currentFrame=%{public}zu",
+            static_cast<int32_t>(result), presentCostMs, imageIndex, currentFrame_);
         return false;
     } else {
         lastPresentedImageIndex_ = imageIndex;
+    }
+    if (presentCostMs > PRESENT_STAGE_WARN_MS) {
+        ROSEN_LOGE("FlushFrame present stage slow: cost=%{public}" PRId64
+            "ms imageIndex=%{public}u currentFrame=%{public}zu",
+            presentCostMs, imageIndex, currentFrame_);
     }
     currentFrame_ = (currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;
     return true;
@@ -446,14 +483,7 @@ bool RSSurfaceAndroidVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, 
         return false;
     }
 
-    VkSemaphore renderFinishedSemaphore = swapChain_.GetRenderFinishedSemaphore(currentFrame_);
-    if (!FlushSkiaSurface(surface, renderFinishedSemaphore)) {
-        return false;
-    }
-
     VkSemaphore waitSemaphore = swapChain_.GetImageAvailableSemaphore(currentFrame_);
-    WaitAndSubmitSkiaContext(waitSemaphore);
-
     auto& vkContext = RsVulkanContext::GetSingleton();
     auto queue = vkContext.GetPresentQueue();
     if (queue == VK_NULL_HANDLE) {
@@ -464,6 +494,17 @@ bool RSSurfaceAndroidVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, 
         ROSEN_LOGE("RSSurfaceAndroidVulkan::FlushFrame, presentQueue is null, fallback to graphicsQueue");
         queue = vkContext.GetGraphicsQueue();
     }
+
+    VkSemaphore renderFinishedSemaphore = swapChain_.GetRenderFinishedSemaphore(currentFrame_);
+    if (!FlushSkiaSurface(surface, renderFinishedSemaphore)) {
+        // Flush failed after vkAcquireNextImage already succeeded. To avoid leaving an acquired
+        // swapchain image and imageAvailable semaphore unconsumed (which can stall later frames),
+        // present the untouched image directly and wait on the acquire semaphore.
+        ROSEN_LOGE("FlushFrame: flush failed, fallback present with acquire semaphore to drain frame state");
+        return PresentSwapchainImage(queue, imageIndex, waitSemaphore);
+    }
+
+    WaitAndSubmitSkiaContext(waitSemaphore);
 
     bool result = PresentSwapchainImage(queue, imageIndex, renderFinishedSemaphore);
     if (mSkContext) {
