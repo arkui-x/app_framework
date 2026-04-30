@@ -101,6 +101,11 @@ std::string StageAssetManager::GetAppLibDir() const
 }
 
 #ifdef ANDROID_PLATFORM
+std::string StageAssetManager::GetStubFilePath() const
+{
+    return StageAssetProvider::GetInstance()->GetStubFilePath();
+}
+
 std::string StageAssetManager::GetAppDataLibDir() const
 {
     return StageAssetProvider::GetInstance()->GetAppDataLibDir();
