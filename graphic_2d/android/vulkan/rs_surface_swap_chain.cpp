@@ -21,6 +21,8 @@ namespace OHOS {
 namespace Rosen {
 
 static constexpr uint16_t MAX_FRAMES_IN_FLIGHT = 3;
+ // Number of queue families when graphics and present queues are different
+ static constexpr uint32_t CONCURRENT_QUEUE_FAMILY_COUNT = 2;
 
 // Choose composite alpha mode: prefer non-opaque modes that allow transparency,
 // fall back to opaque if no other mode is supported.
@@ -136,7 +138,7 @@ VkSwapchainCreateInfoKHR RSSurfaceSwapChain::BuildSwapchainCreateInfo(int32_t wi
     uint32_t queueFamilyIndices[] = {indices.graphicsFamily, indices.presentFamily};
     if (indices.presentFamily != UINT32_MAX && indices.graphicsFamily != indices.presentFamily) {
         createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-        createInfo.queueFamilyIndexCount = 2;
+        createInfo.queueFamilyIndexCount = CONCURRENT_QUEUE_FAMILY_COUNT;
         createInfo.pQueueFamilyIndices = queueFamilyIndices;
     } else {
         createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;

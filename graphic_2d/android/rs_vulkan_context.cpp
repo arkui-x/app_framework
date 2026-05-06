@@ -344,6 +344,7 @@ bool RsVulkanInterface::CreateDevice(bool isProtected, bool isHtsEnable)
         .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions_.size()),
         .ppEnabledExtensionNames = deviceExtensions_.data(), .pEnabledFeatures = nullptr,
     };
+    queueCount_ = queueCreateInfos.size();
     if (vkCreateDevice(physicalDevice_, &createInfo, nullptr, &device_) != VK_SUCCESS) {
         SetVulkanDeviceStatus(VulkanDeviceStatus::CREATE_FAIL);
         ROSEN_LOGE("vkCreateDevice failed");
@@ -401,7 +402,11 @@ bool RsVulkanInterface::CreateAndroidSurface(ANativeWindow* window, VkSurfaceKHR
     static int count = 0;
     count++;
     ROSEN_LOGE("liuwei CreateAndroidSurface count=%{public}u", count);
-    if (indices.presentFamily != indices.graphicsFamily || count == 1) {
+    /*
+     * if the queue count is 1, we can only use the graphics queue for present.
+     * so we need to recreate the device for the present family.
+     */
+    if (indices.presentFamily != indices.graphicsFamily && queueCount_ <= 1) {
         if (!RecreateDeviceForPresentFamily(indices.presentFamily)) {
             ROSEN_LOGE("CreateAndroidSurface failed to recreate device for present family %{public}u",
                 indices.presentFamily);
@@ -484,9 +489,13 @@ QueueFamilyIndices RsVulkanInterface::FindQueueFamilies(VkSurfaceKHR surface)
 bool RsVulkanInterface::RecreateDeviceForPresentFamily(uint32_t presentFamily)
 {
     if (presentFamily == UINT32_MAX) {
-        return true;
+        return false;
     }
-    if (presentFamily == graphicsQueueFamilyIndex_) {
+    /*
+     * if the present family is the same as the graphics family, or the present family is already being recreated,
+     * we don't need to recreate the device.
+     */
+    if (presentFamily == graphicsQueueFamilyIndex_ || pendingPresentQueueFamilyIndex_ == presentFamily) {
         return true;
     }
     pendingPresentQueueFamilyIndex_ = presentFamily;
@@ -509,7 +518,6 @@ bool RsVulkanInterface::RecreateDeviceForPresentFamily(uint32_t presentFamily)
         pendingPresentQueueFamilyIndex_ = UINT32_MAX;
         return false;
     }
-    pendingPresentQueueFamilyIndex_ = UINT32_MAX;
     return true;
 }
 

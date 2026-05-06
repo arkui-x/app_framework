@@ -266,6 +266,7 @@ private:
     VkDevice device_ = VK_NULL_HANDLE;
     VkQueue graphicsQueue_ = VK_NULL_HANDLE;
     VkQueue presentQueue_ = VK_NULL_HANDLE;
+    uint32_t queueCount_ = 0;
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2_;
     VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures_ = nullptr;
     VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeature_;
