@@ -23,6 +23,10 @@
 #endif
 namespace OHOS {
 namespace Rosen {
+RSRenderPipelineClient::RSRenderPipelineClient()
+{
+}
+
 RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
 {
 }

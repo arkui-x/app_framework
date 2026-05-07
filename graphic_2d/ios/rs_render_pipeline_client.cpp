@@ -19,6 +19,9 @@
 #include "rs_vsync_client_ios.h"
 namespace OHOS {
 namespace Rosen {
+RSRenderPipelineClient::RSRenderPipelineClient()
+{
+}
 RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
 {
 }
