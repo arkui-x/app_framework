@@ -69,7 +69,7 @@ bool RSSystemProperties::GetTestModeEnabled()
 
 bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
 {
-    return false;
+    return true;
 }
 
 bool RSSystemProperties::GetRenderNodePurgeEnabled()
