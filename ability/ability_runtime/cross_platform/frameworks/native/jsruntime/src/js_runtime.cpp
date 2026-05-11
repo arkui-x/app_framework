@@ -428,6 +428,7 @@ bool JsRuntime::Initialize(const Options& options)
         NativeEngine* engine = reinterpret_cast<NativeEngine*>(env_);
         OHOS::Ace::Platform::DeclarativeModulePreloader::Preload(*engine);
         env_ = reinterpret_cast<napi_env>(engine);
+        isAcePreloaded_ = true;
     }
 #endif
 
@@ -505,6 +506,23 @@ napi_value JsRuntime::LoadJsBundle(const std::string& path, std::vector<uint8_t>
     }
 
     return exportObj;
+}
+
+// Activate the ACE module automatically.
+void JsRuntime::LoadAce()
+{
+#ifdef SUPPORT_GRAPHICS
+    if (env_ == nullptr) {
+        HILOG_ERROR("LoadAce failed: env_ is nullptr");
+        return;
+    }
+    NativeEngine* engine = reinterpret_cast<NativeEngine*>(env_);
+    OHOS::Ace::Platform::DeclarativeModulePreloader::Preload(*engine);
+    env_ = reinterpret_cast<napi_env>(engine);
+    isAcePreloaded_ = true;
+#else
+    HILOG_INFO("LoadAce skipped: SUPPORT_GRAPHICS is disabled");
+#endif
 }
 
 std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& moduleName, const std::string& modulePath,
