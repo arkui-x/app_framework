@@ -59,6 +59,7 @@ ohos_source_set("android") {
     "//foundation/graphic/graphic_2d/interfaces/inner_api",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface/",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
     "//foundation/graphic/graphic_2d/utils/log",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "//foundation/arkui/ace_engine/adapter/android/capability/java/jni/texture",

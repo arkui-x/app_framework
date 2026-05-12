@@ -44,6 +44,7 @@ public:
         uint32_t imageIndex, int32_t width, int32_t height, bool isProtected);
 
 private:
+    void DestroyOnRenderThread();
     std::shared_ptr<RenderContextVK> GetRenderContextVulkan() const;
     bool SetupGrContext() override;
     void SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC, bool isProtected = false);

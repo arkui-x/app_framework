@@ -17,11 +17,13 @@
 
 #include <chrono>
 #include <memory>
+#include "unistd.h"
 #include "platform/common/rs_log.h"
 #include "render_context/render_context.h"
 #include "drawing/engine_adapter/skia_adapter/skia_gpu_context.h"
 #include "engine_adapter/skia_adapter/skia_surface.h"
 #include "rs_trace.h"
+#include "pipeline/rs_render_thread.h"
 
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/GrDirectContext.h"
@@ -56,6 +58,20 @@ RSSurfaceAndroidVulkan::RSSurfaceAndroidVulkan(ANativeWindow* data) : RSSurfaceA
 RSSurfaceAndroidVulkan::~RSSurfaceAndroidVulkan()
 {
     ROSEN_LOGI("RSSurfaceAndroidVulkan Destructor");
+    auto cleanupTask = [this]() {
+        DestroyOnRenderThread();
+    };
+    const int32_t renderTid = RSRenderThread::Instance().GetTid();
+    const bool shouldRunDirectly = !RSRenderThread::GetIsRunning() || renderTid == gettid();
+    if (!shouldRunDirectly) {
+        RSRenderThread::Instance().PostSyncTask(cleanupTask);
+        return;
+    }
+    cleanupTask();
+}
+
+void RSSurfaceAndroidVulkan::DestroyOnRenderThread()
+{
     for (size_t i = 0; i < skiaSurfaces_.size(); i++) {
         if (skiaSurfaces_[i]) {
             skiaSurfaces_[i].reset();
