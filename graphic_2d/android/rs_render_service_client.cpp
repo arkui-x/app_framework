@@ -40,6 +40,11 @@ void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>
 {
 }
 
+sptr<IRemoteObject> RSRenderServiceClient::GetConnectToRenderToken(ScreenId screenId)
+{
+    return nullptr;
+}
+
 bool RSRenderServiceClient::GetUniRenderEnabled()
 {
     return {};

@@ -26,6 +26,11 @@ void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncT
 {
 }
 
+sptr<IRemoteObject> RSRenderServiceClient::GetConnectToRenderToken(ScreenId screenId)
+{
+    return nullptr;
+}
+
 std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderServiceClient()
 {
     static std::shared_ptr<RSIRenderClient> client = std::make_shared<RSRenderServiceClient>();
