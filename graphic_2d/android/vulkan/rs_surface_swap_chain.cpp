@@ -22,7 +22,7 @@ namespace Rosen {
 
 static constexpr uint16_t MAX_FRAMES_IN_FLIGHT = 3;
  // Number of queue families when graphics and present queues are different
- static constexpr uint32_t CONCURRENT_QUEUE_FAMILY_COUNT = 2;
+static constexpr uint32_t CONCURRENT_QUEUE_FAMILY_COUNT = 2;
 
 RSSurfaceSwapChain::RSSurfaceSwapChain()
 {

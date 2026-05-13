@@ -355,9 +355,6 @@ bool RSSurfaceAndroidVulkan::FlushSkiaSurface(
 {
     auto stageBegin = std::chrono::steady_clock::now();
     auto& vkContext = RsVulkanContext::GetSingleton();
-    // auto callbackInfoPtr = std::make_unique<RsVulkanInterface::CallbackSemaphoreInfo>(
-    //     vkContext.GetRsVulkanInterface(), renderFinishedSemaphore, -1);
-    // auto* callbackInfo = callbackInfoPtr.get();
 
     RS_TRACE_NAME("SkiaFlush");
     VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
@@ -374,22 +371,14 @@ bool RSSurfaceAndroidVulkan::FlushSkiaSurface(
     flushInfo.backendSemaphore = static_cast<void*>(signalSemaphoreVec.data());
     flushInfo.finishedProc = nullptr;
     flushInfo.finishedContext = nullptr;
-    // flushInfo.finishedProc = [](void *context) {
-    //     if (context != nullptr) {
-    //         delete reinterpret_cast<RsVulkanInterface::CallbackSemaphoreInfo*>(context);
-    //     }
-    // };
-    // flushInfo.finishedContext = callbackInfo;
+
     auto res = surface->Flush(&flushInfo);
     auto stageEnd = std::chrono::steady_clock::now();
     int64_t flushCostMs = ElapsedMs(stageBegin, stageEnd);
     if (res == Drawing::SemaphoresSubmited::DRAWING_ENGINE_SUBMIT_NO) {
         ROSEN_LOGE("FlushFrame flush stage failed: submit_no, cost=%{public}" PRId64
             "ms currentFrame=%{public}zu", flushCostMs, currentFrame_);
-        // callbackInfoPtr.reset();
         return false;
-    } else {
-        // callbackInfoPtr.release();
     }
     if (flushCostMs > FLUSH_STAGE_WARN_MS) {
         ROSEN_LOGE("FlushFrame flush stage slow: cost=%{public}" PRId64 "ms currentFrame=%{public}zu",

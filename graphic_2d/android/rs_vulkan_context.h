@@ -296,6 +296,12 @@ private:
     bool RecreateDeviceForPresentFamily(uint32_t presentFamily);
     void ConfigureFeatures(bool isProtected);
     void ConfigureExtensions();
+    void BuildDeviceQueueCreateInfos(const QueueFamilyIndices& indices, const float& queuePriority,
+        std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos);
+    VkDeviceCreateInfo MakeDeviceCreateInfo(const std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos,
+        bool isHtsEnable);
+    bool InvokeVkCreateDevice(const VkDeviceCreateInfo& createInfo);
+    void BindGraphicsAndPresentQueues(const QueueFamilyIndices& indices);
 #ifndef USE_M133_SKIA
     uint32_t GetGrVkFeatureFlags();
 #endif
@@ -317,9 +323,9 @@ private:
     bool deviceIsHtsEnable_ = false;
     uint32_t presentQueueFamilyIndex_ = UINT32_MAX;
     /*
-     *if pendingPresentQueueFamilyIndex_ is not UINT32_MAX, 
+     *if pendingPresentQueueFamilyIndex_ is not UINT32_MAX,
      *it means the present queue family index is being recreated.
-     */ 
+     */
     uint32_t pendingPresentQueueFamilyIndex_ = UINT32_MAX;
 };
 
