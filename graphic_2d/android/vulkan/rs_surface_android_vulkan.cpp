@@ -15,11 +15,10 @@
 
 #include "rs_surface_android_vulkan.h"
 
-#include <atomic>
 #include <chrono>
 #include <memory>
-#include <mutex>
 #include "platform/common/rs_log.h"
+#include "render_context/render_context.h"
 #include "drawing/engine_adapter/skia_adapter/skia_gpu_context.h"
 #include "engine_adapter/skia_adapter/skia_surface.h"
 #include "rs_trace.h"
@@ -41,8 +40,6 @@ static constexpr uint16_t MAX_FRAMES_IN_FLIGHT = 3;
 static constexpr int64_t FLUSH_STAGE_WARN_MS = 50;
 static constexpr int64_t SUBMIT_STAGE_WARN_MS = 50;
 static constexpr int64_t PRESENT_STAGE_WARN_MS = 50;
-static std::atomic<int32_t> g_surfaceCount = 0;
-static std::mutex g_cleanupMutex;
 
 static inline int64_t ElapsedMs(const std::chrono::steady_clock::time_point& begin,
     const std::chrono::steady_clock::time_point& end)
@@ -52,13 +49,13 @@ static inline int64_t ElapsedMs(const std::chrono::steady_clock::time_point& beg
 
 RSSurfaceAndroidVulkan::RSSurfaceAndroidVulkan(ANativeWindow* data) : RSSurfaceAndroid(data)
 {
-    int32_t count = g_surfaceCount.fetch_add(1, std::memory_order_relaxed) + 1;
-    static_cast<void>(count);
+    ROSEN_LOGI("RSSurfaceAndroidVulkan entry with %p", data);
     swapChain_.Initialize(nativeWindow_);
 }
 
 RSSurfaceAndroidVulkan::~RSSurfaceAndroidVulkan()
 {
+    ROSEN_LOGI("RSSurfaceAndroidVulkan Destructor");
     for (size_t i = 0; i < skiaSurfaces_.size(); i++) {
         if (skiaSurfaces_[i]) {
             skiaSurfaces_[i].reset();
@@ -66,33 +63,24 @@ RSSurfaceAndroidVulkan::~RSSurfaceAndroidVulkan()
     }
     skiaSurfaces_.clear();
     skiaSurfaces_.shrink_to_fit();
-
     swapChain_.Cleanup();
-
-    int32_t count = g_surfaceCount.fetch_sub(1, std::memory_order_acq_rel) - 1;
-    if (count < 0) {
-        ROSEN_LOGE("RSSurfaceAndroidVulkan::Dtor invalid surface_count=%{public}d, reset to 0", count);
-        g_surfaceCount.store(0, std::memory_order_release);
-        count = 0;
+    auto rc = GetRenderContextVulkan();
+    if (rc != nullptr) {
+        rc->DeleteSurface();
     }
-    if (count <= 0 && mSkContext) {
-        std::lock_guard<std::mutex> lock(g_cleanupMutex);
-        int32_t currentCount = g_surfaceCount.load(std::memory_order_acquire);
-        if (currentCount <= 0) {
-            Drawing::SkiaGPUContext* skiaGpuContext = mSkContext->GetImpl<Drawing::SkiaGPUContext>();
-            if (skiaGpuContext) {
-                sk_sp<GrDirectContext> grContext = skiaGpuContext->GetGrContext();
-                if (grContext) {
-                    grContext->flushAndSubmit();
-                    grContext->freeGpuResources();
-                }
-            }
-            mSkContext->FlushAndSubmit(true);
-            mSkContext->PurgeUnlockedResources(false);
+}
+
+void RSSurfaceAndroidVulkan::SetRenderContext(std::shared_ptr<RenderContext> context)
+{
+    if (GetRenderContextVulkan() != context) {
+        if (GetRenderContextVulkan() != nullptr) {
+            GetRenderContextVulkan()->DeleteSurface();
+        }
+        RSSurfaceAndroid::SetRenderContext(context);
+        if (GetRenderContextVulkan() != nullptr) {
+            GetRenderContextVulkan()->AddSurface();
         }
     }
-
-    ROSEN_LOGD("RSSurfaceAndroidVulkan Destructor");
 }
 
 std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToColorSpace(GraphicColorGamut colorGamut)
@@ -132,7 +120,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceAndroidVulkan::CreateSkiaSurfaceFromS
 {
     const auto& swapchainImages = swapChain_.GetImages();
     if (imageIndex >= swapchainImages.size()) {
-        ROSEN_LOGI("Invalid image index: %u", imageIndex);
+        ROSEN_LOGE("Invalid image index: %u", imageIndex);
         return nullptr;
     }
 
@@ -262,7 +250,7 @@ uint32_t RSSurfaceAndroidVulkan::AcquireSwapchainImage()
         swapChain_.SetNeedRecreate(true);
         return UINT32_MAX;
     } else if (result != VK_SUCCESS) {
-        ROSEN_LOGD("RequestFrame Failed to acquire swapchain image: %d", result);
+        ROSEN_LOGE("RequestFrame Failed to acquire swapchain image: %d", result);
         return UINT32_MAX;
     }
     return imageIndex;
@@ -284,7 +272,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceAndroidVulkan::GetOrCreateSkiaSurface
         skiaSurfaces_[imageIndex] = CreateSkiaSurfaceFromSwapchainImage(
             imageIndex, swapchainWidth, swapchainHeight, isProtected);
         if (!skiaSurfaces_[imageIndex]) {
-            ROSEN_LOGD("RequestFrame Failed to create surface for image index: %u", imageIndex);
+            ROSEN_LOGE("RequestFrame Failed to create surface for image index: %u", imageIndex);
             return nullptr;
         }
     }
@@ -295,12 +283,12 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceAndroidVulkan::RequestFrame(
     int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
     if (nativeWindow_ == nullptr) {
-        ROSEN_LOGD("RSSurfaceAndroidVulkan::RequestFrame, native window is nullptr");
+        ROSEN_LOGE("RSSurfaceAndroidVulkan::RequestFrame, native window is nullptr");
         return nullptr;
     }
 
     if (!mSkContext) {
-        ROSEN_LOGD("RSSurfaceAndroidVulkan::RequestFrame, Skia context is nullptr");
+        ROSEN_LOGE("RSSurfaceAndroidVulkan::RequestFrame, Skia context is nullptr");
         return nullptr;
     }
     SetNativeWindowInfo(width, height, useAFBC, isProtected);
@@ -310,7 +298,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceAndroidVulkan::RequestFrame(
     }
 
     if (swapChain_.GetSwapchain() == VK_NULL_HANDLE) {
-        ROSEN_LOGD("RequestFrame: Swapchain is not available after recreation attempt");
+        ROSEN_LOGE("RequestFrame: Swapchain is not available after recreation attempt");
         return nullptr;
     }
 

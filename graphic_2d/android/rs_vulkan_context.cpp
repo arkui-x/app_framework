@@ -344,7 +344,7 @@ bool RsVulkanInterface::CreateDevice(bool isProtected, bool isHtsEnable)
         .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions_.size()),
         .ppEnabledExtensionNames = deviceExtensions_.data(), .pEnabledFeatures = nullptr,
     };
-    queueCount_ = queueCreateInfos.size();
+    queueCount_ = static_cast<uint32_t>(queueCreateInfos.size());
     if (vkCreateDevice(physicalDevice_, &createInfo, nullptr, &device_) != VK_SUCCESS) {
         SetVulkanDeviceStatus(VulkanDeviceStatus::CREATE_FAIL);
         ROSEN_LOGE("vkCreateDevice failed");
@@ -367,6 +367,11 @@ bool RsVulkanInterface::CreateDevice(bool isProtected, bool isHtsEnable)
     if (pendingPresentQueueFamilyIndex_ != UINT32_MAX) {
         presentQueueFamilyIndex_ = pendingPresentQueueFamilyIndex_;
         vkGetDeviceQueue(device_, presentQueueFamilyIndex_, 0, &presentQueue_);
+        if (presentQueue_ == VK_NULL_HANDLE) {
+            ROSEN_LOGE("Failed to get present queue for family %{public}u", presentQueueFamilyIndex_);
+            presentQueue_ = graphicsQueue_;
+            presentQueueFamilyIndex_ = indices.graphicsFamily;
+        }
     }
     return true;
 }   
@@ -399,9 +404,6 @@ bool RsVulkanInterface::CreateAndroidSurface(ANativeWindow* window, VkSurfaceKHR
         outSurface = VK_NULL_HANDLE;
         return false;
     }
-    static int count = 0;
-    count++;
-    ROSEN_LOGE("liuwei CreateAndroidSurface count=%{public}u", count);
     /*
      * if the queue count is 1, we can only use the graphics queue for present.
      * so we need to recreate the device for the present family.

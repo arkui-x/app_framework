@@ -24,24 +24,6 @@ static constexpr uint16_t MAX_FRAMES_IN_FLIGHT = 3;
  // Number of queue families when graphics and present queues are different
  static constexpr uint32_t CONCURRENT_QUEUE_FAMILY_COUNT = 2;
 
-// Choose composite alpha mode: prefer non-opaque modes that allow transparency,
-// fall back to opaque if no other mode is supported.
-static VkCompositeAlphaFlagBitsKHR ChooseSwapChainCompositeAlpha(VkCompositeAlphaFlagsKHR supported)
-{
-    static constexpr VkCompositeAlphaFlagBitsKHR kPreferenceOrder[] = {
-        VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR,
-        VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR,
-        VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR,
-        VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-    };
-    for (VkCompositeAlphaFlagBitsKHR candidate : kPreferenceOrder) {
-        if ((supported & candidate) != 0U) {
-            return candidate;
-        }
-    }
-    return VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-}
-
 RSSurfaceSwapChain::RSSurfaceSwapChain()
 {
 }
@@ -147,10 +129,6 @@ VkSwapchainCreateInfoKHR RSSurfaceSwapChain::BuildSwapchainCreateInfo(int32_t wi
     }
 
     createInfo.preTransform = preTransform;
-    // Stability bisect (commit 36a0d38): force compositeAlpha back to OPAQUE and
-    // presentMode back to FIFO to validate whether dynamic selection regressed
-    // first-page startup on certain devices. See ChooseSwapChainCompositeAlpha
-    // / ChooseSwapPresentMode below; they are kept for easy revert later.
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
     ROSEN_LOGI("RSSurfaceSwapChain::BuildSwapchainCreateInfo compositeAlpha=%{public}u(forced OPAQUE)"
