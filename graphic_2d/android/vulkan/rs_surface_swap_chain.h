@@ -33,6 +33,7 @@ public:
     bool Initialize(ANativeWindow* nativeWindow);
     bool Create(int32_t width, int32_t height);
     bool Recreate(int32_t width, int32_t height);
+    VkSurfaceKHR GetSurface() const { return surface_; }
     void Cleanup();
     VkResult AcquireNextImage(uint64_t timeout, VkSemaphore semaphore, uint32_t* imageIndex);
     VkResult Present(VkQueue queue, uint32_t imageIndex, VkSemaphore waitSemaphore);
@@ -55,6 +56,7 @@ private:
     VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities,
                                 int32_t width, int32_t height,
                                 VkSurfaceTransformFlagBitsKHR preTransform);
+    VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
     void CleanupSyncObjects();
     VkSwapchainCreateInfoKHR BuildSwapchainCreateInfo(int32_t width, int32_t height,
         const SwapChainSupportDetails& swapChainSupport);
@@ -62,6 +64,7 @@ private:
 
 private:
     ANativeWindow* nativeWindow_ = nullptr;
+    VkSurfaceKHR surface_ = VK_NULL_HANDLE;
     VkSwapchainKHR swapchain_ = VK_NULL_HANDLE;
     VkFormat swapchainFormat_ = VK_FORMAT_UNDEFINED;
     VkExtent2D swapChainExtent_ = {};

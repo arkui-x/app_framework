@@ -16,6 +16,7 @@
 #include "rs_vulkan_context.h"
 #include <memory>
 #include <mutex>
+#include <set>
 #include <unordered_set>
 #include <string_view>
 #include <dlfcn.h>
@@ -98,6 +99,8 @@ void RsVulkanInterface::Init(VulkanInterfaceType vulkanInterfaceType, bool isPro
     acquiredMandatoryProcAddresses_ = false;
     acquiredMandatoryProcAddresses_ = OpenLibraryHandle() && SetupLoaderProcAddresses();
     interfaceType_ = vulkanInterfaceType;
+    deviceIsProtected_ = isProtected;
+    deviceIsHtsEnable_ = isHtsEnable;
     CreateInstance();
     SelectPhysicalDevice(isProtected);
     CreateDevice(isProtected, isHtsEnable);
@@ -200,23 +203,26 @@ bool RsVulkanInterface::CreateInstance()
     return true;
 }
 
-SwapChainSupportDetails RsVulkanInterface::QuerySwapChainSupport()
+SwapChainSupportDetails RsVulkanInterface::QuerySwapChainSupport(VkSurfaceKHR surface)
 {
     SwapChainSupportDetails details;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice_, surface_, &details.capabilities);
+    if (surface == VK_NULL_HANDLE || physicalDevice_ == VK_NULL_HANDLE) {
+        return details;
+    }
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice_, surface, &details.capabilities);
 
     uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice_, surface_, &formatCount, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice_, surface, &formatCount, nullptr);
     if (formatCount != 0) {
         details.formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice_, surface_, &formatCount, details.formats.data());
+        vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice_, surface, &formatCount, details.formats.data());
     }
     uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice_, surface_, &presentModeCount, nullptr);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice_, surface, &presentModeCount, nullptr);
     if (presentModeCount != 0) {
         details.presentModes.resize(presentModeCount);
         vkGetPhysicalDeviceSurfacePresentModesKHR(
-            physicalDevice_, surface_, &presentModeCount, details.presentModes.data());
+            physicalDevice_, surface, &presentModeCount, details.presentModes.data());
     }
 
     return details;
@@ -300,6 +306,78 @@ void RsVulkanInterface::ConfigureExtensions()
     }
 }
 
+void RsVulkanInterface::BuildDeviceQueueCreateInfos(const QueueFamilyIndices& indices, const float& queuePriority,
+    std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos)
+{
+    std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily};
+    if (pendingPresentQueueFamilyIndex_ != UINT32_MAX) {
+        uniqueQueueFamilies.insert(pendingPresentQueueFamilyIndex_);
+    }
+
+    queueCreateInfos.clear();
+    queueCreateInfos.reserve(uniqueQueueFamilies.size());
+    for (uint32_t queueFamily : uniqueQueueFamilies) {
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = queueFamily;
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
+}
+
+VkDeviceCreateInfo RsVulkanInterface::MakeDeviceCreateInfo(
+    const std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos, bool isHtsEnable)
+{
+    VkDeviceCreateFlags deviceCreateFlags = isHtsEnable ? VK_DEVICE_CREATE_HTS_ENABLE_BIT : 0;
+    return {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .pNext = &physicalDeviceFeatures2_,
+        .flags = deviceCreateFlags,
+        .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
+        .pQueueCreateInfos = queueCreateInfos.data(),
+        .enabledLayerCount = 0,
+        .ppEnabledLayerNames = nullptr,
+        .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions_.size()),
+        .ppEnabledExtensionNames = deviceExtensions_.data(),
+        .pEnabledFeatures = nullptr,
+    };
+}
+
+bool RsVulkanInterface::InvokeVkCreateDevice(const VkDeviceCreateInfo& createInfo)
+{
+    queueCount_ = createInfo.queueCreateInfoCount;
+    if (vkCreateDevice(physicalDevice_, &createInfo, nullptr, &device_) != VK_SUCCESS) {
+        SetVulkanDeviceStatus(VulkanDeviceStatus::CREATE_FAIL);
+        ROSEN_LOGE("vkCreateDevice failed");
+        return false;
+    }
+    SetVulkanDeviceStatus(VulkanDeviceStatus::CREATE_SUCCESS);
+    return true;
+}
+
+void RsVulkanInterface::BindGraphicsAndPresentQueues(const QueueFamilyIndices& indices)
+{
+    // 99% of the time, the graphicsFamily is the same as the presentFamily
+    vkGetDeviceQueue(device_, indices.graphicsFamily, 0, &graphicsQueue_);
+    presentQueue_ = graphicsQueue_;
+    presentQueueFamilyIndex_ = indices.graphicsFamily;
+
+    /*
+     * if pendingPresentQueueFamilyIndex_ is not UINT32_MAX,
+     * it means the present queue family index is being recreated.
+     */
+    if (pendingPresentQueueFamilyIndex_ != UINT32_MAX) {
+        presentQueueFamilyIndex_ = pendingPresentQueueFamilyIndex_;
+        vkGetDeviceQueue(device_, presentQueueFamilyIndex_, 0, &presentQueue_);
+        if (presentQueue_ == VK_NULL_HANDLE) {
+            ROSEN_LOGE("Failed to get present queue for family %{public}u", presentQueueFamilyIndex_);
+            presentQueue_ = graphicsQueue_;
+            presentQueueFamilyIndex_ = indices.graphicsFamily;
+        }
+    }
+}
+
 bool RsVulkanInterface::CreateDevice(bool isProtected, bool isHtsEnable)
 {
     if (!physicalDevice_) {
@@ -309,49 +387,25 @@ bool RsVulkanInterface::CreateDevice(bool isProtected, bool isHtsEnable)
 
     QueueFamilyIndices indices = FindQueueFamilies();
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
-
-    float queuePriority = 1.0f;
-    for (uint32_t queueFamily : uniqueQueueFamilies) {
-        VkDeviceQueueCreateInfo queueCreateInfo{};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = queueFamily;
-        queueCreateInfo.queueCount = 1;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
-        queueCreateInfos.push_back(queueCreateInfo);
-    }
+    const float queuePriority = 1.0f;
+    BuildDeviceQueueCreateInfos(indices, queuePriority, queueCreateInfos);
 
     ConfigureExtensions();
     ConfigureFeatures(isProtected);
-
     vkGetPhysicalDeviceFeatures2(physicalDevice_, &physicalDeviceFeatures2_);
-    VkDeviceCreateFlags deviceCreateFlags = isHtsEnable ? VK_DEVICE_CREATE_HTS_ENABLE_BIT : 0;
-    const VkDeviceCreateInfo createInfo = {
-        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = &physicalDeviceFeatures2_,
-        .flags = deviceCreateFlags,
-        .queueCreateInfoCount = queueCreateInfos.size(),
-        .pQueueCreateInfos = queueCreateInfos.data(),
-        .enabledLayerCount = 0, .ppEnabledLayerNames = nullptr,
-        .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions_.size()),
-        .ppEnabledExtensionNames = deviceExtensions_.data(), .pEnabledFeatures = nullptr,
-    };
-    if (vkCreateDevice(physicalDevice_, &createInfo, nullptr, &device_) != VK_SUCCESS) {
-        SetVulkanDeviceStatus(VulkanDeviceStatus::CREATE_FAIL);
-        ROSEN_LOGE("vkCreateDevice failed");
+    const VkDeviceCreateInfo createInfo = MakeDeviceCreateInfo(queueCreateInfos, isHtsEnable);
+    if (!InvokeVkCreateDevice(createInfo)) {
         return false;
     }
-    SetVulkanDeviceStatus(VulkanDeviceStatus::CREATE_SUCCESS);
     if (!SetupDeviceProcAddresses(device_)) {
         ROSEN_LOGE("SetupDeviceProcAddresses failed");
         return false;
     }
-
-    vkGetDeviceQueue(device_, indices.presentFamily, 0, &queue_);
+    BindGraphicsAndPresentQueues(indices);
     return true;
 }
 
-bool RsVulkanInterface::CreateAndroidSurface(ANativeWindow* window)
+bool RsVulkanInterface::CreateAndroidSurface(ANativeWindow* window, VkSurfaceKHR& outSurface)
 {
     if (instance_ == VK_NULL_HANDLE) {
         ROSEN_LOGE("CreateAndroidSurface instance_ == VK_NULL_HANDLE ");
@@ -368,42 +422,134 @@ bool RsVulkanInterface::CreateAndroidSurface(ANativeWindow* window)
     surfaceCreateInfo.flags = 0;
     surfaceCreateInfo.window = window;
 
-    if (vkCreateAndroidSurfaceKHR(instance_, &surfaceCreateInfo, nullptr, &surface_)) {
+    if (vkCreateAndroidSurfaceKHR(instance_, &surfaceCreateInfo, nullptr, &outSurface)) {
         ROSEN_LOGE("CreateAndroidSurface RsVulkanInterface Failed to create Android surface");
         return false;
+    }
+    QueueFamilyIndices indices = FindQueueFamilies(outSurface);
+    if (indices.presentFamily == UINT32_MAX) {
+        ROSEN_LOGE("CreateAndroidSurface no present-capable queue family found");
+        vkDestroySurfaceKHR(instance_, outSurface, nullptr);
+        outSurface = VK_NULL_HANDLE;
+        return false;
+    }
+    /*
+     * if the queue count is 1, we can only use the graphics queue for present.
+     * so we need to recreate the device for the present family.
+     */
+    if (indices.presentFamily != indices.graphicsFamily && queueCount_ <= 1) {
+        if (!RecreateDeviceForPresentFamily(indices.presentFamily)) {
+            ROSEN_LOGE("CreateAndroidSurface failed to recreate device for present family %{public}u",
+                indices.presentFamily);
+            vkDestroySurfaceKHR(instance_, outSurface, nullptr);
+            outSurface = VK_NULL_HANDLE;
+            return false;
+        }
     }
     return true;
 }
 
-QueueFamilyIndices RsVulkanInterface::FindQueueFamilies()
+QueueFamilyIndices RsVulkanInterface::FindQueueFamilies(VkSurfaceKHR surface)
 {
     QueueFamilyIndices indices;
-
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueFamilyCount, nullptr);
-    
+
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueFamilyCount, queueFamilies.data());
 
-    for (uint32_t i = 0; i < queueFamilyCount; i++) {
-        if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            indices.graphicsFamily = i;
-            graphicsQueueFamilyIndex_ = i;
+    /*
+     * Phase 1: pick first GRAPHICS_BIT family. Used during initial CreateDevice when
+     * no surface is available yet. Also serves as fallback if no surface is given later.
+     */
+    if (graphicsQueueFamilyIndex_ == UINT32_MAX) {
+        for (uint32_t i = 0; i < queueFamilyCount; i++) {
+            if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                graphicsQueueFamilyIndex_ = i;
+                break;
+            }
         }
+    }
+    indices.graphicsFamily = graphicsQueueFamilyIndex_;
 
-        VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice_, i, surface_, &presentSupport);
+    if (surface == VK_NULL_HANDLE) {
+        return indices;
+    }
 
+    /*
+     * Phase 2: with a surface available, the queue family ALREADY used by the device
+     * at CreateDevice time MUST also support presentation, otherwise we cannot safely
+     * present from a queue that wasn't requested at device creation. Verify it.
+     */
+    if (indices.graphicsFamily != UINT32_MAX) {
+        VkBool32 presentSupport = VK_FALSE;
+        vkGetPhysicalDeviceSurfaceSupportKHR(
+            physicalDevice_, indices.graphicsFamily, surface, &presentSupport);
         if (presentSupport) {
-            indices.presentFamily = i;
-        }
-
-        if (indices.IsComplete()) {
-            break;
+            indices.presentFamily = indices.graphicsFamily;
+            presentQueue_ = graphicsQueue_;
+            return indices;
         }
     }
 
+    /*
+     * Phase 3: if the graphicsFamily does not support present,
+     * we need to find a presentFamily that supports present.
+     */
+    for (uint32_t i = 0; i < queueFamilyCount; i++) {
+        VkBool32 presentSupport = VK_FALSE;
+        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice_, i, surface, &presentSupport);
+        if (presentSupport) {
+            indices.presentFamily = i;
+            ROSEN_LOGW("FindQueueFamilies graphicsFamily=%{public}u lacks present support on surface=%{public}p,"
+                " fallback presentFamily=%{public}u requires device recreate",
+                indices.graphicsFamily, reinterpret_cast<void*>(surface), i);
+            return indices;
+        }
+    }
+    ROSEN_LOGE("FindQueueFamilies: graphicsFamily=%{public}u does not support present on"
+               " surface=%{public}p and no fallback present family found",
+               indices.graphicsFamily, reinterpret_cast<void*>(surface));
     return indices;
+}
+
+/*
+ * if presentFamily != graphicsQueueFamilyIndex_, we need to recreate the device.
+ * because create device only create one queue family for graphics and present.
+ */
+bool RsVulkanInterface::RecreateDeviceForPresentFamily(uint32_t presentFamily)
+{
+    if (presentFamily == UINT32_MAX) {
+        return false;
+    }
+    /*
+     * if the present family is the same as the graphics family, or the present family is already being recreated,
+     * we don't need to recreate the device.
+     */
+    if (presentFamily == graphicsQueueFamilyIndex_ || pendingPresentQueueFamilyIndex_ == presentFamily) {
+        return true;
+    }
+    pendingPresentQueueFamilyIndex_ = presentFamily;
+
+    // Existing GrContexts are tied to old VkDevice; release map first to avoid dangling handles.
+    RsVulkanContext::ReleaseDrawingContextMap();
+    if (device_ != VK_NULL_HANDLE) {
+        vkDeviceWaitIdle(device_);
+        vkDestroyDevice(device_, nullptr);
+        device_ = VK_NULL_HANDLE;
+    }
+    graphicsQueue_ = VK_NULL_HANDLE;
+    presentQueue_ = VK_NULL_HANDLE;
+    if (!CreateDevice(deviceIsProtected_, deviceIsHtsEnable_)) {
+        pendingPresentQueueFamilyIndex_ = UINT32_MAX;
+        return false;
+    }
+    std::unique_lock<std::mutex> lock(vkMutex_);
+    if (!CreateSkiaBackendContext(&backendContext_, deviceIsProtected_)) {
+        pendingPresentQueueFamilyIndex_ = UINT32_MAX;
+        return false;
+    }
+    return true;
 }
 
 #ifndef USE_M133_SKIA
@@ -435,7 +581,7 @@ void RsVulkanInterface::SetupSkiaBackendContextBasicFields(GrVkBackendContext* c
     context->fInstance = instance_;
     context->fPhysicalDevice = physicalDevice_;
     context->fDevice = device_;
-    context->fQueue = queue_;
+    context->fQueue = graphicsQueue_;
     context->fGraphicsQueueIndex = graphicsQueueFamilyIndex_;
 #ifndef USE_M133_SKIA
     context->fMinAPIVersion = VK_API_VERSION_1_3;
@@ -462,7 +608,7 @@ bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bo
         ROSEN_LOGE("CreateSkiaBackendContext instance_ == VK_NULL_HANDLE ");
         return false;
     }
-    if (queue_ == VK_NULL_HANDLE) {
+    if (graphicsQueue_ == VK_NULL_HANDLE) {
         ROSEN_LOGE("CreateSkiaBackendContext queue_ is VK_NULL_HANDLE ");
         return false;
     }

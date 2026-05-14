@@ -123,5 +123,38 @@ bool RenderContextVK::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHei
     ROSEN_LOGI("RenderContextVK::QueryMaxGpuBufferSize: Vulkan max image dimension = %u", maxWidth);
     return true;
 }
+
+void RenderContextVK::AddSurface()
+{
+    int32_t count = surface_count_.fetch_add(1, std::memory_order_relaxed) + 1;
+    ROSEN_LOGD("RenderContextVK::AddSurface surface_count_=%{public}d", count);
+}
+
+void RenderContextVK::DeleteSurface()
+{
+    int32_t count = surface_count_.fetch_sub(1, std::memory_order_acq_rel) - 1;
+    ROSEN_LOGD("RenderContextVK::DeleteSurface surface_count_=%{public}d", count);
+
+    if (cleanUpHelper_ != nullptr && count <= 0) {
+        ROSEN_LOGD("RenderContextVK::DeleteSurface all surfaces gone, cleanUpHelper_");
+        cleanUpHelper_();
+    }
+}
+
+void RenderContextVK::SetCleanUpHelper(std::function<void()> func)
+{
+    cleanUpHelper_ = std::move(func);
+}
+
+void RenderContextVK::DestroySharedSource()
+{
+    int32_t count = surface_count_.load(std::memory_order_acquire);
+    ROSEN_LOGD("RenderContextVK::DestroySharedSource surface_count_=%{public}d", count);
+    if (count > 0) {
+        return;
+    }
+    AbandonContext();
+}
+
 } // namespace Rosen
 } // namespace OHOS

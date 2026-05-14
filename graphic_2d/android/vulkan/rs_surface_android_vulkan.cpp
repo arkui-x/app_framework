@@ -15,11 +15,15 @@
 
 #include "rs_surface_android_vulkan.h"
 
+#include <chrono>
 #include <memory>
+#include "unistd.h"
 #include "platform/common/rs_log.h"
+#include "render_context/render_context.h"
 #include "drawing/engine_adapter/skia_adapter/skia_gpu_context.h"
 #include "engine_adapter/skia_adapter/skia_surface.h"
 #include "rs_trace.h"
+#include "pipeline/rs_render_thread.h"
 
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/GrDirectContext.h"
@@ -35,28 +39,39 @@ namespace OHOS {
 namespace Rosen {
 
 static constexpr uint16_t MAX_FRAMES_IN_FLIGHT = 3;
+static constexpr int64_t FLUSH_STAGE_WARN_MS = 50;
+static constexpr int64_t SUBMIT_STAGE_WARN_MS = 50;
+static constexpr int64_t PRESENT_STAGE_WARN_MS = 50;
+
+static inline int64_t ElapsedMs(const std::chrono::steady_clock::time_point& begin,
+    const std::chrono::steady_clock::time_point& end)
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+}
 
 RSSurfaceAndroidVulkan::RSSurfaceAndroidVulkan(ANativeWindow* data) : RSSurfaceAndroid(data)
 {
-    ROSEN_LOGE("RSSurfaceAndroidVulkan entry with %p", nativeWindow_);
+    ROSEN_LOGI("RSSurfaceAndroidVulkan entry with %p", data);
     swapChain_.Initialize(nativeWindow_);
 }
 
 RSSurfaceAndroidVulkan::~RSSurfaceAndroidVulkan()
 {
-    if (mSkContext) {
-        Drawing::SkiaGPUContext* skiaGpuContext = mSkContext->GetImpl<Drawing::SkiaGPUContext>();
-        if (skiaGpuContext) {
-            sk_sp<GrDirectContext> grContext = skiaGpuContext->GetGrContext();
-            if (grContext) {
-                grContext->flushAndSubmit();
-                grContext->freeGpuResources();
-            }
-        }
-        mSkContext->FlushAndSubmit(true);
-        mSkContext->PurgeUnlockedResources(true);
+    ROSEN_LOGI("RSSurfaceAndroidVulkan Destructor");
+    auto cleanupTask = [this]() {
+        DestroyOnRenderThread();
+    };
+    const int32_t renderTid = RSRenderThread::Instance().GetTid();
+    const bool shouldRunDirectly = !RSRenderThread::GetIsRunning() || renderTid == gettid();
+    if (!shouldRunDirectly) {
+        RSRenderThread::Instance().PostSyncTask(cleanupTask);
+        return;
     }
-    
+    cleanupTask();
+}
+
+void RSSurfaceAndroidVulkan::DestroyOnRenderThread()
+{
     for (size_t i = 0; i < skiaSurfaces_.size(); i++) {
         if (skiaSurfaces_[i]) {
             skiaSurfaces_[i].reset();
@@ -64,10 +79,24 @@ RSSurfaceAndroidVulkan::~RSSurfaceAndroidVulkan()
     }
     skiaSurfaces_.clear();
     skiaSurfaces_.shrink_to_fit();
-    
     swapChain_.Cleanup();
-    
-    ROSEN_LOGD("RSSurfaceAndroidVulkan Destructor");
+    auto rc = GetRenderContextVulkan();
+    if (rc != nullptr) {
+        rc->DeleteSurface();
+    }
+}
+
+void RSSurfaceAndroidVulkan::SetRenderContext(std::shared_ptr<RenderContext> context)
+{
+    if (GetRenderContextVulkan() != context) {
+        if (GetRenderContextVulkan() != nullptr) {
+            GetRenderContextVulkan()->DeleteSurface();
+        }
+        RSSurfaceAndroid::SetRenderContext(context);
+        if (GetRenderContextVulkan() != nullptr) {
+            GetRenderContextVulkan()->AddSurface();
+        }
+    }
 }
 
 std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToColorSpace(GraphicColorGamut colorGamut)
@@ -107,7 +136,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceAndroidVulkan::CreateSkiaSurfaceFromS
 {
     const auto& swapchainImages = swapChain_.GetImages();
     if (imageIndex >= swapchainImages.size()) {
-        ROSEN_LOGI("Invalid image index: %u", imageIndex);
+        ROSEN_LOGE("Invalid image index: %u", imageIndex);
         return nullptr;
     }
 
@@ -117,7 +146,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceAndroidVulkan::CreateSkiaSurfaceFromS
     auto colorSpace = ConvertColorGamutToColorSpace(colorSpace_);
 
     auto& vkContext = RsVulkanContext::GetSingleton();
-    QueueFamilyIndices indices = vkContext.FindQueueFamilies();
+    QueueFamilyIndices indices = vkContext.FindQueueFamilies(swapChain_.GetSurface());
 
     Drawing::TextureInfo texture_info;
     texture_info.SetWidth(width);
@@ -189,11 +218,9 @@ bool RSSurfaceAndroidVulkan::RecreateSwapchainIfNeeded(int32_t width, int32_t he
     }
 
     if (swapChain_.IsRecreating()) {
-        ROSEN_LOGD("RequestFrame: Swapchain is being recreated, waiting...");
         return false;
     }
 
-    ROSEN_LOGD("RequestFrame: Need to recreate swapchain");
     int32_t recreateWidth = width;
     int32_t recreateHeight = height;
     swapChain_.GetPendingSize(&recreateWidth, &recreateHeight);
@@ -239,7 +266,7 @@ uint32_t RSSurfaceAndroidVulkan::AcquireSwapchainImage()
         swapChain_.SetNeedRecreate(true);
         return UINT32_MAX;
     } else if (result != VK_SUCCESS) {
-        ROSEN_LOGD("RequestFrame Failed to acquire swapchain image: %d", result);
+        ROSEN_LOGE("RequestFrame Failed to acquire swapchain image: %d", result);
         return UINT32_MAX;
     }
     return imageIndex;
@@ -261,7 +288,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceAndroidVulkan::GetOrCreateSkiaSurface
         skiaSurfaces_[imageIndex] = CreateSkiaSurfaceFromSwapchainImage(
             imageIndex, swapchainWidth, swapchainHeight, isProtected);
         if (!skiaSurfaces_[imageIndex]) {
-            ROSEN_LOGD("RequestFrame Failed to create surface for image index: %u", imageIndex);
+            ROSEN_LOGE("RequestFrame Failed to create surface for image index: %u", imageIndex);
             return nullptr;
         }
     }
@@ -272,12 +299,12 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceAndroidVulkan::RequestFrame(
     int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
     if (nativeWindow_ == nullptr) {
-        ROSEN_LOGD("RSSurfaceAndroidVulkan::RequestFrame, native window is nullptr");
+        ROSEN_LOGE("RSSurfaceAndroidVulkan::RequestFrame, native window is nullptr");
         return nullptr;
     }
 
     if (!mSkContext) {
-        ROSEN_LOGD("RSSurfaceAndroidVulkan::RequestFrame, Skia context is nullptr");
+        ROSEN_LOGE("RSSurfaceAndroidVulkan::RequestFrame, Skia context is nullptr");
         return nullptr;
     }
     SetNativeWindowInfo(width, height, useAFBC, isProtected);
@@ -287,7 +314,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceAndroidVulkan::RequestFrame(
     }
 
     if (swapChain_.GetSwapchain() == VK_NULL_HANDLE) {
-        ROSEN_LOGD("RequestFrame: Swapchain is not available after recreation attempt");
+        ROSEN_LOGE("RequestFrame: Swapchain is not available after recreation attempt");
         return nullptr;
     }
 
@@ -326,10 +353,8 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceAndroidVulkan::RequestFrame(
 bool RSSurfaceAndroidVulkan::FlushSkiaSurface(
     std::shared_ptr<Drawing::Surface> surface, VkSemaphore renderFinishedSemaphore)
 {
+    auto stageBegin = std::chrono::steady_clock::now();
     auto& vkContext = RsVulkanContext::GetSingleton();
-    auto callbackInfoPtr = std::make_unique<RsVulkanInterface::CallbackSemaphoreInfo>(
-        vkContext.GetRsVulkanInterface(), renderFinishedSemaphore, -1);
-    auto* callbackInfo = callbackInfoPtr.get();
 
     RS_TRACE_NAME("SkiaFlush");
     VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
@@ -344,25 +369,27 @@ bool RSSurfaceAndroidVulkan::FlushSkiaSurface(
     flushInfo.backendSurfaceAccess = true;
     flushInfo.numSemaphores = signalSemaphoreVec.size();
     flushInfo.backendSemaphore = static_cast<void*>(signalSemaphoreVec.data());
-    flushInfo.finishedProc = [](void *context) {
-        if (context != nullptr) {
-            delete reinterpret_cast<RsVulkanInterface::CallbackSemaphoreInfo*>(context);
-        }
-    };
-    flushInfo.finishedContext = callbackInfo;
+    flushInfo.finishedProc = nullptr;
+    flushInfo.finishedContext = nullptr;
+
     auto res = surface->Flush(&flushInfo);
+    auto stageEnd = std::chrono::steady_clock::now();
+    int64_t flushCostMs = ElapsedMs(stageBegin, stageEnd);
     if (res == Drawing::SemaphoresSubmited::DRAWING_ENGINE_SUBMIT_NO) {
-        ROSEN_LOGI("FlushFrame Surface flush returned DRAWING_ENGINE_SUBMIT_NO, semaphores may not be submitted");
-        callbackInfoPtr.reset();
+        ROSEN_LOGE("FlushFrame flush stage failed: submit_no, cost=%{public}" PRId64
+            "ms currentFrame=%{public}zu", flushCostMs, currentFrame_);
         return false;
-    } else {
-        callbackInfoPtr.release();
+    }
+    if (flushCostMs > FLUSH_STAGE_WARN_MS) {
+        ROSEN_LOGE("FlushFrame flush stage slow: cost=%{public}" PRId64 "ms currentFrame=%{public}zu",
+            flushCostMs, currentFrame_);
     }
     return true;
 }
 
 void RSSurfaceAndroidVulkan::WaitAndSubmitSkiaContext(VkSemaphore waitSemaphore)
 {
+    auto stageBegin = std::chrono::steady_clock::now();
     RS_TRACE_NAME("Submit");
 #ifdef USE_M133_SKIA
     GrBackendSemaphore backendWaitSemaphore = GrBackendSemaphores::MakeVk(waitSemaphore);
@@ -378,12 +405,21 @@ void RSSurfaceAndroidVulkan::WaitAndSubmitSkiaContext(VkSemaphore waitSemaphore)
         }
     }
     mSkContext->Submit();
+    auto stageEnd = std::chrono::steady_clock::now();
+    int64_t submitCostMs = ElapsedMs(stageBegin, stageEnd);
+    if (submitCostMs > SUBMIT_STAGE_WARN_MS) {
+        ROSEN_LOGE("FlushFrame submit stage slow: cost=%{public}" PRId64 "ms currentFrame=%{public}zu",
+            submitCostMs, currentFrame_);
+    }
 }
 
 bool RSSurfaceAndroidVulkan::PresentSwapchainImage(
     VkQueue queue, uint32_t imageIndex, VkSemaphore renderFinishedSemaphore)
 {
+    auto stageBegin = std::chrono::steady_clock::now();
     VkResult result = swapChain_.Present(queue, imageIndex, renderFinishedSemaphore);
+    auto stageEnd = std::chrono::steady_clock::now();
+    int64_t presentCostMs = ElapsedMs(stageBegin, stageEnd);
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         ROSEN_LOGD("FlushFrame Swapchain out of date, will recreate next frame");
         swapChain_.SetNeedRecreate(true);
@@ -391,10 +427,17 @@ bool RSSurfaceAndroidVulkan::PresentSwapchainImage(
     } else if (result == VK_SUBOPTIMAL_KHR) {
         ROSEN_LOGD("FlushFrame Swapchain suboptimal");
     } else if (result != VK_SUCCESS) {
-        ROSEN_LOGD("FlushFrame Present failed: %d", result);
+        ROSEN_LOGE("FlushFrame present stage failed: VkResult=%{public}d, cost=%{public}" PRId64
+            "ms imageIndex=%{public}u currentFrame=%{public}zu",
+            static_cast<int32_t>(result), presentCostMs, imageIndex, currentFrame_);
         return false;
     } else {
         lastPresentedImageIndex_ = imageIndex;
+    }
+    if (presentCostMs > PRESENT_STAGE_WARN_MS) {
+        ROSEN_LOGE("FlushFrame present stage slow: cost=%{public}" PRId64
+            "ms imageIndex=%{public}u currentFrame=%{public}zu",
+            presentCostMs, imageIndex, currentFrame_);
     }
     currentFrame_ = (currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;
     return true;
@@ -413,7 +456,6 @@ bool RSSurfaceAndroidVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, 
         return false;
     }
     if (swapChain_.IsRecreating() || swapChain_.NeedRecreate()) {
-        ROSEN_LOGD("FlushFrame: Swapchain is being recreated, dropping frame");
         return false;
     }
 
@@ -434,22 +476,28 @@ bool RSSurfaceAndroidVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, 
         return false;
     }
 
+    VkSemaphore waitSemaphore = swapChain_.GetImageAvailableSemaphore(currentFrame_);
+    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto queue = vkContext.GetPresentQueue();
+    if (queue == VK_NULL_HANDLE) {
+        // Unified family: presentQueue is always graphicsQueue. Calling
+        // vkGetDeviceQueue(device, presentFamily, 0, ...) here would be undefined
+        // when presentFamily was not declared in VkDeviceCreateInfo, so just reuse
+        // the graphics queue handle that was created at device creation time.
+        ROSEN_LOGE("RSSurfaceAndroidVulkan::FlushFrame, presentQueue is null, fallback to graphicsQueue");
+        queue = vkContext.GetGraphicsQueue();
+    }
+
     VkSemaphore renderFinishedSemaphore = swapChain_.GetRenderFinishedSemaphore(currentFrame_);
     if (!FlushSkiaSurface(surface, renderFinishedSemaphore)) {
-        return false;
+        // Flush failed after vkAcquireNextImage already succeeded. To avoid leaving an acquired
+        // swapchain image and imageAvailable semaphore unconsumed (which can stall later frames),
+        // present the untouched image directly and wait on the acquire semaphore.
+        ROSEN_LOGE("FlushFrame: flush failed, fallback present with acquire semaphore to drain frame state");
+        return PresentSwapchainImage(queue, imageIndex, waitSemaphore);
     }
 
-    VkSemaphore waitSemaphore = swapChain_.GetImageAvailableSemaphore(currentFrame_);
     WaitAndSubmitSkiaContext(waitSemaphore);
-
-    auto& vkContext = RsVulkanContext::GetSingleton();
-    auto queue = vkContext.GetQueue();
-    if (queue == VK_NULL_HANDLE) {
-        ROSEN_LOGE("RSSurfaceAndroidVulkan::FlushFrame, queue is null");
-        QueueFamilyIndices indices = vkContext.FindQueueFamilies();
-        VkDevice device = vkContext.GetDevice();
-        vkGetDeviceQueue(device, indices.presentFamily, 0, &queue);
-    }
 
     bool result = PresentSwapchainImage(queue, imageIndex, renderFinishedSemaphore);
     if (mSkContext) {
