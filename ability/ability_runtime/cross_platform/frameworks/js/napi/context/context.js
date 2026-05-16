@@ -102,6 +102,10 @@ class Context {
         return this.__contextImpl__.bundleCodeDir;
     }
 
+    get resourceDir() {
+      return this.__contextImpl__.resourceDir;
+    }
+
     get eventHub() {
       return this.__contextImpl__.eventHub;
     }

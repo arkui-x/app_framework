@@ -43,6 +43,7 @@ public:
     std::string GetFilesDir() const;
     std::string GetDatabaseDir() const;
     std::string GetPreferencesDir() const;
+    std::string GetResourceDir(const std::string &moduleName = "") const;
     std::string GetAppLibDir() const;
 #ifdef IOS_PLATFORM
     std::string GetResourceFilePrefixPath();

@@ -76,6 +76,28 @@ std::string AbilityStageContext::GetPreferencesDir()
     return applicationContext_ ? applicationContext_->GetPreferencesDir() : "";
 }
 
+std::string AbilityStageContext::GetResourceDir(const std::string &moduleName)
+{
+    std::string targetModule = moduleName;
+    if (targetModule.empty()) {
+        if (hapModuleInfo_ != nullptr && !hapModuleInfo_->moduleName.empty()) {
+            targetModule = hapModuleInfo_->moduleName;
+        } else if (applicationContext_) {
+            return applicationContext_->GetResourceDir(moduleName);
+        } else {
+            HILOG_ERROR("hapModuleInfo_->moduleName and applicationContext are empty");
+            return "";
+        }
+    }
+    
+    if (applicationContext_) {
+        return applicationContext_->GetResourceDir(targetModule);
+    }
+    
+    HILOG_ERROR("GetResourceDir failed, applicationContext is nullptr");
+    return "";
+}
+
 int AbilityStageContext::GetSystemDatabaseDir(const std::string &groupId, bool checkExist, std::string &databaseDir)
 {
     return applicationContext_ ?
