@@ -113,6 +113,11 @@ std::string ApplicationContext::GetPreferencesDir()
     return StageAssetManager::GetInstance()->GetPreferencesDir();
 }
 
+std::string ApplicationContext::GetResourceDir(const std::string &moduleName)
+{
+    return StageAssetManager::GetInstance()->GetResourceDir(moduleName);
+}
+
 int ApplicationContext::GetSystemDatabaseDir(const std::string &groupId, bool checkExist, std::string &databaseDir)
 {
     std::string dir;

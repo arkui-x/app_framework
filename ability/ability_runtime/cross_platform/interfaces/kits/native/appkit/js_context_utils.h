@@ -37,6 +37,7 @@ public:
     static napi_value GetDatabaseDir(napi_env env, napi_callback_info info);
     static napi_value GetPreferencesDir(napi_env env, napi_callback_info info);
     static napi_value GetBundleCodeDir(napi_env env, napi_callback_info info);
+    static napi_value GetResourceDir(napi_env env, napi_callback_info info);
     static napi_value GetApplicationContext(napi_env env, napi_callback_info info);
     static napi_value CreateModuleContext(napi_env env, napi_callback_info info);
 
@@ -47,6 +48,7 @@ protected:
     napi_value OnGetDatabaseDir(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetPreferencesDir(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetBundleCodeDir(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetResourceDir(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetApplicationContext(napi_env env, NapiCallbackInfo& info);
     napi_value OnCreateModuleContext(napi_env env, NapiCallbackInfo& info);
     std::weak_ptr<Context> context_;
