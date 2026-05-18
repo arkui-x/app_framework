@@ -120,6 +120,19 @@ public:
     virtual std::string GetPreferencesDir() = 0;
 
     /**
+     * @brief Obtains the resource directory path.
+     * The returned path contains the rawfile resources of a module.
+     *
+     * @param moduleName Indicates the module name (optional).
+     *                    If not specified, uses the current module name.
+     *
+     * @return Returns the resource directory path.
+     *         Format: {bundleCodeDir}/{moduleName}/resources/resfile
+     *         Returns empty string if the path does not exist.
+     */
+    virtual std::string GetResourceDir(const std::string &moduleName = "") = 0;
+
+    /**
      * @brief Obtains the local system database path.
      * If the local system database path does not exist, the system creates one and returns the created path.
      *

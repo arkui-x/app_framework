@@ -65,6 +65,11 @@ std::string AbilityContextImpl::GetFilesDir()
     return stageContext_ ? stageContext_->GetFilesDir() : "";
 }
 
+std::string AbilityContextImpl::GetResourceDir(const std::string &moduleName)
+{
+    return stageContext_ ? stageContext_->GetResourceDir(moduleName) : "";
+}
+
 ErrCode AbilityContextImpl::StartAbility(const AAFwk::Want& want, int requestCode)
 {
     HILOG_INFO("Start ability");

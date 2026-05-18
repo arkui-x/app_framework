@@ -45,6 +45,7 @@ public:
     std::string GetFilesDir() override;
     std::string GetDatabaseDir() override;
     std::string GetPreferencesDir() override;
+    std::string GetResourceDir(const std::string &moduleName = "") override;
     int GetSystemDatabaseDir(const std::string &groupId, bool checkExist, std::string &databaseDir) override;
     int GetSystemPreferencesDir(const std::string &groupId, bool checkExist, std::string &preferencesDir) override;
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo() const override;

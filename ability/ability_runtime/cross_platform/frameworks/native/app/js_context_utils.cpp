@@ -137,6 +137,23 @@ napi_value JsBaseContext::OnGetBundleCodeDir(napi_env env, NapiCallbackInfo& inf
     return CreateJsValue(env, path);
 }
 
+napi_value JsBaseContext::GetResourceDir(napi_env env, napi_callback_info info)
+{
+    HILOG_DEBUG("JsBaseContext::GetResourceDir is called");
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsBaseContext, OnGetResourceDir, BASE_CONTEXT_NAME);
+}
+
+napi_value JsBaseContext::OnGetResourceDir(napi_env env, NapiCallbackInfo& info)
+{
+    auto context = context_.lock();
+    if (!context) {
+        HILOG_WARN("context is already released");
+        return CreateJsUndefined(env);
+    }
+    std::string path = context->GetResourceDir();
+    return CreateJsValue(env, path);
+}
+
 napi_value AttachBaseContext(napi_env env, void* value, void* hint)
 {
     HILOG_DEBUG("AttachBaseContext");
@@ -359,6 +376,7 @@ napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, b
     BindNativeProperty(env, object, "databaseDir", JsBaseContext::GetDatabaseDir);
     BindNativeProperty(env, object, "preferencesDir", JsBaseContext::GetPreferencesDir);
     BindNativeProperty(env, object, "bundleCodeDir", JsBaseContext::GetBundleCodeDir);
+    BindNativeProperty(env, object, "resourceDir", JsBaseContext::GetResourceDir);
     BindNativeFunction(env, object, "getApplicationContext", moduleName, JsBaseContext::GetApplicationContext);
     BindNativeFunction(env, object, "createModuleContext", moduleName, JsBaseContext::CreateModuleContext);
     return object;
