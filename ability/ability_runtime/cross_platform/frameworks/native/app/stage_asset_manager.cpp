@@ -95,6 +95,11 @@ std::string StageAssetManager::GetPreferencesDir() const
     return StageAssetProvider::GetInstance()->GetPreferencesDir();
 }
 
+std::string StageAssetManager::GetResourceDir(const std::string &moduleName) const
+{
+    return StageAssetProvider::GetInstance()->GetResourceDir(moduleName);
+}
+
 std::string StageAssetManager::GetAppLibDir() const
 {
     return StageAssetProvider::GetInstance()->GetAppLibDir();
