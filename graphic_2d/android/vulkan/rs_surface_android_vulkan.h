@@ -39,10 +39,12 @@ public:
     void SetColorSpace(GraphicColorGamut colorSpace) override;
     void ClearBuffer() override;
     void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
+    void SetRenderContext(std::shared_ptr<RenderContext> context) override;
     std::shared_ptr<Drawing::Surface> CreateSkiaSurfaceFromSwapchainImage(
         uint32_t imageIndex, int32_t width, int32_t height, bool isProtected);
 
 private:
+    void DestroyOnRenderThread();
     std::shared_ptr<RenderContextVK> GetRenderContextVulkan() const;
     bool SetupGrContext() override;
     void SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC, bool isProtected = false);
