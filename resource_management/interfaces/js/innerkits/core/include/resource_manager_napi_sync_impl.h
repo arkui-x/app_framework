@@ -106,6 +106,14 @@ private:
 
     static napi_value UpdateOverrideConfiguration(napi_env env, napi_callback_info info);
 
+    static napi_value GetIntPluralStringValueSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetDoublePluralStringValueSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetIntPluralStringByNameSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetDoublePluralStringByNameSync(napi_env env, napi_callback_info info);
+
     static int32_t InitIdResourceAddon(napi_env env, napi_callback_info info,
         std::unique_ptr<ResMgrDataContext> &dataContext);
 
@@ -116,6 +124,9 @@ private:
         std::unique_ptr<ResMgrDataContext> &dataContext);
 
     static bool InitNapiParameters(napi_env env, napi_callback_info info,
+        std::vector<std::tuple<ResourceManager::NapiValueType, std::string>> &jsParams);
+
+    static bool InitOptionalParameters(napi_env env, napi_callback_info info, uint32_t startIndex,
         std::vector<std::tuple<ResourceManager::NapiValueType, std::string>> &jsParams);
 
     static bool InitParamsFromParamArray(napi_env env, napi_value value,
@@ -164,6 +175,12 @@ private:
         std::unique_ptr<ResMgrDataContext> &dataContext);
 
     static int32_t ProcessStringArrayResourceByName(napi_env env, napi_callback_info info,
+        std::unique_ptr<ResMgrDataContext> &dataContext);
+
+    static int32_t ProcessPluralStringResource(napi_env env, napi_callback_info info,
+        std::unique_ptr<ResMgrDataContext> &dataContext);
+
+    static int32_t ProcessPluralStringResourceByName(napi_env env, napi_callback_info info,
         std::unique_ptr<ResMgrDataContext> &dataContext);
 
     static int32_t ProcessSymbolResource(napi_env env, napi_callback_info info,
