@@ -105,7 +105,11 @@ napi_property_descriptor ResourceManagerAddon::properties[] = {
     DECLARE_NAPI_FUNCTION("isRawDir", IsRawDir),
     DECLARE_NAPI_FUNCTION("getOverrideResourceManager", GetOverrideResourceManager),
     DECLARE_NAPI_FUNCTION("getOverrideConfiguration", GetOverrideConfiguration),
-    DECLARE_NAPI_FUNCTION("updateOverrideConfiguration", UpdateOverrideConfiguration)
+    DECLARE_NAPI_FUNCTION("updateOverrideConfiguration", UpdateOverrideConfiguration),
+    DECLARE_NAPI_FUNCTION("getIntPluralStringValueSync", GetIntPluralStringValueSync),
+    DECLARE_NAPI_FUNCTION("getDoublePluralStringValueSync", GetDoublePluralStringValueSync),
+    DECLARE_NAPI_FUNCTION("getIntPluralStringByNameSync", GetIntPluralStringByNameSync),
+    DECLARE_NAPI_FUNCTION("getDoublePluralStringByNameSync", GetDoublePluralStringByNameSync)
 };
 
 napi_value ResourceManagerAddon::WrapResourceManager(napi_env env, std::shared_ptr<ResourceManagerAddon> &addon)
@@ -523,6 +527,26 @@ napi_value ResourceManagerAddon::GetOverrideConfiguration(napi_env env, napi_cal
 napi_value ResourceManagerAddon::UpdateOverrideConfiguration(napi_env env, napi_callback_info info)
 {
     return AddonGetResource(env, info, "UpdateOverrideConfiguration", FunctionType::SYNC);
+}
+
+napi_value ResourceManagerAddon::GetIntPluralStringValueSync(napi_env env, napi_callback_info info)
+{
+    return AddonGetResource(env, info, "GetIntPluralStringValueSync", FunctionType::SYNC);
+}
+
+napi_value ResourceManagerAddon::GetDoublePluralStringValueSync(napi_env env, napi_callback_info info)
+{
+    return AddonGetResource(env, info, "GetDoublePluralStringValueSync", FunctionType::SYNC);
+}
+
+napi_value ResourceManagerAddon::GetIntPluralStringByNameSync(napi_env env, napi_callback_info info)
+{
+    return AddonGetResource(env, info, "GetIntPluralStringByNameSync", FunctionType::SYNC);
+}
+
+napi_value ResourceManagerAddon::GetDoublePluralStringByNameSync(napi_env env, napi_callback_info info)
+{
+    return AddonGetResource(env, info, "GetDoublePluralStringByNameSync", FunctionType::SYNC);
 }
 } // namespace Resource
 } // namespace Global
