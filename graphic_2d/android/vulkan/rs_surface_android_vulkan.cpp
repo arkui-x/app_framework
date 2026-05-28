@@ -513,7 +513,7 @@ void RSSurfaceAndroidVulkan::SetColorSpace(GraphicColorGamut colorSpace)
         ROSEN_LOGD("RSSurfaceAndroidVulkan::SetColorSpace colorspace unchanged, skip");
         return;
     }
-    colorSpace_ = colorSpace;
+    RSSurfaceAndroid::SetColorSpace(colorSpace);
     for (size_t i = 0; i < skiaSurfaces_.size(); i++) {
         if (skiaSurfaces_[i]) {
             skiaSurfaces_[i].reset();
