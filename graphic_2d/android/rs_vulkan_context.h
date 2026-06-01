@@ -21,7 +21,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include "sync_fence.h"
 #include "include/third_party/vulkan/vulkan/vulkan_core.h"
 #include "platform/common/rs_log.h"
 
@@ -119,11 +118,11 @@ public:
     bool CreateInstance();
     bool SelectPhysicalDevice(bool isProtected = false);
     bool CreateDevice(bool isProtected = false, bool isHtsEnable = false);
-    bool CreateAndroidSurface(ANativeWindow* window);
+    bool CreateAndroidSurface(ANativeWindow* window, VkSurfaceKHR& outSurface);
 
-    QueueFamilyIndices FindQueueFamilies();
+    QueueFamilyIndices FindQueueFamilies(VkSurfaceKHR surface = VK_NULL_HANDLE);
 
-    SwapChainSupportDetails QuerySwapChainSupport();
+    SwapChainSupportDetails QuerySwapChainSupport(VkSurfaceKHR surface);
 
     void DestroySurfaceKHR(VkSurfaceKHR surface)
     {
@@ -215,9 +214,14 @@ public:
         return device_;
     }
 
-    VkQueue GetQueue() const
+    VkQueue GetPresentQueue() const
     {
-        return backendContext_.fQueue;
+        return presentQueue_;
+    }
+
+    VkQueue GetGraphicsQueue() const
+    {
+        return graphicsQueue_;
     }
 
 #ifdef USE_M133_SKIA
@@ -236,21 +240,6 @@ public:
     VulkanInterfaceType GetInterfaceType() const
     {
         return interfaceType_;
-    }
-
-    VkSurfaceKHR GetSurface() const
-    {
-        return surface_;
-    }
-
-    VkQueue GetGraphicsQueue() const
-    {
-        return graphicsQueue_;
-    }
-
-    VkQueue GetPresentQueue() const
-    {
-        return presentQueue_;
     }
 
     VkSemaphore RequireSemaphore();
@@ -272,13 +261,12 @@ private:
     static void* handle_;
     bool acquiredMandatoryProcAddresses_ = false;
     static VkInstance instance_;
-    VkSurfaceKHR surface_ = VK_NULL_HANDLE;
     VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
     uint32_t graphicsQueueFamilyIndex_ = UINT32_MAX;
     VkDevice device_ = VK_NULL_HANDLE;
-    VkQueue queue_ = VK_NULL_HANDLE;
-    VkQueue graphicsQueue_;
-    VkQueue presentQueue_;
+    VkQueue graphicsQueue_ = VK_NULL_HANDLE;
+    VkQueue presentQueue_ = VK_NULL_HANDLE;
+    uint32_t queueCount_ = 0;
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2_;
     VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures_ = nullptr;
     VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeature_;
@@ -305,8 +293,15 @@ private:
     bool SetupLoaderProcAddresses();
     bool CloseLibraryHandle();
     bool SetupDeviceProcAddresses(VkDevice device);
+    bool RecreateDeviceForPresentFamily(uint32_t presentFamily);
     void ConfigureFeatures(bool isProtected);
     void ConfigureExtensions();
+    void BuildDeviceQueueCreateInfos(const QueueFamilyIndices& indices, const float& queuePriority,
+        std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos);
+    VkDeviceCreateInfo MakeDeviceCreateInfo(const std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos,
+        bool isHtsEnable);
+    bool InvokeVkCreateDevice(const VkDeviceCreateInfo& createInfo);
+    void BindGraphicsAndPresentQueues(const QueueFamilyIndices& indices);
 #ifndef USE_M133_SKIA
     uint32_t GetGrVkFeatureFlags();
 #endif
@@ -323,13 +318,15 @@ private:
     PFN_vkVoidFunction AcquireProc(const char* proc_name, const VkDevice& device) const;
     std::shared_ptr<Drawing::GPUContext> CreateNewDrawingContext(bool isProtected = false);
 
-    struct semaphoreFence {
-        VkSemaphore semaphore;
-        std::unique_ptr<SyncFence> fence;
-    };
-    std::list<semaphoreFence> usedSemaphoreFenceList_;
-    std::mutex semaphoreLock_;
     std::atomic<VulkanDeviceStatus> deviceStatus_ = VulkanDeviceStatus::UNINITIALIZED;
+    bool deviceIsProtected_ = false;
+    bool deviceIsHtsEnable_ = false;
+    uint32_t presentQueueFamilyIndex_ = UINT32_MAX;
+    /*
+     *if pendingPresentQueueFamilyIndex_ is not UINT32_MAX,
+     *it means the present queue family index is being recreated.
+     */
+    uint32_t pendingPresentQueueFamilyIndex_ = UINT32_MAX;
 };
 
 class RsVulkanContext {
@@ -386,19 +383,19 @@ public:
         return GetRsVulkanInterface().GetDevice();
     }
 
-    VkQueue GetQueue()
+    VkQueue GetPresentQueue()
     {
-        return GetRsVulkanInterface().GetQueue();
+        return GetRsVulkanInterface().GetPresentQueue();
     }
 
-    bool CreateAndroidSurface(ANativeWindow* window)
+    bool CreateAndroidSurface(ANativeWindow* window, VkSurfaceKHR& outSurface)
     {
-        return GetRsVulkanInterface().CreateAndroidSurface(window);
+        return GetRsVulkanInterface().CreateAndroidSurface(window, outSurface);
     }
 
-    QueueFamilyIndices FindQueueFamilies()
+    QueueFamilyIndices FindQueueFamilies(VkSurfaceKHR surface = VK_NULL_HANDLE)
     {
-        return GetRsVulkanInterface().FindQueueFamilies();
+        return GetRsVulkanInterface().FindQueueFamilies(surface);
     }
 
     void DestroySurfaceKHR(VkSurfaceKHR surface)
@@ -406,24 +403,14 @@ public:
         return GetRsVulkanInterface().DestroySurfaceKHR(surface);
     }
 
-    VkSurfaceKHR GetSurface()
-    {
-        return GetRsVulkanInterface().GetSurface();
-    }
-
     VkQueue GetGraphicsQueue()
     {
         return GetRsVulkanInterface().GetGraphicsQueue();
     }
 
-    VkQueue GetPresentQueue()
+    SwapChainSupportDetails QuerySwapChainSupport(VkSurfaceKHR surface)
     {
-        return GetRsVulkanInterface().GetPresentQueue();
-    }
-
-    SwapChainSupportDetails QuerySwapChainSupport()
-    {
-        return GetRsVulkanInterface().QuerySwapChainSupport();
+        return GetRsVulkanInterface().QuerySwapChainSupport(surface);
     }
 
 #ifdef USE_M133_SKIA

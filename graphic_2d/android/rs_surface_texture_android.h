@@ -16,15 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_SRC_PLATFORM_ANDROID_RS_SURFACE_TEXTURE_ANDROID_H
 #define RENDER_SERVICE_BASE_SRC_PLATFORM_ANDROID_RS_SURFACE_TEXTURE_ANDROID_H
 
-
-#include "EGL/egl.h"
-#include <GLES3/gl3.h>
-#include <GLES3/gl31.h>
-#include <GLES3/gl32.h>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#include <GLES/gl.h>
-#include <GLES/glext.h>
+#include <atomic>
 #include <memory>
 
 #include "common/rs_common_def.h"
@@ -38,24 +30,23 @@ class AndroidSurfaceTexture : public RSSurfaceExt {
 public:
     static inline constexpr RSSurfaceExtType Type = RSSurfaceExtType::SURFACE_TEXTURE;
 
+    static std::shared_ptr<AndroidSurfaceTexture> Create(const RSSurfaceExtConfig& config);
+
     explicit AndroidSurfaceTexture(const RSSurfaceExtConfig& config);
-    ~AndroidSurfaceTexture();
+    ~AndroidSurfaceTexture() override = default;
     void DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect) override;
 
     void SetAttachCallback(const RSSurfaceTextureAttachCallBack& attachCallback) override
     {
-        if (attachCallback_ == nullptr) {
-            attachCallback_ = attachCallback;
-        }
+        attachCallback_ = attachCallback;
     }
     void SetUpdateCallback(const RSSurfaceTextureUpdateCallBack& updateCallback) override
     {
-        if (updateCallback_ == nullptr) {
-            updateCallback_ = updateCallback;
-        }
+        updateCallback_ = updateCallback;
     }
     void SetInitTypeCallback(const RSSurfaceTextureInitTypeCallBack& initTypeCallback) override
     {
+        initTypeCallback_ = initTypeCallback;
     }
     void MarkUiFrameAvailable(bool available) override;
     bool IsUiFrameAvailable() const override
@@ -71,18 +62,44 @@ public:
     void UpdateSurfaceExtConfig(const RSSurfaceExtConfig& config) override
     {
     }
+
+    RSSurfaceTextureAttachCallBack GetAttach() const
+    {
+        return attachCallback_;
+    }
+
+    RSSurfaceTextureUpdateCallBack GetUpdate() const
+    {
+        return updateCallback_;
+    }
+
+    RSSurfaceTextureInitTypeCallBack GetInitType() const
+    {
+        return initTypeCallback_;
+    }
+
+protected:
+    virtual void UpdateTransform() {};
+    virtual void OnBufferAvailable() {};
+    virtual bool OnInitializeTexture() = 0;
+    virtual bool OnCreateTextureImage(RSPaintFilterCanvas& canvas) = 0;
+    virtual void ApplyClipRectScale(RSPaintFilterCanvas& canvas, const Drawing::Rect& clipRect) = 0;
+    virtual void OnPostDraw() {}
+    Drawing::Matrix transform_;
+
 private:
-    void UpdateTransform();
     bool InitializeTextureIfNeeded();
-    std::shared_ptr<Drawing::Image> CreateTextureImage(RSPaintFilterCanvas& canvas);
+    bool HasValidCallbacks() const;
+    bool CheckPreConditions() const;
+    void ProcessBufferAvailability(bool freeze);
+
     enum class AttachmentState { UNINITIALIZED, ATTACHED, DETACHED };
     AttachmentState state_ = AttachmentState::UNINITIALIZED;
-    GLuint textureId_ = 0;
     RSSurfaceTextureAttachCallBack attachCallback_;
     RSSurfaceTextureUpdateCallBack updateCallback_;
+    RSSurfaceTextureInitTypeCallBack initTypeCallback_;
     std::atomic<bool> bufferAvailable_ = false;
     RSSurfaceExtConfig config_;
-    Drawing::Matrix transform_;
     float width_ = 0;
     float height_ = 0;
 };

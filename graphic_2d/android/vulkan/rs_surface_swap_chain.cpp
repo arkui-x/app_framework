@@ -21,7 +21,7 @@ namespace OHOS {
 namespace Rosen {
 
 static constexpr uint16_t MAX_FRAMES_IN_FLIGHT = 3;
-// Number of queue families when graphics and present queues are different
+ // Number of queue families when graphics and present queues are different
 static constexpr uint32_t CONCURRENT_QUEUE_FAMILY_COUNT = 2;
 
 RSSurfaceSwapChain::RSSurfaceSwapChain()
@@ -57,6 +57,22 @@ VkSurfaceFormatKHR RSSurfaceSwapChain::ChooseSwapSurfaceFormat(
     return availableFormats[0];
 }
 
+VkPresentModeKHR RSSurfaceSwapChain::ChooseSwapPresentMode(
+    const std::vector<VkPresentModeKHR>& availablePresentModes)
+{
+    for (const auto& availablePresentMode : availablePresentModes) {
+        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+            return VK_PRESENT_MODE_MAILBOX_KHR;
+        }
+    }
+    for (const auto& availablePresentMode : availablePresentModes) {
+        if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+            return VK_PRESENT_MODE_IMMEDIATE_KHR;
+        }
+    }
+    return VK_PRESENT_MODE_FIFO_KHR;
+}
+
 // Choose swapchain extent within Vulkan surface capabilities
 VkExtent2D RSSurfaceSwapChain::ChooseSwapExtent(
     const VkSurfaceCapabilitiesKHR& capabilities,
@@ -82,13 +98,14 @@ VkSwapchainCreateInfoKHR RSSurfaceSwapChain::BuildSwapchainCreateInfo(int32_t wi
     VkSurfaceTransformFlagBitsKHR preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
     VkExtent2D extent = ChooseSwapExtent(swapChainSupport.capabilities, width, height, preTransform);
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount;
-    if (imageCount < MAX_FRAMES_IN_FLIGHT) {
-        imageCount = MAX_FRAMES_IN_FLIGHT;
-    }
 
     VkSwapchainCreateInfoKHR createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = RsVulkanContext::GetSingleton().GetSurface();
+    createInfo.surface = surface_;
+    
+    if (imageCount < MAX_FRAMES_IN_FLIGHT) {
+        imageCount = MAX_FRAMES_IN_FLIGHT;
+    }
     createInfo.minImageCount = imageCount;
     swapchainFormat_ = surfaceFormat.format;
     createInfo.imageFormat = surfaceFormat.format;
@@ -99,10 +116,9 @@ VkSwapchainCreateInfoKHR RSSurfaceSwapChain::BuildSwapchainCreateInfo(int32_t wi
                             VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
                             VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
-    QueueFamilyIndices indices = RsVulkanContext::GetSingleton().FindQueueFamilies();
+    QueueFamilyIndices indices = RsVulkanContext::GetSingleton().FindQueueFamilies(surface_);
     uint32_t queueFamilyIndices[] = {indices.graphicsFamily, indices.presentFamily};
-
-    if (indices.graphicsFamily != indices.presentFamily) {
+    if (indices.presentFamily != UINT32_MAX && indices.graphicsFamily != indices.presentFamily) {
         createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         createInfo.queueFamilyIndexCount = CONCURRENT_QUEUE_FAMILY_COUNT;
         createInfo.pQueueFamilyIndices = queueFamilyIndices;
@@ -115,6 +131,11 @@ VkSwapchainCreateInfoKHR RSSurfaceSwapChain::BuildSwapchainCreateInfo(int32_t wi
     createInfo.preTransform = preTransform;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+    ROSEN_LOGI("RSSurfaceSwapChain::BuildSwapchainCreateInfo compositeAlpha=%{public}u(forced OPAQUE)"
+        " presentMode=%{public}u(forced FIFO) supportedCompositeAlpha=0x%{public}x",
+        static_cast<uint32_t>(createInfo.compositeAlpha),
+        static_cast<uint32_t>(createInfo.presentMode),
+        static_cast<uint32_t>(swapChainSupport.capabilities.supportedCompositeAlpha));
     createInfo.clipped = VK_TRUE;
     swapChainExtent_ = extent;
     return createInfo;
@@ -156,12 +177,12 @@ bool RSSurfaceSwapChain::Create(int32_t width, int32_t height)
     auto& vkContext = RsVulkanContext::GetSingleton();
     VkDevice device = vkContext.GetDevice();
 
-    if (!vkContext.GetSurface() && !vkContext.CreateAndroidSurface(nativeWindow_)) {
+    if (surface_ == VK_NULL_HANDLE && !vkContext.GetRsVulkanInterface().CreateAndroidSurface(nativeWindow_, surface_)) {
         ROSEN_LOGD("RSSurfaceSwapChain::Create Failed to create Vulkan surface");
         return false;
     }
     // Query Vulkan swapchain capabilities
-    SwapChainSupportDetails swapChainSupport = vkContext.QuerySwapChainSupport();
+    SwapChainSupportDetails swapChainSupport = vkContext.GetRsVulkanInterface().QuerySwapChainSupport(surface_);
     if (swapChainSupport.formats.empty() || swapChainSupport.presentModes.empty()) {
         ROSEN_LOGI("RSSurfaceSwapChain::Create Swap chain support details are incomplete");
         return false;
@@ -218,19 +239,21 @@ bool RSSurfaceSwapChain::Recreate(int32_t width, int32_t height)
         swapchain_ = VK_NULL_HANDLE;
     }
 
-    VkSurfaceKHR oldSurface = vkContext.GetSurface();
-    if (oldSurface != VK_NULL_HANDLE) {
-        vkContext.DestroySurfaceKHR(oldSurface);
+    if (surface_ != VK_NULL_HANDLE) {
+        vkContext.DestroySurfaceKHR(surface_);
+        surface_ = VK_NULL_HANDLE;
     }
 
     CleanupSyncObjects();
 
-    // Recreate Vulkan surface from native window
-    vkContext.CreateAndroidSurface(nativeWindow_);
+    if (!vkContext.GetRsVulkanInterface().CreateAndroidSurface(nativeWindow_, surface_)) {
+        isRecreatingSwapchain_ = false;
+        return false;
+    }
     if (!Create(width, height)) {
-        VkSurfaceKHR newSurface = vkContext.GetSurface();
-        if (newSurface != VK_NULL_HANDLE) {
-            vkContext.DestroySurfaceKHR(newSurface);
+        if (surface_ != VK_NULL_HANDLE) {
+            vkContext.DestroySurfaceKHR(surface_);
+            surface_ = VK_NULL_HANDLE;
         }
         isRecreatingSwapchain_ = false;
         return false;
@@ -245,12 +268,17 @@ void RSSurfaceSwapChain::Cleanup()
     auto& vkContext = RsVulkanContext::GetSingleton();
     VkDevice device = vkContext.GetDevice();
     auto& vkInterface = vkContext.GetRsVulkanInterface();
-
+    // Wait for all Vulkan operations to complete before recreation
+    vkDeviceWaitIdle(device);
     CleanupSyncObjects();
 
     if (swapchain_ != VK_NULL_HANDLE) {
         vkInterface.vkDestroySwapchainKHR(device, swapchain_, nullptr);
         swapchain_ = VK_NULL_HANDLE;
+    }
+    if (surface_ != VK_NULL_HANDLE) {
+        vkContext.DestroySurfaceKHR(surface_);
+        surface_ = VK_NULL_HANDLE;
     }
 
     swapchainImages_.clear();

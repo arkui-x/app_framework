@@ -15,7 +15,7 @@
 
 #include "render_context/render_context.h"
 #include "render_context/new_render_context/render_context_gl.h"
-
+#include "render_context/new_render_context/render_context_vk.h"
 #include <sstream>
 #include <string>
 #include <sys/resource.h>
@@ -44,7 +44,7 @@ std::shared_ptr<RenderContext> RenderContext::Create()
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         ROSEN_LOGE("arkui-x is use vulkan is true, RenderContext::Create() return nullptr!!");
-        return nullptr;
+        return std::make_shared<RenderContextVK>();
     }
 #endif
     return std::make_shared<RenderContextGL>();
