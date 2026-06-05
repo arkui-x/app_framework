@@ -226,6 +226,14 @@ private:
 
     static napi_value UpdateOverrideConfiguration(napi_env env, napi_callback_info info);
 
+    static napi_value GetIntPluralStringValueSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetDoublePluralStringValueSync(napi_env env, napi_callback_info info);
+    
+    static napi_value GetIntPluralStringByNameSync(napi_env env, napi_callback_info info);
+
+    static napi_value GetDoublePluralStringByNameSync(napi_env env, napi_callback_info info);
+
     std::string bundleName_;
     std::shared_ptr<ResourceManager> resMgr_;
 #if defined(__ARKUI_CROSS__)
