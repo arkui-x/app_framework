@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+/**
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -195,6 +195,12 @@ bool StageAssetManager::IsDynamicUpdateModule(const std::string& moduleName)
 {
     return StageAssetProvider::GetInstance()->IsDynamicUpdateModule(moduleName);
 }
+
+bool StageAssetManager::GetSourceMapBufferByModuleName(const std::string& moduleName, std::string& content)
+{
+    return StageAssetProvider::GetInstance()->GetSourceMapBufferByModuleName(moduleName, content);
+}
+
 std::pair<std::string, std::vector<uint8_t>> StageAssetManager::GetPkgPairByAppDataPath(const std::string& moduleName)
 {
     return StageAssetProvider::GetInstance()->GetPkgPairByAppDataPath(moduleName);
