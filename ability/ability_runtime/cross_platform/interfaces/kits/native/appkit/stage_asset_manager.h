@@ -65,6 +65,7 @@ public:
     void SetBundleName(const std::string& bundleName);
     std::string GetSplicingModuleName(const std::string& moduleName);
     bool IsDynamicUpdateModule(const std::string& moduleName);
+    std::vector<std::string> GetAllModuleDirectories();
 
 private:
     static std::shared_ptr<StageAssetManager> instance_;
