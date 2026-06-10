@@ -64,6 +64,7 @@ public:
     void InitModuleVersionCode();
     void isDynamicModule(const std::string& moduleName, bool needUpdate);
     bool IsDynamicUpdateModule(const std::string& moduleName);
+    std::vector<std::string> GetAllModuleDirectories();
 
 private:
     static std::shared_ptr<StageAssetManager> instance_;
