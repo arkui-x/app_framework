@@ -610,6 +610,7 @@ public:
     void UpdateHorizontalScrollBarAccess(bool isHorizontalScrollBarAccessEnabled) override;
     void UpdateVerticalScrollBarAccess(bool isVerticalScrollBarAccessEnabled) override;
     void UpdateScrollBarColor(const std::string& colorValue) override;
+    void UpdateOverScrollMode(int32_t overscrollModeValue);
     void LoadUrl() override;
     void SetBackgroundColor(int32_t backgroundColor) override;
 
@@ -707,6 +708,8 @@ private:
     Method updateHorizontalScrollBarAccess_;
     Method updateVerticalScrollBarAccess_;
     Method updateBackgroundColor_;
+    Method updateInitialScale_;
+    Method updateOverScrollMode_;
     Method updateMediaPlayGestureAccess_;
     Method updateTextZoomRatioMethod_;
     Method updateEnabledHapticFeedbackMethod_;
