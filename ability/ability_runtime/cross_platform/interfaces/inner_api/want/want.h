@@ -270,7 +270,10 @@ public:
      * @description: Obtains a string value of bundle name.
      * @return Returns the string value of bundle name;
      */
-    std::string GetBundleName() const;
+    std::string GetBundleName() const
+    {
+        return bundleName_;
+    }
 
     /**
      * @description: Set the bundle name.
@@ -282,7 +285,10 @@ public:
      * @description: Obtains a string value of module name.
      * @return Returns the string value of module name;
      */
-    std::string GetModuleName() const;
+    std::string GetModuleName() const
+    {
+        return moduleName_;
+    }
 
     /**
      * @description: Set the module name.
@@ -294,7 +300,10 @@ public:
      * @description: Obtains a string value of ability name.
      * @return Returns the string value of ability name;
      */
-    std::string GetAbilityName() const;
+    std::string GetAbilityName() const
+    {
+        return abilityName_;
+    }
 
     /**
      * @description: Set the ability name.
@@ -306,7 +315,10 @@ public:
      * @description: Obtains a string value of Type.
      * @return Returns the string value of Type;
      */
-    std::string GetType() const;
+    std::string GetType() const
+    {
+        return type_;
+    }
 
     /**
      * @description: Set the type.
