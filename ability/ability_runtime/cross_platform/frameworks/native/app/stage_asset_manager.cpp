@@ -205,6 +205,10 @@ std::pair<std::string, std::vector<uint8_t>> StageAssetManager::GetPkgPairByAppD
 {
     return StageAssetProvider::GetInstance()->GetPkgPairByAppDataPath(moduleName);
 }
+std::vector<std::string> StageAssetManager::GetAllModuleDirectories()
+{
+    return StageAssetProvider::GetInstance()->GetAllModuleDirectories();
+}
 } // namespace Platform
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -307,6 +307,7 @@ void AppMain::UpdateRuntimeHSPPkgContextInfo(const std::vector<std::string>& mod
     }
 
     for (const auto& moduleName : moduleNames) {
+        HILOG_DEBUG("UpdateRuntimeHSPPkgContextInfo moduleName: %{public}s", moduleName.c_str());
         auto dynamicPkg = StageAssetManager::GetInstance()->GetPkgPairByAppDataPath(moduleName);
         if (!dynamicPkg.first.empty() && !dynamicPkg.second.empty()) {
             auto buffer = dynamicPkg.second;
@@ -476,6 +477,8 @@ void AppMain::HandleDispatchOnCreate(const std::string& instanceName, const std:
             UpdateRuntimePkgContextInfo(moduleName);
         }
     }
+    std::vector<std::string> modules = StageAssetManager::GetInstance()->GetAllModuleDirectories();
+    UpdateRuntimeHSPPkgContextInfo(modules);
     auto& runtime = application_->GetRuntime();
     // Automatically load the un-preloaded ACE modules.
     if (runtime != nullptr && !static_cast<JsRuntime&>(*runtime).IsPreloadedAce()) {

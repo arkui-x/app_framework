@@ -17,7 +17,6 @@
 #define OHOS_ABILITY_BASE_WANT_H
 
 #include <algorithm>
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -29,23 +28,18 @@ namespace AAFwk {
 class Want final {
 public:
     /**
-     * @description:  Default construcotr of Want class, which is used to initialzie flags and URI.
-     * @param None
-     * @return None
+     * @description: Default constructor of Want class, which is used to initialize Want parameters.
      */
     Want();
 
     /**
-     * @description: Default deconstructor of Want class
-     * @param None
-     * @return None
+     * @description: Default destructor of Want class
      */
     ~Want();
 
     /**
-     * @description: Copy construcotr of Want class, which is used to initialzie flags, URI, etc.
+     * @description: Copy constructor of Want class, which is used to initialize Want parameters.
      * @param want the source instance of Want.
-     * @return None
      */
     Want(const Want& want);
     Want& operator=(const Want& want);
@@ -69,7 +63,7 @@ public:
      * @description: Obtains a bool-type array matching the given key.
      * @param key   Indicates the key of WantParams.
      * @return Returns the bool-type array of the parameter matching the given key;
-     * returns null if the key does not exist.
+     * returns an empty array if the key does not exist.
      */
     std::vector<bool> GetBoolArrayParam(const std::string& key) const;
 
@@ -92,7 +86,7 @@ public:
     /**
      * @description: Obtains an int value matching the given key.
      * @param key   Indicates the key of wantParams.
-     * @param value Indicates the default int value.
+     * @param defaultValue Indicates the default int value.
      * @return Returns the int value of the parameter matching the given key;
      * returns the default value if the key does not exist.
      */
@@ -102,7 +96,7 @@ public:
      * @description: Obtains an int array matching the given key.
      * @param key   Indicates the key of wantParams.
      * @return Returns the int array of the parameter matching the given key;
-     * returns null if the key does not exist.
+     * returns an empty array if the key does not exist.
      */
     std::vector<int> GetIntArrayParam(const std::string& key) const;
 
@@ -135,14 +129,14 @@ public:
      * @description: Obtains a double array matching the given key.
      * @param key   Indicates the key of WantParams.
      * @return Returns the double array of the parameter matching the given key;
-     * returns null if the key does not exist.
+     * returns an empty array if the key does not exist.
      */
     std::vector<double> GetDoubleArrayParam(const std::string& key) const;
 
     /**
      * @description: Sets a parameter value of the double type.
      * @param key   Indicates the key matching the parameter.
-     * @param value Indicates the int value of the parameter.
+     * @param value Indicates the double value of the parameter.
      * @return Returns this Want object containing the parameter value.
      */
     Want& SetParam(const std::string& key, double value);
@@ -157,8 +151,8 @@ public:
 
     /**
      * @description: Obtains a float value matching the given key.
-     * @param key   Indicates the key of wnatParams.
-     * @param value Indicates the default float value.
+     * @param key   Indicates the key of wantParams.
+     * @param defaultValue Indicates the default float value.
      * @return Returns the float value of the parameter matching the given key;
      * returns the default value if the key does not exist.
      */
@@ -167,14 +161,15 @@ public:
     /**
      * @description: Obtains a float array matching the given key.
      * @param key Indicates the key of WantParams.
-     * @return Obtains a float array matching the given key.
+     * @return Returns the float array matching the given key.
+     * returns an empty array if the key does not exist.
      */
     std::vector<float> GetFloatArrayParam(const std::string& key) const;
 
     /**
      * @description: Sets a parameter value of the float type.
      * @param key Indicates the key matching the parameter.
-     * @param value Indicates the byte-type value of the parameter.
+     * @param value Indicates the float-type value of the parameter.
      * @return Returns this Want object containing the parameter value.
      */
     Want& SetParam(const std::string& key, float value);
@@ -182,7 +177,7 @@ public:
     /**
      * @description: Sets a parameter value of the float array type.
      * @param key Indicates the key matching the parameter.
-     * @param value Indicates the byte-type value of the parameter.
+     * @param value Indicates the float array of the parameter.
      * @return Returns this Want object containing the parameter value.
      */
     Want& SetParam(const std::string& key, const std::vector<float>& value);
@@ -190,7 +185,7 @@ public:
     /**
      * @description: Obtains a long value matching the given key.
      * @param key Indicates the key of wantParams.
-     * @param value Indicates the default long value.
+     * @param defaultValue Indicates the default long value.
      * @return Returns the long value of the parameter matching the given key;
      * returns the default value if the key does not exist.
      */
@@ -200,7 +195,7 @@ public:
      * @description: Obtains a long array matching the given key.
      * @param key Indicates the key of wantParams.
      * @return Returns the long array of the parameter matching the given key;
-     * returns null if the key does not exist.
+     * returns an empty array if the key does not exist.
      */
     std::vector<long> GetLongArrayParam(const std::string& key) const;
 
@@ -209,7 +204,7 @@ public:
     /**
      * @description: Sets a parameter value of the long type.
      * @param key Indicates the key matching the parameter.
-     * @param value Indicates the byte-type value of the parameter.
+     * @param value Indicates the long-type value of the parameter.
      * @return Returns this Want object containing the parameter value.
      */
     Want& SetParam(const std::string& key, long value);
@@ -217,13 +212,13 @@ public:
     /**
      * @description: Sets a parameter value of the long array type.
      * @param key Indicates the key matching the parameter.
-     * @param value Indicates the byte-type value of the parameter.
+     * @param value Indicates the long array of the parameter.
      * @return Returns this Want object containing the parameter value.
      */
     Want& SetParam(const std::string& key, const std::vector<long>& value);
 
     /**
-     * @description: a short value matching the given key.
+     * @description: Obtains a short value matching the given key.
      * @param key Indicates the key of wantParams.
      * @param defaultValue Indicates the default short value.
      * @return Returns the short value of the parameter matching the given key;
@@ -235,14 +230,14 @@ public:
      * @description: Obtains a short array matching the given key.
      * @param key Indicates the key of wantParams.
      * @return Returns the short array of the parameter matching the given key;
-     * returns null if the key does not exist.
+     * returns an empty array if the key does not exist.
      */
     std::vector<short> GetShortArrayParam(const std::string& key) const;
 
     /**
      * @description: Sets a parameter value of the short type.
      * @param key Indicates the key matching the parameter.
-     * @param value Indicates the byte-type value of the parameter.
+     * @param value Indicates the short-type value of the parameter.
      * @return Returns this Want object containing the parameter value.
      */
     Want& SetParam(const std::string& key, short value);
@@ -250,7 +245,7 @@ public:
     /**
      * @description: Sets a parameter value of the short array type.
      * @param key Indicates the key matching the parameter.
-     * @param value Indicates the byte-type value of the parameter.
+     * @param value Indicates the short array of the parameter.
      * @return Returns this Want object containing the parameter value.
      */
     Want& SetParam(const std::string& key, const std::vector<short>& value);
@@ -259,7 +254,7 @@ public:
      * @description: Obtains a string value matching the given key.
      * @param key Indicates the key of wantParams.
      * @return Returns the string value of the parameter matching the given key;
-     * returns null if the key does not exist.
+     * returns an empty string if the key does not exist.
      */
     std::string GetStringParam(const std::string& key) const;
 
@@ -267,13 +262,13 @@ public:
      * @description: Obtains a string array matching the given key.
      * @param key Indicates the key of wantParams.
      * @return Returns the string array of the parameter matching the given key;
-     * returns null if the key does not exist.
+     * returns an empty array if the key does not exist.
      */
     std::vector<std::string> GetStringArrayParam(const std::string& key) const;
 
     /**
-     * @description: Obtains a string value of bunde name.
-     * @return Returns the string value of bunde name;
+     * @description: Obtains a string value of bundle name.
+     * @return Returns the string value of bundle name;
      */
     std::string GetBundleName() const;
 
@@ -302,16 +297,16 @@ public:
     std::string GetAbilityName() const;
 
     /**
-     * @description: Obtains a string value of Type.
-     * @return Returns the string value of Type;
-     */
-    std::string GetType() const;
-
-    /**
      * @description: Set the ability name.
      * @param abilityName The ability name to set.
      */
     void SetAbilityName(const std::string& abilityName);
+
+    /**
+     * @description: Obtains a string value of Type.
+     * @return Returns the string value of Type;
+     */
+    std::string GetType() const;
 
     /**
      * @description: Set the type.
@@ -322,7 +317,7 @@ public:
     /**
      * @description: Sets a parameter value of the string type.
      * @param key Indicates the key matching the parameter.
-     * @param value Indicates the byte-type value of the parameter.
+     * @param value Indicates the string-type value of the parameter.
      * @return Returns this Want object containing the parameter value.
      */
     Want& SetParam(const std::string& key, const std::string& value);
@@ -330,7 +325,7 @@ public:
     /**
      * @description: Sets a parameter value of the string array type.
      * @param key Indicates the key matching the parameter.
-     * @param value Indicates the byte-type value of the parameter.
+     * @param value Indicates the string array of the parameter.
      * @return Returns this Want object containing the parameter value.
      */
     Want& SetParam(const std::string& key, const std::vector<std::string>& value);
@@ -389,7 +384,7 @@ public:
 
     /**
      * @description: Obtains the description of all entities in a Want
-     * @return Returns a set of entities
+     * @return Returns a vector of entities
      */
     const std::vector<std::string>& GetEntities() const
     {
@@ -424,8 +419,19 @@ public:
         return entities_.size();
     }
 
+    /**
+     * @description: Checks whether a Want contains the parameter matching a given key.
+     * @param key Indicates the key.
+     * @return Returns true if the Want contains the parameter; returns false otherwise.
+     */
     bool HasParameter(const std::string& key) const;
+
+    /**
+     * @description: Removes the parameter matching the given key.
+     * @param key Indicates the key matching the parameter to be removed.
+     */
     void RemoveParam(const std::string& key);
+
     std::string ToJson() const;
     void ParseJson(const std::string& jsonParams);
     bool IsEmpty() const;

@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <regex>
+#include <cstdlib>
 
 #include "array_wrapper.h"
 #include "base_interfaces.h"
@@ -27,7 +28,6 @@
 #include "hilog.h"
 #include "int_wrapper.h"
 #include "long_wrapper.h"
-#include "securec.h"
 #include "short_wrapper.h"
 #include "string_wrapper.h"
 #include "want_params.h"
@@ -78,24 +78,24 @@ void SetBoolIntDouble(AAFwk::WantParams& wantParams, const std::string& key, con
     }
 }
 
-void SetDouble(Json& elemetnValue, std::shared_ptr<AAFwk::WantParams> wantParams, std::string elementKey,
+void SetDouble(Json& elementValue, std::shared_ptr<AAFwk::WantParams> wantParams, std::string elementKey,
     AAFwk::WantValueType localType)
 {
-    auto intType = elemetnValue.type();
+    auto intType = elementValue.type();
     if (intType == Json::value_t::number_float) {
         wantParams->SetParam(
             elementKey, WantParams::GetInterfaceByType(static_cast<int>(WantValueType::VALUE_TYPE_DOUBLE) - 1,
-                            std::to_string(elemetnValue.get<double>())));
+            std::to_string(elementValue.get<double>())));
     } else if (intType == Json::value_t::number_integer || intType == Json::value_t::number_unsigned) {
         wantParams->SetParam(
             elementKey, WantParams::GetInterfaceByType(static_cast<int>(WantValueType::VALUE_TYPE_DOUBLE) - 1,
-                            std::to_string(elemetnValue.get<int64_t>())));
+            std::to_string(elementValue.get<int64_t>())));
     } else if (intType == Json::value_t::string) {
-        SetBoolIntDouble(*wantParams, elementKey, elemetnValue, localType);
+        SetBoolIntDouble(*wantParams, elementKey, elementValue, localType);
     }
 }
 
-bool CheckElementIsVaild(const Json& element)
+bool CheckElementIsValid(const Json& element)
 {
     if (element.find(JSON_WANTPARAMS_KEY) == element.end() || element.find(JSON_WANTPARAMS_TYPE) == element.end() ||
         element.find(JSON_WANTPARAMS_VALUE) == element.end()) {
@@ -105,7 +105,7 @@ bool CheckElementIsVaild(const Json& element)
     return true;
 }
 
-bool CheckParamsIsVaild(const std::string& params, Json& jsonObject)
+bool CheckParamsIsValid(const std::string& params, Json& jsonObject)
 {
     if (params.empty()) {
         return false;
@@ -137,28 +137,13 @@ void GetArrayParams(IArray* ao, std::vector<T3>& array)
 }
 }; // namespace
 
-/**
- * @description:Default construcotr of Want class, which is used to initialzie flags and URI.
- * @param None
- * @return None
- */
 Want::Want()
 {
     wantParams_ = std::make_shared<AAFwk::WantParams>();
 }
 
-/**
- * @description: Default deconstructor of Want class
- * @param None
- * @return None
- */
 Want::~Want() {}
 
-/**
- * @description: Copy construcotr of Want class, which is used to initialzie flags, URI, etc.
- * @param want the source instance of Want.
- * @return None
- */
 Want::Want(const Want& want)
 {
     InnerCopyWant(want);
@@ -170,10 +155,6 @@ Want& Want::operator=(const Want& want)
     return *this;
 }
 
-/**
- * @description: clear the specific want object.
- * @param want Indicates the want to clear
- */
 void Want::ClearWant(Want* want)
 {
     if (want == nullptr) {
@@ -189,13 +170,6 @@ void Want::ClearWant(Want* want)
     want->entities_.clear();
 }
 
-/**
- * @description: Obtains a bool-type value matching the given key.
- * @param key   Indicates the key of WantParams.
- * @param defaultValue  Indicates the default bool-type value.
- * @return Returns the bool-type value of the parameter matching the given key;
- * returns the default value if the key does not exist.
- */
 bool Want::GetBoolParam(const std::string& key, bool defaultValue) const
 {
     auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
@@ -206,12 +180,6 @@ bool Want::GetBoolParam(const std::string& key, bool defaultValue) const
     return defaultValue;
 }
 
-/**
- * @description:Obtains a bool-type array matching the given key.
- * @param key   Indicates the key of WantParams.
- * @return Returns the bool-type array of the parameter matching the given key;
- * returns null if the key does not exist.
- */
 std::vector<bool> Want::GetBoolArrayParam(const std::string& key) const
 {
     std::vector<bool> array;
@@ -223,24 +191,12 @@ std::vector<bool> Want::GetBoolArrayParam(const std::string& key) const
     return array;
 }
 
-/**
- * @description: Sets a parameter value of the boolean type.
- * @param key   Indicates the key matching the parameter.
- * @param value Indicates the boolean value of the parameter.
- * @return Returns this want object containing the parameter value.
- */
 Want& Want::SetParam(const std::string& key, bool value)
 {
     std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, Boolean::Box(value));
     return *this;
 }
 
-/**
- * @description: Sets a parameter value of the boolean array type.
- * @param key   Indicates the key matching the parameter.
- * @param value Indicates the boolean array of the parameter.
- * @return Returns this want object containing the parameter value.
- */
 Want& Want::SetParam(const std::string& key, const std::vector<bool>& value)
 {
     std::size_t size = value.size();
@@ -254,13 +210,6 @@ Want& Want::SetParam(const std::string& key, const std::vector<bool>& value)
     return *this;
 }
 
-/**
- * @description: Obtains an int value matching the given key.
- * @param key   Indicates the key of wantParams.
- * @param value Indicates the default int value.
- * @return Returns the int value of the parameter matching the given key;
- * returns the default value if the key does not exist.
- */
 int Want::GetIntParam(const std::string& key, const int defaultValue) const
 {
     auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
@@ -271,12 +220,6 @@ int Want::GetIntParam(const std::string& key, const int defaultValue) const
     return defaultValue;
 }
 
-/**
- * @description: Obtains an int array matching the given key.
- * @param key   Indicates the key of wantParams.
- * @return Returns the int array of the parameter matching the given key;
- * returns null if the key does not exist.
- */
 std::vector<int> Want::GetIntArrayParam(const std::string& key) const
 {
     std::vector<int> array;
@@ -288,24 +231,12 @@ std::vector<int> Want::GetIntArrayParam(const std::string& key) const
     return array;
 }
 
-/**
- * @description: Sets a parameter value of the int type.
- * @param key   Indicates the key matching the parameter.
- * @param value Indicates the int value of the parameter.
- * @return Returns this Want object containing the parameter value.
- */
 Want& Want::SetParam(const std::string& key, int value)
 {
     std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, Integer::Box(value));
     return *this;
 }
 
-/**
- * @description: Sets a parameter value of the int array type.
- * @param key   Indicates the key matching the parameter.
- * @param value Indicates the int array of the parameter.
- * @return Returns this Want object containing the parameter value.
- */
 Want& Want::SetParam(const std::string& key, const std::vector<int>& value)
 {
     std::size_t size = value.size();
@@ -320,13 +251,6 @@ Want& Want::SetParam(const std::string& key, const std::vector<int>& value)
     return *this;
 }
 
-/**
- * @description: Obtains a double value matching the given key.
- * @param key   Indicates the key of wantParams.
- * @param defaultValue  Indicates the default double value.
- * @return Returns the double value of the parameter matching the given key;
- * returns the default value if the key does not exist.
- */
 double Want::GetDoubleParam(const std::string& key, double defaultValue) const
 {
     auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
@@ -337,12 +261,6 @@ double Want::GetDoubleParam(const std::string& key, double defaultValue) const
     return defaultValue;
 }
 
-/**
- * @description: Obtains a double array matching the given key.
- * @param key   Indicates the key of WantParams.
- * @return Returns the double array of the parameter matching the given key;
- * returns null if the key does not exist.
- */
 std::vector<double> Want::GetDoubleArrayParam(const std::string& key) const
 {
     std::vector<double> array;
@@ -354,24 +272,12 @@ std::vector<double> Want::GetDoubleArrayParam(const std::string& key) const
     return array;
 }
 
-/**
- * @description: Sets a parameter value of the double type.
- * @param key   Indicates the key matching the parameter.
- * @param value Indicates the int value of the parameter.
- * @return Returns this Want object containing the parameter value.
- */
 Want& Want::SetParam(const std::string& key, double value)
 {
     std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, Double::Box(value));
     return *this;
 }
 
-/**
- * @description: Sets a parameter value of the double array type.
- * @param key   Indicates the key matching the parameter.
- * @param value Indicates the double array of the parameter.
- * @return Returns this want object containing the parameter value.
- */
 Want& Want::SetParam(const std::string& key, const std::vector<double>& value)
 {
     std::size_t size = value.size();
@@ -386,13 +292,6 @@ Want& Want::SetParam(const std::string& key, const std::vector<double>& value)
     return *this;
 }
 
-/**
- * @description: Obtains a float value matching the given key.
- * @param key   Indicates the key of wnatParams.
- * @param value Indicates the default float value.
- * @return Returns the float value of the parameter matching the given key;
- * returns the default value if the key does not exist.
- */
 float Want::GetFloatParam(const std::string& key, float defaultValue) const
 {
     auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
@@ -403,11 +302,6 @@ float Want::GetFloatParam(const std::string& key, float defaultValue) const
     return defaultValue;
 }
 
-/**
- * @description: Obtains a float array matching the given key.
- * @param key Indicates the key of WantParams.
- * @return Obtains a float array matching the given key.
- */
 std::vector<float> Want::GetFloatArrayParam(const std::string& key) const
 {
     std::vector<float> array;
@@ -419,24 +313,12 @@ std::vector<float> Want::GetFloatArrayParam(const std::string& key) const
     return array;
 }
 
-/**
- * @description: Sets a parameter value of the float type.
- * @param key Indicates the key matching the parameter.
- * @param value Indicates the byte-type value of the parameter.
- * @return Returns this Want object containing the parameter value.
- */
 Want& Want::SetParam(const std::string& key, float value)
 {
     std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, Float::Box(value));
     return *this;
 }
 
-/**
- * @description: Sets a parameter value of the float array type.
- * @param key Indicates the key matching the parameter.
- * @param value Indicates the byte-type value of the parameter.
- * @return Returns this Want object containing the parameter value.
- */
 Want& Want::SetParam(const std::string& key, const std::vector<float>& value)
 {
     std::size_t size = value.size();
@@ -452,13 +334,6 @@ Want& Want::SetParam(const std::string& key, const std::vector<float>& value)
     return *this;
 }
 
-/**
- * @description: Obtains a long value matching the given key.
- * @param key Indicates the key of wantParams.
- * @param value Indicates the default long value.
- * @return Returns the long value of the parameter matching the given key;
- * returns the default value if the key does not exist.
- */
 long Want::GetLongParam(const std::string& key, long defaultValue) const
 {
     auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
@@ -473,12 +348,6 @@ long Want::GetLongParam(const std::string& key, long defaultValue) const
     return defaultValue;
 }
 
-/**
- * @description: Obtains a long array matching the given key.
- * @param key Indicates the key of wantParams.
- * @return Returns the long array of the parameter matching the given key;
- * returns null if the key does not exist.
- */
 std::vector<long> Want::GetLongArrayParam(const std::string& key) const
 {
     std::vector<long> array;
@@ -501,24 +370,12 @@ std::vector<long> Want::GetLongArrayParam(const std::string& key) const
     return array;
 }
 
-/**
- * @description: Sets a parameter value of the long type.
- * @param key Indicates the key matching the parameter.
- * @param value Indicates the byte-type value of the parameter.
- * @return Returns this Want object containing the parameter value.
- */
 Want& Want::SetParam(const std::string& key, long value)
 {
     std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, Long::Box(value));
     return *this;
 }
 
-/**
- * @description: Sets a parameter value of the long array type.
- * @param key Indicates the key matching the parameter.
- * @param value Indicates the byte-type value of the parameter.
- * @return Returns this Want object containing the parameter value.
- */
 Want& Want::SetParam(const std::string& key, const std::vector<long>& value)
 {
     std::size_t size = value.size();
@@ -539,13 +396,6 @@ Want& Want::SetParam(const std::string& key, long long value)
     return *this;
 }
 
-/**
- * @description: a short value matching the given key.
- * @param key Indicates the key of wantParams.
- * @param defaultValue Indicates the default short value.
- * @return Returns the short value of the parameter matching the given key;
- * returns the default value if the key does not exist.
- */
 short Want::GetShortParam(const std::string& key, short defaultValue) const
 {
     auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
@@ -556,12 +406,6 @@ short Want::GetShortParam(const std::string& key, short defaultValue) const
     return defaultValue;
 }
 
-/**
- * @description: Obtains a short array matching the given key.
- * @param key Indicates the key of wantParams.
- * @return Returns the short array of the parameter matching the given key;
- * returns null if the key does not exist.
- */
 std::vector<short> Want::GetShortArrayParam(const std::string& key) const
 {
     std::vector<short> array;
@@ -573,24 +417,12 @@ std::vector<short> Want::GetShortArrayParam(const std::string& key) const
     return array;
 }
 
-/**
- * @description: Sets a parameter value of the short type.
- * @param key Indicates the key matching the parameter.
- * @param value Indicates the byte-type value of the parameter.
- * @return Returns this Want object containing the parameter value.
- */
 Want& Want::SetParam(const std::string& key, short value)
 {
     std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, Short::Box(value));
     return *this;
 }
 
-/**
- * @description: Sets a parameter value of the short array type.
- * @param key Indicates the key matching the parameter.
- * @param value Indicates the byte-type value of the parameter.
- * @return Returns this Want object containing the parameter value.
- */
 Want& Want::SetParam(const std::string& key, const std::vector<short>& value)
 {
     std::size_t size = value.size();
@@ -605,12 +437,6 @@ Want& Want::SetParam(const std::string& key, const std::vector<short>& value)
     return *this;
 }
 
-/**
- * @description: Obtains a string value matching the given key.
- * @param key Indicates the key of wantParams.
- * @return Returns the string value of the parameter matching the given key;
- * returns null if the key does not exist.
- */
 std::string Want::GetStringParam(const std::string& key) const
 {
     auto value = std::static_pointer_cast<WantParams>(wantParams_)->GetParam(key);
@@ -621,12 +447,6 @@ std::string Want::GetStringParam(const std::string& key) const
     return std::string();
 }
 
-/**
- * @description: Obtains a string array matching the given key.
- * @param key Indicates the key of wantParams.
- * @return Returns the string array of the parameter matching the given key;
- * returns null if the key does not exist.
- */
 std::vector<std::string> Want::GetStringArrayParam(const std::string& key) const
 {
     std::vector<std::string> array;
@@ -715,24 +535,12 @@ bool Want::HasEntity(const std::string& entity) const
     return std::find(entities_.begin(), entities_.end(), entity) != entities_.end();
 }
 
-/**
- * @description: Sets a parameter value of the string type.
- * @param key Indicates the key matching the parameter.
- * @param value Indicates the byte-type value of the parameter.
- * @return Returns this Want object containing the parameter value.
- */
 Want& Want::SetParam(const std::string& key, const std::string& value)
 {
     std::static_pointer_cast<WantParams>(wantParams_)->SetParam(key, String::Box(value));
     return *this;
 }
 
-/**
- * @description: Sets a parameter value of the string array type.
- * @param key Indicates the key matching the parameter.
- * @param value Indicates the byte-type value of the parameter.
- * @return Returns this Want object containing the parameter value.
- */
 Want& Want::SetParam(const std::string& key, const std::vector<std::string>& value)
 {
     std::size_t size = value.size();
@@ -747,30 +555,16 @@ Want& Want::SetParam(const std::string& key, const std::vector<std::string>& val
     return *this;
 }
 
-/**
- * @description: Checks whether a Want contains the parameter matching a given key.
- * @param key Indicates the key.
- * @return Returns true if the Want contains the parameter; returns false otherwise.
- */
 bool Want::HasParameter(const std::string& key) const
 {
     return std::static_pointer_cast<WantParams>(wantParams_)->HasParam(key);
 }
 
-/**
- * @description: Removes the parameter matching the given key.
- * @param key Indicates the key matching the parameter to be removed.
- */
 void Want::RemoveParam(const std::string& key)
 {
     std::static_pointer_cast<WantParams>(wantParams_)->Remove(key);
 }
 
-/**
- * @description: Sets a wantParams object in a want.
- * @param wantParams  Indicates the wantParams description.
- * @return Returns this want object containing the wantParams.
- */
 Want& Want::SetParams(const std::shared_ptr<WantParamsInterface> wantParams)
 {
     wantParams_ = wantParams;
@@ -788,43 +582,43 @@ std::string Want::ToJson() const
 void Want::ParseJson(const std::string& jsonParams)
 {
     Json jsonObject;
-    if (CheckParamsIsVaild(jsonParams, jsonObject) == false) {
+    if (CheckParamsIsValid(jsonParams, jsonObject) == false) {
         return;
     }
     auto wantParams = std::static_pointer_cast<AAFwk::WantParams>(wantParams_);
     for (auto& element : jsonObject[JSON_WANTPARAMS_PARAM]) {
-        if (CheckElementIsVaild(element) == false) {
+        if (CheckElementIsValid(element) == false) {
             continue;
         }
         auto typeId = element[JSON_WANTPARAMS_TYPE].get<int>();
         auto elementKey = element[JSON_WANTPARAMS_KEY];
-        auto elemetnValue = element[JSON_WANTPARAMS_VALUE];
+        auto elementValue = element[JSON_WANTPARAMS_VALUE];
         auto localType = static_cast<AAFwk::WantValueType>(typeId);
         if (localType == AAFwk::WantValueType::VALUE_TYPE_BOOLEAN) {
-            if (elemetnValue.type() == Json::value_t::boolean) {
+            if (elementValue.type() == Json::value_t::boolean) {
                 wantParams->SetParam(
-                    elementKey, WantParams::GetInterfaceByType(typeId, elemetnValue ? "true" : "false"));
+                    elementKey, WantParams::GetInterfaceByType(typeId, elementValue ? "true" : "false"));
             } else {
-                SetBoolIntDouble(*wantParams, elementKey, elemetnValue, localType);
+                SetBoolIntDouble(*wantParams, elementKey, elementValue, localType);
             }
         } else if (localType == AAFwk::WantValueType::VALUE_TYPE_INT) {
-            auto intType = elemetnValue.type();
+            auto intType = elementValue.type();
             if (intType == Json::value_t::number_integer || intType == Json::value_t::number_unsigned) {
                 wantParams->SetParam(
-                    elementKey, WantParams::GetInterfaceByType(typeId, std::to_string(elemetnValue.get<int64_t>())));
+                    elementKey, WantParams::GetInterfaceByType(typeId, std::to_string(elementValue.get<int64_t>())));
             } else {
-                SetBoolIntDouble(*wantParams, elementKey, elemetnValue, localType);
+                SetBoolIntDouble(*wantParams, elementKey, elementValue, localType);
             }
         } else if (localType == AAFwk::WantValueType::VALUE_TYPE_DOUBLE) {
-            SetDouble(elemetnValue, wantParams, elementKey, localType);
+            SetDouble(elementValue, wantParams, elementKey, localType);
         } else if (localType == AAFwk::WantValueType::VALUE_TYPE_STRING) {
             wantParams->SetParam(
-                elementKey, WantParams::GetInterfaceByType(typeId - 1, elemetnValue.get<std::string>()));
+                elementKey, WantParams::GetInterfaceByType(typeId - 1, elementValue.get<std::string>()));
         } else if (localType == AAFwk::WantValueType::VALUE_TYPE_ARRAY) {
-            wantParams->SetParam(elementKey, Array::ParseCrossPlatformArray(elemetnValue));
+            wantParams->SetParam(elementKey, Array::ParseCrossPlatformArray(elementValue));
         } else if (localType == AAFwk::WantValueType::VALUE_TYPE_WANTPARAMS) {
             WantParams localWantParams;
-            WantParamWrapper::ParseWantParams(elemetnValue, localWantParams);
+            WantParamWrapper::ParseWantParams(elementValue, localWantParams);
             sptr<IWantParams> localIwantParams = new (std::nothrow) WantParamWrapper(localWantParams);
             wantParams->SetParam(elementKey, localIwantParams);
         }

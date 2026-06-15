@@ -66,6 +66,7 @@ public:
     void SetBundleName(const std::string& bundleName);
     std::string GetSplicingModuleName(const std::string& moduleName);
     bool IsDynamicUpdateModule(const std::string& moduleName);
+    std::vector<std::string> GetAllModuleDirectories();
     bool GetSourceMapBufferByModuleName(const std::string& moduleName, std::string& content);
 
 private:
