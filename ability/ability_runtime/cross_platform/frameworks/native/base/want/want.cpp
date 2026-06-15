@@ -458,19 +458,9 @@ std::vector<std::string> Want::GetStringArrayParam(const std::string& key) const
     return array;
 }
 
-std::string Want::GetBundleName() const
-{
-    return bundleName_;
-}
-
 void Want::SetBundleName(const std::string& bundleName)
 {
     bundleName_ = bundleName;
-}
-
-std::string Want::GetModuleName() const
-{
-    return moduleName_;
 }
 
 void Want::SetModuleName(const std::string& moduleName)
@@ -478,19 +468,9 @@ void Want::SetModuleName(const std::string& moduleName)
     moduleName_ = moduleName;
 }
 
-std::string Want::GetAbilityName() const
-{
-    return abilityName_;
-}
-
 void Want::SetAbilityName(const std::string& abilityName)
 {
     abilityName_ = abilityName;
-}
-
-std::string Want::GetType() const
-{
-    return type_;
 }
 
 void Want::SetType(const std::string& type)
