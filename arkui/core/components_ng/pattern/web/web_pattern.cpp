@@ -625,6 +625,11 @@ void WebPattern::OnMediaPlayGestureAccessUpdate(bool value)
     }
 }
 
+void WebPattern::OnFullScreenVideoOverlayUpdate(bool value)
+{
+    // cross platform is not support now;
+}
+
 void WebPattern::OnFileAccessEnabledUpdate(bool value)
 {
     if (delegate_) {
