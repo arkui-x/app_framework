@@ -383,8 +383,9 @@ napi_value JSAbilityDelegator::OnWaitAbilityMonitor(napi_env env, NapiCallbackIn
     NapiAsyncTask::CompleteCallback complete = [abilityObjectBox](napi_env env, NapiAsyncTask &task, int32_t status)
     {
         HILOG_INFO("OnWaitAbilityMonitor NapiAsyncTask CompleteCallback is called");
-        if (abilityObjectBox && !abilityObjectBox->object_.expired()) {
-            ResolveWithNoError(env, task,abilityObjectBox->object_.lock()->GetNapiValue());
+        auto abilityObject = abilityObjectBox ? abilityObjectBox->object_.lock() : nullptr;
+        if (abilityObject) {
+            ResolveWithNoError(env, task, abilityObject->GetNapiValue());
         } else {
             task.Reject(env, CreateJsError(env, COMMON_FAILED, "waitAbilityMonitor failed."));
         }
@@ -439,8 +440,9 @@ napi_value JSAbilityDelegator::OnWaitAbilityStageMonitor(napi_env env, NapiCallb
         napi_env env, NapiAsyncTask &task, int32_t status)
     {
         HILOG_INFO("OnWaitAbilityMonitor NapiAsyncTask CompleteCallback is called");
-        if (abilityStageObjBox && !abilityStageObjBox->object_.expired()) {
-            ResolveWithNoError(env, task, abilityStageObjBox->object_.lock()->GetNapiValue());
+        auto abilityStageObj = abilityStageObjBox ? abilityStageObjBox->object_.lock() : nullptr;
+        if (abilityStageObj) {
+            ResolveWithNoError(env, task, abilityStageObj->GetNapiValue());
         } else {
             task.Reject(env, CreateJsError(env, COMMON_FAILED, "waitAbilityStageMonitor failed."));
         }
@@ -573,7 +575,8 @@ napi_value JSAbilityDelegator::OnGetCurrentTopAbility(napi_env env, NapiCallback
         }
 
         auto property = delegator->GetCurrentTopAbility();
-        if (!property || property->object_.expired()) {
+        auto abilityObject = property ? property->object_.lock() : nullptr;
+        if (!abilityObject) {
             HILOG_ERROR("Invalid property");
             task.Reject(env, CreateJsError(env, COMMON_FAILED, "getCurrentTopAbility failed."));
         } else {
@@ -581,7 +584,7 @@ napi_value JSAbilityDelegator::OnGetCurrentTopAbility(napi_env env, NapiCallback
                 std::unique_lock<std::mutex> lck(g_mutexAbilityRecord);
                 g_abilityRecordInfo.emplace(property->object_, property->fullName_);
             }
-            ResolveWithNoError(env, task, property->object_.lock()->GetNapiValue());
+            ResolveWithNoError(env, task, abilityObject->GetNapiValue());
         }
     };
 
@@ -820,13 +823,14 @@ napi_value JSAbilityDelegator::ParseAbilityParaInfo(napi_env env, napi_value val
 
     std::unique_lock<std::mutex> lck(g_mutexAbilityRecord);
     for (auto iter = g_abilityRecordInfo.begin(); iter != g_abilityRecordInfo.end();) {
-        if (iter->first.expired()) {
+        auto abilityObject = iter->first.lock();
+        if (!abilityObject) {
             iter = g_abilityRecordInfo.erase(iter);
             continue;
         }
         
         bool isEqual = false;
-        napi_strict_equals(env, iter->first.lock()->GetNapiValue(), value, &isEqual);
+        napi_strict_equals(env, abilityObject->GetNapiValue(), value, &isEqual);
         if (isEqual) {
             fullName = iter->second;
             HILOG_INFO("Ability exist");

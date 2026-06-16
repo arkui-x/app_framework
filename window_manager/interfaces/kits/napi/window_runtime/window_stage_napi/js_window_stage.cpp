@@ -143,6 +143,9 @@ napi_value JsWindowStage::OnGetMainWindowSync(napi_env env, napi_callback_info i
 {
     WLOGD("JsWindowStage::OnGetMainWindowSync : Start...");
     auto weakWindowStage = windowStage_.lock();
+    if (!weakWindowStage) {
+        return nullptr;
+    }
     auto win = weakWindowStage->GetMainWindow();
     return (win != nullptr) ? CreateJsWindowObject(env, win) : nullptr;
 }
