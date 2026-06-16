@@ -127,8 +127,9 @@ napi_value JSAbilityMonitor::CallLifecycleCBFunction(const std::string &function
     }
 
     auto nativeAbilityObj = CreateJsNull(env_);
-    if (!abilityObj.expired()) {
-        nativeAbilityObj = abilityObj.lock()->GetNapiValue();
+    auto abilityObjSharedPtr = abilityObj.lock();
+    if (abilityObjSharedPtr) {
+        nativeAbilityObj = abilityObjSharedPtr->GetNapiValue();
     }
 
     napi_value argv[] = { nativeAbilityObj };
