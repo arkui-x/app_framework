@@ -53,6 +53,11 @@ class KeyEvent;
 class AxisEvent;
 }
 
+namespace Rosen {
+    class AvoidArea;
+    enum class AvoidAreaType : uint32_t;
+}
+
 namespace AppExecFwk{
 struct AbilityInfo;
 }
@@ -95,7 +100,13 @@ public:
     // surface and resregister
     virtual void NotifySurfaceCreated() = 0;
     virtual void NotifySurfaceDestroyed() = 0;
-    virtual void UpdateViewportConfig(const ViewportConfig& config, OHOS::Rosen::WindowSizeChangeReason reason) = 0;
+    virtual void UpdateViewportConfig(
+        const ViewportConfig& config,
+        OHOS::Rosen::WindowSizeChangeReason reason,
+        const std::map<OHOS::Rosen::AvoidAreaType, OHOS::Rosen::AvoidArea>& avoidAreas) = 0;
+
+    // Avoid area management
+    virtual void SetIgnoreViewSafeArea(bool ignoreViewSafeArea) = 0;
 
     // config
     virtual void UpdateConfiguration(const std::shared_ptr<OHOS::AbilityRuntime::Platform::Configuration>& config) = 0;
