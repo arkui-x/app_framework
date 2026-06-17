@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+/**
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,12 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <chrono>
-
 #include "js_module_reader.h"
+
+#include <chrono>
 
 #include "app_main.h"
 #include "hilog.h"
+#include "source_map_operator.h"
 #include "stage_asset_manager.h"
 
 namespace OHOS {
@@ -29,7 +30,10 @@ uint64_t GetNowTime()
     return std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
 }
 }
-JsModuleReader::JsModuleReader(const std::string& bundleName) : bundleName_(bundleName) {}
+JsModuleReader::JsModuleReader(
+    const std::string& bundleName, std::shared_ptr<JsEnv::SourceMapOperator> sourceMapOperator)
+    : bundleName_(bundleName), sourceMapOperator_(sourceMapOperator)
+{}
 
 bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, size_t* buffSize, std::string& errorMsg)
 {
@@ -57,10 +61,29 @@ bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, si
     }
     Platform::AppMain::GetInstance()->ParseHspModuleJson(moduleName);
 
+    LoadModuleSourceMap(moduleName);
+
     *buff = moduleBuffer_.data();
     *buffSize = moduleBuffer_.size();
     HILOG_INFO("End, time is: %{public}ld.", GetNowTime());
     return true;
+}
+
+void JsModuleReader::LoadModuleSourceMap(const std::string& moduleName)
+{
+    if (sourceMapOperator_ == nullptr) {
+        return;
+    }
+
+    if (sourceMapOperator_->IsModuleSourceMapLoaded(moduleName)) {
+        return;
+    }
+
+    std::string moduleContent;
+    if (Platform::StageAssetManager::GetInstance()->GetSourceMapBufferByModuleName(moduleName, moduleContent) &&
+        !moduleContent.empty()) {
+        sourceMapOperator_->AddModuleSourceMap(moduleName, moduleContent);
+    }
 }
 
 std::string JsModuleReader::GetModuleName(const std::string& inputPath) const
