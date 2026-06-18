@@ -1040,6 +1040,10 @@ void WebPattern::OnModifyDone()
         delegate_->UpdateHorizontalScrollBarAccess(GetHorizontalScrollBarAccessEnabledValue(true));
         delegate_->UpdateVerticalScrollBarAccess(GetVerticalScrollBarAccessEnabledValue(true));
         delegate_->UpdateScrollBarColor(GetScrollBarColorValue(DEFAULT_SCROLLBAR_COLOR));
+        auto webDelegateCross = AceType::DynamicCast<WebDelegateCross>(delegate_);
+        if (webDelegateCross) {
+            webDelegateCross->UpdateOverScrollMode(GetOverScrollModeValue(OverScrollMode::NEVER));
+        }
         if (GetBlockNetwork()) {
             delegate_->UpdateBlockNetwork(GetBlockNetwork().value());
         }
@@ -2084,7 +2088,10 @@ void WebPattern::JavaScriptOnHeadReadyByOrder(const ScriptItems& scriptItems,
 
 void WebPattern::OnOverScrollModeUpdate(int mode)
 {
-   // cross platform is not support now;
+    auto webDelegateCross = AceType::DynamicCast<WebDelegateCross>(delegate_);
+    if (webDelegateCross) {
+        webDelegateCross->UpdateOverScrollMode(mode);
+    }
 }
 
 void WebPattern::OnBlurOnKeyboardHideModeUpdate(int mode)

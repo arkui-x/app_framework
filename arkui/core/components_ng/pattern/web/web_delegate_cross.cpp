@@ -153,6 +153,10 @@ constexpr char WEB_ATTRIBUTE_VERTICAL_SCROLLBAR_ACCESS[] = "verticalScrollBarAcc
 constexpr char NTC_VERTICAL_SCROLLBAR_ACCESS[] = "verticalScrollBarAccess";
 constexpr char WEB_ATTRIBUTE_BACKGROUND_COLOR[] = "backgroundColor";
 constexpr char NTC_BACKGROUND_COLOR[] = "backgroundColor";
+constexpr char WEB_ATTRIBUTE_INITIAL_SCALE[] = "initialScale";
+constexpr char NTC_INITIAL_SCALE[] = "initialScale";
+constexpr char WEB_ATTRIBUTE_OVER_SCROLL_MODE[] = "overScrollMode";
+constexpr char NTC_OVER_SCROLL_MODE[] = "overScrollMode";
 constexpr char WEB_ATTRIBUTE_MEDIA_PLAY_GESTURE_ACCESS[] = "mediaPlayGestureAccess";
 constexpr char NTC_MEDIA_PLAY_GESTURE_ACCESS[] = "mediaPlayGestureAccess";
 constexpr char WEB_ATTRIBUTE_BLOCK_NETWORK[] = "blockNetwork";
@@ -2474,7 +2478,17 @@ void WebDelegateCross::UpdateBackgroundColor(const int backgroundColor)
     CallResRegisterMethod(updateBackgroundColor_, param, nullptr);
 }
 
-void WebDelegateCross::UpdateInitialScale(float scale) {}
+void WebDelegateCross::UpdateInitialScale(float scale)
+{
+    hash_ = MakeResourceHash();
+    updateInitialScale_ = MakeMethodHash(WEB_ATTRIBUTE_INITIAL_SCALE);
+    std::stringstream paramStream;
+    paramStream.imbue(std::locale("C"));
+    paramStream << NTC_INITIAL_SCALE << WEB_PARAM_EQUALS << scale;
+    std::string param = paramStream.str();
+    CallResRegisterMethod(updateInitialScale_, param, nullptr);
+}
+
 void WebDelegateCross::UpdateJavaScriptEnabled(const bool& isJsEnabled)
 {
     hash_ = MakeResourceHash();
@@ -2704,6 +2718,16 @@ void WebDelegateCross::UpdateVerticalScrollBarAccess(bool isVerticalScrollBarAcc
 
 void WebDelegateCross::UpdateScrollBarColor(const std::string& colorValue)
 {}
+
+void WebDelegateCross::UpdateOverScrollMode(int32_t overscrollModeValue)
+{
+    hash_ = MakeResourceHash();
+    updateOverScrollMode_ = MakeMethodHash(WEB_ATTRIBUTE_OVER_SCROLL_MODE);
+    std::stringstream paramStream;
+    paramStream << NTC_OVER_SCROLL_MODE << WEB_PARAM_EQUALS << overscrollModeValue;
+    std::string param = paramStream.str();
+    CallResRegisterMethod(updateOverScrollMode_, param, nullptr);
+}
 
 void WebDelegateCross::LoadUrl()
 {}
