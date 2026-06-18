@@ -107,6 +107,7 @@ public:
     using SetFaviconCallback = std::function<void(const std::shared_ptr<BaseEventInfo>&)>;
     using OnMediaCastEnterCallback = std::function<void()>;
     using OnWebNativeMessageConnectCallback = std::function<void(const std::shared_ptr<BaseEventInfo>&)>;
+    using OnFullScreenVideoOverlayEnterCallback = std::function<void(const std::shared_ptr<BaseEventInfo>&)>;
     using OnWebNativeMessageDisConnectCallback = std::function<void(const std::shared_ptr<BaseEventInfo>&)>;
     WebPattern();
     WebPattern(const std::string& webSrc, const RefPtr<WebController>& webController,
@@ -364,6 +365,7 @@ public:
     ACE_DEFINE_PROPERTY_GROUP(WebProperty, WebPatternProperty);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, JsEnabled, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, MediaPlayGestureAccess, bool);
+    ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, FullScreenVideoOverlay, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, FileAccessEnabled, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, OnLineImageAccessEnabled, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, DomStorageAccessEnabled, bool);
@@ -554,6 +556,11 @@ public:
         onWebNativeMessageConnectCallback_ = std::move(callback);
     }
 
+    void SetOnFullScreenVideoOverlayEnterCallback(OnFullScreenVideoOverlayEnterCallback &&callback)
+    {
+        onFullScreenVideoOverlayEnterCallback_ = std::move(callback);
+    }
+
     OnWebNativeMessageConnectCallback GetWebNativeMessageConnectCallback() const
     {
         return onWebNativeMessageConnectCallback_;
@@ -663,6 +670,7 @@ private:
     void OnWebDataUpdate();
     void OnJsEnabledUpdate(bool value);
     void OnMediaPlayGestureAccessUpdate(bool value);
+    void OnFullScreenVideoOverlayUpdate(bool value);
     void OnFileAccessEnabledUpdate(bool value);
     void OnOnLineImageAccessEnabledUpdate(bool value);
     void OnDomStorageAccessEnabledUpdate(bool value);
@@ -804,6 +812,7 @@ private:
     SetFaviconCallback setFaviconCallback_ = nullptr;
     DefaultFileSelectorShowCallback defaultFileSelectorShowCallback_ = nullptr;
     OnWebNativeMessageConnectCallback onWebNativeMessageConnectCallback_ = nullptr;
+    OnFullScreenVideoOverlayEnterCallback onFullScreenVideoOverlayEnterCallback_ = nullptr;
     OnWebNativeMessageDisConnectCallback onWebNativeMessageDisConnectCallback_ = nullptr;
     RefPtr<TouchEventImpl> touchEvent_;
     RefPtr<InputEvent> mouseEvent_;
