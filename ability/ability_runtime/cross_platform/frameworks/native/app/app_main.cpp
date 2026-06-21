@@ -390,6 +390,29 @@ void AppMain::OnConfigurationUpdate(const std::string& jsonConfiguration)
     eventHandler_->PostTask(task);
 }
 
+void AppMain::OnMemoryLevel(int32_t level)
+{
+    HILOG_INFO("OnMemoryLevel called, level: %{public}d", level);
+    if (!eventHandler_) {
+        HILOG_ERROR("eventHandler_ is nullptr");
+        return;
+    }
+    auto task = [level]() {
+        AppMain::GetInstance()->HandleOnMemoryLevel(level);
+    };
+    eventHandler_->PostTask(task);
+}
+
+void AppMain::HandleOnMemoryLevel(int32_t level)
+{
+    HILOG_INFO("HandleOnMemoryLevel called, level: %{public}d", level);
+    if (application_ == nullptr) {
+        HILOG_ERROR("application_ is nullptr");
+        return;
+    }
+    application_->OnMemoryLevel(level);
+}
+
 void AppMain::InitConfiguration(const std::string& jsonConfiguration)
 {
     HILOG_INFO("InitConfiguration called.");

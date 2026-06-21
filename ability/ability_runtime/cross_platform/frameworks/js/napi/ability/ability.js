@@ -22,6 +22,8 @@ class Ability {
     onWindowStageCreate(windowStage) { }
     onWindowStageDestroy() { }
     onNewWant(want, param) { }
+    onConfigurationUpdate(newConfig) { }
+    onMemoryLevel(level) { }
 }
 
 export default Ability;

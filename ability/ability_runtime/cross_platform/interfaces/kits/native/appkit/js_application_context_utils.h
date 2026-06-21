@@ -21,6 +21,7 @@
 #include "ability_lifecycle_callback.h"
 #include "application_context.h"
 #include "application_state_change_callback.h"
+#include "js_environment_callback.h"
 #include "napi/native_api.h"
 #include "native_engine/native_engine.h"
 #include "js_runtime_utils.h"
@@ -64,6 +65,8 @@ private:
     napi_value OnOnApplicationStateChange(napi_env env, NapiCallbackInfo& info);
     napi_value OnOffApplicationStateChange(napi_env env, const NapiCallbackInfo& info);
     napi_value OnOffAbilityLifecycle(napi_env env, const NapiCallbackInfo& info, int32_t callbackId);
+    napi_value OnOnEnvironment(napi_env env, NapiCallbackInfo& info);
+    napi_value OnOffEnvironment(napi_env env, const NapiCallbackInfo& info, int32_t callbackId);
     napi_value OnGetApplicationContext(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetCacheDir(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetTempDir(napi_env env, NapiCallbackInfo& info);
@@ -82,6 +85,7 @@ private:
     static void BindNativeApplicationContext(napi_env env, napi_value object);
 
     std::shared_ptr<JsAbilityLifecycleCallback> callback_;
+    static std::shared_ptr<JsEnvironmentCallback> envCallback_;
     std::unique_ptr<NativeReference> systemModule_;
     static std::shared_ptr<JsApplicationStateChangeCallback> applicationStateCallback_;
     std::mutex applicationStateCallbackLock_;

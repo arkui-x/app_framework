@@ -42,6 +42,7 @@ public:
     virtual void OnCreate() const;
     virtual void OnDestroy() const;
     virtual void OnConfigurationUpdate(const Configuration& configuration);
+    virtual void OnMemoryLevel(int32_t level);
     virtual void Init(const std::shared_ptr<Context>& context);
     std::shared_ptr<Context> GetContext() const;
     void LaunchAbility(const AAFwk::Want& want, const std::unique_ptr<Runtime>& runtime);

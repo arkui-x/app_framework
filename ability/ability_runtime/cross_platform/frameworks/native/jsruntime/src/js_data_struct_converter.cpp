@@ -161,6 +161,9 @@ napi_value CreateJsConfiguration(napi_env env, const Platform::Configuration& co
     std::string fontSizeScale = configuration.GetItem(Platform::ConfigurationInner::SYSTEM_FONT_SIZE_SCALE);
     napi_set_named_property(env, object, "fontSizeScale",
         CreateJsValue(env, fontSizeScale == "" ? 1.0 : std::stod(fontSizeScale)));
+    std::string fontWeightScale = configuration.GetItem(Platform::ConfigurationInner::SYSTEM_FONT_WEIGHT_SCALE);
+    napi_set_named_property(env, object, "fontWeightScale",
+        CreateJsValue(env, fontWeightScale == "" ? 1.0 : std::stod(fontWeightScale)));
     return object;
 }
 

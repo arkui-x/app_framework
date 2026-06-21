@@ -223,13 +223,39 @@ void JsAbilityStage::OnConfigurationUpdate(const Configuration& configuration)
     JsAbilityStageContext::ConfigurationUpdated(env, shellContextRef_, config);
 
     napi_value value = jsAbilityStageObj_->GetNapiValue();
-    
+
     napi_value methodOnCreate = nullptr;
     napi_get_named_property(env, value, "onConfigurationUpdate", &methodOnCreate);
 
     napi_value argv[] = { CreateJsConfiguration(env, *config) };
     napi_value callResult = nullptr;
     napi_call_function(env, value, methodOnCreate, ArraySize(argv), argv, &callResult);
+}
+
+void JsAbilityStage::OnMemoryLevel(int32_t level)
+{
+    AbilityStage::OnMemoryLevel(level);
+
+    if (!jsAbilityStageObj_) {
+        HILOG_ERROR("Not found AbilityStage.js");
+        return;
+    }
+
+    HandleScope handleScope(jsRuntime_);
+    auto env = jsRuntime_.GetNapiEnv();
+
+    napi_value value = jsAbilityStageObj_->GetNapiValue();
+    napi_value methodOnMemoryLevel = nullptr;
+    napi_get_named_property(env, value, "onMemoryLevel", &methodOnMemoryLevel);
+    if (methodOnMemoryLevel == nullptr) {
+        HILOG_DEBUG("onMemoryLevel is not defined in AbilityStage");
+        return;
+    }
+    napi_value jslevel = nullptr;
+    napi_create_int32(env, level, &jslevel);
+    napi_value argv[] = { jslevel };
+    napi_value callResult = nullptr;
+    napi_call_function(env, value, methodOnMemoryLevel, ArraySize(argv), argv, &callResult);
 }
 
 std::shared_ptr<OHOS::AppExecFwk::DelegatorAbilityStageProperty> JsAbilityStage::CreateStageProperty() const
