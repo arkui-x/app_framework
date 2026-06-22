@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,41 @@ void WindowOption::SetWindowMode(WindowMode mode)
     mode_ = mode;
 }
 
+void WindowOption::SetWindowModal(bool isModal)
+{
+    isModal_ = isModal;
+}
+
+void WindowOption::SetWindowModalityType(ModalityType modalityType)
+{
+    modalityType_ = modalityType;
+}
+
+void WindowOption::SetWindowZLevel(int32_t zLevel)
+{
+    zLevel_ = zLevel;
+}
+
+void WindowOption::SetWindowMaximizeSupported(bool maximizeSupported)
+{
+    maximizeSupported_ = maximizeSupported;
+}
+
+void WindowOption::SetWindowOutlineEnabled(bool outlineEnabled)
+{
+    outlineEnabled_ = outlineEnabled;
+}
+
+void WindowOption::SetWindowTitle(const std::string& title)
+{
+    title_ = title;
+}
+
+void WindowOption::SetDecorEnabled(bool decorEnabled)
+{
+    decorEnabled_ = decorEnabled;
+}
+
 void WindowOption::SetParentId(uint32_t parentId)
 {
     parentId_ = parentId;
@@ -60,6 +95,41 @@ WindowType WindowOption::GetWindowType() const
 WindowMode WindowOption::GetWindowMode() const
 {
     return mode_;
+}
+
+bool WindowOption::IsWindowModal() const
+{
+    return isModal_;
+}
+
+ModalityType WindowOption::GetWindowModalityType() const
+{
+    return modalityType_;
+}
+
+int32_t WindowOption::GetWindowZLevel() const
+{
+    return zLevel_;
+}
+
+bool WindowOption::IsWindowMaximizeSupported() const
+{
+    return maximizeSupported_;
+}
+
+bool WindowOption::IsWindowOutlineEnabled() const
+{
+    return outlineEnabled_;
+}
+
+const std::string& WindowOption::GetWindowTitle() const
+{
+    return title_;
+}
+
+bool WindowOption::IsDecorEnabled() const
+{
+    return decorEnabled_;
 }
 
 uint32_t WindowOption::GetParentId() const

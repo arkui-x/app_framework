@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,6 +28,7 @@ class Configuration;
 }
 namespace Rosen {
 class Window;
+class WindowOption;
 class WindowStage {
 public:
     /**
@@ -70,6 +71,8 @@ public:
      */
     const std::shared_ptr<Window>& GetMainWindow() const;
     std::shared_ptr<Window> CreateSubWindow(const std::string& windowName);
+    std::shared_ptr<Window> CreateSubWindow(const std::string& windowName,
+        const std::shared_ptr<WindowOption>& option);
     std::vector<std::shared_ptr<Window>> GetSubWindow();
 
     void UpdateConfigurationForAll(const std::shared_ptr<OHOS::AbilityRuntime::Platform::Configuration>& config);

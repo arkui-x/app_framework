@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -185,6 +185,32 @@ napi_value JsWindow::SetWindowFocusable(napi_env env, napi_callback_info info)
     WLOGD("SetWindowFocusable");
     JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
     return (me != nullptr) ? me->OnSetWindowFocusable(env, info) : nullptr;
+}
+
+napi_value JsWindow::IsFocused(napi_env env, napi_callback_info info)
+{
+    WLOGD("IsFocused");
+    if (env == nullptr) {
+        return nullptr;
+    }
+    JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
+    if (me == nullptr) {
+        return nullptr;
+    }
+    return me->OnIsFocused(env, info);
+}
+
+napi_value JsWindow::GetPreferredOrientation(napi_env env, napi_callback_info info)
+{
+    WLOGD("JsWindow::GetPreferredOrientation");
+    if (env == nullptr) {
+        return nullptr;
+    }
+    JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
+    if (me == nullptr) {
+        return nullptr;
+    }
+    return me->OnGetPreferredOrientation(env, info);
 }
 
 napi_value JsWindow::OnShowWindow(napi_env env, napi_callback_info info)
@@ -990,6 +1016,38 @@ napi_value JsWindow::OnSetWindowFocusable(napi_env env, napi_callback_info info)
     return result;
 }
 
+napi_value JsWindow::OnIsFocused(napi_env env, napi_callback_info info)
+{
+    std::weak_ptr<Window> weakToken(windowToken_);
+    auto window = weakToken.lock();
+    if (window == nullptr) {
+        WLOGE("window is nullptr");
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
+        return CreateUndefined(env);
+    }
+    return CreateJsValue(env, window->IsFocused());
+}
+
+napi_value JsWindow::OnGetPreferredOrientation(napi_env env, napi_callback_info info)
+{
+    std::weak_ptr<Window> weakToken(windowToken_);
+    auto window = weakToken.lock();
+    if (window == nullptr) {
+        WLOGE("window is nullptr");
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
+        return CreateUndefined(env);
+    }
+    Orientation requestedOrientation = window->GetRequestedOrientation();
+    ApiOrientation apiOrientation = ApiOrientation::UNSPECIFIED;
+    if (NATIVE_TO_JS_ORIENTATION_MAP.count(requestedOrientation)) {
+        apiOrientation = NATIVE_TO_JS_ORIENTATION_MAP.at(requestedOrientation);
+    } else {
+        WLOGE("JsWindow::OnGetPreferredOrientation : Orientation %{public}u invalid!",
+            static_cast<uint32_t>(requestedOrientation));
+    }
+    return CreateJsValue(env, apiOrientation);
+}
+
 napi_ref FindJsWindowObject(const std::string &windowName)
 {
     WLOGD("Try to find window %{public}s in g_jsWindowMap", windowName.c_str());
@@ -1371,7 +1429,9 @@ static const napi_property_descriptor g_props[] = {
     DECLARE_NAPI_FUNCTION("setWindowLayoutFullScreen", JsWindow::SetWindowLayoutFullScreen),
     DECLARE_NAPI_FUNCTION("getWindowAvoidArea", JsWindow::GetWindowAvoidAreaSync),
     DECLARE_NAPI_FUNCTION("setWindowFocusable", JsWindow::SetWindowFocusable),
+    DECLARE_NAPI_FUNCTION("isFocused", JsWindow::IsFocused),
     DECLARE_NAPI_FUNCTION("setWindowSystemBarProperties", JsWindow::SetWindowSystemBarProperties),
+    DECLARE_NAPI_FUNCTION("getPreferredOrientation", JsWindow::GetPreferredOrientation),
 };
 
 napi_value CreateJsWindowObject(napi_env env, std::shared_ptr<Rosen::Window>& window)

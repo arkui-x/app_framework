@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,8 @@
 namespace OHOS {
 namespace Rosen {
 using namespace AbilityRuntime;
+
+constexpr size_t CREATE_SUB_WINDOW_WITH_OPTIONS_ARGC = 2;
 
 std::unique_ptr<JsWindowRegisterManager> g_listenerManager = std::make_unique<JsWindowRegisterManager>();
 
@@ -263,6 +265,12 @@ napi_value JsWindowStage::CreateSubWindow(napi_env env, napi_callback_info info)
     return (me != nullptr) ? me->OnCreateSubWindow(env, info) : nullptr;
 }
 
+napi_value JsWindowStage::CreateSubWindowWithOptions(napi_env env, napi_callback_info info)
+{
+    JsWindowStage* me = CheckParamsAndGetThis<JsWindowStage>(env, info);
+    return (me != nullptr) ? me->OnCreateSubWindowWithOptions(env, info) : nullptr;
+}
+
 napi_value JsWindowStage::GetSubWindow(napi_env env, napi_callback_info info)
 {
     WLOGD("JsWindowStage::GetSubWindow");
@@ -315,6 +323,86 @@ napi_value JsWindowStage::OnCreateSubWindow(napi_env env, napi_callback_info inf
     }
     napi_value result = nullptr;
     NapiAsyncTask::Schedule("JsWindowStage::OnCreateSubWindow", env,
+        CreateAsyncTaskWithLastParam(env, callback, nullptr, std::move(complete), &result));
+    return result;
+}
+
+bool JsWindowStage::ParseCreateSubWindowWithOptionsParams(napi_env env, size_t argc,
+    napi_value argv[], CreateSubWindowParseResult& result)
+{
+    if (argc < CREATE_SUB_WINDOW_WITH_OPTIONS_ARGC) {
+        WLOGE("JsWindowStage::OnCreateSubWindowWithOptions : argc error![%{public}zu]", argc);
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM, "Invalid params."));
+        return false;
+    }
+    if (!ConvertFromJsValue(env, argv[0], result.windowName)) {
+        WLOGE("JsWindowStage::OnCreateSubWindowWithOptions : Failed to convert parameter to windowName");
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM, "Invalid params."));
+        return false;
+    }
+    SubWindowOptionsValue optionValue;
+    if (!ParseSubWindowOptionsValue(env, argv[1], optionValue)) {
+        WLOGE("JsWindowStage::OnCreateSubWindowWithOptions : Failed to parse options");
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM, "Invalid params."));
+        return false;
+    }
+    result.windowOption = BuildSubWindowOption(optionValue);
+    if (result.windowOption->GetWindowModalityType() == ModalityType::APPLICATION_MODALITY) {
+        WLOGE("JsWindowStage::OnCreateSubWindowWithOptions : APPLICATION_MODALITY is not supported");
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_DEVICE_NOT_SUPPORT,
+            "APPLICATION_MODALITY is not supported."));
+        return false;
+    }
+    if (argc > CREATE_SUB_WINDOW_WITH_OPTIONS_ARGC && IsFunction(env, argv[CREATE_SUB_WINDOW_WITH_OPTIONS_ARGC])) {
+        result.callback = argv[CREATE_SUB_WINDOW_WITH_OPTIONS_ARGC];
+    }
+    return true;
+}
+
+napi_value JsWindowStage::OnCreateSubWindowWithOptions(napi_env env, napi_callback_info info)
+{
+    size_t argc = WINDOW_ARGC_MAX_COUNT;
+    napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok) {
+        WLOGE("JsWindowStage::OnCreateSubWindowWithOptions : napi_get_cb_info failed");
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM, "Invalid params."));
+        return CreateJsUndefined(env);
+    }
+
+    std::string windowName;
+    std::shared_ptr<WindowOption> windowOption;
+    napi_value callback = nullptr;
+    CreateSubWindowParseResult parseResult;
+    if (!ParseCreateSubWindowWithOptionsParams(env, argc, argv, parseResult)) {
+        return CreateJsUndefined(env);
+    }
+    windowName = parseResult.windowName;
+    windowOption = parseResult.windowOption;
+    callback = parseResult.callback;
+
+    NapiAsyncTask::CompleteCallback complete =
+        [weak = windowStage_, windowName, windowOption](napi_env env, NapiAsyncTask& task, int32_t status) {
+        auto weakWindowStage = weak.lock();
+        if (weakWindowStage == nullptr) {
+            WLOGE("JsWindowStage::OnCreateSubWindowWithOptions : Window scene is null");
+            task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
+            return;
+        }
+        auto window = weakWindowStage->CreateSubWindow(windowName, windowOption);
+        if (window == nullptr) {
+            WLOGE("JsWindowStage::OnCreateSubWindowWithOptions : create sub window failed");
+            task.Reject(env, CreateWindowsJsError(env,
+                WmErrorCode::WM_ERROR_STATE_ABNORMALLY, "Create sub window failed"));
+            return;
+        }
+        task.Resolve(env, CreateJsWindowObject(env, window));
+        WLOGD("JsWindowStage::OnCreateSubWindowWithOptions : Create sub window %{public}s end",
+            windowName.c_str());
+    };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsWindowStage::OnCreateSubWindowWithOptions", env,
         CreateAsyncTaskWithLastParam(env, callback, nullptr, std::move(complete), &result));
     return result;
 }
@@ -382,6 +470,7 @@ napi_value CreateJsWindowStage(napi_env env, std::shared_ptr<Rosen::WindowStage>
         DECLARE_NAPI_FUNCTION("getMainWindow", JsWindowStage::GetMainWindow),
         DECLARE_NAPI_FUNCTION("getMainWindowSync", JsWindowStage::GetMainWindowSync),
         DECLARE_NAPI_FUNCTION("createSubWindow", JsWindowStage::CreateSubWindow),
+        DECLARE_NAPI_FUNCTION("createSubWindowWithOptions", JsWindowStage::CreateSubWindowWithOptions),
         DECLARE_NAPI_FUNCTION("getSubWindow", JsWindowStage::GetSubWindow),
         DECLARE_NAPI_FUNCTION("on", JsWindowStage::On),
         DECLARE_NAPI_FUNCTION("off", JsWindowStage::Off)
