@@ -643,6 +643,7 @@ public:
     RefPtr<NestableScrollContainer> SearchParent() override;
     RefPtr<NestableScrollContainer> SearchParent(Axis scrollAxis);
     void OnParentScrollDragEndRecursive(RefPtr<NestableScrollContainer> parent);
+    void ReleaseResizeHold();
 private:
     void RegistVirtualKeyBoardListener();
     bool ProcessVirtualKeyBoard(int32_t width, int32_t height, double keyboard);

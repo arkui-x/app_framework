@@ -119,6 +119,7 @@ constexpr char WEB_EVENT_ONPERMISSIONREQUEST[] = "onPermissionRequest";
 constexpr char WEB_EVENT_ONOVERRIDEURLLOADING[] = "onOverrideUrlLoading";
 constexpr char WEB_EVENT_ONSSLERROREVENTRECEIVE[] = "onSslErrorEventReceive";
 constexpr char WEB_EVENT_ONSSLERROREVENT[] = "onSslErrorEvent";
+constexpr char WEB_EVENT_CONTENTHEIGHTCHANGED[] = "onContentHeightChanged";
 
 constexpr char WEB_CREATE[] = "web";
 constexpr char NTC_PARAM_WEB[] = "web";
@@ -175,6 +176,16 @@ constexpr char WEB_ATTRIBUTE_ENABLE_HAPTIC_FEEDBACK[] = "enableHapticFeedback";
 constexpr char NTC_ENABLE_HAPTIC_FEEDBACK[] = "enableHapticFeedback";
 constexpr char WEB_FILE_ACCESS[] = "fileAccess";
 constexpr char NTC_FILE_ACCESS[] = "fileAccess";
+constexpr char WEB_ATTRIBUTE_OVERVIEW_MODE_ACCESS[] = "overviewModeAccess";
+constexpr char NTC_OVERVIEW_MODE_ACCESS[] = "overviewModeAccess";
+constexpr char WEB_ATTRIBUTE_LAYOUT_MODE[] = "layoutMode";
+constexpr char NTC_LAYOUT_MODE[] = "layoutMode";
+constexpr char WEB_ATTRIBUTE_DEFAULT_FONT_SIZE[] = "defaultFontSize";
+constexpr char NTC_DEFAULT_FONT_SIZE[] = "defaultFontSize";
+constexpr char WEB_ATTRIBUTE_DARK_MODE[] = "darkMode";
+constexpr char NTC_DARK_MODE[] = "darkMode";
+constexpr char WEB_ATTRIBUTE_FORCE_DARK_ACCESS[] = "forceDarkAccess";
+constexpr char NTC_FORCE_DARK_ACCESS[] = "forceDarkAccess";
 
 const char WEB_PARAM_NONE[] = "";
 const char WEB_PARAM_AND[] = "#HWJS-&-#";
@@ -199,6 +210,7 @@ constexpr int HTTP_STATUS_GATEWAY_TIMEOUT = 504;
 constexpr int TIMEOUT_SEMAPHORE_S = 20;
 constexpr int TWO_BYTES_LENGTH = 16;
 constexpr int TWO_BYTES = 2;
+constexpr int STRTOL_BASE_DECIMAL = 10;
 
 const std::string RESOURCE_VIDEO_CAPTURE = "TYPE_VIDEO_CAPTURE";
 const std::string RESOURCE_AUDIO_CAPTURE = "TYPE_AUDIO_CAPTURE";
@@ -1185,6 +1197,22 @@ void WebDelegateCross::RegisterWebEvent()
             auto delegate = weak.Upgrade();
             if (delegate) {
                 delegate->OnGeolocationPermissionsHidePrompt();
+            }
+        });
+    RegisterWebEventOther();
+}
+
+void WebDelegateCross::RegisterWebEventOther()
+{
+    auto context = DynamicCast<NG::PipelineContext>(context_.Upgrade());
+    CHECK_NULL_VOID(context);
+    auto resRegister = context->GetPlatformResRegister();
+    CHECK_NULL_VOID(resRegister);
+    resRegister->RegisterEvent(
+        MakeEventHash(WEB_EVENT_CONTENTHEIGHTCHANGED), [weak = WeakClaim(this)](const std::string& param) {
+            auto delegate = weak.Upgrade();
+            if (delegate != nullptr) {
+                delegate->OnContentHeightChanged(param);
             }
         });
 }
@@ -2566,10 +2594,24 @@ void WebDelegateCross::UpdateCacheMode(const WebCacheMode& mode)
 }
 
 void WebDelegateCross::UpdateDarkMode(const WebDarkMode& mode)
-{}
+{
+    hash_ = MakeResourceHash();
+    updateDarkMode_ = MakeMethodHash(WEB_ATTRIBUTE_DARK_MODE);
+    std::stringstream paramStream;
+    paramStream << NTC_DARK_MODE << WEB_PARAM_EQUALS << static_cast<int32_t>(mode);
+    std::string param = paramStream.str();
+    CallResRegisterMethod(updateDarkMode_, param, nullptr);
+}
 
 void WebDelegateCross::UpdateForceDarkAccess(const bool& access)
-{}
+{
+    hash_ = MakeResourceHash();
+    updateForceDarkAccess_ = MakeMethodHash(WEB_ATTRIBUTE_FORCE_DARK_ACCESS);
+    std::stringstream paramStream;
+    paramStream << NTC_FORCE_DARK_ACCESS << WEB_PARAM_EQUALS << access;
+    std::string param = paramStream.str();
+    CallResRegisterMethod(updateForceDarkAccess_, param, nullptr);
+}
 
 void WebDelegateCross::UpdateAudioResumeInterval(const int32_t& resumeInterval)
 {}
@@ -2581,7 +2623,24 @@ void WebDelegateCross::UpdateAudioSessionType(const WebAudioSessionType& audioSe
 {}
 
 void WebDelegateCross::UpdateOverviewModeEnabled(const bool& isOverviewModeAccessEnabled)
-{}
+{
+    hash_ = MakeResourceHash();
+    updateOverviewModeAccess_ = MakeMethodHash(WEB_ATTRIBUTE_OVERVIEW_MODE_ACCESS);
+    std::stringstream paramStream;
+    paramStream << NTC_OVERVIEW_MODE_ACCESS << WEB_PARAM_EQUALS << isOverviewModeAccessEnabled;
+    std::string param = paramStream.str();
+    CallResRegisterMethod(updateOverviewModeAccess_, param, nullptr);
+}
+
+void WebDelegateCross::UpdateLayoutMode(WebLayoutMode layoutMode)
+{
+    hash_ = MakeResourceHash();
+    updateLayoutMode_ = MakeMethodHash(WEB_ATTRIBUTE_LAYOUT_MODE);
+    std::stringstream paramStream;
+    paramStream << NTC_LAYOUT_MODE << WEB_PARAM_EQUALS << static_cast<int32_t>(layoutMode);
+    std::string param = paramStream.str();
+    CallResRegisterMethod(updateLayoutMode_, param, nullptr);
+}
 
 void WebDelegateCross::UpdateFileFromUrlEnabled(const bool& isFileFromUrlAccessEnabled)
 {}
@@ -2657,7 +2716,15 @@ void WebDelegateCross::UpdateDefaultFixedFontSize(int32_t size)
 {}
 
 void WebDelegateCross::UpdateDefaultFontSize(int32_t defaultFontSize)
-{}
+{
+    hash_ = MakeResourceHash();
+    updateDefaultFontSize_ = MakeMethodHash(WEB_ATTRIBUTE_DEFAULT_FONT_SIZE);
+    std::stringstream paramStream;
+    paramStream << NTC_DEFAULT_FONT_SIZE << WEB_PARAM_EQUALS
+                << std::clamp(defaultFontSize, FONT_MIN_SIZE, FONT_MAX_SIZE);
+    std::string param = paramStream.str();
+    CallResRegisterMethod(updateDefaultFontSize_, param, nullptr);
+}
 
 void WebDelegateCross::UpdateMinFontSize(int32_t minFontSize)
 {
@@ -2812,5 +2879,31 @@ void WebDelegateCross::SetScrollLocked(const bool value)
     auto webId = GetWebId();
     SetScrollLockedRegisterOC(webId, value);
 #endif
+}
+
+void WebDelegateCross::OnContentHeightChanged(const std::string& param)
+{
+    ContainerScope scope(instanceId_);
+    auto context = context_.Upgrade();
+    CHECK_NULL_VOID(context);
+    context->GetTaskExecutor()->PostTask(
+        [weak = WeakClaim(this), param]() {
+            auto delegate = weak.Upgrade();
+            CHECK_NULL_VOID(delegate);
+            auto webPattern = delegate->webPattern_.Upgrade();
+            CHECK_NULL_VOID(webPattern);
+            if (param.empty()) {
+                return;
+            }
+            char* end = nullptr;
+            long parsed = std::strtol(param.c_str(), &end, STRTOL_BASE_DECIMAL);
+            if (end == param.c_str() || *end != '\0') {
+                return;
+            }
+            int32_t contentHeight = static_cast<int32_t>(parsed);
+            int32_t width = static_cast<int32_t>(NG::PipelineContext::GetCurrentRootWidth());
+            webPattern->OnRootLayerChanged(width, contentHeight);
+        },
+        TaskExecutor::TaskType::JS, "ArkUIWebContentHeightChanged");
 }
 }
