@@ -568,6 +568,7 @@ public:
     void OnReceivedTitle(const std::string& param) override;
     void OnPageVisible(const std::string& param) override;
     void OnGeolocationPermissionsHidePrompt() override;
+    void OnContentHeightChanged(const std::string& param);
 
     void UpdateUserAgent(const std::string& userAgent) override;
     void UpdateBackgroundColor(const int backgroundColor) override;
@@ -622,11 +623,13 @@ public:
     void MaximizeResize() override;
     void SetScrollLocked(const bool value);
     void SetNestedScrollOptionsExt(NestedScrollOptionsExt nestedOpt);
+    void UpdateLayoutMode(WebLayoutMode layoutMode);
 private:
     void ReleasePlatformResource();
     void CreatePluginResource(const Size& size, const Offset& position, const WeakPtr<NG::PipelineContext>& context);
     void InitWebEvent();
     void RegisterWebEvent();
+    void RegisterWebEventOther();
     void RegisterWebObjectEvent();
     void OnErrorReceive(void* object);
     void OnScroll(void* object);
@@ -714,6 +717,11 @@ private:
     Method updateTextZoomRatioMethod_;
     Method updateEnabledHapticFeedbackMethod_;
     Method setNestedScrollExtMethod_;
+    Method updateOverviewModeAccess_;
+    Method updateLayoutMode_;
+    Method updateDarkMode_;
+    Method updateForceDarkAccess_;
+    Method updateDefaultFontSize_;
 
     EventCallbackV2 onPageFinishedV2_;
     EventCallbackV2 onPageStartedV2_;

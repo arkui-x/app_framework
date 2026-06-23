@@ -667,6 +667,10 @@ void WebPattern::OnMixedModeUpdate(MixedModeContent value)
 
 void WebPattern::OnZoomAccessEnabledUpdate(bool value)
 {
+    if (layoutMode_ == WebLayoutMode::FIT_CONTENT) {
+        TAG_LOGI(AceLogTag::ACE_WEB, "When layoutMode is fit-content, turn off zoom access.");
+        value = false;
+    }
     if (delegate_) {
         delegate_->UpdateSupportZoom(value);
     }
@@ -782,6 +786,10 @@ void WebPattern::OnBackgroundColorUpdate(int32_t value)
 
 void WebPattern::OnInitialScaleUpdate(float value)
 {
+    if (layoutMode_ == WebLayoutMode::FIT_CONTENT) {
+        TAG_LOGI(AceLogTag::ACE_WEB, "When layoutMode is fit-content, Not allow to update scale.");
+        return;
+    }
     if (delegate_) {
         delegate_->UpdateInitialScale(value);
     }
@@ -1006,7 +1014,15 @@ void WebPattern::OnModifyDone()
         delegate_->UpdateAllowFileAccess(GetFileAccessEnabledValue(false));
         delegate_->UpdateLoadsImagesAutomatically(GetImageAccessEnabledValue(true));
         delegate_->UpdateMixedContentMode(GetMixedModeValue(MixedModeContent::MIXED_CONTENT_NEVER_ALLOW));
-        delegate_->UpdateSupportZoom(GetZoomAccessEnabledValue(true));
+        if (layoutMode_ == WebLayoutMode::FIT_CONTENT) {
+            delegate_->UpdateSupportZoom(false);
+            auto webDelegateCross = AceType::DynamicCast<WebDelegateCross>(delegate_);
+            if (webDelegateCross != nullptr) {
+                webDelegateCross->UpdateLayoutMode(layoutMode_);
+            }
+        } else {
+            delegate_->UpdateSupportZoom(GetZoomAccessEnabledValue(true));
+        }
         delegate_->UpdateDomStorageEnabled(GetDomStorageAccessEnabledValue(false));
         delegate_->UpdateGeolocationEnabled(GetGeolocationAccessEnabledValue(true));
         delegate_->UpdateCacheMode(GetCacheModeValue(WebCacheMode::DEFAULT));
@@ -1596,7 +1612,22 @@ void WebPattern::UpdateBackgroundColorRightNow(int32_t color)
 
 void WebPattern::OnRootLayerChanged(int width, int height)
 {
-    // cross platform is not support now;
+    if ((rootLayerWidth_ == width) && (rootLayerHeight_ == height)) {
+        return;
+    }
+    rootLayerWidth_ = width;
+    rootLayerHeight_ = height;
+    if (layoutMode_ != WebLayoutMode::FIT_CONTENT) {
+        return;
+    }
+    ReleaseResizeHold();
+}
+
+void WebPattern::ReleaseResizeHold()
+{
+    auto frameNode = GetHost();
+    CHECK_NULL_VOID(frameNode);
+    frameNode->MarkDirtyNode(PROPERTY_UPDATE_LAYOUT | PROPERTY_UPDATE_MEASURE | PROPERTY_UPDATE_RENDER);
 }
 
 void WebPattern::SetNestedScroll(const NestedScrollOptions& nestedOpt)
@@ -2003,6 +2034,9 @@ void WebPattern::SetNestedScrollOptionsExt(NestedScrollOptionsExt nestedOpt)
 void WebPattern::SetScrollLocked(bool value)
 {
 #if defined(IOS_PLATFORM)
+    if (layoutMode_ == WebLayoutMode::FIT_CONTENT) {
+        value = true;
+    }
     SetIsPointInsideWebForceResult(true, value);
     auto webDelegateCross = AceType::DynamicCast<WebDelegateCross>(delegate_);
     if (webDelegateCross) {
