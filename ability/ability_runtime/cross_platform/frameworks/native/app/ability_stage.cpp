@@ -139,12 +139,7 @@ void AbilityStage::DispatchOnNewWant(const AAFwk::Want& want)
         return;
     }
 
-    auto getWant = ability->GetWant();
-    if (getWant == nullptr) {
-        HILOG_ERROR("want is nullptr");
-        return;
-    }
-    ability->OnNewWant(*getWant);
+    ability->OnNewWant(want);
 }
 
 void AbilityStage::DispatchOnForeground(const AAFwk::Want& want)
