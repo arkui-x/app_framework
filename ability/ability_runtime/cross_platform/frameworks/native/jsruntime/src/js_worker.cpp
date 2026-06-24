@@ -51,6 +51,7 @@ namespace {
 constexpr int64_t ASSET_FILE_MAX_SIZE = 32 * 1024 * 1024;
 const std::string BUNDLE_NAME_FLAG = "@bundle:";
 const std::string CACHE_DIRECTORY = "el2";
+const std::string LOCAL_BUNDLE_CODE_PATH = "/data/storage/el1/bundle/";
 #if defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
     constexpr char ARK_DEBUGGER_LIB_PATH[] = "libark_debugger.z.so";
 #else
@@ -243,7 +244,7 @@ struct AssetHelper final {
             filePath = NormalizedFileName(realPath);
         }
 #if defined(ANDROID_PLATFORM) || defined(IOS_PLATFORM)
-        ami = filePath;
+        ami = LOCAL_BUNDLE_CODE_PATH + filePath;
 #else
         ami = codePath_ + filePath;
 #endif
