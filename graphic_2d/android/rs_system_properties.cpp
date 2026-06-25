@@ -537,5 +537,10 @@ uint32_t RSSystemProperties::GetUnmarshalParallelMinDataSize()
 {
     return 0;
 }
+
+bool RSSystemProperties::GetCompositeLayerEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS
