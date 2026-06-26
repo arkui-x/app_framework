@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,7 @@ public:
     ~Impl();
     static inline SingletonDelegator<DisplayManager> delegator;
     sptr<Display> GetDefaultDisplaySync();
+    std::vector<sptr<Display>> GetAllDisplays();
     bool IsFoldable();
     FoldStatus GetFoldStatus();
     FoldDisplayMode GetFoldDisplayMode();
@@ -115,6 +116,56 @@ sptr<Display> DisplayManager::Impl::GetDefaultDisplaySync()
 sptr<Display> DisplayManager::GetDefaultDisplaySync()
 {
     return pImpl_->GetDefaultDisplaySync();
+}
+
+std::vector<sptr<Display>> DisplayManager::Impl::GetAllDisplays()
+{
+    auto displayIds = DisplayManagerAgent::GetInstance()->GetAllDisplayIds();
+    std::vector<sptr<Display>> displays;
+    displays.reserve(displayIds.empty() ? 1 : displayIds.size());
+    if (!displayIds.empty()) {
+        for (const auto& displayId : displayIds) {
+            sptr<Display> display;
+            {
+                std::lock_guard<std::recursive_mutex> lock(mutex_);
+                auto displayInfo = sptr<DisplayInfo>(new DisplayInfo(displayId));
+                if (!UpdateDisplayInfoLocked(displayInfo)) {
+                    WLOGW("GetAllDisplays: failed to update info for id=%{public}llu",
+                        static_cast<unsigned long long>(displayId));
+                    continue;
+                }
+                auto iter = displayMap_.find(displayId);
+                if (iter != displayMap_.end() && iter->second != nullptr) {
+                    display = iter->second;
+                }
+            }
+            if (display != nullptr) {
+                displays.emplace_back(display);
+            }
+        }
+        if (displays.empty()) {
+            auto defaultDisplay = GetDefaultDisplaySync();
+            if (defaultDisplay != nullptr) {
+                displays.emplace_back(defaultDisplay);
+            }
+            return displays;
+        }
+        return displays;
+    }
+
+    auto defaultDisplay = GetDefaultDisplaySync();
+    if (defaultDisplay == nullptr) {
+        WLOGE("DisplayManager::Impl::GetAllDisplays: default display is null");
+        return displays;
+    }
+
+    displays.emplace_back(defaultDisplay);
+    return displays;
+}
+
+std::vector<sptr<Display>> DisplayManager::GetAllDisplays()
+{
+    return pImpl_->GetAllDisplays();
 }
 
 bool DisplayManager::Impl::UpdateDisplayInfoLocked(sptr<DisplayInfo> displayInfo)

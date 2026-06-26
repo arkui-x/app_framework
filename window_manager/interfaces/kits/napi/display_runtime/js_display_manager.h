@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,6 +34,7 @@ public:
 
     static void Finalizer(napi_env env, void* data, void* hint);
     static napi_value GetDefaultDisplaySync(napi_env env, napi_callback_info info);
+    static napi_value GetAllDisplays(napi_env env, napi_callback_info info);
     static napi_value RegisterDisplayManagerCallback(napi_env env, napi_callback_info info);
     static napi_value UnregisterDisplayManagerCallback(napi_env env, napi_callback_info info);
     static napi_value IsFoldable(napi_env env, napi_callback_info info);
@@ -42,6 +43,7 @@ public:
 
 private:
     napi_value OnGetDefaultDisplaySync(napi_env env, napi_callback_info info);
+    napi_value OnGetAllDisplays(napi_env env, napi_callback_info info);
     napi_value OnRegisterDisplayManagerCallback(napi_env env, napi_callback_info info);
     napi_value OnUnregisterDisplayManagerCallback(napi_env env, napi_callback_info info);
     napi_value OnIsFoldable(napi_env env, napi_callback_info info);
