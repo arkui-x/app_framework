@@ -16,8 +16,10 @@
 #include "web_delegate_cross.h"
 
 #include <atomic>
+#include <vector>
 
 #include "bridge/js_frontend/frontend_delegate_impl.h"
+#include "core/components_ng/pattern/web/web_model_ng.h"
 
 #if defined(IOS_PLATFORM)
 #include "adapter/ios/capability/web/AceWebPatternOCBridge.h"
@@ -120,6 +122,8 @@ constexpr char WEB_EVENT_ONOVERRIDEURLLOADING[] = "onOverrideUrlLoading";
 constexpr char WEB_EVENT_ONSSLERROREVENTRECEIVE[] = "onSslErrorEventReceive";
 constexpr char WEB_EVENT_ONSSLERROREVENT[] = "onSslErrorEvent";
 constexpr char WEB_EVENT_CONTENTHEIGHTCHANGED[] = "onContentHeightChanged";
+constexpr char WEB_EVENT_ONWINDOWNEW[] = "onWindowNew";
+constexpr char WEB_EVENT_ONWINDOWEXIT[] = "onWindowExit";
 
 constexpr char WEB_CREATE[] = "web";
 constexpr char NTC_PARAM_WEB[] = "web";
@@ -190,6 +194,10 @@ constexpr char WEB_ATTRIBUTE_DARK_MODE[] = "darkMode";
 constexpr char NTC_DARK_MODE[] = "darkMode";
 constexpr char WEB_ATTRIBUTE_FORCE_DARK_ACCESS[] = "forceDarkAccess";
 constexpr char NTC_FORCE_DARK_ACCESS[] = "forceDarkAccess";
+constexpr char WEB_ATTRIBUTE_MULTI_WINDOW_ACCESS[] = "multiWindowAccess";
+constexpr char NTC_MULTI_WINDOW_ACCESS[] = "multiWindowAccess";
+constexpr char WEB_ATTRIBUTE_ALLOW_WINDOW_OPEN_METHOD[] = "allowWindowOpenMethod";
+constexpr char NTC_ALLOW_WINDOW_OPEN_METHOD[] = "allowWindowOpenMethod";
 
 const char WEB_PARAM_NONE[] = "";
 const char WEB_PARAM_AND[] = "#HWJS-&-#";
@@ -1057,8 +1065,101 @@ std::vector<std::string> SslSelectCertEventImpl::GetIssuers()
     return obj->GetIssuers(object_);
 }
 
+std::mutex WebWindowNewHandlerImpl::pendingMutex_;
+std::unordered_multimap<int32_t, WebWindowNewHandlerImpl::PendingPopupInfo> WebWindowNewHandlerImpl::pendingPopups_;
+
+void WebWindowNewHandlerImpl::RegisterPending(int32_t parentWebId, PendingPopupInfo&& info)
+{
+    std::lock_guard<std::mutex> lock(pendingMutex_);
+    pendingPopups_.emplace(parentWebId, std::move(info));
+}
+
+void WebWindowNewHandlerImpl::HandlePopupResult(int32_t parentWebId, bool result)
+{
+    PendingPopupInfo info;
+    {
+        std::lock_guard<std::mutex> lock(pendingMutex_);
+        auto it = pendingPopups_.find(parentWebId);
+        if (it == pendingPopups_.end()) {
+            return;
+        }
+        info = std::move(it->second);
+        pendingPopups_.erase(it);
+    }
+
+    if (result) {
+        info.handler->MarkSecondFire();
+        auto context = info.context.Upgrade();
+        CHECK_NULL_VOID(context);
+        context->GetTaskExecutor()->PostTask(
+            [info = std::move(info)]() {
+                auto pattern = info.parentPattern.Upgrade();
+                CHECK_NULL_VOID(pattern);
+                auto webEventHub = pattern->GetWebEventHub();
+                CHECK_NULL_VOID(webEventHub);
+                auto onWindowNew = webEventHub->GetOnWindowNewEvent();
+                CHECK_NULL_VOID(onWindowNew);
+                auto eventParam = std::make_shared<WebWindowNewEvent>(
+                    info.targetUrl, info.isAlert, info.isUserTrigger, info.handler);
+                onWindowNew(eventParam);
+                info.handler->ReleaseObject();
+            },
+            TaskExecutor::TaskType::JS, "ArkUIWebWindowNewPhase2");
+    } else {
+        info.handler->CancelPopup();
+        info.handler->ReleaseObject();
+    }
+}
+
+void WebWindowNewHandlerImpl::ClearPendingByParent(int32_t parentWebId)
+{
+    std::vector<RefPtr<WebWindowNewHandlerImpl>> handlers;
+    {
+        std::lock_guard<std::mutex> lock(pendingMutex_);
+        auto range = pendingPopups_.equal_range(parentWebId);
+        for (auto it = range.first; it != range.second; ++it) {
+            handlers.push_back(it->second.handler);
+        }
+        pendingPopups_.erase(range.first, range.second);
+    }
+    for (auto& handler : handlers) {
+        handler->ReleaseObject();
+    }
+}
+
+bool WebWindowNewImpl::IsAlert() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetWindowNewObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager GetWindowNewObject failed in IsAlert");
+        return false;
+    }
+    return obj->IsAlert(object_);
+}
+
+bool WebWindowNewImpl::IsUserTrigger() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetWindowNewObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager GetWindowNewObject failed in IsUserTrigger");
+        return false;
+    }
+    return obj->IsUserTrigger(object_);
+}
+
+std::string WebWindowNewImpl::GetTargetUrl() const
+{
+    auto obj = WebObjectEventManager::GetInstance().GetWindowNewObject();
+    if (!obj) {
+        TAG_LOGE(AceLogTag::ACE_WEB, "WebObjectEventManager GetWindowNewObject failed in GetTargetUrl");
+        return std::string();
+    }
+    return obj->GetTargetUrl(object_);
+}
+
 WebDelegateCross::~WebDelegateCross()
 {
+    WebWindowNewHandlerImpl::ClearPendingByParent(GetWebId());
     ReleasePlatformResource();
 }
 
@@ -1217,6 +1318,13 @@ void WebDelegateCross::RegisterWebEventOther()
             auto delegate = weak.Upgrade();
             if (delegate != nullptr) {
                 delegate->OnContentHeightChanged(param);
+            }
+        });
+    resRegister->RegisterEvent(
+        MakeEventHash(WEB_EVENT_RENDER_EXITED), [weak = WeakClaim(this)](const std::string& param) {
+            auto delegate = weak.Upgrade();
+            if (delegate) {
+                delegate->OnRenderExited(param);
             }
         });
 }
@@ -1397,6 +1505,20 @@ void WebDelegateCross::RegisterWebObjectEvent()
                 return delegate->OnSslErrorEvent(object);
             }
             return false;
+        });
+    WebObjectEventManager::GetInstance().RegisterObjectEvent(
+        MakeEventHash(WEB_EVENT_ONWINDOWNEW), [weak = WeakClaim(this)](const std::string& param, void* object) {
+            auto delegate = weak.Upgrade();
+            if (delegate) {
+                delegate->OnWindowNew(object);
+            }
+        });
+    WebObjectEventManager::GetInstance().RegisterObjectEvent(
+        MakeEventHash(WEB_EVENT_ONWINDOWEXIT), [weak = WeakClaim(this)](const std::string& param, void* object) {
+            auto delegate = weak.Upgrade();
+            if (delegate) {
+                delegate->OnWindowExit();
+            }
         });
 }
 
@@ -2703,10 +2825,24 @@ void WebDelegateCross::UpdateMediaPlayGestureAccess(bool isNeedGestureAccess)
 }
 
 void WebDelegateCross::UpdateMultiWindowAccess(bool isMultiWindowAccessEnabled)
-{}
+{
+    hash_ = MakeResourceHash();
+    updateMultiWindowAccessMethod_ = MakeMethodHash(WEB_ATTRIBUTE_MULTI_WINDOW_ACCESS);
+    std::stringstream paramStream;
+    paramStream << NTC_MULTI_WINDOW_ACCESS << WEB_PARAM_EQUALS << isMultiWindowAccessEnabled;
+    std::string param = paramStream.str();
+    CallResRegisterMethod(updateMultiWindowAccessMethod_, param, nullptr);
+}
 
 void WebDelegateCross::UpdateAllowWindowOpenMethod(bool isAllowWindowOpenMethod)
-{}
+{
+    hash_ = MakeResourceHash();
+    updateAllowWindowOpenMethodMethod_ = MakeMethodHash(WEB_ATTRIBUTE_ALLOW_WINDOW_OPEN_METHOD);
+    std::stringstream paramStream;
+    paramStream << NTC_ALLOW_WINDOW_OPEN_METHOD << WEB_PARAM_EQUALS << isAllowWindowOpenMethod;
+    std::string param = paramStream.str();
+    CallResRegisterMethod(updateAllowWindowOpenMethodMethod_, param, nullptr);
+}
 
 void WebDelegateCross::UpdateWebCursiveFont(const std::string& cursiveFontFamily)
 {}
@@ -2929,5 +3065,110 @@ void WebDelegateCross::OnContentHeightChanged(const std::string& param)
             webPattern->OnRootLayerChanged(width, contentHeight);
         },
         TaskExecutor::TaskType::JS, "ArkUIWebContentHeightChanged");
+}
+
+void WebDelegateCross::OnWindowNew(void* object)
+{
+    ContainerScope scope(instanceId_);
+    CHECK_NULL_VOID(object);
+    auto context = context_.Upgrade();
+    CHECK_NULL_VOID(context);
+    auto webWindowNew = AceType::MakeRefPtr<WebWindowNewImpl>(object);
+    CHECK_NULL_VOID(webWindowNew);
+    bool isAlert = webWindowNew->IsAlert();
+    bool isUserTrigger = webWindowNew->IsUserTrigger();
+    std::string targetUrl = webWindowNew->GetTargetUrl();
+    int32_t parentWebId = GetWebId();
+    static std::atomic<int32_t> handlerIdCounter{0};
+    int32_t handlerId = handlerIdCounter.fetch_add(1, std::memory_order_relaxed);
+    auto windowNewObj = WebObjectEventManager::GetInstance().GetWindowNewObject();
+    CHECK_NULL_VOID(windowNewObj);
+    int32_t objectIndex = windowNewObj->AddObject(object);
+    auto handler = AceType::MakeRefPtr<WebWindowNewHandlerImpl>(objectIndex, parentWebId, handlerId);
+
+    static std::once_flag popupCallbackFlag;
+    std::call_once(popupCallbackFlag, []() {
+        NG::WebModelNG::SetPopupResultCallback(
+            [](int32_t parentId, bool result) {
+                WebWindowNewHandlerImpl::HandlePopupResult(parentId, result);
+            });
+    });
+
+    auto webPattern = webPattern_.Upgrade();
+    WebWindowNewHandlerImpl::RegisterPending(parentWebId, {
+        handler, WeakPtr<NG::WebPattern>(webPattern), context_, targetUrl, isAlert, isUserTrigger
+    });
+
+    context->GetTaskExecutor()->PostTask(
+        [weak = WeakClaim(this), targetUrl, isAlert, isUserTrigger, handler]() {
+            auto delegate = weak.Upgrade();
+            CHECK_NULL_VOID(delegate);
+            if (Container::IsCurrentUseNewPipeline()) {
+                auto webPattern = delegate->webPattern_.Upgrade();
+                CHECK_NULL_VOID(webPattern);
+                auto webEventHub = webPattern->GetWebEventHub();
+                CHECK_NULL_VOID(webEventHub);
+                auto propOnWindowNew = webEventHub->GetOnWindowNewEvent();
+                CHECK_NULL_VOID(propOnWindowNew);
+                auto eventParam = std::make_shared<WebWindowNewEvent>(targetUrl, isAlert, isUserTrigger, handler);
+                propOnWindowNew(eventParam);
+            }
+        },
+        TaskExecutor::TaskType::JS, "ArkUIWebWindowNewEvent");
+}
+
+void WebDelegateCross::OnWindowExit()
+{
+    ContainerScope scope(instanceId_);
+    auto context = context_.Upgrade();
+    CHECK_NULL_VOID(context);
+    context->GetTaskExecutor()->PostTask(
+        [weak = WeakClaim(this)]() {
+            auto delegate = weak.Upgrade();
+            CHECK_NULL_VOID(delegate);
+            if (Container::IsCurrentUseNewPipeline()) {
+                auto webPattern = delegate->webPattern_.Upgrade();
+                CHECK_NULL_VOID(webPattern);
+                auto webEventHub = webPattern->GetWebEventHub();
+                CHECK_NULL_VOID(webEventHub);
+                auto propOnWindowExit = webEventHub->GetOnWindowExitEvent();
+                CHECK_NULL_VOID(propOnWindowExit);
+                auto eventParam = std::make_shared<WebWindowExitEvent>();
+                propOnWindowExit(eventParam);
+            }
+        },
+        TaskExecutor::TaskType::JS, "ArkUIWebWindowExitEvent");
+}
+
+void WebDelegateCross::OnRenderExited(const std::string& param)
+{
+    ContainerScope scope(instanceId_);
+    auto context = context_.Upgrade();
+    CHECK_NULL_VOID(context);
+    int32_t reasonCode = atoi(param.c_str());
+    context->GetTaskExecutor()->PostTask(
+        [weak = WeakClaim(this), reasonCode]() {
+            auto delegate = weak.Upgrade();
+            CHECK_NULL_VOID(delegate);
+            if (Container::IsCurrentUseNewPipeline()) {
+                auto webPattern = delegate->webPattern_.Upgrade();
+                CHECK_NULL_VOID(webPattern);
+                auto webEventHub = webPattern->GetWebEventHub();
+                CHECK_NULL_VOID(webEventHub);
+                auto propOnRenderExited = webEventHub->GetOnRenderExitedEvent();
+                CHECK_NULL_VOID(propOnRenderExited);
+                auto eventParam = std::make_shared<RenderExitedEvent>(reasonCode);
+                propOnRenderExited(eventParam);
+            }
+        },
+        TaskExecutor::TaskType::JS, "ArkUIWebRenderExitedEvent");
+}
+
+void WebDelegateCross::ClearScrollLocked()
+{
+#if defined(IOS_PLATFORM)
+    auto webId = GetWebId();
+    ClearScrollLockedRegisterOC(webId);
+#endif
 }
 }

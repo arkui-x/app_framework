@@ -61,10 +61,6 @@ const std::string TAG_REFRESH = "Refresh";
 const float SWIPER_SCROLL_SCALE = 4.0f;
 const float SWIPER_MIN_TRIGGER_PX = 6.0f;
 
-#if defined(IOS_PLATFORM)
-extern "C" void SetIsPointInsideWebForceResult(bool enable, bool result);
-#endif
-
 WebPattern::WebPattern() = default;
 
 WebPattern::WebPattern(const std::string& webSrc, const RefPtr<WebController>& webController, RenderMode renderMode,
@@ -114,7 +110,10 @@ void WebPattern::OnAttachToFrameNode()
 void WebPattern::OnDetachFromFrameNode(FrameNode* frameNode)
 {
 #if defined(IOS_PLATFORM)
-    SetIsPointInsideWebForceResult(false, false);
+    auto webDelegateCross = AceType::DynamicCast<WebDelegateCross>(delegate_);
+    if (webDelegateCross) {
+        webDelegateCross->ClearScrollLocked();
+    }
 #endif
     CHECK_NULL_VOID(delegate_);
     isFocus_ = false;
@@ -971,7 +970,9 @@ void WebPattern::OnModifyDone()
         if (onControllerAttachedCallback_) {
             onControllerAttachedCallback_();
         }
-
+        if (isPopup_ && parentNWebId_ != -1) {
+            WebWindowNewHandlerImpl::HandlePopupResult(parentNWebId_, true);
+        }
 #else
         delegate_ = AceType::MakeRefPtr<WebDelegate>(PipelineContext::GetCurrentContext(), nullptr, "");
         CHECK_NULL_VOID(delegate_);
@@ -1060,6 +1061,7 @@ void WebPattern::OnModifyDone()
         if (webDelegateCross) {
             webDelegateCross->UpdateOverScrollMode(GetOverScrollModeValue(OverScrollMode::NEVER));
         }
+        delegate_->UpdateAllowWindowOpenMethod(GetAllowWindowOpenMethodValue(isAllowWindowOpenMethod_));
         if (GetBlockNetwork()) {
             delegate_->UpdateBlockNetwork(GetBlockNetwork().value());
         }
@@ -2037,7 +2039,6 @@ void WebPattern::SetScrollLocked(bool value)
     if (layoutMode_ == WebLayoutMode::FIT_CONTENT) {
         value = true;
     }
-    SetIsPointInsideWebForceResult(true, value);
     auto webDelegateCross = AceType::DynamicCast<WebDelegateCross>(delegate_);
     if (webDelegateCross) {
         webDelegateCross->SetScrollLocked(value);
