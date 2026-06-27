@@ -54,6 +54,7 @@ public:
     void DispatchOnBackground(const AAFwk::Want& want);
     void DispatchOnDestroy(const AAFwk::Want& want);
     void OnConfigurationUpdate(Configuration& configuration, SetLevel level);
+    void OnMemoryLevel(int32_t level);
     void InitConfiguration(const Configuration& configuration);
     void DispatchOnAbilityResult(
         const AAFwk::Want& want, int32_t requestCode, int32_t resultCode, const AAFwk::Want& resultWant);

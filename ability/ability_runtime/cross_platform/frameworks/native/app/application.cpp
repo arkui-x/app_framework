@@ -16,6 +16,7 @@
 #include "application.h"
 
 #include "ability_stage_context.h"
+#include "application_context.h"
 #include "hilog.h"
 #include "js_runtime.h"
 #include "base/log/ace_trace.h"
@@ -177,7 +178,8 @@ void Application::DispatchOnDestroy(const AAFwk::Want& want)
 
 void Application::OnConfigurationUpdate(Configuration& configuration, SetLevel level)
 {
-    HILOG_INFO("Application::OnConfigurationUpdate");
+    HILOG_INFO("OnConfigurationUpdate level=%{public}d, itemCount=%{public}d",
+        static_cast<int>(level), configuration.GetItemSize());
     if (configuration_ == nullptr) {
         HILOG_ERROR("configuration_ is nullptr");
         return;
@@ -199,6 +201,30 @@ void Application::OnConfigurationUpdate(Configuration& configuration, SetLevel l
             continue;
         }
         stage.second->OnConfigurationUpdate(configuration);
+    }
+
+    // Notify all registered EnvironmentCallbacks
+    auto appContext = ApplicationContext::GetInstance();
+    if (appContext != nullptr) {
+        appContext->DispatchOnConfigurationUpdated(configuration);
+    }
+}
+
+void Application::OnMemoryLevel(int32_t level)
+{
+    HILOG_INFO("Application::OnMemoryLevel called, level: %{public}d", level);
+    for (auto stage : abilityStages_) {
+        if (stage.second == nullptr) {
+            HILOG_ERROR("stage is nullptr");
+            continue;
+        }
+        stage.second->OnMemoryLevel(level);
+    }
+
+    // Notify all registered EnvironmentCallbacks
+    auto appContext = ApplicationContext::GetInstance();
+    if (appContext != nullptr) {
+        appContext->DispatchOnMemoryLevel(level);
     }
 }
 

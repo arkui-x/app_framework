@@ -69,6 +69,18 @@ void AbilityStage::OnConfigurationUpdate(const Configuration& configuration)
     }
 }
 
+void AbilityStage::OnMemoryLevel(int32_t level)
+{
+    HILOG_INFO("AbilityStage::OnMemoryLevel called, level: %{public}d", level);
+    for (auto ability : abilities_) {
+        if (ability.second == nullptr) {
+            HILOG_ERROR("ability is nullptr");
+            continue;
+        }
+        ability.second->OnMemoryLevel(level);
+    }
+}
+
 void AbilityStage::Init(const std::shared_ptr<Context>& context)
 {
     stageContext_ = context;

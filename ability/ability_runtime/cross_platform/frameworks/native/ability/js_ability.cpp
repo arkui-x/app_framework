@@ -431,6 +431,12 @@ void JsAbility::OnConfigurationUpdate(const Configuration& configuration)
 
     HandleScope handleScope(jsRuntime_);
     auto env = jsRuntime_.GetNapiEnv();
+
+    // 1. Notify JS callback first (consistent with OH js_ability.cpp:880)
+    napi_value argv[] = { CreateJsConfiguration(env, configuration) };
+    CallObjectMethod("onConfigurationUpdate", argv, ArraySize(argv));
+
+    // 2. Update context
     auto stageContext = GetAbilityContext();
     if (stageContext == nullptr) {
         HILOG_ERROR("Not found stageContext");
@@ -447,6 +453,7 @@ void JsAbility::OnConfigurationUpdate(const Configuration& configuration)
     }
     JsAbilityContext::ConfigurationUpdated(env, shellContextRef_, config);
 
+    // 3. Update window stage
     if (windowStage_ != nullptr) {
         auto diffConfiguration = std::make_shared<Configuration>(configuration);
         if (diffConfiguration == nullptr) {
@@ -456,6 +463,23 @@ void JsAbility::OnConfigurationUpdate(const Configuration& configuration)
         diffConfiguration->UpdateConfigurationInfo(configuration);
         windowStage_->UpdateConfigurationForAll(diffConfiguration);
     }
+}
+
+void JsAbility::OnMemoryLevel(int32_t level)
+{
+    Ability::OnMemoryLevel(level);
+    HILOG_INFO("OnMemoryLevel called, level: %{public}d", level);
+
+    if (!jsAbilityObj_) {
+        HILOG_ERROR("Not found Ability.js");
+        return;
+    }
+    HandleScope handleScope(jsRuntime_);
+    auto env = jsRuntime_.GetNapiEnv();
+    napi_value jslevel = nullptr;
+    napi_create_int32(env, level, &jslevel);
+    napi_value argv[] = { jslevel };
+    CallObjectMethod("onMemoryLevel", argv, ArraySize(argv));
 }
 
 std::shared_ptr<AppExecFwk::ADelegatorAbilityProperty> JsAbility::CreateADelegatorAbilityProperty()

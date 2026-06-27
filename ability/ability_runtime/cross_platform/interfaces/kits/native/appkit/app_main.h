@@ -46,6 +46,7 @@ public:
     void DispatchOnDestroy(const std::string& instanceName);
     void SetPidAndUid(int32_t pid, int32_t uid);
     void OnConfigurationUpdate(const std::string& jsonConfiguration);
+    void OnMemoryLevel(int32_t level);
     void InitConfiguration(const std::string& jsonConfiguration);
     bool IsSingleton(const std::string& moduleName, const std::string& abilityName);
     void PrepareAbilityDelegator(const std::string& bundleName, const std::string& moduleName,
@@ -74,6 +75,7 @@ private:
     void HandleDispatchOnBackground(const std::string& instanceName);
     void HandleDispatchOnDestroy(const std::string& instanceName);
     void HandleOnConfigurationUpdate(const std::string& jsonConfiguration);
+    void HandleOnMemoryLevel(int32_t level);
     void HandleInitConfiguration(const std::string& jsonConfiguration);
     Want TransformToWant(const std::string& instanceName, const std::string& params = "");
     void CreateAbilityDelegator(const std::string& bundleName, const std::string& moduleName,

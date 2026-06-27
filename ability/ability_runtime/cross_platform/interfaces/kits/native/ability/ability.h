@@ -129,6 +129,7 @@ public:
     }
 
     virtual void OnConfigurationUpdate(const Configuration& configuration);
+    virtual void OnMemoryLevel(int32_t level);
     void DispatchLifecycleOnForeground(const Want &want);
 
     const LaunchParam& GetLaunchParam() const;

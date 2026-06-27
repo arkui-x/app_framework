@@ -43,6 +43,7 @@ constexpr const char* DIRECTION_HORIZONTAL = "horizontal";
 constexpr const char* DEVICE_TYPE_PHONE = "Phone";
 constexpr const char* DEVICE_TYPE_TABLET = "Tablet";
 constexpr const char* SYSTEM_FONT_SIZE_SCALE = "system.font.size.scale";
+constexpr const char* SYSTEM_FONT_WEIGHT_SCALE = "system.font.weight.scale";
 constexpr const char* APP_FONT_SIZE_SCALE = "ohos.app.fontSizeScale";
 constexpr const char* APP_FONT_MAX_SCALE = "ohos.app.fontMaxScale";
 constexpr const char* APPLICATION_FONT = "ohos.application.font";

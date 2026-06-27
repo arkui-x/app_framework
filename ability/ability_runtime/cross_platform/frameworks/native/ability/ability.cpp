@@ -204,6 +204,11 @@ void Ability::OnConfigurationUpdate(const Configuration& configuration)
     resourceManager->UpdateResConfig(*resConfig);
 }
 
+void Ability::OnMemoryLevel(int32_t level)
+{
+    HILOG_INFO("OnMemoryLevel called, level: %{public}d", level);
+}
+
 const LaunchParam& Ability::GetLaunchParam() const
 {
     return launchParam_;

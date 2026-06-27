@@ -18,6 +18,7 @@ class AbilityStage {
 
     onCreate() { }
     onConfigurationUpdate(newConfig) { }
+    onMemoryLevel(level) { }
 }
 
 export default AbilityStage;

@@ -31,6 +31,7 @@ std::shared_ptr<ApplicationContext> Context::applicationContext_ = nullptr;
 std::mutex Context::contextMutex_;
 const size_t Context::CONTEXT_TYPE_ID(std::hash<const char*> {}("Context"));
 std::vector<std::shared_ptr<ApplicationStateChangeCallback>> ApplicationContext::applicationStateCallback_;
+std::vector<std::shared_ptr<EnvironmentCallback>> ApplicationContext::envCallbacks_;
 
 std::shared_ptr<ApplicationContext> ApplicationContext::GetInstance()
 {
@@ -241,6 +242,49 @@ void ApplicationContext::UnRegisterApplicationStateChangeCallback(
 void ApplicationContext::RegisterAppConfigUpdateCallback(AppConfigUpdateCallback appConfigChangeCallback)
 {
     appConfigChangeCallback_ = appConfigChangeCallback;
+}
+
+void ApplicationContext::RegisterEnvironmentCallback(
+    const std::shared_ptr<EnvironmentCallback>& environmentCallback)
+{
+    HILOG_INFO("ApplicationContext RegisterEnvironmentCallback");
+    if (environmentCallback == nullptr) {
+        HILOG_ERROR("environmentCallback is nullptr");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(envCallbacksLock_);
+    envCallbacks_.push_back(environmentCallback);
+}
+
+void ApplicationContext::UnregisterEnvironmentCallback(
+    const std::shared_ptr<EnvironmentCallback>& environmentCallback)
+{
+    HILOG_INFO("ApplicationContext UnregisterEnvironmentCallback");
+    std::lock_guard<std::mutex> lock(envCallbacksLock_);
+    auto it = std::find(envCallbacks_.begin(), envCallbacks_.end(), environmentCallback);
+    if (it != envCallbacks_.end()) {
+        envCallbacks_.erase(it);
+    }
+}
+
+void ApplicationContext::DispatchOnConfigurationUpdated(const Configuration& config)
+{
+    std::lock_guard<std::mutex> lock(envCallbacksLock_);
+    for (auto& envCallback : envCallbacks_) {
+        if (envCallback != nullptr) {
+            envCallback->OnConfigurationUpdated(config);
+        }
+    }
+}
+
+void ApplicationContext::DispatchOnMemoryLevel(int32_t level)
+{
+    std::lock_guard<std::mutex> lock(envCallbacksLock_);
+    for (auto& envCallback : envCallbacks_) {
+        if (envCallback != nullptr) {
+            envCallback->OnMemoryLevel(level);
+        }
+    }
 }
 
 void ApplicationContext::DispatchOnAbilityCreate(const std::shared_ptr<NativeReference>& ability)

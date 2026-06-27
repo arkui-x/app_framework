@@ -20,6 +20,7 @@
 #include "application_state_change_callback.h"
 #include "bundle_container.h"
 #include "context.h"
+#include "environment_callback.h"
 #include "running_process_info.h"
 
 namespace OHOS {
@@ -61,6 +62,10 @@ public:
     void UnRegisterApplicationStateChangeCallback(
         const std::shared_ptr<ApplicationStateChangeCallback>& applicationStateChangeCallback);
     void RegisterAppConfigUpdateCallback(AppConfigUpdateCallback appConfigChangeCallback);
+    void RegisterEnvironmentCallback(const std::shared_ptr<EnvironmentCallback>& environmentCallback);
+    void UnregisterEnvironmentCallback(const std::shared_ptr<EnvironmentCallback>& environmentCallback);
+    void DispatchOnConfigurationUpdated(const Configuration& config);
+    void DispatchOnMemoryLevel(int32_t level);
 
     void DispatchOnAbilityCreate(const std::shared_ptr<NativeReference>& ability);
     void DispatchOnAbilityDestroy(const std::shared_ptr<NativeReference>& ability);
@@ -91,6 +96,8 @@ private:
     std::mutex applicationStateCallbackLock_;
     std::shared_ptr<Global::Resource::ResourceManager> resourceMgr_;
     AppConfigUpdateCallback appConfigChangeCallback_ = nullptr;
+    static std::vector<std::shared_ptr<EnvironmentCallback>> envCallbacks_;
+    std::mutex envCallbacksLock_;
     std::string appRunningUniqueId_;
 };
 } // namespace Platform

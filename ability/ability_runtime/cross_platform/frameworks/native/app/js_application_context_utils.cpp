@@ -30,6 +30,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace Platform {
 std::shared_ptr<JsApplicationStateChangeCallback> JsApplicationContextUtils::applicationStateCallback_ = nullptr;
+std::shared_ptr<JsEnvironmentCallback> JsApplicationContextUtils::envCallback_ = nullptr;
 namespace {
 constexpr char APPLICATION_CONTEXT_NAME[] = "__application_context_ptr__";
 const char* MD_NAME = "JsApplicationContextUtils";
@@ -211,6 +212,10 @@ napi_value JsApplicationContextUtils::OnOn(napi_env env, NapiCallbackInfo& info)
         return OnOnApplicationStateChange(env, info);
     }
 
+    if (type == "environment") {
+        return OnOnEnvironment(env, info);
+    }
+
     HILOG_ERROR("on function type not match.");
     AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
     return CreateJsUndefined(env);
@@ -286,6 +291,10 @@ napi_value JsApplicationContextUtils::OnOff(napi_env env, const NapiCallbackInfo
 
     if (type == "applicationStateChange") {
         return OnOffApplicationStateChange(env, info);
+    }
+
+    if (type == "environment") {
+        return OnOffEnvironment(env, info, callbackId);
     }
 
     HILOG_ERROR("off function type not match.");
@@ -388,6 +397,96 @@ napi_value JsApplicationContextUtils::OnOffApplicationStateChange(napi_env env, 
         applicationStateCallback_.reset();
     }
     return CreateJsUndefined(env);
+}
+
+napi_value JsApplicationContextUtils::OnOnEnvironment(napi_env env, NapiCallbackInfo& info)
+{
+    HILOG_INFO("OnOnEnvironment is called");
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        HILOG_ERROR("ApplicationContext is nullptr.");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+
+    int32_t callbackId = -1;
+    if (envCallback_ != nullptr && !envCallback_->IsEmpty()) {
+        HILOG_INFO("envCallback_ is not nullptr, reuse existing.");
+        callbackId = envCallback_->Register(info.argv[1]);
+    } else {
+        envCallback_ = std::make_shared<JsEnvironmentCallback>(env);
+        if (envCallback_ == nullptr) {
+            HILOG_ERROR("envCallback_ is nullptr.");
+            AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+            return CreateJsUndefined(env);
+        }
+        callbackId = envCallback_->Register(info.argv[1]);
+        applicationContext->RegisterEnvironmentCallback(envCallback_);
+    }
+
+    if (callbackId == -1) {
+        HILOG_ERROR("Register environment callback failed.");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+    HILOG_INFO("OnOnEnvironment end, callbackId: %{public}d", callbackId);
+    return CreateJsValue(env, callbackId);
+}
+
+napi_value JsApplicationContextUtils::OnOffEnvironment(
+    napi_env env, const NapiCallbackInfo& info, int32_t callbackId)
+{
+    HILOG_INFO("OnOffEnvironment called");
+
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr || envCallback_ == nullptr) {
+        HILOG_ERROR("ApplicationContext or envCallback_ is nullptr.");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+
+    if (callbackId == -1) {
+        HILOG_ERROR("callbackId is invalid");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+
+    std::weak_ptr<JsEnvironmentCallback> envCallbackWeak(envCallback_);
+    std::weak_ptr<ApplicationContext> appContextWeak(applicationContext);
+    NapiAsyncTask::CompleteCallback complete = [envCallbackWeak, appContextWeak, callbackId](
+        napi_env env, NapiAsyncTask& task, int32_t status) {
+        HandleScope handleScope(env);
+        auto envCallback = envCallbackWeak.lock();
+        if (envCallback == nullptr) {
+            HILOG_ERROR("envCallback is nullptr");
+            task.Reject(env, CreateJsError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER,
+                "envCallback is nullptr"));
+            return;
+        }
+
+        if (!envCallback->UnRegister(callbackId)) {
+            HILOG_ERROR("call UnRegister failed, callbackId: %{public}d", callbackId);
+            task.Reject(env, CreateJsError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER,
+                "call UnRegister failed!"));
+            return;
+        }
+
+        if (envCallback->IsEmpty()) {
+            auto appContext = appContextWeak.lock();
+            if (appContext != nullptr) {
+                appContext->UnregisterEnvironmentCallback(envCallback);
+            }
+            JsApplicationContextUtils::envCallback_.reset();
+        }
+
+        task.ResolveWithNoError(env, CreateJsUndefined(env));
+    };
+
+    napi_value lastParam = (info.argc <= ARGC_TWO) ? nullptr : info.argv[INDEX_TWO];
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsApplicationContextUtils::OnOffEnvironment", env,
+        CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
+    return result;
 }
 
 napi_value JsApplicationContextUtils::GetApplicationContext(napi_env env, napi_callback_info info)
