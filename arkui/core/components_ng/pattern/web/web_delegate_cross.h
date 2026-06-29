@@ -16,6 +16,9 @@
 #ifndef FOUNDATION_ACE_FRAMEWORKS_WEB_PATTERN_WEB_DELEGATE_CROSS_H
 #define FOUNDATION_ACE_FRAMEWORKS_WEB_PATTERN_WEB_DELEGATE_CROSS_H
 
+#include <mutex>
+#include <unordered_map>
+
 #include "web_object_event.h"
 
 #include "base/log/log.h"
@@ -515,6 +518,106 @@ public:
 private:
     void* object_ = nullptr;
 };
+
+class WebWindowNewImpl : public AceType {
+    DECLARE_ACE_TYPE(WebWindowNewImpl, AceType);
+public:
+    explicit WebWindowNewImpl(void* object) : object_(object) {}
+    bool IsAlert() const;
+    bool IsUserTrigger() const;
+    std::string GetTargetUrl() const;
+private:
+    void* object_ = nullptr;
+};
+
+class WebWindowNewHandlerImpl : public WebWindowNewHandler {
+    DECLARE_ACE_TYPE(WebWindowNewHandlerImpl, WebWindowNewHandler);
+public:
+    struct PendingPopupInfo {
+        RefPtr<WebWindowNewHandlerImpl> handler;
+        WeakPtr<NG::WebPattern> parentPattern;
+        WeakPtr<PipelineBase> context;
+        std::string targetUrl;
+        bool isAlert = false;
+        bool isUserTrigger = false;
+    };
+
+    WebWindowNewHandlerImpl(int32_t objectIndex, int32_t parentNWebId, int32_t handlerId)
+        : objectIndex_(objectIndex), parentNWebId_(parentNWebId), handlerId_(handlerId), isFirst_(true) {}
+
+    ~WebWindowNewHandlerImpl()
+    {
+        ReleaseObject();
+    }
+
+    void SetWebController(int32_t id) override
+    {
+        auto obj = WebObjectEventManager::GetInstance().GetWindowNewObject();
+        if (obj && objectIndex_ >= 0) {
+            obj->CompleteWithChildWeb(objectIndex_, id);
+        } else {
+            TAG_LOGE(AceLogTag::ACE_WEB, "SetWebController: obj is null or invalid objectIndex");
+        }
+    }
+
+    bool IsFrist() const override
+    {
+        return isFirst_;
+    }
+
+    void MarkSecondFire()
+    {
+        isFirst_ = false;
+    }
+
+    int32_t GetId() const override
+    {
+        return handlerId_;
+    }
+
+    int32_t GetParentNWebId() const override
+    {
+        return parentNWebId_;
+    }
+
+    int32_t GetObjectIndex() const
+    {
+        return objectIndex_;
+    }
+
+    void CancelPopup()
+    {
+        auto obj = WebObjectEventManager::GetInstance().GetWindowNewObject();
+        if (obj && objectIndex_ >= 0) {
+            obj->CancelPopup(objectIndex_);
+        }
+    }
+
+    void ReleaseObject()
+    {
+        if (objectIndex_ >= 0) {
+            auto obj = WebObjectEventManager::GetInstance().GetWindowNewObject();
+            if (obj) {
+                obj->DelObject(objectIndex_);
+            }
+            objectIndex_ = -1;
+        }
+    }
+
+    static void RegisterPending(int32_t parentWebId, PendingPopupInfo&& info);
+    static void HandlePopupResult(int32_t parentWebId, bool result);
+    static void ClearPendingByParent(int32_t parentWebId);
+
+private:
+    int32_t objectIndex_ = -1;
+    int32_t parentNWebId_ = -1;
+    int32_t handlerId_ = 0;
+    bool isFirst_ = true;
+
+    static std::mutex pendingMutex_;
+    static std::unordered_multimap<int32_t, PendingPopupInfo> pendingPopups_;
+};
+
 class WebDelegateCross : public WebDelegateInterface,
                          public WebResource {
     DECLARE_ACE_TYPE(WebDelegateCross, WebResource);
@@ -624,6 +727,10 @@ public:
     void SetScrollLocked(const bool value);
     void SetNestedScrollOptionsExt(NestedScrollOptionsExt nestedOpt);
     void UpdateLayoutMode(WebLayoutMode layoutMode);
+    void ClearScrollLocked();
+    void OnWindowNew(void* object);
+    void OnWindowExit();
+    void OnRenderExited(const std::string& param);
 private:
     void ReleasePlatformResource();
     void CreatePluginResource(const Size& size, const Offset& position, const WeakPtr<NG::PipelineContext>& context);
@@ -722,6 +829,8 @@ private:
     Method updateDarkMode_;
     Method updateForceDarkAccess_;
     Method updateDefaultFontSize_;
+    Method updateMultiWindowAccessMethod_;
+    Method updateAllowWindowOpenMethodMethod_;
 
     EventCallbackV2 onPageFinishedV2_;
     EventCallbackV2 onPageStartedV2_;

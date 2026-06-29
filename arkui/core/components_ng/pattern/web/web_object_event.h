@@ -224,6 +224,18 @@ public:
     virtual void Cancel(void* object) {};
     virtual void Ignore(void* object) {};
 };
+
+class WebWindowNewObject : public Referenced {
+public:
+    virtual bool IsAlert(void* object) = 0;
+    virtual bool IsUserTrigger(void* object) = 0;
+    virtual std::string GetTargetUrl(void* object) = 0;
+    virtual int AddObject(void* object) { return -1; };
+    virtual void DelObject(int index) {};
+    virtual void CompleteWithChildWeb(int index, int32_t childWebId) {};
+    virtual void CancelPopup(int index) {};
+};
+
 class WebObjectEventManager : public Singleton<WebObjectEventManager> {
     DECLARE_SINGLETON(WebObjectEventManager)
 public:
@@ -477,6 +489,16 @@ public:
         onClientAuthenticationEventObject_ = object;
     }
 
+    const RefPtr<WebWindowNewObject>& GetWindowNewObject()
+    {
+        return windowNewObject_;
+    }
+
+    void SetWindowNewObject(const RefPtr<WebWindowNewObject>& object)
+    {
+        windowNewObject_ = object;
+    }
+
 private:
     RefPtr<WebResourceRequestObject> resourceRequestObject_;
     RefPtr<WebScrollObject> scrollObject_;
@@ -499,6 +521,7 @@ private:
     RefPtr<WebOnSslErrorEventReceiveEventObject> onSslErrorEventReceiveEventObject_;
     RefPtr<WebSslErrorEventObject> sslErrorEventObject_;
     RefPtr<WebOnClientAuthenticationEventObject> onClientAuthenticationEventObject_;
+    RefPtr<WebWindowNewObject> windowNewObject_;
 };
 inline WebObjectEventManager::WebObjectEventManager() = default;
 inline WebObjectEventManager::~WebObjectEventManager() = default;
