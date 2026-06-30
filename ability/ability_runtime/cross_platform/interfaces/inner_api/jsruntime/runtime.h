@@ -62,6 +62,7 @@ public:
     virtual ~Runtime() = default;
 
     virtual Language GetLanguage() const = 0;
+    virtual void StopAllTaskExecution() {}
 
     Runtime(const Runtime&) = delete;
     Runtime(Runtime&&) = delete;

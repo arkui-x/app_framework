@@ -52,6 +52,7 @@ public:
     void DispatchOnNewWant(const AAFwk::Want& want);
     void DispatchOnForeground(const AAFwk::Want& want);
     void DispatchOnBackground(const AAFwk::Want& want);
+    void DestroyVm();
     void DispatchOnDestroy(const AAFwk::Want& want);
     void OnConfigurationUpdate(Configuration& configuration, SetLevel level);
     void OnMemoryLevel(int32_t level);

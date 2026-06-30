@@ -159,6 +159,18 @@ void Application::DispatchOnBackground(const AAFwk::Want& want)
     stage->DispatchOnBackground(want);
 }
 
+void Application::DestroyVm()
+{
+    if (runtime_ == nullptr) {
+        HILOG_INFO("runtime_ is nullptr, skip vm destroy.");
+        return;
+    }
+
+    runtime_->StopAllTaskExecution();
+    runtime_.reset();
+    runtime_ = nullptr;
+}
+
 void Application::DispatchOnDestroy(const AAFwk::Want& want)
 {
     HILOG_INFO("Application::DispatchOnDestroy");
