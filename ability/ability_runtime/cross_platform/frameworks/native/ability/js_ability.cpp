@@ -326,6 +326,13 @@ void JsAbility::OnForeground(const Want& want)
         return;
     }
     applicationContext->DispatchOnAbilityForeground(jsAbilityObj_);
+
+#if defined(ANDROID_PLATFORM) || defined(IOS_PLATFORM)
+    auto* nativeEngine = reinterpret_cast<NativeEngine*>(jsRuntime_.GetNapiEnv());
+    if (nativeEngine != nullptr) {
+        nativeEngine->NotifyApplicationState(false);
+    }
+#endif
 }
 
 void JsAbility::OnBackground()
@@ -345,6 +352,13 @@ void JsAbility::OnBackground()
         return;
     }
     applicationContext->DispatchOnAbilityBackground(jsAbilityObj_);
+
+#if defined(ANDROID_PLATFORM) || defined(IOS_PLATFORM)
+    auto* nativeEngine = reinterpret_cast<NativeEngine*>(jsRuntime_.GetNapiEnv());
+    if (nativeEngine != nullptr) {
+        nativeEngine->NotifyApplicationState(true);
+    }
+#endif
 }
 
 void JsAbility::OnWindowStageCreated()
