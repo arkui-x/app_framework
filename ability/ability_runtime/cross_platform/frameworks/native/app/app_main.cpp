@@ -55,6 +55,7 @@ const std::string FONT_SIZE_MAX_SCALE = "fontSizeMaxScale";
 const std::string INVALID_SOCKET = "-1";
 constexpr int64_t NANOSECONDS = 1000000000;
 constexpr int64_t MICROSECONDS = 1000000;
+constexpr char VM_DESTROY_TASK_NAME[] = "HandleDestroyVm";
 std::shared_ptr<AppMain> AppMain::instance_ = nullptr;
 std::mutex AppMain::mutex_;
 AppMain::AppMain()
@@ -325,6 +326,10 @@ void AppMain::UpdateRuntimeHSPPkgContextInfo(const std::vector<std::string>& mod
 void AppMain::DispatchOnCreate(const std::string& instanceName, const std::string& params)
 {
     HILOG_INFO("DispatchOnCreate called");
+
+    if (application_ && application_->GetRuntime() == nullptr) {
+        ParseBundleComplete();
+    }
     if (!eventHandler_) {
         HILOG_ERROR("eventHandler_ is nullptr");
         return;
@@ -364,6 +369,55 @@ void AppMain::DispatchOnBackground(const std::string& instanceName)
     }
     auto task = [instanceName]() { AppMain::GetInstance()->HandleDispatchOnBackground(instanceName); };
     eventHandler_->PostSyncTask(task);
+}
+
+void AppMain::HandleDestroyVm()
+{
+    if (application_ == nullptr) {
+        HILOG_ERROR("application_ is nullptr.");
+        return;
+    }
+
+    DestroyVmCallback destroyVmCallback = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(destroyVmCallbackMutex_);
+        destroyVmCallback = destroyVmCallback_;
+    }
+    if (destroyVmCallback) {
+        destroyVmCallback();
+    }
+
+    application_->DestroyVm();
+}
+
+bool AppMain::DestroyVm()
+{
+    HILOG_INFO("AppMain::DestroyVm called");
+    if (!eventHandler_) {
+        HILOG_ERROR("eventHandler_ is nullptr");
+        return false;
+    }
+
+    if (application_ == nullptr) {
+        HILOG_ERROR("application_ is nullptr.");
+        return false;
+    }
+    auto& runtime = application_->GetRuntime();
+    if (runtime == nullptr) {
+        HILOG_INFO("runtime already destroyed, skip vm destroy callback and destroy flow.");
+        return false;
+    }
+    auto& jsRuntime = static_cast<JsRuntime&>(*runtime);
+    auto workerCount = jsRuntime.GetCurrentWorkerCount();
+    if (workerCount > 0) {
+        HILOG_ERROR("workers are active, worker count: %{public}d, skip vm destroy.", workerCount);
+        return false;
+    }
+
+    eventHandler_->RemoveTask(VM_DESTROY_TASK_NAME);
+    auto task = []() { AppMain::GetInstance()->HandleDestroyVm(); };
+    eventHandler_->PostTask(task, VM_DESTROY_TASK_NAME);
+    return true;
 }
 
 void AppMain::DispatchOnDestroy(const std::string& instanceName)
@@ -872,6 +926,18 @@ void AppMain::HandleLoadModule(const std::string& moduleName, const std::string&
 
     auto hapModuleInfo = bundleContainer_->GetHapModuleInfo(moduleName);
     LoadModuleHelper::LoadModule(application_->GetRuntime(), hapModuleInfo, entryFile);
+}
+
+void AppMain::RegisterDestroyVmCallback(const DestroyVmCallback& callback)
+{
+    std::lock_guard<std::mutex> lock(destroyVmCallbackMutex_);
+    destroyVmCallback_ = callback;
+}
+
+void AppMain::UnregisterDestroyVmCallback()
+{
+    std::lock_guard<std::mutex> lock(destroyVmCallbackMutex_);
+    destroyVmCallback_ = nullptr;
 }
 
 #ifdef IOS_PLATFORM

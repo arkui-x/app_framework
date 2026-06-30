@@ -72,6 +72,8 @@ public:
         const std::string& moduleName, napi_value* const* argv = nullptr, size_t argc = 0);
     void PostTask(const std::function<void()>& task, const std::string& name, int64_t delayTime);
     void RemoveTask(const std::string& name);
+    void StopAllTaskExecution() override;
+    uint32_t GetCurrentWorkerCount();
     virtual bool RunScript(const std::string& path, const std::string& hapPath, bool useCommonChunk = false) = 0;
     void StartDebugMode(bool needBreakPoint);
     bool StartDebugMode(const std::string& bundleName, bool needBreakPoint, uint32_t instanceId,

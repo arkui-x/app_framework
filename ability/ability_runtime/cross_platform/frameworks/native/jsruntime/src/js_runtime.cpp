@@ -31,6 +31,7 @@
 #ifdef DEBUG_MODE
 #include "connect_server_manager.h"
 #endif
+#include "ecmascript/napi/include/dfx_jsnapi.h"
 #include "ecmascript/napi/include/jsnapi.h"
 #include "event_handler.h"
 #ifdef SUPPORT_GRAPHICS
@@ -146,11 +147,30 @@ public:
     ~ArkJsRuntime() override
     {
         HILOG_INFO("ArkJsRuntime::ArkJsRuntime call destructor.");
+        Deinitialize();
+        DestroyEnv();
         if (vm_ != nullptr) {
             panda::JSNApi::DestroyJSVM(vm_);
             vm_ = nullptr;
         }
-        Deinitialize();
+    }
+
+    void DestroyEnv()
+    {
+        if (env_ == nullptr) {
+            return;
+        }
+        auto* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+        if (vm_ != nullptr) {
+            panda::DFXJSNApi::TerminateExecution(vm_);
+        }
+        uv_loop_t* uvLoop = engine->GetUVLoop();
+        if (uvLoop != nullptr) {
+            uv_stop(uvLoop);
+            uv_run(uvLoop, UV_RUN_NOWAIT);
+        }
+        delete engine;
+        env_ = nullptr;
     }
 
     bool RunScript(const std::string& srcPath, const std::string& hapPath, bool useCommonChunk) override
@@ -686,6 +706,22 @@ void JsRuntime::RemoveTask(const std::string& name)
     if (eventHandler_ != nullptr) {
         eventHandler_->RemoveTask(name);
     }
+}
+
+void JsRuntime::StopAllTaskExecution()
+{
+    if (eventHandler_ != nullptr) {
+        eventHandler_->RemoveAllEvents();
+        eventHandler_->RemoveAllFileDescriptorListeners();
+    }
+}
+
+uint32_t JsRuntime::GetCurrentWorkerCount()
+{
+    if (vm_ == nullptr) {
+        return 0;
+    }
+    return panda::JSNApi::GetCurrentWorkerCount(vm_);
 }
 
 std::atomic<bool> JsRuntime::hasInstance(false);

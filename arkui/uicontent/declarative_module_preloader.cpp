@@ -22,8 +22,19 @@
 #include "core/components_ng/render/paragraph.h"
 #include "frameworks/bridge/declarative_frontend/engine/jsi/jsi_declarative_engine.h"
 #include "stage_application_info_adapter.h"
+#include "app_main.h"
 
 namespace OHOS::Ace::Platform {
+
+void DeclarativeModulePreloader::RegisterDestroyVmCallback(const DestroyVmCallback& callback)
+{
+    OHOS::AbilityRuntime::Platform::AppMain::GetInstance()->RegisterDestroyVmCallback(callback);
+}
+
+void DeclarativeModulePreloader::UnregisterDestroyVmCallback()
+{
+    OHOS::AbilityRuntime::Platform::AppMain::GetInstance()->UnregisterDestroyVmCallback();
+}
 
 void InitAceModule(void *runtime)
 {
@@ -49,6 +60,7 @@ void DeclarativeModulePreloader::Preload(NativeEngine &runtime)
     });
     ACE_SCOPED_TRACE("PreloadAceModule");
     InitAceModule(reinterpret_cast<void *>(&runtime));
+    RegisterDestroyVmCallback(Framework::JsiDeclarativeEngineInstance::UnloadAceModule);
 }
 
 void DeclarativeModulePreloader::PreloadWorker(NativeEngine& runtime)

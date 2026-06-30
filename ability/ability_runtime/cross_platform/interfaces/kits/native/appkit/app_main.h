@@ -16,6 +16,7 @@
 #ifndef FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_APP_MAIN_H
 #define FOUNDATION_ABILITY_RUNTIME_CROSS_PLATFORM_INTERFACES_KITS_NATIVE_APPKIT_APP_MAIN_H
 
+#include <functional>
 #include <memory>
 #include <mutex>
 
@@ -33,6 +34,7 @@ namespace JsEnv {
 namespace AbilityRuntime {
 namespace Platform {
 using Want = AAFwk::Want;
+using DestroyVmCallback = std::function<void()>;
 class AppMain final : public std::enable_shared_from_this<AppMain> {
 public:
     AppMain();
@@ -43,6 +45,8 @@ public:
     void DispatchOnNewWant(const std::string& instanceName, const std::string& params = "");
     void DispatchOnForeground(const std::string& instanceName);
     void DispatchOnBackground(const std::string& instanceName);
+    void HandleDestroyVm();
+    bool DestroyVm();
     void DispatchOnDestroy(const std::string& instanceName);
     void SetPidAndUid(int32_t pid, int32_t uid);
     void OnConfigurationUpdate(const std::string& jsonConfiguration);
@@ -59,6 +63,8 @@ public:
     void LoadModule(const std::string& moduleName, const std::string& entryFile);
     void UpdateRuntimeHSPPkgContextInfo(const std::vector<std::string>& moduleNames);
     void UpdateRuntimePkgContextInfo(const std::string& moduleName);
+    void RegisterDestroyVmCallback(const DestroyVmCallback& callback);
+    void UnregisterDestroyVmCallback();
 #ifdef IOS_PLATFORM
     void SetResourceFilePrefixPath();
 #endif
@@ -94,6 +100,8 @@ private:
     std::shared_ptr<AppExecFwk::BundleContainer> bundleContainer_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> eventHandler_ = nullptr;
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner_ = nullptr;
+    DestroyVmCallback destroyVmCallback_;
+    std::mutex destroyVmCallbackMutex_;
     int32_t pid_ { 0 };
     int32_t uid_ { 0 };
     static std::shared_ptr<AppMain> instance_;

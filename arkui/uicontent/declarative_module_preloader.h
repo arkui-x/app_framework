@@ -16,6 +16,7 @@
 #ifndef FOUNDATION_APPFRAMEWORK_UICONTENT_DECLARATIVE_MODULE_PRELOADER_H
 #define FOUNDATION_APPFRAMEWORK_UICONTENT_DECLARATIVE_MODULE_PRELOADER_H
 
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -25,6 +26,10 @@ class NativeEngine;
 namespace OHOS::Ace::Platform {
 class DeclarativeModulePreloader {
 public:
+    using DestroyVmCallback = std::function<void()>;
+
+    static void RegisterDestroyVmCallback(const DestroyVmCallback& callback);
+    static void UnregisterDestroyVmCallback();
     static void Preload(NativeEngine& runtime);
     static void PreloadWorker(NativeEngine& runtime);
 };
