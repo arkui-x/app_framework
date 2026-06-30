@@ -669,6 +669,7 @@ public:
     void OnPageError(const std::string& param) override;
     void OnProgressChanged(const std::string& param) override;
     void OnReceivedTitle(const std::string& param) override;
+    void OnResourceLoad(const std::string& param);
     void OnPageVisible(const std::string& param) override;
     void OnGeolocationPermissionsHidePrompt() override;
     void OnContentHeightChanged(const std::string& param);
@@ -731,6 +732,10 @@ public:
     void OnWindowNew(void* object);
     void OnWindowExit();
     void OnRenderExited(const std::string& param);
+    void JavaScriptOnDocumentStartByOrder(const ScriptItems& scriptItems,
+        const ScriptRegexItems& scriptRegexItems, const ScriptItemsByOrder& scriptItemsByOrder);
+    void JavaScriptOnDocumentEndByOrder(const ScriptItems& scriptItems,
+        const ScriptRegexItems& scriptRegexItems, const ScriptItemsByOrder& scriptItemsByOrder);
 private:
     void ReleasePlatformResource();
     void CreatePluginResource(const Size& size, const Offset& position, const WeakPtr<NG::PipelineContext>& context);
@@ -831,6 +836,8 @@ private:
     Method updateDefaultFontSize_;
     Method updateMultiWindowAccessMethod_;
     Method updateAllowWindowOpenMethodMethod_;
+    Method runJavaScriptOnDocumentStartMethod_;
+    Method runJavaScriptOnDocumentEndMethod_;
 
     EventCallbackV2 onPageFinishedV2_;
     EventCallbackV2 onPageStartedV2_;

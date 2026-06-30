@@ -464,12 +464,38 @@ public:
     }
     void OnContextMenuShow(const std::shared_ptr<BaseEventInfo>& info, bool isRichtext = true, bool result = false);
     void UpdateJavaScriptOnDocumentStart();
+    void UpdateJavaScriptOnDocumentStartByOrder();
+    void UpdateJavaScriptOnDocumentEndByOrder();
     void JavaScriptOnDocumentStart(const ScriptItems& scriptItems);
     void JavaScriptOnDocumentEnd(const ScriptItems& scriptItems);
     void JavaScriptOnDocumentStartByOrder(const ScriptItems& scriptItems,
         const ScriptRegexItems& scriptRegexItems, const ScriptItemsByOrder& scriptItemsByOrder);
     void JavaScriptOnDocumentEndByOrder(const ScriptItems& scriptItems,
         const ScriptRegexItems& scriptRegexItems, const ScriptItemsByOrder& scriptItemsByOrder);
+    const std::optional<ScriptItems>& GetOnDocumentStartScriptItems() const
+    {
+        return onDocumentStartScriptItems_;
+    }
+    const std::optional<ScriptRegexItems>& GetOnDocumentStartScriptRegexItems() const
+    {
+        return onDocumentStartScriptRegexItems_;
+    }
+    const std::optional<ScriptItemsByOrder>& GetOnDocumentStartScriptItemsByOrder() const
+    {
+        return onDocumentStartScriptItemsByOrder_;
+    }
+    const std::optional<ScriptItems>& GetOnDocumentEndScriptItems() const
+    {
+        return onDocumentEndScriptItems_;
+    }
+    const std::optional<ScriptRegexItems>& GetOnDocumentEndScriptRegexItems() const
+    {
+        return onDocumentEndScriptRegexItems_;
+    }
+    const std::optional<ScriptItemsByOrder>& GetOnDocumentEndScriptItemsByOrder() const
+    {
+        return onDocumentEndScriptItemsByOrder_;
+    }
     bool IsImageDrag();
     Offset GetDragOffset() const;
     void RemovePreviewMenuNode();
@@ -851,6 +877,12 @@ private:
     OffsetF relativeOffsetOfScroll_;
     std::function<void(int32_t)> updateInstanceIdCallback_;
     RefPtr<WebDelegateInterface> delegate_ = nullptr;
+    std::optional<ScriptItems> onDocumentStartScriptItems_;
+    std::optional<ScriptRegexItems> onDocumentStartScriptRegexItems_;
+    std::optional<ScriptItemsByOrder> onDocumentStartScriptItemsByOrder_;
+    std::optional<ScriptItems> onDocumentEndScriptItems_;
+    std::optional<ScriptRegexItems> onDocumentEndScriptRegexItems_;
+    std::optional<ScriptItemsByOrder> onDocumentEndScriptItemsByOrder_;
     std::optional<std::string> sharedRenderProcessToken_;
     bool emulateTouchFromMouseEvent_ = false;
 

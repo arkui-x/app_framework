@@ -16,8 +16,10 @@
 #include "web_delegate_cross.h"
 
 #include <atomic>
+#include <sstream>
 #include <vector>
 
+#include "base/json/json_util.h"
 #include "bridge/js_frontend/frontend_delegate_impl.h"
 #include "core/components_ng/pattern/web/web_model_ng.h"
 
@@ -62,6 +64,8 @@ constexpr char WEB_METHOD_UPDATE_LAYOUT[] = "updateLayout";
 constexpr char WEB_METHOD_ZOOM[] = "zoom";
 constexpr char WEB_METHOD_UPDATE_CONTENT[] = "updateWebContent";
 constexpr char WEB_METHOD_SET_NESTED_SCROLL_EXT[] = "setNestedScrollExt";
+constexpr char WEB_METHOD_RUN_JAVASCRIPT_ON_DOCUMENT_START[] = "runJavaScriptOnDocumentStart";
+constexpr char WEB_METHOD_RUN_JAVASCRIPT_ON_DOCUMENT_END[] = "runJavaScriptOnDocumentEnd";
 
 // The parameters in Java and C++ must be same.
 constexpr char NTC_PARAM_ACCESS_STEP[] = "accessStep";
@@ -103,6 +107,7 @@ constexpr char WEB_EVENT_URL_LOAD_INTERCEPT[] = "onUrlLoadIntercept";
 constexpr char WEB_EVENT_PAGECHANGED[] = "onProgressChanged";
 constexpr char WEB_EVENT_RECVTITLE[] = "onReceivedTitle";
 constexpr char WEB_EVENT_PAGEERROR[] = "onPageError";
+constexpr char WEB_EVENT_ONRESOURCELOAD[] = "onResourceLoad";
 constexpr char WEB_EVENT_ONMESSAGE[] = "onMessage";
 constexpr char WEB_EVENT_ROUTERPUSH[] = "routerPush";
 constexpr char WEB_EVENT_GEOHIDEPERMISSION[] = "onGeoHidePermission";
@@ -198,6 +203,15 @@ constexpr char WEB_ATTRIBUTE_MULTI_WINDOW_ACCESS[] = "multiWindowAccess";
 constexpr char NTC_MULTI_WINDOW_ACCESS[] = "multiWindowAccess";
 constexpr char WEB_ATTRIBUTE_ALLOW_WINDOW_OPEN_METHOD[] = "allowWindowOpenMethod";
 constexpr char NTC_ALLOW_WINDOW_OPEN_METHOD[] = "allowWindowOpenMethod";
+constexpr char NTC_RUN_JAVASCRIPT_ON_DOCUMENT_START[] = "runJavaScriptOnDocumentStart";
+constexpr char NTC_RUN_JAVASCRIPT_ON_DOCUMENT_END[] = "runJavaScriptOnDocumentEnd";
+
+constexpr char SCRIPT_ITEM_SCRIPT[] = "script";
+constexpr char SCRIPT_ITEM_RULES[] = "scriptRules";
+constexpr char SCRIPT_ITEM_URL_REGEX_RULES[] = "urlRegexRules";
+constexpr char URL_REGEX_RULE_SECOND_LEVEL_DOMAIN[] = "secondLevelDomain";
+constexpr char URL_REGEX_RULE_RULE[] = "rule";
+constexpr char JSON_STRING_VALUE[] = "value";
 
 const char WEB_PARAM_NONE[] = "";
 const char WEB_PARAM_AND[] = "#HWJS-&-#";
@@ -222,10 +236,133 @@ constexpr int HTTP_STATUS_GATEWAY_TIMEOUT = 504;
 constexpr int TIMEOUT_SEMAPHORE_S = 20;
 constexpr int TWO_BYTES_LENGTH = 16;
 constexpr int TWO_BYTES = 2;
+constexpr int HEX_HIGH_BITS_OFFSET = 4;
+constexpr unsigned char HEX_LOW_BITS_MASK = 0x0F;
+constexpr char HEX_DIGITS[] = "0123456789ABCDEF";
 constexpr int STRTOL_BASE_DECIMAL = 10;
 
 const std::string RESOURCE_VIDEO_CAPTURE = "TYPE_VIDEO_CAPTURE";
 const std::string RESOURCE_AUDIO_CAPTURE = "TYPE_AUDIO_CAPTURE";
+
+std::unique_ptr<JsonValue> CreateJsonString(const std::string& value)
+{
+    auto wrapperJson = JsonUtil::Create(true);
+    if (wrapperJson == nullptr || !wrapperJson->IsValid() || !wrapperJson->Put(JSON_STRING_VALUE, value.c_str())) {
+        return nullptr;
+    }
+    auto stringJson = wrapperJson->GetValue(JSON_STRING_VALUE);
+    if (stringJson == nullptr || !stringJson->IsValid()) {
+        return nullptr;
+    }
+    return stringJson->Duplicate();
+}
+
+std::unique_ptr<JsonValue> CreateScriptRulesJson(const ScriptItems::mapped_type& rules)
+{
+    auto rulesJson = JsonUtil::CreateArray(true);
+    if (rulesJson == nullptr || !rulesJson->IsValid()) {
+        return nullptr;
+    }
+    for (const auto& rule : rules) {
+        auto ruleJson = CreateJsonString(rule);
+        if (ruleJson != nullptr && ruleJson->IsValid()) {
+            rulesJson->PutRef(std::move(ruleJson));
+        } else {
+            TAG_LOGW(AceLogTag::ACE_WEB, "Failed to serialize script rule, skipping");
+        }
+    }
+    return rulesJson;
+}
+
+std::unique_ptr<JsonValue> CreateScriptRegexRulesJson(const ScriptRegexItems& scriptRegexItems,
+    const std::string& script)
+{
+    auto regexRulesJson = JsonUtil::CreateArray(true);
+    if (regexRulesJson == nullptr || !regexRulesJson->IsValid()) {
+        return nullptr;
+    }
+    auto regexIt = scriptRegexItems.find(script);
+    if (regexIt == scriptRegexItems.end()) {
+        return regexRulesJson;
+    }
+    for (const auto& [secondLevelDomain, rule] : regexIt->second) {
+        auto regexRuleJson = JsonUtil::Create(true);
+        if (regexRuleJson == nullptr || !regexRuleJson->IsValid()) {
+            continue;
+        }
+        regexRuleJson->Put(URL_REGEX_RULE_SECOND_LEVEL_DOMAIN, secondLevelDomain.c_str());
+        regexRuleJson->Put(URL_REGEX_RULE_RULE, rule.c_str());
+        regexRulesJson->PutRef(std::move(regexRuleJson));
+    }
+    return regexRulesJson;
+}
+
+std::unique_ptr<JsonValue> CreateScriptItemJson(const std::string& script, const ScriptItems::mapped_type& rules,
+    const ScriptRegexItems& scriptRegexItems)
+{
+    auto scriptItemJson = JsonUtil::Create(true);
+    if (scriptItemJson == nullptr || !scriptItemJson->IsValid()) {
+        return nullptr;
+    }
+    scriptItemJson->Put(SCRIPT_ITEM_SCRIPT, script.c_str());
+    auto scriptRulesJson = CreateScriptRulesJson(rules);
+    if (scriptRulesJson == nullptr) {
+        return nullptr;
+    }
+    scriptItemJson->PutRef(SCRIPT_ITEM_RULES, std::move(scriptRulesJson));
+    auto urlRegexRulesJson = CreateScriptRegexRulesJson(scriptRegexItems, script);
+    if (urlRegexRulesJson == nullptr) {
+        return nullptr;
+    }
+    scriptItemJson->PutRef(SCRIPT_ITEM_URL_REGEX_RULES, std::move(urlRegexRulesJson));
+    return scriptItemJson;
+}
+
+std::string SerializeScriptItemsByOrder(const ScriptItems& scriptItems, const ScriptRegexItems& scriptRegexItems,
+    const ScriptItemsByOrder& scriptItemsByOrder)
+{
+    auto scriptsJson = JsonUtil::CreateArray(true);
+    if (scriptsJson == nullptr || !scriptsJson->IsValid()) {
+        TAG_LOGW(AceLogTag::ACE_WEB, "Failed to create scripts json array");
+        return "";
+    }
+    for (const auto& script : scriptItemsByOrder) {
+        auto scriptIt = scriptItems.find(script);
+        if (scriptIt == scriptItems.end()) {
+            continue;
+        }
+        auto scriptItemJson = CreateScriptItemJson(script, scriptIt->second, scriptRegexItems);
+        if (scriptItemJson == nullptr) {
+            TAG_LOGW(AceLogTag::ACE_WEB, "Failed to create script item json, skipping");
+            continue;
+        }
+        scriptsJson->PutRef(std::move(scriptItemJson));
+    }
+    return scriptsJson->ToString();
+}
+
+bool IsUrlUnreserved(unsigned char c)
+{
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') ||
+           c == '-' || c == '_' || c == '.' || c == '~';
+}
+
+std::string UrlEncode(const std::string& value)
+{
+    std::string result;
+    result.reserve(value.size());
+    for (auto ch : value) {
+        auto c = static_cast<unsigned char>(ch);
+        if (IsUrlUnreserved(c)) {
+            result.push_back(ch);
+            continue;
+        }
+        result.push_back('%');
+        result.push_back(HEX_DIGITS[c >> HEX_HIGH_BITS_OFFSET]);
+        result.push_back(HEX_DIGITS[c & HEX_LOW_BITS_MASK]);
+    }
+    return result;
+}
 }
 #if defined(IOS_PLATFORM)
 static std::atomic<int64_t> g_atomicId{0};
@@ -1226,6 +1363,34 @@ void WebDelegateCross::CreatePluginResource(
                     << WEB_PARAM_EQUALS << pageUrl << WEB_PARAM_AND << NTC_PARAM_RICH_TEXT_INIT
                     << WEB_PARAM_EQUALS << webPattern->GetRichTextInit() << WEB_PARAM_AND << NTC_INCOGNITO_MODE
                     << WEB_PARAM_EQUALS << webPattern->GetIncognitoMode();
+#if defined(IOS_PLATFORM)
+        if (webPattern->GetOnDocumentStartScriptItems().has_value() &&
+            webPattern->GetOnDocumentStartScriptRegexItems().has_value() &&
+            webPattern->GetOnDocumentStartScriptItemsByOrder().has_value()) {
+            auto scripts = SerializeScriptItemsByOrder(webPattern->GetOnDocumentStartScriptItems().value(),
+                webPattern->GetOnDocumentStartScriptRegexItems().value(),
+                webPattern->GetOnDocumentStartScriptItemsByOrder().value());
+            if (!scripts.empty()) {
+                paramStream << WEB_PARAM_AND << NTC_RUN_JAVASCRIPT_ON_DOCUMENT_START << WEB_PARAM_EQUALS
+                            << UrlEncode(scripts);
+            } else {
+                TAG_LOGW(AceLogTag::ACE_WEB, "SerializeScriptItemsByOrder returned empty, skipping param");
+            }
+        }
+#endif
+        if (webPattern->GetOnDocumentEndScriptItems().has_value() &&
+            webPattern->GetOnDocumentEndScriptRegexItems().has_value() &&
+            webPattern->GetOnDocumentEndScriptItemsByOrder().has_value()) {
+            auto scripts = SerializeScriptItemsByOrder(webPattern->GetOnDocumentEndScriptItems().value(),
+                webPattern->GetOnDocumentEndScriptRegexItems().value(),
+                webPattern->GetOnDocumentEndScriptItemsByOrder().value());
+            if (!scripts.empty()) {
+                paramStream << WEB_PARAM_AND << NTC_RUN_JAVASCRIPT_ON_DOCUMENT_END << WEB_PARAM_EQUALS
+                            << UrlEncode(scripts);
+            } else {
+                TAG_LOGW(AceLogTag::ACE_WEB, "SerializeScriptItemsByOrder returned empty, skipping end param");
+            }
+        }
         std::string param = paramStream.str();
         webDelegate->id_ = resRegister->CreateResource(WEB_CREATE, param);
         if (webDelegate->id_ == INVALID_ID) {
@@ -1290,6 +1455,13 @@ void WebDelegateCross::RegisterWebEvent()
             delegate->OnReceivedTitle(param);
         }
     });
+    resRegister->RegisterEvent(
+        MakeEventHash(WEB_EVENT_ONRESOURCELOAD), [weak = WeakClaim(this)](const std::string& param) {
+            auto delegate = weak.Upgrade();
+            if (delegate) {
+                delegate->OnResourceLoad(param);
+            }
+        });
     resRegister->RegisterEvent(
         MakeEventHash(WEB_EVENT_ONPAGEVISIBLE), [weak = WeakClaim(this)](const std::string& param) {
             auto delegate = weak.Upgrade();
@@ -1762,6 +1934,29 @@ void WebDelegateCross::OnReceivedTitle(const std::string& param)
             }
         },
         TaskExecutor::TaskType::JS, "ArkUIWebTitleReceiveEvent");
+}
+
+void WebDelegateCross::OnResourceLoad(const std::string& param)
+{
+    ContainerScope scope(instanceId_);
+    auto context = context_.Upgrade();
+    CHECK_NULL_VOID(context);
+    context->GetTaskExecutor()->PostTask(
+        [weak = WeakClaim(this), param]() {
+            auto delegate = weak.Upgrade();
+            CHECK_NULL_VOID(delegate);
+            if (Container::IsCurrentUseNewPipeline()) {
+                auto webPattern = delegate->webPattern_.Upgrade();
+                CHECK_NULL_VOID(webPattern);
+                auto webEventHub = webPattern->GetWebEventHub();
+                CHECK_NULL_VOID(webEventHub);
+                auto propOnResourceLoad = webEventHub->GetOnResourceLoadEvent();
+                CHECK_NULL_VOID(propOnResourceLoad);
+                auto eventParam = std::make_shared<ResourceLoadEvent>(param);
+                propOnResourceLoad(eventParam);
+            }
+        },
+        TaskExecutor::TaskType::JS, "ArkUIWebResourceLoadEvent");
 }
 
 void WebDelegateCross::OnErrorReceive(void* object)
@@ -3031,6 +3226,47 @@ void WebDelegateCross::SetNestedScrollOptionsExt(NestedScrollOptionsExt nestedOp
     std::string param = paramStream.str();
     CallResRegisterMethod(setNestedScrollExtMethod_, param, nullptr);
 #endif
+}
+
+void WebDelegateCross::JavaScriptOnDocumentStartByOrder(const ScriptItems& scriptItems,
+    const ScriptRegexItems& scriptRegexItems, const ScriptItemsByOrder& scriptItemsByOrder)
+{
+#if defined(IOS_PLATFORM)
+    hash_ = MakeResourceHash();
+    runJavaScriptOnDocumentStartMethod_ = MakeMethodHash(WEB_METHOD_RUN_JAVASCRIPT_ON_DOCUMENT_START);
+    auto scripts = SerializeScriptItemsByOrder(scriptItems, scriptRegexItems, scriptItemsByOrder);
+    if (scripts.empty()) {
+        TAG_LOGW(AceLogTag::ACE_WEB, "SerializeScriptItemsByOrder returned empty, skipping CallResRegisterMethod");
+        return;
+    }
+    std::stringstream paramStream;
+    paramStream << NTC_RUN_JAVASCRIPT_ON_DOCUMENT_START << WEB_PARAM_EQUALS
+                << UrlEncode(scripts);
+    CallResRegisterMethod(runJavaScriptOnDocumentStartMethod_, paramStream.str(), nullptr);
+#else
+    (void)scriptItems;
+    (void)scriptRegexItems;
+    (void)scriptItemsByOrder;
+#endif
+}
+
+void WebDelegateCross::JavaScriptOnDocumentEndByOrder(const ScriptItems& scriptItems,
+    const ScriptRegexItems& scriptRegexItems, const ScriptItemsByOrder& scriptItemsByOrder)
+{
+    hash_ = MakeResourceHash();
+    runJavaScriptOnDocumentEndMethod_ = MakeMethodHash(WEB_METHOD_RUN_JAVASCRIPT_ON_DOCUMENT_END);
+    auto scripts = SerializeScriptItemsByOrder(scriptItems, scriptRegexItems, scriptItemsByOrder);
+    if (scripts.empty()) {
+        TAG_LOGW(AceLogTag::ACE_WEB, "SerializeScriptItemsByOrder returned empty, skipping CallResRegisterMethod");
+        return;
+    }
+    std::stringstream paramStream;
+    paramStream << NTC_RUN_JAVASCRIPT_ON_DOCUMENT_END << WEB_PARAM_EQUALS
+                << UrlEncode(scripts);
+    CallResRegisterMethod(runJavaScriptOnDocumentEndMethod_, paramStream.str(), nullptr);
+    (void)scriptItems;
+    (void)scriptRegexItems;
+    (void)scriptItemsByOrder;
 }
 
 void WebDelegateCross::SetScrollLocked(const bool value)

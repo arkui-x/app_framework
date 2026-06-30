@@ -2098,6 +2098,19 @@ void WebPattern::UpdateJavaScriptOnDocumentStart()
     // cross platform is not support now;
 }
 
+void WebPattern::UpdateJavaScriptOnDocumentStartByOrder()
+{
+    CHECK_NULL_VOID(delegate_);
+    if (!onDocumentStartScriptItems_.has_value() || !onDocumentStartScriptItemsByOrder_.has_value() ||
+        !onDocumentStartScriptRegexItems_.has_value()) {
+        return;
+    }
+    auto webDelegateCross = AceType::DynamicCast<WebDelegateCross>(delegate_);
+    CHECK_NULL_VOID(webDelegateCross);
+    webDelegateCross->JavaScriptOnDocumentStartByOrder(onDocumentStartScriptItems_.value(),
+        onDocumentStartScriptRegexItems_.value(), onDocumentStartScriptItemsByOrder_.value());
+}
+
 void WebPattern::JavaScriptOnDocumentEnd(const ScriptItems& scriptItems)
 {
     // cross platform is not support now;
@@ -2106,13 +2119,46 @@ void WebPattern::JavaScriptOnDocumentEnd(const ScriptItems& scriptItems)
 void WebPattern::JavaScriptOnDocumentStartByOrder(const ScriptItems& scriptItems,
     const ScriptRegexItems& scriptRegexItems, const ScriptItemsByOrder& scriptItemsByOrder)
 {
-    // cross platform is not support now;
+#if defined(IOS_PLATFORM)
+    onDocumentStartScriptItems_ = std::make_optional<ScriptItems>(scriptItems);
+    onDocumentStartScriptItemsByOrder_ = std::make_optional<ScriptItemsByOrder>(scriptItemsByOrder);
+    onDocumentStartScriptRegexItems_ = std::make_optional<ScriptRegexItems>(scriptRegexItems);
+    UpdateJavaScriptOnDocumentStartByOrder();
+#else
+    TAG_LOGW(AceLogTag::ACE_WEB, "runJavaScriptOnDocumentStart is not supported on this platform");
+    (void)scriptItems;
+    (void)scriptRegexItems;
+    (void)scriptItemsByOrder;
+#endif
+}
+
+void WebPattern::UpdateJavaScriptOnDocumentEndByOrder()
+{
+    CHECK_NULL_VOID(delegate_);
+    if (!onDocumentEndScriptItems_.has_value() || !onDocumentEndScriptItemsByOrder_.has_value() ||
+        !onDocumentEndScriptRegexItems_.has_value()) {
+        TAG_LOGW(AceLogTag::ACE_WEB, "UpdateJavaScriptOnDocumentEndByOrder: optional not ready");
+        return;
+    }
+    auto webDelegateCross = AceType::DynamicCast<WebDelegateCross>(delegate_);
+    CHECK_NULL_VOID(webDelegateCross);
+    webDelegateCross->JavaScriptOnDocumentEndByOrder(onDocumentEndScriptItems_.value(),
+        onDocumentEndScriptRegexItems_.value(), onDocumentEndScriptItemsByOrder_.value());
+    onDocumentEndScriptItems_ = std::nullopt;
+    onDocumentEndScriptItemsByOrder_ = std::nullopt;
+    onDocumentEndScriptRegexItems_ = std::nullopt;
 }
 
 void WebPattern::JavaScriptOnDocumentEndByOrder(const ScriptItems& scriptItems,
     const ScriptRegexItems& scriptRegexItems, const ScriptItemsByOrder& scriptItemsByOrder)
 {
-    // cross platform is not support now;
+    onDocumentEndScriptItems_ = std::make_optional<ScriptItems>(scriptItems);
+    onDocumentEndScriptItemsByOrder_ = std::make_optional<ScriptItemsByOrder>(scriptItemsByOrder);
+    onDocumentEndScriptRegexItems_ = std::make_optional<ScriptRegexItems>(scriptRegexItems);
+    UpdateJavaScriptOnDocumentEndByOrder();
+    (void)scriptItems;
+    (void)scriptRegexItems;
+    (void)scriptItemsByOrder;
 }
 
 void WebPattern::JavaScriptOnHeadReadyByOrder(const ScriptItems& scriptItems,
