@@ -498,21 +498,6 @@ bool RSSystemProperties::GetWideColorSpaceEnabled()
     return true;
 }
 
-bool RSSystemProperties::GetHybridRenderEnabled()
-{
-    return false;
-}
-
-bool RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
-{
-    return false;
-}
-
-uint32_t RSSystemProperties::GetHybridRenderTextBlobLenCount()
-{
-    return 0;
-}
-
 bool RSSystemProperties::GetSupportScreenFreezeEnabled()
 {
     return false;
@@ -536,6 +521,21 @@ bool RSSystemProperties::GetUnmarshalParallelEnabled()
 uint32_t RSSystemProperties::GetUnmarshalParallelMinDataSize()
 {
     return 0;
+}
+
+bool RSSystemProperties::GetRebuildSceneEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::IsRenderNodeRebuildEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::RebuildDebugEnabled()
+{
+    return false;
 }
 
 bool RSSystemProperties::GetCompositeLayerEnabled()
