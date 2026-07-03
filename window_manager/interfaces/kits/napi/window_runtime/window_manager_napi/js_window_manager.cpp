@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -290,6 +290,7 @@ napi_value JsWindowManagerInit(napi_env env, napi_value exportObj)
     const napi_property_descriptor props[] = {
         DECLARE_NAPI_PROPERTY("WindowType", WindowTypeInit(env)),
         DECLARE_NAPI_PROPERTY("WindowMode", WindowModeInit(env)),
+        DECLARE_NAPI_PROPERTY("ModalityType", ModalityTypeInit(env)),
         DECLARE_NAPI_PROPERTY("Orientation", OrientationInit(env)),
         DECLARE_NAPI_PROPERTY("WindowEventType", WindowEventTypeInit(env)),
         DECLARE_NAPI_PROPERTY("WindowStageEventType", WindowStageEventTypeInit(env)),

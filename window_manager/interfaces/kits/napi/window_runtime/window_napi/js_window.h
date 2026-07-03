@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -56,7 +56,9 @@ public:
     static napi_value SetWindowLayoutFullScreen(napi_env env, napi_callback_info info);
     static napi_value GetWindowAvoidAreaSync(napi_env env, napi_callback_info info);
     static napi_value SetWindowFocusable(napi_env env, napi_callback_info info);
+    static napi_value IsFocused(napi_env env, napi_callback_info info);
     static napi_value SetWindowSystemBarProperties(napi_env env, napi_callback_info info);
+    static napi_value GetPreferredOrientation(napi_env env, napi_callback_info info);
 
 private:
     napi_value OnShowWindow(napi_env env, napi_callback_info info);
@@ -82,6 +84,8 @@ private:
     napi_value OnSetWindowLayoutFullScreen(napi_env env, napi_callback_info info);
     napi_value OnGetWindowAvoidAreaSync(napi_env env, napi_callback_info info);
     napi_value OnSetWindowFocusable(napi_env env, napi_callback_info info);
+    napi_value OnIsFocused(napi_env env, napi_callback_info info);
+    napi_value OnGetPreferredOrientation(napi_env env, napi_callback_info info);
     napi_value OnSetWindowSystemBarProperties(napi_env env, napi_callback_info info);
 
     std::string GetWindowName();

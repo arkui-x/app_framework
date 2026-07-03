@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,98 @@ namespace Rosen {
 using namespace AbilityRuntime;
 constexpr int32_t RGB_LENGTH = 6;
 constexpr int32_t RGBA_LENGTH = 8;
+constexpr int32_t SUB_WINDOW_Z_LEVEL_MIN = -10000;
+constexpr int32_t SUB_WINDOW_Z_LEVEL_MAX = 10000;
+
+namespace {
+template<typename T>
+bool ParseNamedJsValue(napi_env env, napi_value jsObject, const char* name, T& out)
+{
+    bool hasProperty = false;
+    if (napi_has_named_property(env, jsObject, name, &hasProperty) != napi_ok || !hasProperty) {
+        return false;
+    }
+    napi_value value = nullptr;
+    if (napi_get_named_property(env, jsObject, name, &value) != napi_ok) {
+        return false;
+    }
+    return ConvertFromJsValue(env, value, out);
+}
+
+bool ParseSubWindowModalityOptions(napi_env env, napi_value jsObject, SubWindowOptionsValue& options)
+{
+    if (!ParseNamedJsValue(env, jsObject, "isModal", options.isModal)) {
+        WLOGW("Parse isModal failed");
+    }
+    if (ParseNamedJsValue(env, jsObject, "modalityType", options.modalityType)) {
+        if (!options.isModal) {
+            WLOGE("Normal subwindow not support modalityType");
+            return false;
+        }
+        if (JS_TO_NATIVE_MODALITY_TYPE_MAP.count(options.modalityType) == 0) {
+            WLOGE("Failed to convert parameter to modalityType");
+            return false;
+        }
+    } else {
+        WLOGW("Parse modalityType failed");
+    }
+    return true;
+}
+
+bool ParseSubWindowZLevelOption(napi_env env, napi_value jsObject, SubWindowOptionsValue& options)
+{
+    if (ParseNamedJsValue(env, jsObject, "zLevel", options.zLevel)) {
+        if (options.zLevel < SUB_WINDOW_Z_LEVEL_MIN || options.zLevel > SUB_WINDOW_Z_LEVEL_MAX) {
+            WLOGE("zLevel value %{public}d exceeds valid range [-10000, 10000]!", options.zLevel);
+            return false;
+        }
+        if (options.isModal) {
+            WLOGE("modal window not support custom zLevel");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ParseSubWindowRectOption(napi_env env, napi_value jsObject, SubWindowOptionsValue& options)
+{
+    napi_value windowRect = nullptr;
+    if (napi_get_named_property(env, jsObject, "windowRect", &windowRect) != napi_ok) {
+        return true;
+    }
+    napi_valuetype type = napi_undefined;
+    if (windowRect == nullptr || napi_typeof(env, windowRect, &type) != napi_ok || type != napi_object) {
+        return true;
+    }
+    int32_t left = 0;
+    if (!ParseNamedJsValue(env, windowRect, "left", left)) {
+        WLOGE("Parse left failed");
+        return false;
+    }
+    int32_t top = 0;
+    if (!ParseNamedJsValue(env, windowRect, "top", top)) {
+        WLOGE("Parse top failed");
+        return false;
+    }
+    int32_t width = 0;
+    if (!ParseNamedJsValue(env, windowRect, "width", width)) {
+        WLOGE("Parse width failed");
+        return false;
+    }
+    int32_t height = 0;
+    if (!ParseNamedJsValue(env, windowRect, "height", height)) {
+        WLOGE("Parse height failed");
+        return false;
+    }
+    if (width <= 0 || height <= 0) {
+        WLOGE("width or height should greater than 0!");
+        return false;
+    }
+    options.windowRect = {left, top, static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+    return true;
+}
+
+} // namespace
 
 napi_value WindowTypeInit(napi_env env)
 {
@@ -140,6 +232,17 @@ napi_value WindowStageEventTypeInit(napi_env env)
         DECLARE_NAPI_PROPERTY("ACTIVE", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::ACTIVE))),
         DECLARE_NAPI_PROPERTY("INACTIVE", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::INACTIVE))),
         DECLARE_NAPI_PROPERTY("HIDDEN", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::BACKGROUND))),
+    };
+    return CreateObject(env, nullptr, props, sizeof(props) / sizeof(props[0]));
+}
+
+napi_value ModalityTypeInit(napi_env env)
+{
+    const napi_property_descriptor props[] = {
+        DECLARE_NAPI_PROPERTY("WINDOW_MODALITY", CreateJsValue(env,
+            static_cast<int32_t>(ApiModalityType::WINDOW_MODALITY))),
+        DECLARE_NAPI_PROPERTY("APPLICATION_MODALITY", CreateJsValue(env,
+            static_cast<int32_t>(ApiModalityType::APPLICATION_MODALITY))),
     };
     return CreateObject(env, nullptr, props, sizeof(props) / sizeof(props[0]));
 }
@@ -281,6 +384,62 @@ napi_value CreateJsWindowPropertiesObject(napi_env env, std::shared_ptr<Window>&
         DECLARE_NAPI_PROPERTY("id", CreateJsValue(env, window->GetWindowId())),
     };
     return CreateObject(env, nullptr, props, sizeof(props) / sizeof(props[0]));
+}
+
+bool ParseSubWindowOptionsValue(napi_env env, napi_value jsObject, SubWindowOptionsValue& options)
+{
+    napi_valuetype type = napi_undefined;
+    if (napi_typeof(env, jsObject, &type) != napi_ok || type != napi_object) {
+        return false;
+    }
+
+    if (!ParseNamedJsValue(env, jsObject, "title", options.title)) {
+        WLOGE("Parse title failed");
+        return false;
+    }
+
+    if (!ParseNamedJsValue(env, jsObject, "decorEnabled", options.decorEnabled)) {
+        WLOGE("Parse decorEnabled failed");
+        return false;
+    }
+
+    if (!ParseNamedJsValue(env, jsObject, "maximizeSupported", options.maximizeSupported)) {
+        WLOGW("Parse maximizeSupported failed");
+    }
+
+    if (!ParseNamedJsValue(env, jsObject, "outlineEnabled", options.outlineEnabled)) {
+        WLOGW("Parse outlineEnabled failed");
+    }
+
+    if (!ParseSubWindowModalityOptions(env, jsObject, options)) {
+        return false;
+    }
+
+    if (!ParseSubWindowZLevelOption(env, jsObject, options)) {
+        return false;
+    }
+
+    if (!ParseSubWindowRectOption(env, jsObject, options)) {
+        return false;
+    }
+    return true;
+}
+
+std::shared_ptr<WindowOption> BuildSubWindowOption(const SubWindowOptionsValue& options)
+{
+    auto windowOption = std::make_shared<WindowOption>();
+    windowOption->SetWindowTitle(options.title);
+    windowOption->SetDecorEnabled(options.decorEnabled);
+    windowOption->SetWindowModal(options.isModal);
+    auto modalityTypeIter = JS_TO_NATIVE_MODALITY_TYPE_MAP.find(options.modalityType);
+    if (modalityTypeIter != JS_TO_NATIVE_MODALITY_TYPE_MAP.end()) {
+        windowOption->SetWindowModalityType(modalityTypeIter->second);
+    }
+    windowOption->SetWindowZLevel(options.zLevel);
+    windowOption->SetWindowMaximizeSupported(options.maximizeSupported);
+    windowOption->SetWindowOutlineEnabled(options.outlineEnabled);
+    windowOption->SetWindowRect(options.windowRect);
+    return windowOption;
 }
 
 static std::string GetHexColor(uint32_t color)

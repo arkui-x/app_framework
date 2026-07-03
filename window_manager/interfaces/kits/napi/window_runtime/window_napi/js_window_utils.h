@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -56,6 +56,27 @@ enum class LifeCycleEventType : uint32_t {
     ACTIVE,
     INACTIVE,
     BACKGROUND,
+};
+
+enum class ApiModalityType : int32_t {
+    WINDOW_MODALITY = 0,
+    APPLICATION_MODALITY = 1,
+};
+
+struct SubWindowOptionsValue {
+    Rect windowRect { 0, 0, 0, 0 };
+    bool decorEnabled = false;
+    bool isModal = false;
+    ApiModalityType modalityType = ApiModalityType::WINDOW_MODALITY;
+    int32_t zLevel = 0;
+    bool maximizeSupported = false;
+    bool outlineEnabled = false;
+    std::string title;
+};
+
+const std::map<ApiModalityType, ModalityType> JS_TO_NATIVE_MODALITY_TYPE_MAP {
+    { ApiModalityType::WINDOW_MODALITY, ModalityType::WINDOW_MODALITY },
+    { ApiModalityType::APPLICATION_MODALITY, ModalityType::APPLICATION_MODALITY },
 };
 
 const std::map<WindowType, ApiWindowType> NATIVE_JS_TO_WINDOW_TYPE_MAP {
@@ -155,6 +176,21 @@ const std::map<ApiOrientation, Orientation> JS_TO_NATIVE_ORIENTATION_MAP {
     {ApiOrientation::LOCKED,                                Orientation::LOCKED                             },
 };
 
+const std::map<Orientation, ApiOrientation> NATIVE_TO_JS_ORIENTATION_MAP {
+    {Orientation::UNSPECIFIED,                           ApiOrientation::UNSPECIFIED                        },
+    {Orientation::VERTICAL,                              ApiOrientation::PORTRAIT                           },
+    {Orientation::HORIZONTAL,                            ApiOrientation::LANDSCAPE                          },
+    {Orientation::REVERSE_VERTICAL,                      ApiOrientation::PORTRAIT_INVERTED                  },
+    {Orientation::REVERSE_HORIZONTAL,                    ApiOrientation::LANDSCAPE_INVERTED                 },
+    {Orientation::SENSOR,                                ApiOrientation::AUTO_ROTATION                      },
+    {Orientation::SENSOR_VERTICAL,                       ApiOrientation::AUTO_ROTATION_PORTRAIT             },
+    {Orientation::SENSOR_HORIZONTAL,                     ApiOrientation::AUTO_ROTATION_LANDSCAPE            },
+    {Orientation::AUTO_ROTATION_RESTRICTED,              ApiOrientation::AUTO_ROTATION_RESTRICTED           },
+    {Orientation::AUTO_ROTATION_PORTRAIT_RESTRICTED,     ApiOrientation::AUTO_ROTATION_PORTRAIT_RESTRICTED  },
+    {Orientation::AUTO_ROTATION_LANDSCAPE_RESTRICTED,    ApiOrientation::AUTO_ROTATION_LANDSCAPE_RESTRICTED },
+    {Orientation::LOCKED,                                ApiOrientation::LOCKED                             },
+};
+
 napi_value CreateJsWindowPropertiesObject(napi_env env, std::shared_ptr<Window>& window);
 bool GetSystemBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProperties,
     napi_env env, size_t argc, const napi_value arg, std::shared_ptr<Window>& window);
@@ -169,6 +205,7 @@ napi_value WindowModeInit(napi_env env);
 napi_value OrientationInit(napi_env env);
 napi_value WindowEventTypeInit(napi_env env);
 napi_value WindowStageEventTypeInit(napi_env env);
+napi_value ModalityTypeInit(napi_env env);
 napi_value WindowErrorCodeInit(napi_env env);
 napi_value WindowErrorInit(napi_env env);
 napi_value WindowStatusTypeInit(napi_env env);
@@ -216,6 +253,8 @@ void LoadContentTask(napi_env env, napi_ref storageRef, const std::string &conte
     std::shared_ptr<Window> weakWindow, AbilityRuntime::NapiAsyncTask& task, bool isLoadedByName);
 bool GetContentArg(napi_env env,
     napi_callback_info info, std::string &contextUrl, napi_value &storage, napi_value &callback);
+bool ParseSubWindowOptionsValue(napi_env env, napi_value jsObject, SubWindowOptionsValue& options);
+std::shared_ptr<WindowOption> BuildSubWindowOption(const SubWindowOptionsValue& options);
 }
 }
 #endif

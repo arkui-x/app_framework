@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -58,6 +58,19 @@ std::shared_ptr<Window> WindowStage::CreateSubWindow(const std::string& windowNa
     option->SetWindowName(windowName);
     std::shared_ptr<Window> subWindow = Window::CreateSubWindow(context_, option);
     return subWindow;
+}
+
+std::shared_ptr<Window> WindowStage::CreateSubWindow(const std::string& windowName,
+    const std::shared_ptr<WindowOption>& option)
+{
+    if (windowName.empty() || mainWindow_ == nullptr || option == nullptr) {
+        return nullptr;
+    }
+    option->SetParentId(mainWindow_->GetWindowId());
+    option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_SUB_WINDOW);
+    option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
+    option->SetWindowName(windowName);
+    return Window::CreateSubWindow(context_, option);
 }
 
 std::vector<std::shared_ptr<Window>> WindowStage::GetSubWindow()
