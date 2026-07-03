@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -65,6 +65,74 @@ napi_value JsDisplayManager::OnGetDefaultDisplaySync(napi_env env, napi_callback
         return CreateJsUndefined(env);
     }
     return value;
+}
+
+static napi_value CreateResolvedPromise(napi_env env, napi_value value)
+{
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    napi_status status = napi_create_promise(env, &deferred, &promise);
+    if (status != napi_ok) {
+        napi_throw(env, CreateJsError(env, static_cast<int32_t>(DmErrorCode::DM_ERROR_SYSTEM_INNORMAL)));
+        return CreateJsUndefined(env);
+    }
+    status = napi_resolve_deferred(env, deferred, value);
+    if (status != napi_ok) {
+        napi_throw(env, CreateJsError(env, static_cast<int32_t>(DmErrorCode::DM_ERROR_SYSTEM_INNORMAL)));
+        return CreateJsUndefined(env);
+    }
+    return promise;
+}
+
+napi_value JsDisplayManager::GetAllDisplays(napi_env env, napi_callback_info info)
+{
+    JsDisplayManager* me = CheckParamsAndGetThis<JsDisplayManager>(env, info);
+    return (me != nullptr) ? me->OnGetAllDisplays(env, info) : nullptr;
+}
+
+napi_value JsDisplayManager::OnGetAllDisplays(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    if (argc > ARGC_ONE) {
+        WLOGE("OnGetAllDisplays params not match: %{public}zu", argc);
+        napi_throw(env, CreateJsError(env, static_cast<int32_t>(DmErrorCode::DM_ERROR_INVALID_PARAM)));
+        return CreateJsUndefined(env);
+    }
+
+    auto displays = SingletonContainer::Get<DisplayManager>().GetAllDisplays();
+    napi_value array = nullptr;
+    napi_status status = napi_create_array_with_length(env, displays.size(), &array);
+    if (status != napi_ok) {
+        napi_throw(env, CreateJsError(env, static_cast<int32_t>(DmErrorCode::DM_ERROR_SYSTEM_INNORMAL)));
+        return CreateJsUndefined(env);
+    }
+    for (size_t i = 0; i < displays.size(); i++) {
+        napi_value displayObj = CreateJsDisplayObject(env, displays[i]);
+        if (displayObj == nullptr) {
+            napi_throw(env, CreateJsError(env, static_cast<int32_t>(DmErrorCode::DM_ERROR_SYSTEM_INNORMAL)));
+            return CreateJsUndefined(env);
+        }
+        napi_set_element(env, array, i, displayObj);
+    }
+
+    if (argc == ARGC_ONE && NapiIsCallable(env, argv[0])) {
+        napi_value result[] = {
+            CreateJsError(env, static_cast<int32_t>(DMError::DM_OK)),
+            array,
+        };
+        napi_value callResult = nullptr;
+        napi_call_function(env, nullptr, argv[0], sizeof(result) / sizeof(result[0]), result, &callResult);
+        return CreateJsUndefined(env);
+    }
+
+    if (argc == ARGC_ONE) {
+        napi_throw(env, CreateJsError(env, static_cast<int32_t>(DmErrorCode::DM_ERROR_INVALID_PARAM)));
+        return CreateJsUndefined(env);
+    }
+
+    return CreateResolvedPromise(env, array);
 }
 
 napi_value JsDisplayManager::RegisterDisplayManagerCallback(napi_env env, napi_callback_info info)
@@ -538,6 +606,7 @@ napi_value JsDisplayManagerInit(napi_env env, napi_value exportObj)
     napi_set_named_property(env, exportObj, "FoldDisplayMode", InitFoldDisplayMode(env));
 
     const char *moduleName = "JsDisplayManager";
+    BindNativeFunction(env, exportObj, "getAllDisplays", moduleName, JsDisplayManager::GetAllDisplays);
     BindNativeFunction(env, exportObj, "getDefaultDisplaySync", moduleName, JsDisplayManager::GetDefaultDisplaySync);
     BindNativeFunction(env, exportObj, "isFoldable", moduleName, JsDisplayManager::IsFoldable);
     BindNativeFunction(env, exportObj, "getFoldStatus", moduleName, JsDisplayManager::GetFoldStatus);

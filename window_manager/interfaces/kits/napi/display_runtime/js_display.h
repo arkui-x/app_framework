@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,9 @@ public:
     explicit JsDisplay(const sptr<Display>& display);
     ~JsDisplay();
     static void Finalizer(napi_env env, void* data, void* hint);
+    static napi_value GetLiveCreaseRegion(napi_env env, napi_callback_info info);
+
+    napi_value OnGetLiveCreaseRegion(napi_env env, napi_callback_info info);
 private:
     sptr<Display> display_ = nullptr;
 };
