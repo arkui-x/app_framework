@@ -3095,6 +3095,7 @@ void WebDelegateCross::OnWindowNew(void* object)
     });
 
     auto webPattern = webPattern_.Upgrade();
+    WebWindowNewHandlerImpl::ClearPendingByParent(parentWebId);
     WebWindowNewHandlerImpl::RegisterPending(parentWebId, {
         handler, WeakPtr<NG::WebPattern>(webPattern), context_, targetUrl, isAlert, isUserTrigger
     });
