@@ -167,6 +167,10 @@ RSSurfaceSwapChain::RSSurfaceSwapChain()
 RSSurfaceSwapChain::~RSSurfaceSwapChain()
 {
     Cleanup();
+    if (metalLayer_ != nullptr) {
+        [static_cast<CAMetalLayer*>(metalLayer_)  release];
+    }
+    ROSEN_LOGI("RSSurfaceSwapChain::release");
 }
 
 bool RSSurfaceSwapChain::Initialize(void* metalLayer)
@@ -175,7 +179,10 @@ bool RSSurfaceSwapChain::Initialize(void* metalLayer)
         ROSEN_LOGE("RSSurfaceSwapChain::Initialize: metal layer is null");
         return false;
     }
-    metalLayer_ = metalLayer;
+    if (metalLayer_ != nullptr) {
+        [static_cast<CAMetalLayer*>(metalLayer_) release];
+    }
+    metalLayer_ = [static_cast<CAMetalLayer*>(metalLayer) retain];
     return true;
 }
 
