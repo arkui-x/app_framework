@@ -493,6 +493,11 @@ bool RSSystemProperties::ViewDrawNodeType()
     return false;
 }
 
+int RSSystemProperties::GetEdrGainEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetWideColorSpaceEnabled()
 {
     return true;
