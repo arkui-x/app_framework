@@ -115,6 +115,7 @@ napi_value JsDisplay::OnGetLiveCreaseRegion(napi_env env, napi_callback_info inf
         napi_set_named_property(env, rect, "height", CreateJsValue(env, regionValues[baseIndex + RECT_HEIGHT_OFFSET]));
         napi_set_element(env, creaseRects, index, rect);
     }
+    napi_set_named_property(env, result, "displayId", CreateJsValue(env, static_cast<int64_t>(display_->GetId())));
     napi_set_named_property(env, result, "creaseRects", creaseRects);
     return result;
 }
