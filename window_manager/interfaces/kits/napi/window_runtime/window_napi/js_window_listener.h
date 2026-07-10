@@ -33,16 +33,19 @@ const std::string WINDOW_STAGE_EVENT_CB = "windowStageEvent";
 const std::string WINDOW_EVENT_CB = "windowEvent";
 const std::string WINDOW_STATUS_CHANGE_CB = "windowStatusChange";
 const std::string AVOID_AREA_CHANGE_CB = "avoidAreaChange";
+const std::string KEYBOARD_HEIGHT_CHANGE_CB = "keyboardHeightChange";
 
 class JsWindowListener : public IWindowChangeListener,
                          public IWindowLifeCycle,
                          public IWindowStatusChangeListener,
+                         public IOccupiedAreaChangeListener,
                          public IAvoidAreaChangedListener {
 public:
     JsWindowListener(const std::string& caseType, napi_env env, napi_ref callback)
         : caseType_(caseType), engine_(env), jsCallBack_(callback), weakRef_(wptr<JsWindowListener> (this)) {}
     ~JsWindowListener();
     void OnSizeChange(Rect rect) override;
+    void OnSizeChange(const Rect& rect, OccupiedAreaType type) override;
     void OnAvoidAreaChanged(const Rosen::AvoidArea avoidArea, Rosen::AvoidAreaType type) override;
     void AfterForeground() override;
     void AfterBackground() override;

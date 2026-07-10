@@ -77,6 +77,30 @@ void JsWindowListener::OnSizeChange(Rect rect)
     currentHeight_ = rect.height_;
 }
 
+void JsWindowListener::OnSizeChange(const Rect& rect, OccupiedAreaType type)
+{
+    WLOGI("[NAPI]OnOccupiedAreaSizeChange, type[%{public}u], wh[%{public}u, %{public}u]",
+        static_cast<uint32_t>(type), rect.width_, rect.height_);
+    if (type != OccupiedAreaType::TYPE_INPUT) {
+        WLOGD("[NAPI]occupied area type is not input");
+        return;
+    }
+
+    auto jsCallback = [self = weakRef_, height = rect.height_, env = engine_] {
+        auto thisListener = self.promote();
+        if (thisListener == nullptr || env == nullptr) {
+            WLOGE("[NAPI]this listener or env is nullptr OnOccupiedAreaSizeChange");
+            return;
+        }
+        HandleScope handleScope(env);
+        napi_value argv[] = { CreateJsValue(env, height) };
+        thisListener->CallJsMethod(env, KEYBOARD_HEIGHT_CHANGE_CB.c_str(), argv, ArraySize(argv));
+    };
+    if (napi_status::napi_ok != napi_send_event(engine_, jsCallback, napi_eprio_high)) {
+        WLOGE("[NAPI]failed to send keyboardHeightChange event");
+    }
+}
+
 void JsWindowListener::OnAvoidAreaChanged(const Rosen::AvoidArea avoidArea, Rosen::AvoidAreaType type)
 {
     WLOGD("[NAPI] OnAvoidAreaChanged");
