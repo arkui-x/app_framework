@@ -46,6 +46,4 @@ ohos_source_set("ace_uicontent_interface") {
     "//foundation/appframework/arkui/uicontent/declarative_module_preloader.cpp",
     "//foundation/appframework/arkui/uicontent/ui_content.cpp",
   ]
-
-  deps = [ "$ace_root/frameworks/core/components/theme:build_theme_code" ]
 }
