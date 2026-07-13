@@ -30,6 +30,7 @@ JsWindowRegisterManager::JsWindowRegisterManager()
         { "windowSizeChange",              &JsWindowRegisterManager::ProcessSizeChangeRegister    },
         { "windowEvent",              &JsWindowRegisterManager::ProcessLifeCycleEventRegister    },
         {AVOID_AREA_CHANGE_CB,        &JsWindowRegisterManager::ProcessAvoidAreaChangeRegister    },
+        {KEYBOARD_HEIGHT_CHANGE_CB,   &JsWindowRegisterManager::ProcessOccupiedAreaChangeRegister },
         {WINDOW_STATUS_CHANGE_CB,   &JsWindowRegisterManager::ProcessWindowStatusChangeRegister    }
     };
     // white register list for window stage
@@ -77,6 +78,23 @@ WmErrorCode JsWindowRegisterManager::ProcessAvoidAreaChangeRegister(sptr<JsWindo
         ret = WM_JS_TO_ERROR_CODE_MAP.at(window->RegisterAvoidAreaChangeListener(thisListener));
     } else {
         ret = WM_JS_TO_ERROR_CODE_MAP.at(window->UnregisterAvoidAreaChangeListener(thisListener));
+    }
+    return ret;
+}
+
+WmErrorCode JsWindowRegisterManager::ProcessOccupiedAreaChangeRegister(sptr<JsWindowListener> listener,
+    std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister)
+{
+    if (window == nullptr) {
+        WLOGE("[WindowRegister] window is nullptr");
+        return WmErrorCode::WM_ERROR_STATE_ABNORMALLY;
+    }
+    sptr<IOccupiedAreaChangeListener> thisListener(listener);
+    WmErrorCode ret;
+    if (isRegister) {
+        ret = WM_JS_TO_ERROR_CODE_MAP.at(window->RegisterOccupiedAreaChangeListener(thisListener));
+    } else {
+        ret = WM_JS_TO_ERROR_CODE_MAP.at(window->UnregisterOccupiedAreaChangeListener(thisListener));
     }
     return ret;
 }

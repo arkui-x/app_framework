@@ -76,6 +76,29 @@ public:
 };
 
 /**
+ * @brief Enumerates occupied area type.
+ */
+enum class OccupiedAreaType : uint32_t {
+    TYPE_INPUT, // area of input window
+};
+
+/**
+ * @class IOccupiedAreaChangeListener
+ *
+ * @brief IOccupiedAreaChangeListener is used to observe occupied area change.
+ */
+class IOccupiedAreaChangeListener : virtual public RefBase {
+public:
+    /**
+     * @brief Notify caller when occupied area size changed.
+     *
+     * @param rect Rect of the occupied area.
+     * @param type Type of occupied area.
+     */
+    virtual void OnSizeChange(const Rect& rect, OccupiedAreaType type) {}
+};
+
+/**
  * @class ITouchOutsideListener
  *
  * @brief ITouchOutsideListener is used to observe touch outside event.

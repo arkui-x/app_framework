@@ -45,6 +45,8 @@ private:
     std::shared_ptr<Window> window, bool isRegister);
     WmErrorCode ProcessAvoidAreaChangeRegister(sptr<JsWindowListener> listener,
         std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);
+    WmErrorCode ProcessOccupiedAreaChangeRegister(sptr<JsWindowListener> listener,
+        std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);
     WmErrorCode ProcessWindowStatusChangeRegister(sptr<JsWindowListener> listener,
         std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);
     using Func_t = WmErrorCode(JsWindowRegisterManager::*)(sptr<JsWindowListener>, std::shared_ptr<OHOS::Rosen::Window> window, bool);
