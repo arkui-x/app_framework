@@ -24,6 +24,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <utility>
 
 #ifndef SUPPORT_GRAPHICS
 #include "inttypes.h"
@@ -321,26 +322,27 @@ public:
     void RegisterClearFunc(ClearFunc func);
 
     /**
-     * get a uicontent instance from contentMap_ by instanceId
+     * get a uicontent instance from contentMap_ by abilityId
      *
-     * @param instanceId id of a ability
+     * @param abilityId id of a ability from platform side (e.g. 0/1)
      *
      * @return a instance of UIContent
      */
-    Ace::Platform::UIContent* GetUIContent(int32_t instanceId);
+    Ace::Platform::UIContent* GetUIContent(int32_t abilityId);
 
     /**
-     * add a uicontent instance to contentMap_, the key is instanceId
+     * add a uicontent instance to contentMap_ with both instanceId and abilityId as keys
      *
-     * @param instanceId id of a ability
+     * @param instanceId instance id (engine generated, e.g. 100000)
+     * @param abilityId ability id from platform side (e.g. 0/1)
      * @param content a instance of UIContent to be added
      */
-    void AddUIContent(int32_t instanceId, Ace::Platform::UIContent* content);
+    void AddUIContent(int32_t instanceId, int32_t abilityId, Ace::Platform::UIContent* content);
 
     /**
-     * remove a uicontent instance from contentMap_, the key is instanceId
+     * remove a uicontent instance from contentMap_ by instanceId
      *
-     * @param instanceId id of a ability to be removed
+     * @param instanceId instance id to be removed
      */
     void RemoveUIContent(int32_t instanceId);
 
@@ -370,7 +372,7 @@ private:
     std::mutex mutexAbilityProperties_;
     std::mutex mutexStageMonitor_;
 
-    std::unordered_map<int32_t, OHOS::Ace::Platform::UIContent*> contentMap_;
+    std::unordered_map<int32_t, std::pair<OHOS::Ace::Platform::UIContent*, int32_t>> contentMap_;
     std::shared_mutex mutex_;
 };
 }  // namespace AppExecFwk
