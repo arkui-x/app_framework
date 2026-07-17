@@ -82,6 +82,11 @@ bool RSSystemProperties::GetRenderNodePurgeEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetBackgroundRebuildEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetDrawOpTraceEnabled()
 {
     return false;
