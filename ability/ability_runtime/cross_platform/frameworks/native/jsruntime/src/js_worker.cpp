@@ -51,6 +51,7 @@ namespace {
 constexpr int64_t ASSET_FILE_MAX_SIZE = 32 * 1024 * 1024;
 const std::string BUNDLE_NAME_FLAG = "@bundle:";
 const std::string CACHE_DIRECTORY = "el2";
+const std::string LOCAL_BUNDLE_CODE_PATH = "/data/storage/el1/bundle/";
 #if defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
     constexpr char ARK_DEBUGGER_LIB_PATH[] = "libark_debugger.z.so";
 #else
@@ -126,36 +127,71 @@ void OffWorkerFunc(NativeEngine* nativeEngine)
     }
 }
 
+std::string JoinFilePath(const std::string& baseDir, const std::string& subPath)
+{
+    std::string path = baseDir;
+    if (!subPath.empty() && subPath.front() != '/') {
+        path.append("/");
+    }
+    path.append(subPath);
+    return path;
+}
+
+bool ReadFileContent(const std::string& path, std::vector<uint8_t>& content, bool isDebugVersion, const char* tag)
+{
+    std::ifstream stream(path.c_str(), std::ios::binary | std::ios::ate);
+    if (!stream.is_open()) {
+        HILOG_ERROR("%{public}s failed to open file %{private}s", tag, path.c_str());
+        return false;
+    }
+
+    auto fileLen = stream.tellg();
+    if (fileLen <= 0) {
+        HILOG_ERROR("%{public}s invalid file size, fileLen: %{public}ld", tag, static_cast<long>(fileLen));
+        return false;
+    }
+    if (!isDebugVersion && fileLen > ASSET_FILE_MAX_SIZE) {
+        HILOG_ERROR("%{public}s failed, file is too large", tag);
+        return false;
+    }
+
+    content.resize(static_cast<size_t>(fileLen));
+    stream.seekg(0);
+    stream.read(reinterpret_cast<char*>(content.data()), content.size());
+    if (!stream || static_cast<std::streamsize>(stream.gcount()) != static_cast<std::streamsize>(content.size())) {
+        HILOG_ERROR("%{public}s read incomplete, got %{public}ld of %{public}zu bytes",
+            tag, static_cast<long>(stream.gcount()), content.size());
+        content.clear();
+        return false;
+    }
+    return true;
+}
+
 bool ReadAssetData(const std::string& filePath, std::vector<uint8_t>& content, bool isDebugVersion)
 {
-    std::string path;
 #if defined(ANDROID_PLATFORM)
     content = Platform::StageAssetProvider::GetInstance()->GetAbcPathBuffer(filePath);
     return true;
 #else
     std::string bundleCodeDir = Platform::StageAssetProvider::GetInstance()->GetBundleCodeDir();
-    path = bundleCodeDir + "/" + filePath;
+    if (bundleCodeDir.empty() || filePath.empty()) {
+        HILOG_ERROR("ReadAssetData invalid params, bundleCodeDir or filePath is empty");
+        return false;
+    }
+    std::string path = JoinFilePath(bundleCodeDir, filePath);
+    return ReadFileContent(path, content, isDebugVersion, "ReadAssetData");
 #endif
-    if (path.empty()) {
-        HILOG_ERROR("ReadAssetData path is empty");
-        return false; 
-    }
-    std::ifstream stream(path.c_str(), std::ios::binary | std::ios::ate);
-    if (!stream.is_open()) {
-        HILOG_ERROR("ReadAssetData failed to open file %{private}s", filePath.c_str());
+}
+
+bool ReadSandboxData(const std::string& filePath, std::vector<uint8_t>& content, bool isDebugVersion)
+{
+    std::string filesDir = Platform::StageAssetProvider::GetInstance()->GetAppDataModuleDir();
+    if (filesDir.empty() || filePath.empty()) {
+        HILOG_ERROR("ReadSandboxData invalid params, filesDir or filePath is empty");
         return false;
     }
-
-    auto fileLen = stream.tellg();
-    if (!isDebugVersion && fileLen > ASSET_FILE_MAX_SIZE) {
-        HILOG_ERROR("ReadAssetData failed, file is too large");
-        return false;
-    }
-
-    content.resize(fileLen);
-    stream.seekg(0);
-    stream.read(reinterpret_cast<char*>(content.data()), content.size());
-    return true;
+    std::string path = JoinFilePath(filesDir, filePath);
+    return ReadFileContent(path, content, isDebugVersion, "ReadSandboxData");
 }
 
 struct AssetHelper final {
@@ -243,15 +279,17 @@ struct AssetHelper final {
             filePath = NormalizedFileName(realPath);
         }
 #if defined(ANDROID_PLATFORM) || defined(IOS_PLATFORM)
-        ami = filePath;
+        ami = LOCAL_BUNDLE_CODE_PATH + filePath;
 #else
         ami = codePath_ + filePath;
 #endif
-        HILOG_INFO("Get asset, ami: %{private}s", ami.c_str());
+        HILOG_INFO("Get buff, ami: %{private}s", ami.c_str());
         useSecureMem = false;
-        if (!ReadAssetData(ami, content, isDebugVersion_)) {
-            HILOG_ERROR("Get asset buff failed.");
-            return;
+        if (!ReadAssetData(filePath, content, isDebugVersion_) || content.empty()) {
+            if (!ReadSandboxData(filePath, content, isDebugVersion_)) {
+                HILOG_ERROR("Get asset and sandbox buff both failed, filePath: %{private}s", filePath.c_str());
+                return;
+            }
         }
     }
 
