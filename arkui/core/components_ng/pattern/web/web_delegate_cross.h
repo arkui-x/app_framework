@@ -758,7 +758,6 @@ private:
     void OnDownloadStart(void* object);
     bool OnShowFileChooser(void* object);
     void OnGeolocationPermissionsShowPrompt(void* object);
-    void RecordWebEvent(Recorder::EventType eventType, const std::string& param) const;
     void RunJsProxyCallback();
     void RegisterWebInerceptAndOverrideEvent();
     void UnRegisterWebObjectEvent();
