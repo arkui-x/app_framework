@@ -96,6 +96,7 @@ namespace {
     constexpr float UNDEFINED_BRIGHTNESS = -1.0f;
     constexpr float MINIMUM_BRIGHTNESS = 0.0f;
     constexpr float MAXIMUM_BRIGHTNESS = 1.0f;
+    constexpr float UNDEFINED_DENSITY = -1.0f;
     constexpr int32_t INVALID_PID = -1;
     constexpr int32_t INVALID_UID = -1;
 }
@@ -332,6 +333,17 @@ struct Rect {
         return (posX_ >= a.posX_ && posY_ >= a.posY_ &&
             posX_ + width_ <= a.posX_ + a.width_ && posY_ + height_ <= a.posY_ + a.height_);
     }
+};
+
+/**
+ * @struct WindowDensityInfo
+ *
+ * @brief Currently available density of the window.
+ */
+struct WindowDensityInfo {
+    float systemDensity = UNDEFINED_DENSITY;
+    float defaultDensity = UNDEFINED_DENSITY;
+    float customDensity = UNDEFINED_DENSITY;
 };
 
 /**

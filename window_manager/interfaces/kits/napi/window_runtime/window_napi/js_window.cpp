@@ -110,6 +110,13 @@ napi_value JsWindow::GetWindowPropertiesSync(napi_env env, napi_callback_info in
     return (me != nullptr) ? me->OnGetWindowPropertiesSync(env, info) : nullptr;
 }
 
+napi_value JsWindow::GetWindowDensityInfo(napi_env env, napi_callback_info info)
+{
+    WLOGD("JsWindow::GetWindowDensityInfo");
+    JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
+    return (me != nullptr) ? me->OnGetWindowDensityInfo(env, info) : nullptr;
+}
+
 napi_value JsWindow::SetWindowSystemBarEnable(napi_env env, napi_callback_info info)
 {
     WLOGD("JsWindow::SetWindowSystemBarEnable");
@@ -433,6 +440,34 @@ napi_value JsWindow::OnGetWindowPropertiesSync(napi_env env, napi_callback_info 
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
         return CreateUndefined(env);
     }
+    return objValue;
+}
+
+napi_value JsWindow::OnGetWindowDensityInfo(napi_env env, napi_callback_info info)
+{
+    WLOGD("JsWindow::OnGetWindowDensityInfo : Start...");
+    std::weak_ptr<Window> weakToken(windowToken_);
+    auto window = weakToken.lock();
+    if (window == nullptr) {
+        WLOGE("JsWindow::OnGetWindowDensityInfo : window is nullptr");
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
+        return CreateUndefined(env);
+    }
+    WindowDensityInfo densityInfo;
+    WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(window->GetWindowDensityInfo(densityInfo));
+    if (ret != WmErrorCode::WM_OK) {
+        WLOGE("JsWindow::OnGetWindowDensityInfo : get failed, result=%{public}d", static_cast<int32_t>(ret));
+        napi_throw(env, CreateWindowsJsError(env, ret));
+        return CreateUndefined(env);
+    }
+    auto objValue = ConvertWindowDensityInfoToJsValue(env, densityInfo);
+    if (objValue == nullptr) {
+        WLOGE("JsWindow::OnGetWindowDensityInfo : create js object failed");
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
+        return CreateUndefined(env);
+    }
+    WLOGI("JsWindow::OnGetWindowDensityInfo : Window [%{public}u, %{public}s] get density end",
+        window->GetWindowId(), window->GetWindowName().c_str());
     return objValue;
 }
 
@@ -1410,6 +1445,7 @@ static const napi_property_descriptor g_props[] = {
     DECLARE_NAPI_FUNCTION("moveWindowTo", JsWindow::MoveWindowTo),
     DECLARE_NAPI_FUNCTION("resize", JsWindow::Resize),
     DECLARE_NAPI_FUNCTION("getWindowProperties", JsWindow::GetWindowPropertiesSync),
+    DECLARE_NAPI_FUNCTION("getWindowDensityInfo", JsWindow::GetWindowDensityInfo),
     DECLARE_NAPI_FUNCTION("setWindowSystemBarEnable", JsWindow::SetWindowSystemBarEnable),
     DECLARE_NAPI_FUNCTION("setPreferredOrientation", JsWindow::SetPreferredOrientation),
     DECLARE_NAPI_FUNCTION("loadContent", JsWindow::LoadContent),

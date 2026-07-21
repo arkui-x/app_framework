@@ -347,6 +347,19 @@ napi_value WindowColorSpaceInit(napi_env env)
     return CreateObject(env, nullptr, props, sizeof(props) / sizeof(props[0]));
 }
 
+napi_value ConvertWindowDensityInfoToJsValue(napi_env env, const WindowDensityInfo& windowDensityInfo)
+{
+    const napi_property_descriptor props[] = {
+        DECLARE_NAPI_PROPERTY("systemDensity",
+            CreateJsValue(env, static_cast<double>(windowDensityInfo.systemDensity))),
+        DECLARE_NAPI_PROPERTY("defaultDensity",
+            CreateJsValue(env, static_cast<double>(windowDensityInfo.defaultDensity))),
+        DECLARE_NAPI_PROPERTY("customDensity",
+            CreateJsValue(env, static_cast<double>(windowDensityInfo.customDensity))),
+    };
+    return CreateObject(env, nullptr, props, sizeof(props) / sizeof(props[0]));
+}
+
 napi_value GetRectAndConvertToJsValue(napi_env env, const Rect& rect)
 {
     const napi_property_descriptor props[] = {
