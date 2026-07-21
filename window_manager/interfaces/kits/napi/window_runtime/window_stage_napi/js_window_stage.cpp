@@ -386,14 +386,15 @@ napi_value JsWindowStage::OnCreateSubWindowWithOptions(napi_env env, napi_callba
         auto weakWindowStage = weak.lock();
         if (weakWindowStage == nullptr) {
             WLOGE("JsWindowStage::OnCreateSubWindowWithOptions : Window scene is null");
-            task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
+            task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY,
+                "This window state is abnormal."));
             return;
         }
         auto window = weakWindowStage->CreateSubWindow(windowName, windowOption);
         if (window == nullptr) {
             WLOGE("JsWindowStage::OnCreateSubWindowWithOptions : create sub window failed");
             task.Reject(env, CreateWindowsJsError(env,
-                WmErrorCode::WM_ERROR_STATE_ABNORMALLY, "Create sub window failed"));
+                WmErrorCode::WM_ERROR_STATE_ABNORMALLY, "This window state is abnormal."));
             return;
         }
         task.Resolve(env, CreateJsWindowObject(env, window));
