@@ -668,6 +668,7 @@ bool ToApplicationInfo(
     applicationInfo.enabled = true;
     applicationInfo.multiProjects = app.multiProjects;
     applicationInfo.process = app.bundleName;
+    applicationInfo.accessTokenId = Constants::DEFAULT_ACCESS_TOKEN_ID;
     return true;
 }
 
