@@ -1332,7 +1332,7 @@ void WebPattern::HandleParentFirstScroll(
         auto swiperModifier = NodeModifier::GetSwiperCustomModifier();
         if (swiperModifier) {
             auto node = reinterpret_cast<ArkUINodeHandle>(AceType::RawPtr(swiperParentNode));
-            int32_t index = swiperModifier->getCurrentIndex(node, false);
+            int32_t index = swiperModifier->getCurrentShownIndex(node);
             int32_t total = swiperModifier->getTotalCount(node);
             if (index != total - 1 && index != 0) {
                 isParentReachEdge_ = false;
