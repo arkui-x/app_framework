@@ -1,4 +1,4 @@
-/*
+       /*
  * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,12 @@ JsWindowRegisterManager::JsWindowRegisterManager()
     // white register list for window
     listenerProcess_[CaseType::CASE_WINDOW] = {
         { "windowSizeChange",              &JsWindowRegisterManager::ProcessSizeChangeRegister    },
+        {WINDOW_RECT_CHANGE_CB,       &JsWindowRegisterManager::ProcessWindowRectChangeRegister    },
         { "windowEvent",              &JsWindowRegisterManager::ProcessLifeCycleEventRegister    },
         {AVOID_AREA_CHANGE_CB,        &JsWindowRegisterManager::ProcessAvoidAreaChangeRegister    },
         {KEYBOARD_HEIGHT_CHANGE_CB,   &JsWindowRegisterManager::ProcessOccupiedAreaChangeRegister },
-        {WINDOW_STATUS_CHANGE_CB,   &JsWindowRegisterManager::ProcessWindowStatusChangeRegister    }
+        {WINDOW_STATUS_CHANGE_CB,     &JsWindowRegisterManager::ProcessWindowStatusChangeRegister  },
+        {WINDOW_STATUS_DID_CHANGE_CB, &JsWindowRegisterManager::ProcessWindowStatusDidChangeRegister }
     };
     // white register list for window stage
     listenerProcess_[CaseType::CASE_STAGE] = {
@@ -112,6 +114,40 @@ WmErrorCode JsWindowRegisterManager::ProcessWindowStatusChangeRegister(sptr<JsWi
         ret = WM_JS_TO_ERROR_CODE_MAP.at(window->RegisterWindowStatusChangeListener(thisListener));
     } else {
         ret = WM_JS_TO_ERROR_CODE_MAP.at(window->UnregisterWindowStatusChangeListener(thisListener));
+    }
+    return ret;
+}
+
+WmErrorCode JsWindowRegisterManager::ProcessWindowRectChangeRegister(sptr<JsWindowListener> listener,
+    std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister)
+{
+    if (window == nullptr) {
+        WLOGE("[WindowRegister] window is nullptr");
+        return WmErrorCode::WM_ERROR_STATE_ABNORMALLY;
+    }
+    sptr<IWindowRectChangeListener> thisListener(listener);
+    WmErrorCode ret;
+    if (isRegister) {
+        ret = WM_JS_TO_ERROR_CODE_MAP.at(window->RegisterWindowRectChangeListener(thisListener));
+    } else {
+        ret = WM_JS_TO_ERROR_CODE_MAP.at(window->UnregisterWindowRectChangeListener(thisListener));
+    }
+    return ret;
+}
+
+WmErrorCode JsWindowRegisterManager::ProcessWindowStatusDidChangeRegister(sptr<JsWindowListener> listener,
+    std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister)
+{
+    if (window == nullptr) {
+        WLOGE("[WindowRegister] window is nullptr");
+        return WmErrorCode::WM_ERROR_STATE_ABNORMALLY;
+    }
+    sptr<IWindowStatusDidChangeListener> thisListener(listener);
+    WmErrorCode ret;
+    if (isRegister) {
+        ret = WM_JS_TO_ERROR_CODE_MAP.at(window->RegisterWindowStatusDidChangeListener(thisListener));
+    } else {
+        ret = WM_JS_TO_ERROR_CODE_MAP.at(window->UnregisterWindowStatusDidChangeListener(thisListener));
     }
     return ret;
 }
