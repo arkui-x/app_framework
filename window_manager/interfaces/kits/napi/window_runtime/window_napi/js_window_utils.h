@@ -56,6 +56,8 @@ enum class LifeCycleEventType : uint32_t {
     ACTIVE,
     INACTIVE,
     BACKGROUND,
+    RESUMED,
+    PAUSED,
 };
 
 enum class ApiModalityType : int32_t {

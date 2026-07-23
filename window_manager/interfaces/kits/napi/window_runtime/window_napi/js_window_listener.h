@@ -51,6 +51,8 @@ public:
     void AfterBackground() override;
     void AfterFocused() override;
     void AfterUnfocused() override;
+    void AfterActive() override;
+    void AfterInactive() override;
     void OnWindowStatusChange(WindowStatus status) override;
     void CallJsMethod(napi_env env, const char* methodName, napi_value const* argv = nullptr, size_t argc = 0);
 private:

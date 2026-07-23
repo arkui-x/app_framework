@@ -20,7 +20,13 @@
 #include "napi/native_node_api.h"
 
 namespace OHOS {
+namespace AbilityRuntime {
+namespace Platform {
+class Context;
+} // namespace Platform
+} // namespace AbilityRuntime
 namespace Rosen {
+enum class WmErrorCode;
 class WindowOption;
 napi_value JsWindowManagerInit(napi_env env, napi_value exportObj);
 class JsWindowManager {
@@ -35,7 +41,8 @@ private:
     static napi_value OnCreateWindow(napi_env env, napi_callback_info info);
     static napi_value OnFindWindowSync(napi_env env, napi_callback_info info);
     static napi_value OnGetLastWindow(napi_env env, napi_callback_info info);
-    static bool ParseConfigOption(napi_env env, napi_value jsObject, WindowOption& option, void*& contextPtr);
+    static bool ParseConfigOption(napi_env env, napi_value jsObject, WindowOption& option,
+        std::shared_ptr<AbilityRuntime::Platform::Context>& context, WmErrorCode& errCode);
 };
 }  // namespace Rosen
 }  // namespace OHOS
