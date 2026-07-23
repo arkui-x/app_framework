@@ -35,8 +35,7 @@
 #include "core/event/touch_event.h"
 #include "core/pipeline_ng/pipeline_context.h"
 #include "core/components_ng/pattern/refresh/refresh_pattern.h"
-#include "core/components_v2/inspector/inspector_constants.h"
-#include "core/interfaces/native/node/node_swiper_modifier.h"
+#include "core/components_ng/pattern/swiper/swiper_pattern.h"
 #include "frameworks/base/utils/system_properties.h"
 #include "web_delegate_cross.h"
 
@@ -1327,16 +1326,12 @@ void WebPattern::HandleParentFirstScroll(
     offset = (scrollAxis == Axis::HORIZONTAL) ?
             (dx > 0 ? 0.1f : (dx < 0 ? -0.1f : 0)) : (dy > 0 ? 0.1f : (dy < 0 ? -0.1f : 0));
     isParentReachEdge_ = parent->HandleScroll(offset, SCROLL_FROM_UPDATE, NestedState::CHILD_SCROLL).reachEdge;
-    auto swiperParentNode = SearchSwiperParent(parent, expectedScrollAxis_);
-    if (swiperParentNode) {
-        auto swiperModifier = NodeModifier::GetSwiperCustomModifier();
-        if (swiperModifier) {
-            auto node = reinterpret_cast<ArkUINodeHandle>(AceType::RawPtr(swiperParentNode));
-            int32_t index = swiperModifier->getCurrentIndex(node, false);
-            int32_t total = swiperModifier->getTotalCount(node);
-            if (index != total - 1 && index != 0) {
-                isParentReachEdge_ = false;
-            }
+    auto swiperParent = SearchSwiperParent(parent, expectedScrollAxis_);
+    if (swiperParent) {
+        int32_t index = swiperParent->GetCurrentShownIndex();
+        int32_t total = swiperParent->TotalCount();
+        if (index != total - 1 && index != 0) {
+            isParentReachEdge_ = false;
         }
     }
     if (isParentReachEdge_) {
@@ -1404,7 +1399,7 @@ RefPtr<SheetPresentationPattern> WebPattern::SearchSheetParent(RefPtr<NestableSc
     return nullptr;
 }
 
-RefPtr<FrameNode> WebPattern::SearchSwiperParent(RefPtr<NestableScrollContainer> pattern,
+RefPtr<SwiperPattern> WebPattern::SearchSwiperParent(RefPtr<NestableScrollContainer> pattern,
     Axis scrollAxis)
 {
     if (pattern == nullptr) {
@@ -1417,12 +1412,13 @@ RefPtr<FrameNode> WebPattern::SearchSwiperParent(RefPtr<NestableScrollContainer>
         if (!frameNode) {
             continue;
         }
-        if (frameNode->GetTag() != V2::SWIPER_ETS_TAG ||
+        auto pattern = frameNode->GetPattern<OHOS::Ace::NG::SwiperPattern>();
+        if (!pattern ||
             (!AceApplicationInfo::GetInstance().GreatOrEqualTargetAPIVersion(PlatformVersion::VERSION_TWELVE) &&
-                frameNode->GetTag() == V2::REFRESH_ETS_TAG)) {
+                InstanceOf<RefreshPattern>(pattern))) {
             continue;
         }
-        return frameNode;
+        return pattern;
     }
     return nullptr;
 }
@@ -1745,8 +1741,7 @@ void WebPattern::HandleIOSNestedScroll(float dx, float dy, const ScrollDirection
                 averageDistanceX_ += dx;
             }
             auto parentPtr = SearchParent(expectedScrollAxis_);
-            auto parentHost = parentPtr ? parentPtr->GetHost() : nullptr;
-            if (parentHost && parentHost->GetTag() == V2::SWIPER_ETS_TAG) {
+            if (AceType::DynamicCast<SwiperPattern>(parentPtr)) {
                 HandleIOSSwiperNestedScroll(dx, dy);
             } else {
                 OnNestedScroll(averageDistanceX_, averageDistanceY_, 0.0f, 0.0f, true);
