@@ -139,6 +139,7 @@ void AbilityStage::DispatchOnNewWant(const AAFwk::Want& want)
         return;
     }
 
+    ability->SetWant(want);
     ability->OnNewWant(want);
 }
 
