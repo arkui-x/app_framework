@@ -72,7 +72,7 @@ public:
     static std::unique_ptr<UIContent> Create(OHOS::AbilityRuntime::Platform::Context* context, NativeEngine* runtime);
     static void ShowDumpHelp(std::vector<std::string>& info);
 
-    static void AddUIContent(int32_t instanceId, UIContent* content);
+    static void AddUIContent(int32_t instanceId, int32_t abilityId, UIContent* content);
     static void RemoveUIContent(int32_t instanceId);
 
     virtual ~UIContent() = default;
