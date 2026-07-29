@@ -2401,6 +2401,11 @@ void WebPattern::OnOptimizeParserBudgetEnabledUpdate(bool value)
     // cross platform is not support now;
 }
 
+void WebPattern::OnWebMediaNetworkProxyEnabledUpdate(bool enable)
+{
+    // cross platform is not support now;
+}
+
 void WebPattern::OnWebMediaAVSessionEnabledUpdate(bool value)
 {
     // cross platform is not support now;
