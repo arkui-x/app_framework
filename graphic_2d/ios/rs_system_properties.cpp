@@ -122,6 +122,11 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetUpdateDisplayListExtEnabled()
+{
+    return false;
+}
+
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
 {
     return {};
@@ -157,11 +162,6 @@ void RSSystemProperties::SetDrawTextAsBitmap(bool flag)
 }
 
 bool RSSystemProperties::GetDrawTextAsBitmap()
-{
-    return {};
-}
-
-ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     return {};
 }
@@ -549,6 +549,12 @@ bool RSSystemProperties::RebuildDebugEnabled()
 }
 
 bool RSSystemProperties::GetCompositeLayerEnabled()
+{
+    return false;
+}
+
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
+bool RSSystemProperties::GetHybridRenderCanvasEnabled()
 {
     return false;
 }
