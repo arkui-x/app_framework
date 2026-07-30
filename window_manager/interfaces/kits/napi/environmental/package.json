@@ -1,0 +1,13 @@
+{
+  "name": "windowEnv",
+  "version": "0.0.1",
+  "description": "ACE 2.0 Window Env",
+  "devDependencies": {
+    "typescript": "4.9.5"
+  },
+  "scripts": {
+    "build_release": "rm -rf ./engine  &&  mkdir -p ./engine  &&  tsc --build tsconfig.json"
+  },
+  "author": "window",
+  "license": "Apache-2.0"
+}

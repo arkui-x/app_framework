@@ -1,0 +1,137 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//build/templates/abc/ohos_abc.gni")
+import("//foundation/appframework/ability/ability_runtime/ability_runtime.gni")
+import("//foundation/arkui/ace_engine/build/ace_gen_obj.gni")
+
+name_mapping = [
+  {
+    js_file = "$target_out_dir/engine/WindowSizeEnv.js"
+    ts_file = "src/WindowSizeEnv.ts"
+    abc_name = "windowsizeenv"
+  },
+  {
+    js_file = "$target_out_dir/engine/WindowAvoidAreaEnv.js"
+    ts_file = "src/WindowAvoidAreaEnv.ts"
+    abc_name = "windowavoidareaenv"
+  },
+]
+
+ts_inputs = [ "src/common.d.ts" ]
+js_outputs = []
+foreach(mapping, name_mapping) {
+  js_outputs += [ mapping.js_file ]
+  ts_inputs += [ mapping.ts_file ]
+}
+
+action("run_window_env_build") {
+  script = "/usr/bin/python3"
+  inputs = ts_inputs + [
+             "build.py",
+             "package.json",
+             "package-lock.json",
+             "tsconfig.json",
+           ]
+  outputs = js_outputs
+  args = [
+    rebase_path("build.py"),
+    rebase_path(
+        "//foundation/appframework/window_manager/interfaces/kits/napi/environmental"),
+    rebase_path("$target_gen_dir/windowenv_npm/node_modules"),
+    rebase_path("$target_out_dir/engine"),
+  ]
+}
+
+abc_targets = []
+foreach(mapping, name_mapping) {
+  abc_targets += [ ":${mapping.abc_name}" ]
+
+  ohos_abc(mapping.abc_name) {
+    sources = [ mapping.js_file ]
+    output_name = "${mapping.abc_name}"
+    install_images = [ "system" ]
+    module_install_dir = "etc/abc/window"
+    part_name = "window_manager"
+    subsystem_name = "window"
+    deps = [ ":run_window_env_build" ]
+  }
+}
+
+gen_obj("window_avoid_area_env_js") {
+  input = "$target_out_dir/engine/WindowAvoidAreaEnv.js"
+  if (target_os == "ios") {
+    output = target_out_dir + "/WindowAvoidAreaEnv.c"
+  } else {
+    output = target_out_dir + "/WindowAvoidAreaEnv.o"
+  }
+  snapshot_dep = [ ":run_window_env_build" ]
+}
+
+gen_obj("window_avoid_area_env_abc") {
+  input = "$root_out_dir/window/window_manager/windowavoidareaenv.abc"
+  if (target_os == "ios") {
+    output = target_out_dir + "/windowavoidareaenv_abc.c"
+  } else {
+    output = target_out_dir + "/windowavoidareaenv_abc.o"
+  }
+  snapshot_dep = [ ":windowavoidareaenv" ]
+}
+
+gen_obj("window_size_env_js") {
+  input = "$target_out_dir/engine/WindowSizeEnv.js"
+  if (target_os == "ios") {
+    output = target_out_dir + "/WindowSizeEnv.c"
+  } else {
+    output = target_out_dir + "/WindowSizeEnv.o"
+  }
+  snapshot_dep = [ ":run_window_env_build" ]
+}
+
+gen_obj("window_size_env_abc") {
+  input = "$root_out_dir/window/window_manager/windowsizeenv.abc"
+  if (target_os == "ios") {
+    output = target_out_dir + "/windowsizeenv_abc.c"
+  } else {
+    output = target_out_dir + "/windowsizeenv_abc.o"
+  }
+  snapshot_dep = [ ":windowsizeenv" ]
+}
+
+ohos_source_set("windowenv_napi_modules") {
+  sources = [
+    "window_avoid_area_env_module.cpp",
+    "window_size_env_module.cpp",
+  ]
+
+  deps = [
+    ":gen_obj_src_window_avoid_area_env_abc",
+    ":gen_obj_src_window_avoid_area_env_js",
+    ":gen_obj_src_window_size_env_abc",
+    ":gen_obj_src_window_size_env_js",
+  ]
+
+  if (use_static_napi_libs) {
+    deps += [ "//foundation/arkui/napi:ace_napi" ]
+  } else {
+    deps += [ "//plugins/libs/napi:napi_${target_os}" ]
+  }
+
+  part_name = "window_manager"
+  subsystem_name = "window"
+}
+
+group("windowenv_packages") {
+  deps = abc_targets + [ ":windowenv_napi_modules" ]
+}
