@@ -552,5 +552,11 @@ bool RSSystemProperties::GetCompositeLayerEnabled()
 {
     return false;
 }
+
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
+bool RSSystemProperties::GetHybridRenderCanvasEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS
