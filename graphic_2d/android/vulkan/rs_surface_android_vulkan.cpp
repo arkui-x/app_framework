@@ -229,7 +229,8 @@ bool RSSurfaceAndroidVulkan::RecreateSwapchainIfNeeded(int32_t width, int32_t he
     skiaSurfaces_.shrink_to_fit();
 
     if (mSkContext) {
-        mSkContext->PurgeUnlockedResources(true);
+        mSkContext->FlushAndSubmit(true);
+        mSkContext->PurgeUnlockAndSafeCacheGpuResources();
         Drawing::SkiaGPUContext* skiaGpuContext = mSkContext->GetImpl<Drawing::SkiaGPUContext>();
         if (skiaGpuContext) {
             sk_sp<GrDirectContext> grContext = skiaGpuContext->GetGrContext();
