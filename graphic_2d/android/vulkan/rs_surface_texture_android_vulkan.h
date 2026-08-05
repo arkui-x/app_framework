@@ -48,6 +48,7 @@ protected:
 
 private:
     bool GetHardwareBuffer();
+    void ApplyRotatedDraw(RSPaintFilterCanvas& canvas, const Drawing::Rect& clipRect);
     void ReleaseTextureInfoMap(std::unordered_map<uintptr_t, std::shared_ptr<Drawing::VKTextureInfo>>& infoMap);
 
     int32_t textureId_ = 0;
@@ -59,6 +60,7 @@ private:
     std::shared_ptr<Drawing::Image> cachedImage_;
     uint32_t textureWidth_ = 0;
     uint32_t textureHeight_ = 0;
+    int32_t rotationDegrees_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
