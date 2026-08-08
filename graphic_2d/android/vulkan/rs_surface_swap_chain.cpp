@@ -130,9 +130,9 @@ VkSwapchainCreateInfoKHR RSSurfaceSwapChain::BuildSwapchainCreateInfo(int32_t wi
 
     createInfo.preTransform = preTransform;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+    createInfo.presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
     ROSEN_LOGI("RSSurfaceSwapChain::BuildSwapchainCreateInfo compositeAlpha=%{public}u(forced OPAQUE)"
-        " presentMode=%{public}u(forced FIFO) supportedCompositeAlpha=0x%{public}x",
+        " presentMode=%{public}u supportedCompositeAlpha=0x%{public}x",
         static_cast<uint32_t>(createInfo.compositeAlpha),
         static_cast<uint32_t>(createInfo.presentMode),
         static_cast<uint32_t>(swapChainSupport.capabilities.supportedCompositeAlpha));
