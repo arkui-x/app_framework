@@ -185,6 +185,11 @@ napi_value JsWindowStage::OnEvent(napi_env env, napi_callback_info info)
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return CreateUndefined(env);
     }
+    if (eventString != "windowStageEvent") {
+        WLOGE("JsWindowStage::OnEvent : event %{public}s is invalid", eventString.c_str());
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
+        return CreateUndefined(env);
+    }
     napi_valuetype type;
     napi_typeof(env, argv[1], &type);
     if (type != napi_function) {
@@ -199,7 +204,11 @@ napi_value JsWindowStage::OnEvent(napi_env env, napi_callback_info info)
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
         return CreateUndefined(env);
     }
-    g_listenerManager->RegisterListener(env, window, eventString, CaseType::CASE_STAGE, argv[1]);
+    WmErrorCode ret = g_listenerManager->RegisterListener(env, window, eventString, CaseType::CASE_STAGE, argv[1]);
+    if (ret != WmErrorCode::WM_OK) {
+        napi_throw(env, CreateWindowsJsError(env, ret));
+        return CreateUndefined(env);
+    }
     WLOGD("JsWindowStage::OnEvent : Window [%{public}u, %{public}s] register event %{public}s",
         window->GetWindowId(), window->GetWindowName().c_str(), eventString.c_str());
 
