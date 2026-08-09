@@ -220,6 +220,19 @@ napi_value JsWindow::GetPreferredOrientation(napi_env env, napi_callback_info in
     return me->OnGetPreferredOrientation(env, info);
 }
 
+napi_value JsWindow::GetWindowStatus(napi_env env, napi_callback_info info)
+{
+    WLOGD("JsWindow::GetWindowStatus");
+    if (env == nullptr) {
+        return nullptr;
+    }
+    JsWindow* me = CheckParamsAndGetThis<JsWindow>(env, info);
+    if (me == nullptr) {
+        return nullptr;
+    }
+    return me->OnGetWindowStatus(env, info);
+}
+
 napi_value JsWindow::OnShowWindow(napi_env env, napi_callback_info info)
 {
     WLOGD("JsWindow::OnShowWindow : Start...");
@@ -946,6 +959,27 @@ napi_value JsWindow::OnGetWindowColorSpace(napi_env env, napi_callback_info info
     return CreateJsValue(env, static_cast<uint32_t>(colorSpace));
 }
 
+napi_value JsWindow::OnGetWindowStatus(napi_env env, napi_callback_info info)
+{
+    std::weak_ptr<Window> weakToken(windowToken_);
+    auto weakWindow = weakToken.lock();
+    if (weakWindow == nullptr) {
+        WLOGE("JsWindow::OnGetWindowStatus is nullptr");
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
+        return CreateUndefined(env);
+    }
+    WindowStatus windowStatus = WindowStatus::WINDOW_STATUS_UNDEFINED;
+    WmErrorCode ret = WM_JS_TO_ERROR_CODE_MAP.at(weakWindow->GetWindowStatus(windowStatus));
+    if (ret != WmErrorCode::WM_OK) {
+        WLOGE("JsWindow::OnGetWindowStatus failed, errcode: %{public}d", ret);
+        napi_throw(env, CreateWindowsJsError(env, ret, "GetWindowStatus failed"));
+        return CreateUndefined(env);
+    }
+    WLOGI("JsWindow [%{public}u, %{public}s] OnGetWindowStatus end, windowStatus = %{public}u",
+        weakWindow->GetWindowId(), weakWindow->GetWindowName().c_str(), static_cast<uint32_t>(windowStatus));
+    return CreateJsValue(env, static_cast<uint32_t>(windowStatus));
+}
+
 napi_value JsWindow::OnRegisterWindowManagerCallback(napi_env env, napi_callback_info info)
 {
     WLOGD("JsWindow::OnRegisterWindowManagerCallback : Start...");
@@ -1471,6 +1505,7 @@ static const napi_property_descriptor g_props[] = {
     DECLARE_NAPI_FUNCTION("isFocused", JsWindow::IsFocused),
     DECLARE_NAPI_FUNCTION("setWindowSystemBarProperties", JsWindow::SetWindowSystemBarProperties),
     DECLARE_NAPI_FUNCTION("getPreferredOrientation", JsWindow::GetPreferredOrientation),
+    DECLARE_NAPI_FUNCTION("getWindowStatus", JsWindow::GetWindowStatus),
 };
 
 napi_value CreateJsWindowObject(napi_env env, std::shared_ptr<Rosen::Window>& window)

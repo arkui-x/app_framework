@@ -77,6 +77,54 @@ void JsWindowListener::OnSizeChange(Rect rect)
     currentHeight_ = rect.height_;
 }
 
+void JsWindowListener::OnRectChange(Rect rect, WindowSizeChangeReason reason)
+{
+    WLOGI("[NAPI]OnRectChange, rect[%{public}d, %{public}d, %{public}u, %{public}u]",
+        rect.posX_, rect.posY_, rect.width_, rect.height_);
+    if (currentRect_ == rect && reason == WindowSizeChangeReason::UNDEFINED) {
+        WLOGI("[NAPI]no need to change rect");
+        return;
+    }
+    RectChangeReason rectChangeReason = RectChangeReason::UNDEFINED;
+    auto it = JS_SIZE_CHANGE_REASON.find(reason);
+    if (it != JS_SIZE_CHANGE_REASON.end() &&
+        !(reason == WindowSizeChangeReason::MAXIMIZE && rect.posX_ != 0)) {
+        rectChangeReason = it->second;
+    }
+    if (rectChangeReason == RectChangeReason::DRAG_END &&
+        currentReason_ != RectChangeReason::DRAG_START && currentReason_ != RectChangeReason::DRAG) {
+        rectChangeReason = RectChangeReason::MOVE;
+    }
+    auto jsCallback = [self = weakRef_, rect, rectChangeReason, env = engine_] {
+        auto thisListener = self.promote();
+        if (thisListener == nullptr || env == nullptr) {
+            WLOGE("[NAPI]this listener or env is nullptr OnRectChange");
+            return;
+        }
+        HandleScope handleScope(env);
+        napi_value objValue = nullptr;
+        napi_create_object(env, &objValue);
+        if (objValue == nullptr) {
+            WLOGE("Failed to create rect jsObject");
+            return;
+        }
+        napi_set_named_property(env, objValue, "rect", GetRectAndConvertToJsValue(env, rect));
+        napi_set_named_property(env, objValue, "reason", CreateJsValue(env, rectChangeReason));
+        napi_value argv[] = { objValue };
+        thisListener->CallJsMethod(env, WINDOW_RECT_CHANGE_CB.c_str(), argv, ArraySize(argv));
+    };
+    if (napi_status::napi_ok != napi_send_event(engine_, jsCallback, napi_eprio_high)) {
+        WLOGE("[NAPI]failed to send windowRectChange event");
+        return;
+    }
+    currentRect_ = rect;
+    if (rectChangeReason == RectChangeReason::UNDEFINED) {
+        WLOGD("[NAPI]ignore undefined reason to change last reason");
+        return;
+    }
+    currentReason_ = rectChangeReason;
+}
+
 void JsWindowListener::OnSizeChange(const Rect& rect, OccupiedAreaType type)
 {
     WLOGI("[NAPI]OnOccupiedAreaSizeChange, type[%{public}u], wh[%{public}u, %{public}u]",
@@ -214,6 +262,24 @@ void JsWindowListener::OnWindowStatusChange(WindowStatus windowstatus)
     };
     if (napi_status::napi_ok != napi_send_event(engine_, jsCallback, napi_eprio_high)) {
         WLOGD("[NAPI]failed to send event");
+    }
+}
+
+void JsWindowListener::OnWindowStatusDidChange(WindowStatus windowstatus)
+{
+    WLOGD("[NAPI] OnWindowStatusDidChange");
+    auto jsCallback = [self = weakRef_, windowstatus, env = engine_, funcName = __func__] {
+        auto thisListener = self.promote();
+        if (thisListener == nullptr || env == nullptr) {
+            WLOGD("[NAPI]%{public}s: this listener or env is nullptr", funcName);
+            return;
+        }
+        HandleScope handleScope(env);
+        napi_value argv[] = { CreateJsValue(env, static_cast<uint32_t>(windowstatus)) };
+        thisListener->CallJsMethod(env, WINDOW_STATUS_DID_CHANGE_CB.c_str(), argv, ArraySize(argv));
+    };
+    if (napi_status::napi_ok != napi_send_event(engine_, jsCallback, napi_eprio_high)) {
+        WLOGD("[NAPI]failed to send windowStatusDidChange event");
     }
 }
 } // namespace Rosen

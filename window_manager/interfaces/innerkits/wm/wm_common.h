@@ -130,6 +130,56 @@ enum class WindowMode : uint32_t {
 };
 
 /**
+ * @brief Enumerates window size change reason.
+ */
+enum class WindowSizeChangeReason : uint32_t {
+    UNDEFINED = 0,
+    MAXIMIZE,
+    RECOVER,
+    ROTATION,
+    DRAG,
+    DRAG_START,
+    DRAG_END,
+    RESIZE,
+    MOVE,
+    HIDE,
+    TRANSFORM,
+    CUSTOM_ANIMATION_SHOW,
+    FULL_TO_SPLIT,
+    SPLIT_TO_FULL,
+    FULL_TO_FLOATING,
+    FLOATING_TO_FULL,
+    PIP_START,
+    PIP_SHOW,
+    PIP_AUTO_START,
+    PIP_RATIO_CHANGE,
+    PIP_RESTORE,
+    UPDATE_DPI_SYNC,
+    DRAG_MOVE,
+    AVOID_AREA_CHANGE,
+    MAXIMIZE_TO_SPLIT,
+    SPLIT_TO_MAXIMIZE,
+    PAGE_ROTATION,
+    SPLIT_DRAG_START,
+    SPLIT_DRAG,
+    SPLIT_DRAG_END,
+    RESIZE_BY_LIMIT,
+    MAXIMIZE_IN_IMPLICT = 32,
+    RECOVER_IN_IMPLICIT = 33,
+    OCCUPIED_AREA_CHANGE = 34,
+    SCREEN_RELATIVE_POSITION_CHANGE,
+    ROOT_SCENE_CHANGE,
+    SNAPSHOT_ROTATION = 37,
+    SCENE_WITH_ANIMATION,
+    LS_STATE_CHANGE,
+    SPLIT_ENABLE_CHANGE,
+    FULL_SCREEN_IN_FORCE_SPLIT,
+    HOOK_INFO_CHANGE,
+    SWITCH_WINDOW_DISPLAY,
+    END,
+};
+
+/**
  * @brief Enumerates modality type of sub window.
  */
 enum class ModalityType : int32_t {
