@@ -20,7 +20,10 @@
 #include "platform/common/rs_log.h"
 
 const float TRANSLATE_VALUE = 0.5f;
+const float HALF_VALUE = 2.0f;
 const int MAX_RETAINED_FRAMES = 1;
+const int32_t ROTATION_90 = 90;
+const int32_t ROTATION_270 = 270;
 namespace OHOS {
 namespace Rosen {
 AndroidSurfaceTextureVK::AndroidSurfaceTextureVK(const RSSurfaceExtConfig& config)
@@ -60,6 +63,8 @@ bool AndroidSurfaceTextureVK::GetHardwareBuffer()
         ROSEN_LOGE("AndroidSurfaceTextureVK::OnCreateTextureImage imageTexture is invalid");
         return false;
     }
+
+    rotationDegrees_ = imageTexture->GetRotation();
 
     std::shared_ptr<Ace::Platform::AcquiredFrame> bufferHandle = imageTexture->AcquireLatestHardwareBuffer();
     if (bufferHandle != nullptr) {
@@ -129,6 +134,10 @@ bool AndroidSurfaceTextureVK::OnCreateTextureImage(RSPaintFilterCanvas& canvas)
 
 void AndroidSurfaceTextureVK::ApplyClipRectScale(RSPaintFilterCanvas& canvas, const Drawing::Rect& clipRect)
 {
+    if (rotationDegrees_ != 0 && textureWidth_ > 0 && textureHeight_ > 0) {
+        ApplyRotatedDraw(canvas, clipRect);
+        return;
+    }
     canvas.Save();
     canvas.Translate(clipRect.GetLeft(), clipRect.GetTop());
     if (textureWidth_ > 0 && textureHeight_ > 0) {
@@ -142,6 +151,21 @@ void AndroidSurfaceTextureVK::ApplyClipRectScale(RSPaintFilterCanvas& canvas, co
         transformAroundCenter.PostTranslate(TRANSLATE_VALUE, TRANSLATE_VALUE);
         canvas.ConcatMatrix(transformAroundCenter);
     }
+    canvas.DrawImage(*cachedImage_, 0, 0, Drawing::SamplingOptions()); // 0:scalarX, 0:scalarY
+}
+
+void AndroidSurfaceTextureVK::ApplyRotatedDraw(RSPaintFilterCanvas& canvas, const Drawing::Rect& clipRect)
+{
+    const float clipWidth = clipRect.GetWidth();
+    const float clipHeight = clipRect.GetHeight();
+    const bool swapped = (rotationDegrees_ == ROTATION_90 || rotationDegrees_ == ROTATION_270);
+    const float layoutWidth = swapped ? clipHeight : clipWidth;
+    const float layoutHeight = swapped ? clipWidth : clipHeight;
+    canvas.Save();
+    canvas.Translate(clipRect.GetLeft() + clipWidth / HALF_VALUE, clipRect.GetTop() + clipHeight / HALF_VALUE);
+    canvas.Rotate(static_cast<Drawing::scalar>(rotationDegrees_), 0, 0); // 0: rotate around current origin
+    canvas.Translate(-layoutWidth / HALF_VALUE, -layoutHeight / HALF_VALUE);
+    canvas.Scale(layoutWidth / textureWidth_, layoutHeight / textureHeight_);
     canvas.DrawImage(*cachedImage_, 0, 0, Drawing::SamplingOptions()); // 0:scalarX, 0:scalarY
 }
 
