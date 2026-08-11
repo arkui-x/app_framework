@@ -22,9 +22,14 @@ std::unique_ptr<AshmemAllocator> AshmemAllocator::CreateAshmemAllocator(size_t s
     return {};
 }
 
-std::unique_ptr<AshmemAllocator> AshmemAllocator::CreateAshmemAllocatorWithFd(int fd, size_t size, int mapType)
+bool AshmemAllocator::ValidateSealedMemfd(int fd, size_t size)
 {
-    return {};
+    return false;
+}
+
+void* AshmemAllocator::CopyFromMemfd(int fd, size_t size)
+{
+    return nullptr;
 }
 
 AshmemAllocator::AshmemAllocator(int fd, size_t size)
@@ -81,14 +86,19 @@ void* AshmemAllocator::Realloc(void* data, size_t newSize)
     return {};
 }
 
-void RSAshmemHelper::CopyFileDescriptor(
+bool RSAshmemHelper::CopySupportedObjectsToParcel(
     MessageParcel* ashmemParcel, std::shared_ptr<MessageParcel>& dataParcel)
+{
+    return false;
+}
+
+void RSAshmemHelper::EraseSupportedObjectsInAshmem(void* ashmemData, const MessageParcel& dataParcel)
 {
 }
 
-void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataParcel, MessageParcel* ashmemParcel,
-    std::unique_ptr<AshmemFdWorker>& ashmemFdWorker, pid_t callingPid)
+bool RSAshmemHelper::CopySupportedObjectsForParcelCopy(MessageParcel& oldParcel, MessageParcel& copiedParcel)
 {
+    return false;
 }
 
 std::shared_ptr<MessageParcel> RSAshmemHelper::CreateAshmemParcel(std::shared_ptr<MessageParcel>& dataParcel)

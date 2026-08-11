@@ -43,12 +43,12 @@ constexpr int32_t REFERENCE_COUNT = 1;
 void DeleteVkImage(void* context);
 class VulkanCleanupHelper {
 public:
-    VulkanCleanupHelper(RsVulkanContext& vkContext, VkImage image, VkDeviceMemory memory)
-        : fDevice_(vkContext.GetDevice()),
+    VulkanCleanupHelper(std::shared_ptr<RsVulkanInterface>& vkInterface, VkImage image, VkDeviceMemory memory)
+        : fDevice_(vkInterface->GetDevice()),
           fImage_(image),
           fMemory_(memory),
-          fDestroyImage_(vkContext.GetRsVulkanInterface().vkDestroyImage),
-          fFreeMemory_(vkContext.GetRsVulkanInterface().vkFreeMemory),
+          fDestroyImage_(vkInterface->vkDestroyImage),
+          fFreeMemory_(vkInterface->vkFreeMemory),
           fRefCnt_(REFERENCE_COUNT) {}
     ~VulkanCleanupHelper()
     {
@@ -78,7 +78,9 @@ private:
     mutable std::atomic<int32_t> fRefCnt_;
 };
 
-std::shared_ptr<Drawing::VKTextureInfo> MakeVKTextureInfoFromHardwareBuffer(struct AHardwareBuffer* nativeWindowBuffer,
+std::shared_ptr<Drawing::VKTextureInfo> MakeVKTextureInfoFromHardwareBuffer(
+    std::shared_ptr<RsVulkanInterface>& vkInterface,
+    struct AHardwareBuffer* nativeWindowBuffer,
     uint32_t width, uint32_t height);
 
 bool AllocateHardwareBuffer(uint32_t width, uint32_t height, AHardwareBuffer** outBuffer);

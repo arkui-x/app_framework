@@ -95,7 +95,7 @@ const EGLContext RenderContextGL::GetResourceContext()
     return RenderContextGL::resourceContext;
 }
 
-bool RenderContextGL::Init()
+bool RenderContextGL::Init(RenderEngineType type, const std::string& cacheDir)
 {   
     if (IsEglContextReady()) {
          return true;
@@ -308,7 +308,7 @@ EGLSurface RenderContextGL::CreateEGLSurface(EGLNativeWindowType eglNativeWindow
     return eglNativeWindow;
 }
 
-bool RenderContextGL::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext)
+bool RenderContextGL::SetUpGpuContext(const std::string& cacheDir)
 {
     if (drGPUContext_ != nullptr) {
         ROSEN_LOGD("Drawing GPUContext has already created");
@@ -332,6 +332,22 @@ bool RenderContextGL::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawi
     }
     drGPUContext_ = std::move(drGPUContext);
     return true;
+}
+
+std::shared_ptr<Drawing::GPUContext> RenderContextGL::CreateDrawingGPUContext(const std::string& cacheDir)
+{
+    Drawing::GPUContextOptions options;
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    if (!gpuContext->BuildFromGL(options)) {
+        ROSEN_LOGE("CreateDrawingGPUContext BuildFromGL fail");
+        return nullptr;
+    }
+    return gpuContext;
+}
+
+void RenderContextGL::ReleaseDrawingGPUContext(std::shared_ptr<Drawing::GPUContext> gpuContext)
+{
+    // iOS uses EAGL, no EGL current-context to release.
 }
 
 std::shared_ptr<Drawing::Surface> RenderContextGL::AcquireSurface(int width, int height)
@@ -393,16 +409,6 @@ void RenderContextGL::DamageFrame(const std::vector<RectI> &rects)
 
 void RenderContextGL::ClearRedundantResources()
 {
-}
-
-std::string RenderContextGL::GetShaderCacheSize() const
-{
-    return "";
-}
-
-std::string RenderContextGL::CleanAllShaderCache() const
-{
-    return "";
 }
 
 bool RenderContextGL::AbandonContext()

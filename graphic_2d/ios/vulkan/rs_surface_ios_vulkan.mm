@@ -128,7 +128,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceIOSVulkan::CreateSkiaSurfaceFromSwapc
     VkFormat imageFormat = swapChain_.GetFormat();
     auto colorSpace = ConvertColorGamutToColorSpace(colorSpace_);
 
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     QueueFamilyIndices indices = vkContext.FindQueueFamilies(swapChain_.GetSurface());
 
     Drawing::TextureInfo texture_info;
@@ -198,9 +198,8 @@ bool RSSurfaceIOSVulkan::SetupGrContext()
     auto renderCtxVk = std::static_pointer_cast<RenderContextVK>(renderContext_);
     if (renderCtxVk) {
         renderCtxVk->Init();
-        renderCtxVk->SetUpGpuContext();
     }
-    mSkContext_ = RsVulkanContext::GetSingleton().GetDrawingContext();
+    mSkContext_ = renderCtxVk->GetSharedDrGPUContext();
     return mSkContext_ != nullptr;
 }
 
@@ -428,7 +427,7 @@ void RSSurfaceIOSVulkan::ReleaseAcquiredSwapchainImage(uint32_t imageIndex)
     if (imageIndex >= swapChain_.GetImageCount()) {
         return;
     }
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     VkQueue queue = vkContext.GetPresentQueue();
     if (queue == VK_NULL_HANDLE) {
         queue = vkContext.GetGraphicsQueue();
@@ -487,7 +486,7 @@ bool RSSurfaceIOSVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint
     }
 
     VkSemaphore waitSemaphore = swapChain_.GetImageAvailableSemaphore(currentFrame_);
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     auto queue = vkContext.GetPresentQueue();
     if (queue == VK_NULL_HANDLE) {
         ROSEN_LOGI("RSSurfaceIOSVulkan::FlushFrame, presentQueue is null, fallback to graphicsQueue");

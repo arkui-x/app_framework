@@ -27,12 +27,13 @@ namespace Rosen {
 
 RenderContextVK::~RenderContextVK()
 {
-    AbandonContext();
+    drGPUContext_ = nullptr;
 }
 
-bool RenderContextVK::Init()
+bool RenderContextVK::Init(RenderEngineType type, const std::string& cacheDir)
 {
-    return true;
+    contextType_ = type;
+    return SetUpGpuContext(cacheDir);
 }
 
 bool RenderContextVK::AbandonContext()
@@ -46,68 +47,20 @@ bool RenderContextVK::AbandonContext()
     return true;
 }
 
-bool RenderContextVK::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext)
+bool RenderContextVK::SetUpGpuContext(const std::string& cacheDir)
 {
     if (drGPUContext_ != nullptr) {
         ROSEN_LOGD("Drawing GPUContext has already created!!");
         return true;
     }
-    if (drawingContext == nullptr) {
-        drawingContext = RsVulkanContext::GetSingleton(cacheDir_).CreateDrawingContext();
-        if (drawingContext == nullptr) {
-            ROSEN_LOGE("Fail to create vulkan GPUContext");
-            return false;
-        }
-    }
-    std::shared_ptr<Drawing::GPUContext> drGPUContext(drawingContext);
-    drGPUContext_ = std::move(drGPUContext);
+    drGPUContext_ = CreateDrawingGPUContext(cacheDir);
     return true;
-}
-
-std::string RenderContextVK::GetShaderCacheSize() const
-{
-    return std::string();
-}
-
-std::string RenderContextVK::CleanAllShaderCache() const
-{
-    return std::string();
-}
-
-void RenderContextVK::SetRenderContextType(uint8_t type)
-{
-    RenderContextVKType renderContextType = static_cast<RenderContextVKType>(type);
-    if (renderContextType == RenderContextVKType::PROTECTED_REDRAW) {
-        isProtected_.store(true, std::memory_order_release);
-        RsVulkanContext::GetSingleton().SetIsProtected(true);
-    } else if (renderContextType == RenderContextVKType::UNPROTECTED_REDRAW) {
-        isProtected_.store(false, std::memory_order_release);
-        RsVulkanContext::GetSingleton().SetIsProtected(false);
-    }
-    // if RsVulkanContext Singleton not call SetIsProtected, it means RenderContextVKType is BASIC_RENDER.
-}
-
-void RenderContextVK::ChangeProtectedState(bool isProtected)
-{
-    RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
-
-    // Use compare_exchange_strong to avoid race condition
-    // Only update drGPUContext_ if the value actually changes
-    bool expected = !isProtected;
-    if (isProtected_.compare_exchange_strong(expected, isProtected, std::memory_order_acq_rel,
-                                             std::memory_order_acquire)) {
-        // The value was different from expected, so it actually changed
-        drGPUContext_ = RsVulkanContext::GetSingleton().GetDrawingContext();
-    }
-    // If compare_exchange_strong returns false, expected now contains the current value
-    // In this case, we just need to ensure isProtected_ is set to the correct value
-    isProtected_.store(isProtected, std::memory_order_release);
 }
 
 bool RenderContextVK::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
     ROSEN_LOGI("RenderContextVK::QueryMaxGpuBufferSize: using Vulkan backend");
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(contextType_);
     VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
     if (physicalDevice == VK_NULL_HANDLE) {
         ROSEN_LOGE("RenderContextVK::QueryMaxGpuBufferSize: Vulkan physical device is null");
@@ -122,6 +75,16 @@ bool RenderContextVK::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHei
 
     ROSEN_LOGI("RenderContextVK::QueryMaxGpuBufferSize: Vulkan max image dimension = %u", maxWidth);
     return true;
+}
+
+std::shared_ptr<Drawing::GPUContext> RenderContextVK::CreateDrawingGPUContext(const std::string& cacheDir)
+{
+    return RsVulkanContext::Get(contextType_).CreateDrawingGPUContext(cacheDir);
+}
+
+void RenderContextVK::ReleaseDrawingGPUContext(std::shared_ptr<Drawing::GPUContext> gpuContext)
+{
+    return RsVulkanContext::Get(contextType_).ReleaseDrawingGPUContext(gpuContext);
 }
 
 void RenderContextVK::AddSurface()

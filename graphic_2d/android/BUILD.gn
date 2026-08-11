@@ -46,6 +46,7 @@ ohos_source_set("android") {
     "rs_surface_android.cpp",
     "rs_surface_frame_android.cpp",
     "rs_surface_texture_android.cpp",
+    "gl/render_context_gl.cpp",
     "gl/rs_surface_texture_android_gl.cpp",
     "gl/rs_surface_android_gl.cpp",
     "gl/rs_surface_frame_android_gl.cpp",
@@ -65,6 +66,8 @@ ohos_source_set("android") {
     "//foundation/arkui/ace_engine/adapter/android/capability/java/jni/texture",
     "$rosen_root/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$rosen_root/modules/frame_report/include",
   ]
 
@@ -103,7 +106,7 @@ ohos_source_set("android") {
   if(graphic_2d_feature_enable_vulkan) {
     defines += [ "RS_ENABLE_VK" ]
     libs += [ "vulkan" ]
-    sources += [     
+    sources += [
       "rs_vulkan_context.cpp",
       "vulkan/render_context_vk.cpp",
       "vulkan/rs_surface_texture_android_vulkan.cpp",
