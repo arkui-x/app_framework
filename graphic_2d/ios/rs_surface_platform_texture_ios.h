@@ -123,20 +123,22 @@ private:
     bool ValidatePixelBufferForVulkanUpload(CVPixelBufferRef pixelBuffer, size_t& outWidth, size_t& outHeight,
         size_t& outBytesPerRow, size_t& outUploadSize);
     bool CopyPixelBufferToVulkanStaging(CVPixelBufferRef pixelBuffer, size_t uploadSize);
-    bool AllocateAndBeginVkUploadCommandBuffer(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device, VkCommandBuffer& cmd);
-    void RecordVkImageTransferAndSampleBarriers(std::shared_ptr<RsVulkanInterface>& vkInterface, VkCommandBuffer cmd, size_t width,
-        size_t height, size_t bytesPerRow);
-    bool EndSubmitWaitAndFreeVkCommandBuffer(std::shared_ptr<RsVulkanInterface>& vkInterface, RsVulkanContext& vkContext,
-        VkCommandBuffer cmd);
+    bool AllocateAndBeginVkUploadCommandBuffer(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device,
+        VkCommandBuffer& cmd);
+    void RecordVkImageTransferAndSampleBarriers(std::shared_ptr<RsVulkanInterface>& vkInterface, VkCommandBuffer cmd,
+        size_t width, size_t height, size_t bytesPerRow);
+    bool EndSubmitWaitAndFreeVkCommandBuffer(std::shared_ptr<RsVulkanInterface>& vkInterface,
+        RsVulkanContext& vkContext, VkCommandBuffer cmd);
     bool EnsureVulkanCommandPool();
     bool EnsureVkStagingBuffer(size_t size);
     void DestroyVkStagingBufferResources(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device);
     bool CreateAndBindVkStagingBuffer(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device, size_t size);
     bool EnsureVkImage(int width, int height);
     void DestroyVkImageResources(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device);
-    bool CreateVkImage2DForTexture(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device, int width, int height);
-    bool AllocateDeviceLocalMemoryAndBindVkImage(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device, int width,
+    bool CreateVkImage2DForTexture(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device, int width,
         int height);
+    bool AllocateDeviceLocalMemoryAndBindVkImage(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device,
+        int width, int height);
     uint32_t FindVulkanMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
     void CleanupVulkanResources();
 

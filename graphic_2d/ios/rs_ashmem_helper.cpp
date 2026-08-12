@@ -22,15 +22,15 @@ std::unique_ptr<AshmemAllocator> AshmemAllocator::CreateAshmemAllocator(size_t s
     return {};
 }
 
-// bool AshmemAllocator::ValidateSealedMemfd(int fd, size_t size)
-// {
-//     return false;
-// }
+bool AshmemAllocator::ValidateSealedMemfd(int fd, size_t size)
+{
+    return false;
+}
 
-// void* AshmemAllocator::CopyFromMemfd(int fd, size_t size)
-// {
-//     return nullptr;
-// }
+void* AshmemAllocator::CopyFromMemfd(int fd, size_t size)
+{
+    return nullptr;
+}
 
 AshmemAllocator::AshmemAllocator(int fd, size_t size)
     : fd_(fd), size_(size)
@@ -86,20 +86,20 @@ void* AshmemAllocator::Realloc(void* data, size_t newSize)
     return {};
 }
 
-// bool RSAshmemHelper::CopySupportedObjectsToParcel(
-//     MessageParcel* ashmemParcel, std::shared_ptr<MessageParcel>& dataParcel)
-// {
-//     return false;
-// }
+bool RSAshmemHelper::CopySupportedObjectsToParcel(
+    MessageParcel* ashmemParcel, std::shared_ptr<MessageParcel>& dataParcel)
+{
+    return false;
+}
 
-// void RSAshmemHelper::EraseSupportedObjectsInAshmem(void* ashmemData, const MessageParcel& dataParcel)
-// {
-// }
+void RSAshmemHelper::EraseSupportedObjectsInAshmem(void* ashmemData, const MessageParcel& dataParcel)
+{
+}
 
-// bool RSAshmemHelper::CopySupportedObjectsForParcelCopy(MessageParcel& oldParcel, MessageParcel& copiedParcel)
-// {
-//     return false;
-// }
+bool RSAshmemHelper::CopySupportedObjectsForParcelCopy(MessageParcel& oldParcel, MessageParcel& copiedParcel)
+{
+    return false;
+}
 
 std::shared_ptr<MessageParcel> RSAshmemHelper::CreateAshmemParcel(std::shared_ptr<MessageParcel>& dataParcel)
 {

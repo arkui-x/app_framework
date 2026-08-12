@@ -231,9 +231,10 @@ bool RSSurfaceAndroidVulkan::RecreateSwapchainIfNeeded(int32_t width, int32_t he
     if (renderContext_->GetSharedDrGPUContext()) {
         renderContext_->GetSharedDrGPUContext()->FlushAndSubmit(true);
         renderContext_->GetSharedDrGPUContext()->PurgeUnlockAndSafeCacheGpuResources();
-        Drawing::SkiaGPUContext* skiaGpuContext = renderContext_->GetSharedDrGPUContext()->GetImpl<Drawing::SkiaGPUContext>();
-        if (skiaGpuContext) {
-            sk_sp<GrDirectContext> grContext = skiaGpuContext->GetGrContext();
+        Drawing::SkiaGPUContext* skiaContext =
+            renderContext_->GetSharedDrGPUContext()->GetImpl<Drawing::SkiaGPUContext>();
+        if (skiaContext) {
+            sk_sp<GrDirectContext> grContext = skiaContext->GetGrContext();
             if (grContext) {
                 grContext->freeGpuResources();
             }
@@ -387,9 +388,9 @@ void RSSurfaceAndroidVulkan::WaitAndSubmitSkiaContext(VkSemaphore waitSemaphore)
     GrBackendSemaphore backendWaitSemaphore;
     backendWaitSemaphore.initVulkan(waitSemaphore);
 #endif
-    Drawing::SkiaGPUContext* skiaGpuContext = renderContext_->GetSharedDrGPUContext()->GetImpl<Drawing::SkiaGPUContext>();
-    if (skiaGpuContext) {
-        sk_sp<GrDirectContext> grContext = skiaGpuContext->GetGrContext();
+    Drawing::SkiaGPUContext* skiaContext = renderContext_->GetSharedDrGPUContext()->GetImpl<Drawing::SkiaGPUContext>();
+    if (skiaContext) {
+        sk_sp<GrDirectContext> grContext = skiaContext->GetGrContext();
         if (grContext) {
             grContext->wait(1, &backendWaitSemaphore, false);
         }

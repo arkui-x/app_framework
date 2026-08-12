@@ -106,8 +106,8 @@ bool AndroidSurfaceTextureVK::OnCreateTextureImage(RSPaintFilterCanvas& canvas)
 
     if (vkTextureInfoMap_.find(hardwareBufferId) == vkTextureInfoMap_.end()) {
         auto vkInterface = RsVulkanContext::Get(canvas.GetRenderEngineType()).GetRsVulkanInterface();
-        auto vkTextureInfo = NativeBufferUtils::MakeVKTextureInfoFromHardwareBuffer(vkInterface, lastHardwareBuffer_->buffer,
-            textureWidth_, textureHeight_);
+        auto vkTextureInfo = NativeBufferUtils::MakeVKTextureInfoFromHardwareBuffer(vkInterface,
+            lastHardwareBuffer_->buffer, textureWidth_, textureHeight_);
         if (!vkTextureInfo) {
             ROSEN_LOGE("AndroidSurfaceTextureVK: MakeVKTextureInfoFromHardwareBuffer failed");
             return false;

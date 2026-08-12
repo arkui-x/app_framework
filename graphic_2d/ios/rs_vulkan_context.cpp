@@ -741,9 +741,8 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingGPUContext(co
     }
     auto drawingContext = std::make_shared<Drawing::GPUContext>();
     Drawing::GPUContextOptions options;
-    drawingContext->BuildFromVK(GetGrVkBackendContext(), options);
-    return drawingContext;
-    if (drawingContext == nullptr) {
+    if (!drawingContext->BuildFromVK(GetGrVkBackendContext(), options)) {
+        ROSEN_LOGE("nullptr gpuContext is null");
         return nullptr;
     }
     int maxResources = 0;

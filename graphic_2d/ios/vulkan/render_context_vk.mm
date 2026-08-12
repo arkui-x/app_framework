@@ -54,11 +54,6 @@ bool RenderContextVK::SetUpGpuContext(const std::string& cacheDir)
         return true;
     }
     drGPUContext_ = CreateDrawingGPUContext(cacheDir);
-    return true;    if (drGPUContext_ != nullptr) {
-        ROSEN_LOGD("Drawing GPUContext has already created!!");
-        return true;
-    }
-    drGPUContext_ = CreateDrawingGPUContext(cacheDir);
     return true;
 }
 

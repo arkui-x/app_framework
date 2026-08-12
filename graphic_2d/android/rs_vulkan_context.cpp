@@ -722,12 +722,11 @@ GrVkGetProc RsVulkanInterface::CreateSkiaGetProc() const
     if (!IsValid()) {
         return nullptr;
     }
-
-    return [this](const char* proc_name, VkInstance instance, VkDevice device) {
+    return [this](const char* procName, VkInstance instance, VkDevice device) {
         if (device == VK_NULL_HANDLE) {
-            return reinterpret_cast<PFN_vkVoidFunction>(vkGetInstanceProcAddr(instance, proc_name));
+            return reinterpret_cast<PFN_vkVoidFunction>(vkGetInstanceProcAddr(instance, procName));
         }
-        std::string_view s{proc_name};
+        std::string_view s{procName};
         if (s.find("vkQueueSubmit") == 0) {
             if (type_ == RenderEngineType::BASIC_RENDER) {
                 return (PFN_vkVoidFunction)RsVulkanInterface::HookedVkQueueSubmitForBasicRender;
@@ -737,7 +736,7 @@ GrVkGetProc RsVulkanInterface::CreateSkiaGetProc() const
                 return (PFN_vkVoidFunction)RsVulkanInterface::HookedVkQueueSubmitForProtectedRedraw;
             }
         }
-        return reinterpret_cast<PFN_vkVoidFunction>(vkGetDeviceProcAddr(device, proc_name));
+        return reinterpret_cast<PFN_vkVoidFunction>(vkGetDeviceProcAddr(device, procName));
     };
 }
 
@@ -807,8 +806,7 @@ RsVulkanContext& RsVulkanContext::Get(RenderEngineType type)
             return protectedRedrawSingleton;
         }
         case RenderEngineType::BASIC_RENDER:
-        default:
-        {
+        default: {
             static RsVulkanContext basicRenderSingleton = RsVulkanContext(false, true, RenderEngineType::BASIC_RENDER);
             return basicRenderSingleton;
         }
@@ -853,8 +851,10 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingGPUContext(co
 {
     auto drawingContext = std::make_shared<Drawing::GPUContext>();
     Drawing::GPUContextOptions options;
-    std::string version = std::to_string(VK_API_VERSION_1_2);
-    drawingContext->BuildFromVK(GetGrVkBackendContext(), options);
+    if (!drawingContext->BuildFromVK(GetGrVkBackendContext(), options)) {
+        ROSEN_LOGE("nullptr gpuContext is null");
+        return nullptr;
+    }
     int maxResources = 0;
     size_t maxResourcesSize = 0;
     drawingContext->GetResourceCacheLimits(&maxResources, &maxResourcesSize);

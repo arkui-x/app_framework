@@ -39,7 +39,7 @@ void DeleteVkImage(void* context)
     }
 }
 
-bool GetNativeBufferFormatProperties(std::shared_ptr<RsVulkanInterface>& vkInterface, 
+bool GetNativeBufferFormatProperties(std::shared_ptr<RsVulkanInterface>& vkInterface,
                                      const struct AHardwareBuffer* nativeBuffer,
                                      VkAndroidHardwareBufferFormatPropertiesANDROID* nbFormatProps,
                                      VkAndroidHardwareBufferPropertiesANDROID* nbProps)
@@ -209,6 +209,10 @@ std::shared_ptr<Drawing::VKTextureInfo> MakeVKTextureInfoFromHardwareBuffer(
 {
     if (nativeBuffer == nullptr) {
         ROSEN_LOGE("MakeVKTextureInfoFromAHardwareBuffer: AHardwareBuffer is nullptr");
+        return {};
+    }
+    if (vkInterface == nullptr) {
+        ROSEN_LOGE("vkInterface is nullptr");
         return {};
     }
 

@@ -198,9 +198,10 @@ bool RSSurfaceIOSVulkan::SetupGrContext()
     auto renderCtxVk = std::static_pointer_cast<RenderContextVK>(renderContext_);
     if (renderCtxVk) {
         renderCtxVk->Init();
+        mSkContext_ = renderCtxVk->GetSharedDrGPUContext();
+        return mSkContext_ != nullptr;
     }
-    mSkContext_ = renderCtxVk->GetSharedDrGPUContext();
-    return mSkContext_ != nullptr;
+    return false;
 }
 
 bool RSSurfaceIOSVulkan::RecreateSwapchainIfNeeded(int32_t width, int32_t height)

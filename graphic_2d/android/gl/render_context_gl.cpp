@@ -176,7 +176,8 @@ bool RenderContextGL::Init(RenderEngineType type, const std::string& cacheDir)
         return false;
     }
 
-    EGLint major, minor;
+    EGLint major;
+    EGLint minor;
     if (eglInitialize(eglDisplay_, &major, &minor) == EGL_FALSE) {
         ROSEN_LOGE("RenderContextGL Failed to initialize EGLDisplay");
         return false;

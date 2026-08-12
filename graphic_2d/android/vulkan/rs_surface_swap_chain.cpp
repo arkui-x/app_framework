@@ -177,7 +177,8 @@ bool RSSurfaceSwapChain::Create(int32_t width, int32_t height)
     auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     VkDevice device = vkContext.GetDevice();
 
-    if (surface_ == VK_NULL_HANDLE && !vkContext.GetRsVulkanInterface()->CreateAndroidSurface(nativeWindow_, surface_)) {
+    if (surface_ == VK_NULL_HANDLE && !vkContext.GetRsVulkanInterface()->CreateAndroidSurface(nativeWindow_,
+        surface_)) {
         ROSEN_LOGD("RSSurfaceSwapChain::Create Failed to create Vulkan surface");
         return false;
     }
