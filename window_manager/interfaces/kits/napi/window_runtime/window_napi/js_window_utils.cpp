@@ -242,6 +242,18 @@ napi_value OrientationInit(napi_env env)
             static_cast<int32_t>(Orientation::AUTO_ROTATION_LANDSCAPE_RESTRICTED))),
         DECLARE_NAPI_PROPERTY("LOCKED", CreateJsValue(env,
             static_cast<int32_t>(Orientation::LOCKED))),
+        DECLARE_NAPI_PROPERTY("AUTO_ROTATION_UNSPECIFIED", CreateJsValue(env,
+            static_cast<int32_t>(Orientation::AUTO_ROTATION_UNSPECIFIED))),
+        DECLARE_NAPI_PROPERTY("USER_ROTATION_PORTRAIT", CreateJsValue(env,
+            static_cast<int32_t>(Orientation::USER_ROTATION_PORTRAIT))),
+        DECLARE_NAPI_PROPERTY("USER_ROTATION_LANDSCAPE", CreateJsValue(env,
+            static_cast<int32_t>(Orientation::USER_ROTATION_LANDSCAPE))),
+        DECLARE_NAPI_PROPERTY("USER_ROTATION_PORTRAIT_INVERTED", CreateJsValue(env,
+            static_cast<int32_t>(Orientation::USER_ROTATION_PORTRAIT_INVERTED))),
+        DECLARE_NAPI_PROPERTY("USER_ROTATION_LANDSCAPE_INVERTED", CreateJsValue(env,
+            static_cast<int32_t>(Orientation::USER_ROTATION_LANDSCAPE_INVERTED))),
+        DECLARE_NAPI_PROPERTY("FOLLOW_DESKTOP", CreateJsValue(env,
+            static_cast<int32_t>(Orientation::FOLLOW_DESKTOP))),
     };
     return CreateObject(env, nullptr, props, sizeof(props) / sizeof(props[0]));
 }
