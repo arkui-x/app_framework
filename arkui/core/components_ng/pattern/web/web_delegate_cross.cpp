@@ -1803,10 +1803,36 @@ void WebDelegateCross::UpdateLocale()
 {}
 
 void WebDelegateCross::OnInactive()
-{}
+{
+    ContainerScope scope(instanceId_);
+    auto context = context_.Upgrade();
+    CHECK_NULL_VOID(context);
+    context->GetTaskExecutor()->PostTask(
+        [weak = WeakClaim(this)]() {
+            auto delegate = weak.Upgrade();
+            CHECK_NULL_VOID(delegate);
+            delegate->hash_ = delegate->MakeResourceHash();
+            delegate->onInactiveMethod_ = delegate->MakeMethodHash(WEB_METHOD_ON_INACTIVE);
+            delegate->CallResRegisterMethod(delegate->onInactiveMethod_, "", nullptr);
+        },
+        TaskExecutor::TaskType::PLATFORM, "ArkUIWebOnInactive");
+}
 
 void WebDelegateCross::OnActive()
-{}
+{
+    ContainerScope scope(instanceId_);
+    auto context = context_.Upgrade();
+    CHECK_NULL_VOID(context);
+    context->GetTaskExecutor()->PostTask(
+        [weak = WeakClaim(this)]() {
+            auto delegate = weak.Upgrade();
+            CHECK_NULL_VOID(delegate);
+            delegate->hash_ = delegate->MakeResourceHash();
+            delegate->onActiveMethod_ = delegate->MakeMethodHash(WEB_METHOD_ON_ACTIVE);
+            delegate->CallResRegisterMethod(delegate->onActiveMethod_, "", nullptr);
+        },
+        TaskExecutor::TaskType::PLATFORM, "ArkUIWebOnActive");
+}
 
 void WebDelegateCross::ShowWebView()
 {}
