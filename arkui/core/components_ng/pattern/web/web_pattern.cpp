@@ -128,6 +128,18 @@ void WebPattern::OnDetachFromFrameNode(FrameNode* frameNode)
     pipeline->RemoveNodesToNotifyMemoryLevel(id);
 }
 
+void WebPattern::OnAttachToMainTree()
+{
+    Pattern::OnAttachToMainTree();
+    OnActive();
+}
+
+void WebPattern::OnDetachFromMainTree()
+{
+    Pattern::OnDetachFromMainTree();
+    OnInActive();
+}
+
 void WebPattern::InitEvent()
 {
     auto host = GetHost();
