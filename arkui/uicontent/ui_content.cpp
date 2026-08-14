@@ -26,11 +26,11 @@ void UIContent::ShowDumpHelp(std::vector<std::string>& info)
     info.emplace_back(" -frontend                      |show path and components count of current page");
 }
 
-void UIContent::AddUIContent(int32_t instanceId, UIContent* content)
+void UIContent::AddUIContent(int32_t instanceId, int32_t abilityId, UIContent* content)
 {
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
     if (delegator != nullptr) {
-        delegator->AddUIContent(instanceId, content);
+        delegator->AddUIContent(instanceId, abilityId, content);
     } else {
         LOGE("UIContent::AddUIContent Delegator is null, delegator is not initialized");
     }
