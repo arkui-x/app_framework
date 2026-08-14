@@ -163,7 +163,7 @@ bool RSSurfacePlatformTextureIOS::FillTextureInfoByBackend(Drawing::TextureInfo&
                 logPrefix, vkImageReady_, reinterpret_cast<void*>(vkImage_));
             return false;
         }
-        auto& vkContext = RsVulkanContext::GetSingleton();
+        auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
         QueueFamilyIndices indices = vkContext.FindQueueFamilies();
         std::shared_ptr<Drawing::VKTextureInfo> vkTextureInfo = std::make_shared<Drawing::VKTextureInfo>();
         vkTextureInfo->vkImage = vkImage_;
@@ -419,9 +419,9 @@ void RSSurfacePlatformTextureIOS::DrawTextureImageForPlatformView(RSPaintFilterC
 #ifdef RS_ENABLE_VK
 uint32_t RSSurfacePlatformTextureIOS::FindVulkanMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const
 {
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     VkPhysicalDeviceMemoryProperties memProperties {};
-    vkContext.GetRsVulkanInterface().vkGetPhysicalDeviceMemoryProperties(vkContext.GetPhysicalDevice(), &memProperties);
+    vkContext.GetRsVulkanInterface()->vkGetPhysicalDeviceMemoryProperties(vkContext.GetPhysicalDevice(), &memProperties);
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i) {
         if ((typeFilter & (1u << i)) &&
             (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
@@ -436,29 +436,29 @@ bool RSSurfacePlatformTextureIOS::EnsureVulkanCommandPool()
     if (vkCommandPool_ != VK_NULL_HANDLE) {
         return true;
     }
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     auto& vkInterface = vkContext.GetRsVulkanInterface();
     VkCommandPoolCreateInfo poolInfo {};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     poolInfo.queueFamilyIndex = vkContext.FindQueueFamilies().graphicsFamily;
-    bool ret = vkInterface.vkCreateCommandPool(vkContext.GetDevice(), &poolInfo, nullptr, &vkCommandPool_) == VK_SUCCESS;
+    bool ret = vkInterface->vkCreateCommandPool(vkContext.GetDevice(), &poolInfo, nullptr, &vkCommandPool_) == VK_SUCCESS;
     return ret;
 }
 
-void RSSurfacePlatformTextureIOS::DestroyVkStagingBufferResources(RsVulkanInterface& vkInterface, VkDevice device)
+void RSSurfacePlatformTextureIOS::DestroyVkStagingBufferResources(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device)
 {
     if (vkStagingBuffer_ != VK_NULL_HANDLE) {
-        vkInterface.vkDestroyBuffer(device, vkStagingBuffer_, nullptr);
+        vkInterface->vkDestroyBuffer(device, vkStagingBuffer_, nullptr);
         vkStagingBuffer_ = VK_NULL_HANDLE;
     }
     if (vkStagingMemory_ != VK_NULL_HANDLE) {
-        vkInterface.vkFreeMemory(device, vkStagingMemory_, nullptr);
+        vkInterface->vkFreeMemory(device, vkStagingMemory_, nullptr);
         vkStagingMemory_ = VK_NULL_HANDLE;
     }
 }
 
-bool RSSurfacePlatformTextureIOS::CreateAndBindVkStagingBuffer(RsVulkanInterface& vkInterface, VkDevice device,
+bool RSSurfacePlatformTextureIOS::CreateAndBindVkStagingBuffer(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device,
     size_t size)
 {
     VkBufferCreateInfo bufferInfo {};
@@ -466,20 +466,20 @@ bool RSSurfacePlatformTextureIOS::CreateAndBindVkStagingBuffer(RsVulkanInterface
     bufferInfo.size = size;
     bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    if (vkInterface.vkCreateBuffer(device, &bufferInfo, nullptr, &vkStagingBuffer_) != VK_SUCCESS) {
+    if (vkInterface->vkCreateBuffer(device, &bufferInfo, nullptr, &vkStagingBuffer_) != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfacePlatformTextureIOS::vkCreateBuffer failed");
         return false;
     }
 
     VkMemoryRequirements memReq {};
-    vkInterface.vkGetBufferMemoryRequirements(device, vkStagingBuffer_, &memReq);
+    vkInterface->vkGetBufferMemoryRequirements(device, vkStagingBuffer_, &memReq);
     constexpr VkMemoryPropertyFlags kHostFlags =
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     uint32_t typeIndex = FindVulkanMemoryType(memReq.memoryTypeBits, kHostFlags);
     if (typeIndex == UINT32_MAX) {
         ROSEN_LOGE("RSSurfacePlatformTextureIOS::staging FindVulkanMemoryType failed bits=%{public}u",
             memReq.memoryTypeBits);
-        vkInterface.vkDestroyBuffer(device, vkStagingBuffer_, nullptr);
+        vkInterface->vkDestroyBuffer(device, vkStagingBuffer_, nullptr);
         vkStagingBuffer_ = VK_NULL_HANDLE;
         return false;
     }
@@ -487,17 +487,17 @@ bool RSSurfacePlatformTextureIOS::CreateAndBindVkStagingBuffer(RsVulkanInterface
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memReq.size;
     allocInfo.memoryTypeIndex = typeIndex;
-    if (vkInterface.vkAllocateMemory(device, &allocInfo, nullptr, &vkStagingMemory_) != VK_SUCCESS) {
+    if (vkInterface->vkAllocateMemory(device, &allocInfo, nullptr, &vkStagingMemory_) != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfacePlatformTextureIOS::vkAllocateMemory for staging failed");
-        vkInterface.vkDestroyBuffer(device, vkStagingBuffer_, nullptr);
+        vkInterface->vkDestroyBuffer(device, vkStagingBuffer_, nullptr);
         vkStagingBuffer_ = VK_NULL_HANDLE;
         return false;
     }
-    if (vkInterface.vkBindBufferMemory(device, vkStagingBuffer_, vkStagingMemory_, 0) != VK_SUCCESS) {
+    if (vkInterface->vkBindBufferMemory(device, vkStagingBuffer_, vkStagingMemory_, 0) != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfacePlatformTextureIOS::vkBindBufferMemory failed");
-        vkInterface.vkFreeMemory(device, vkStagingMemory_, nullptr);
+        vkInterface->vkFreeMemory(device, vkStagingMemory_, nullptr);
         vkStagingMemory_ = VK_NULL_HANDLE;
-        vkInterface.vkDestroyBuffer(device, vkStagingBuffer_, nullptr);
+        vkInterface->vkDestroyBuffer(device, vkStagingBuffer_, nullptr);
         vkStagingBuffer_ = VK_NULL_HANDLE;
         return false;
     }
@@ -510,7 +510,7 @@ bool RSSurfacePlatformTextureIOS::EnsureVkStagingBuffer(size_t size)
     if (size == 0) {
         return false;
     }
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     auto& vkInterface = vkContext.GetRsVulkanInterface();
     VkDevice device = vkContext.GetDevice();
     if (vkStagingBuffer_ != VK_NULL_HANDLE && vkStagingBufferSize_ >= size) {
@@ -521,19 +521,19 @@ bool RSSurfacePlatformTextureIOS::EnsureVkStagingBuffer(size_t size)
     return CreateAndBindVkStagingBuffer(vkInterface, device, size);
 }
 
-void RSSurfacePlatformTextureIOS::DestroyVkImageResources(RsVulkanInterface& vkInterface, VkDevice device)
+void RSSurfacePlatformTextureIOS::DestroyVkImageResources(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device)
 {
     if (vkImage_ != VK_NULL_HANDLE) {
-        vkInterface.vkDestroyImage(device, vkImage_, nullptr);
+        vkInterface->vkDestroyImage(device, vkImage_, nullptr);
         vkImage_ = VK_NULL_HANDLE;
     }
     if (vkImageMemory_ != VK_NULL_HANDLE) {
-        vkInterface.vkFreeMemory(device, vkImageMemory_, nullptr);
+        vkInterface->vkFreeMemory(device, vkImageMemory_, nullptr);
         vkImageMemory_ = VK_NULL_HANDLE;
     }
 }
 
-bool RSSurfacePlatformTextureIOS::CreateVkImage2DForTexture(RsVulkanInterface& vkInterface, VkDevice device,
+bool RSSurfacePlatformTextureIOS::CreateVkImage2DForTexture(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device,
     int width, int height)
 {
     VkImageCreateInfo imageInfo {};
@@ -551,7 +551,7 @@ bool RSSurfacePlatformTextureIOS::CreateVkImage2DForTexture(RsVulkanInterface& v
         VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-    if (vkInterface.vkCreateImage(device, &imageInfo, nullptr, &vkImage_) != VK_SUCCESS) {
+    if (vkInterface->vkCreateImage(device, &imageInfo, nullptr, &vkImage_) != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfacePlatformTextureIOS::vkCreateImage failed width=%{public}d height=%{public}d",
             width, height);
         return false;
@@ -559,16 +559,16 @@ bool RSSurfacePlatformTextureIOS::CreateVkImage2DForTexture(RsVulkanInterface& v
     return true;
 }
 
-bool RSSurfacePlatformTextureIOS::AllocateDeviceLocalMemoryAndBindVkImage(RsVulkanInterface& vkInterface,
+bool RSSurfacePlatformTextureIOS::AllocateDeviceLocalMemoryAndBindVkImage(std::shared_ptr<RsVulkanInterface>& vkInterface,
     VkDevice device, int width, int height)
 {
     VkMemoryRequirements memReq {};
-    vkInterface.vkGetImageMemoryRequirements(device, vkImage_, &memReq);
+    vkInterface->vkGetImageMemoryRequirements(device, vkImage_, &memReq);
     uint32_t typeIndex = FindVulkanMemoryType(memReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     if (typeIndex == UINT32_MAX) {
         ROSEN_LOGE("RSSurfacePlatformTextureIOS::image FindVulkanMemoryType failed bits=%{public}u",
             memReq.memoryTypeBits);
-        vkInterface.vkDestroyImage(device, vkImage_, nullptr);
+        vkInterface->vkDestroyImage(device, vkImage_, nullptr);
         vkImage_ = VK_NULL_HANDLE;
         return false;
     }
@@ -576,17 +576,17 @@ bool RSSurfacePlatformTextureIOS::AllocateDeviceLocalMemoryAndBindVkImage(RsVulk
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memReq.size;
     allocInfo.memoryTypeIndex = typeIndex;
-    if (vkInterface.vkAllocateMemory(device, &allocInfo, nullptr, &vkImageMemory_) != VK_SUCCESS) {
+    if (vkInterface->vkAllocateMemory(device, &allocInfo, nullptr, &vkImageMemory_) != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfacePlatformTextureIOS::vkAllocateMemory for image failed");
-        vkInterface.vkDestroyImage(device, vkImage_, nullptr);
+        vkInterface->vkDestroyImage(device, vkImage_, nullptr);
         vkImage_ = VK_NULL_HANDLE;
         return false;
     }
-    if (vkInterface.vkBindImageMemory(device, vkImage_, vkImageMemory_, 0) != VK_SUCCESS) {
+    if (vkInterface->vkBindImageMemory(device, vkImage_, vkImageMemory_, 0) != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfacePlatformTextureIOS::vkBindImageMemory failed");
-        vkInterface.vkFreeMemory(device, vkImageMemory_, nullptr);
+        vkInterface->vkFreeMemory(device, vkImageMemory_, nullptr);
         vkImageMemory_ = VK_NULL_HANDLE;
-        vkInterface.vkDestroyImage(device, vkImage_, nullptr);
+        vkInterface->vkDestroyImage(device, vkImage_, nullptr);
         vkImage_ = VK_NULL_HANDLE;
         return false;
     }
@@ -605,7 +605,7 @@ bool RSSurfacePlatformTextureIOS::EnsureVkImage(int width, int height)
     if (vkImage_ != VK_NULL_HANDLE && width == vkImageWidth_ && height == vkImageHeight_) {
         return true;
     }
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     auto& vkInterface = vkContext.GetRsVulkanInterface();
     VkDevice device = vkContext.GetDevice();
     DestroyVkImageResources(vkInterface, device);
@@ -644,10 +644,10 @@ bool RSSurfacePlatformTextureIOS::CopyPixelBufferToVulkanStaging(CVPixelBufferRe
         CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
         return false;
     }
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     auto& vkInterface = vkContext.GetRsVulkanInterface();
     void* mapped = nullptr;
-    if (vkInterface.vkMapMemory(vkContext.GetDevice(), vkStagingMemory_, 0, uploadSize, 0, &mapped) != VK_SUCCESS ||
+    if (vkInterface->vkMapMemory(vkContext.GetDevice(), vkStagingMemory_, 0, uploadSize, 0, &mapped) != VK_SUCCESS ||
         mapped == nullptr) {
         ROSEN_LOGE("RSSurfacePlatformTextureIOS::vkMapMemory failed");
         CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
@@ -655,12 +655,12 @@ bool RSSurfacePlatformTextureIOS::CopyPixelBufferToVulkanStaging(CVPixelBufferRe
     }
     auto* dst = static_cast<uint8_t*>(mapped);
     std::copy(src, src + uploadSize, dst);
-    vkInterface.vkUnmapMemory(vkContext.GetDevice(), vkStagingMemory_);
+    vkInterface->vkUnmapMemory(vkContext.GetDevice(), vkStagingMemory_);
     CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
     return true;
 }
 
-bool RSSurfacePlatformTextureIOS::AllocateAndBeginVkUploadCommandBuffer(RsVulkanInterface& vkInterface,
+bool RSSurfacePlatformTextureIOS::AllocateAndBeginVkUploadCommandBuffer(std::shared_ptr<RsVulkanInterface>& vkInterface,
     VkDevice device, VkCommandBuffer& cmd)
 {
     VkCommandBufferAllocateInfo allocInfo {};
@@ -669,23 +669,23 @@ bool RSSurfacePlatformTextureIOS::AllocateAndBeginVkUploadCommandBuffer(RsVulkan
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = 1;
     cmd = VK_NULL_HANDLE;
-    if (vkInterface.vkAllocateCommandBuffers(device, &allocInfo, &cmd) != VK_SUCCESS) {
+    if (vkInterface->vkAllocateCommandBuffers(device, &allocInfo, &cmd) != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfacePlatformTextureIOS::vkAllocateCommandBuffers failed");
         return false;
     }
     VkCommandBufferBeginInfo beginInfo {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    if (vkInterface.vkBeginCommandBuffer(cmd, &beginInfo) != VK_SUCCESS) {
+    if (vkInterface->vkBeginCommandBuffer(cmd, &beginInfo) != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfacePlatformTextureIOS::vkBeginCommandBuffer failed");
-        vkInterface.vkFreeCommandBuffers(device, vkCommandPool_, 1, &cmd);
+        vkInterface->vkFreeCommandBuffers(device, vkCommandPool_, 1, &cmd);
         cmd = VK_NULL_HANDLE;
         return false;
     }
     return true;
 }
 
-void RSSurfacePlatformTextureIOS::RecordVkImageTransferAndSampleBarriers(RsVulkanInterface& vkInterface,
+void RSSurfacePlatformTextureIOS::RecordVkImageTransferAndSampleBarriers(std::shared_ptr<RsVulkanInterface>& vkInterface,
     VkCommandBuffer cmd, size_t width, size_t height, size_t bytesPerRow)
 {
     VkImageMemoryBarrier toTransfer {};
@@ -702,7 +702,7 @@ void RSSurfacePlatformTextureIOS::RecordVkImageTransferAndSampleBarriers(RsVulka
     toTransfer.subresourceRange.layerCount = 1;
     toTransfer.srcAccessMask = vkImageReady_ ? VK_ACCESS_SHADER_READ_BIT : 0;
     toTransfer.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    vkInterface.vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0,
+    vkInterface->vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0,
         nullptr, 0, nullptr, 1, &toTransfer);
 
     VkBufferImageCopy region {};
@@ -715,7 +715,7 @@ void RSSurfacePlatformTextureIOS::RecordVkImageTransferAndSampleBarriers(RsVulka
     region.imageSubresource.layerCount = 1;
     region.imageOffset = { 0, 0, 0 };
     region.imageExtent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1 };
-    vkInterface.vkCmdCopyBufferToImage(cmd, vkStagingBuffer_, vkImage_, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
+    vkInterface->vkCmdCopyBufferToImage(cmd, vkStagingBuffer_, vkImage_, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
         &region);
 
     VkImageMemoryBarrier toSampled {};
@@ -728,31 +728,31 @@ void RSSurfacePlatformTextureIOS::RecordVkImageTransferAndSampleBarriers(RsVulka
     toSampled.subresourceRange = toTransfer.subresourceRange;
     toSampled.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     toSampled.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-    vkInterface.vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+    vkInterface->vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
         0, nullptr, 0, nullptr, 1, &toSampled);
 }
 
-bool RSSurfacePlatformTextureIOS::EndSubmitWaitAndFreeVkCommandBuffer(RsVulkanInterface& vkInterface,
+bool RSSurfacePlatformTextureIOS::EndSubmitWaitAndFreeVkCommandBuffer(std::shared_ptr<RsVulkanInterface>& vkInterface,
     RsVulkanContext& vkContext, VkCommandBuffer cmd)
 {
     VkDevice device = vkContext.GetDevice();
     VkQueue graphicsQueue = vkContext.GetGraphicsQueue();
-    if (vkInterface.vkEndCommandBuffer(cmd) != VK_SUCCESS) {
+    if (vkInterface->vkEndCommandBuffer(cmd) != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfacePlatformTextureIOS::vkEndCommandBuffer failed");
-        vkInterface.vkFreeCommandBuffers(device, vkCommandPool_, 1, &cmd);
+        vkInterface->vkFreeCommandBuffers(device, vkCommandPool_, 1, &cmd);
         return false;
     }
     VkSubmitInfo submitInfo {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &cmd;
-    if (vkInterface.vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+    if (vkInterface->vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfacePlatformTextureIOS::vkQueueSubmit failed");
-        vkInterface.vkFreeCommandBuffers(device, vkCommandPool_, 1, &cmd);
+        vkInterface->vkFreeCommandBuffers(device, vkCommandPool_, 1, &cmd);
         return false;
     }
-    vkInterface.vkQueueWaitIdle(graphicsQueue);
-    vkInterface.vkFreeCommandBuffers(device, vkCommandPool_, 1, &cmd);
+    vkInterface->vkQueueWaitIdle(graphicsQueue);
+    vkInterface->vkFreeCommandBuffers(device, vkCommandPool_, 1, &cmd);
     return true;
 }
 
@@ -773,7 +773,7 @@ bool RSSurfacePlatformTextureIOS::UpdateVkImageFromPixelBuffer(CVPixelBufferRef 
     if (!CopyPixelBufferToVulkanStaging(pixelBuffer, uploadSize)) {
         return false;
     }
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     auto& vkInterface = vkContext.GetRsVulkanInterface();
     VkDevice device = vkContext.GetDevice();
     VkCommandBuffer cmd = VK_NULL_HANDLE;
@@ -790,33 +790,33 @@ bool RSSurfacePlatformTextureIOS::UpdateVkImageFromPixelBuffer(CVPixelBufferRef 
 
 void RSSurfacePlatformTextureIOS::CleanupVulkanResources()
 {
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     auto& vkInterface = vkContext.GetRsVulkanInterface();
     VkDevice device = vkContext.GetDevice();
     if (device == VK_NULL_HANDLE) {
         return;
     }
-    vkInterface.vkDeviceWaitIdle(device);
+    vkInterface->vkDeviceWaitIdle(device);
     if (vkImage_ != VK_NULL_HANDLE) {
-        vkInterface.vkDestroyImage(device, vkImage_, nullptr);
+        vkInterface->vkDestroyImage(device, vkImage_, nullptr);
         vkImage_ = VK_NULL_HANDLE;
     }
     if (vkImageMemory_ != VK_NULL_HANDLE) {
-        vkInterface.vkFreeMemory(device, vkImageMemory_, nullptr);
+        vkInterface->vkFreeMemory(device, vkImageMemory_, nullptr);
         vkImageMemory_ = VK_NULL_HANDLE;
     }
     vkImageAllocSize_ = 0;
     if (vkStagingBuffer_ != VK_NULL_HANDLE) {
-        vkInterface.vkDestroyBuffer(device, vkStagingBuffer_, nullptr);
+        vkInterface->vkDestroyBuffer(device, vkStagingBuffer_, nullptr);
         vkStagingBuffer_ = VK_NULL_HANDLE;
     }
     if (vkStagingMemory_ != VK_NULL_HANDLE) {
-        vkInterface.vkFreeMemory(device, vkStagingMemory_, nullptr);
+        vkInterface->vkFreeMemory(device, vkStagingMemory_, nullptr);
         vkStagingMemory_ = VK_NULL_HANDLE;
     }
     vkStagingBufferSize_ = 0;
     if (vkCommandPool_ != VK_NULL_HANDLE) {
-        vkInterface.vkDestroyCommandPool(device, vkCommandPool_, nullptr);
+        vkInterface->vkDestroyCommandPool(device, vkCommandPool_, nullptr);
         vkCommandPool_ = VK_NULL_HANDLE;
     }
 }

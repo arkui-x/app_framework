@@ -38,21 +38,10 @@
 #include "include/gpu/GrDirectContext.h"
 #endif
 
+#include "platform/ohos/backend/rs_engine_header_ext.h"
+#include "platform/ohos/backend/rs_vulkan_header_ext.h"
 namespace OHOS {
 namespace Rosen {
-enum class VulkanInterfaceType : uint32_t {
-    BASIC_RENDER = 0,
-    PROTECTED_REDRAW,
-    UNPROTECTED_REDRAW,
-    MAX_INTERFACE_TYPE,
-};
-
-enum class VulkanDeviceStatus : uint32_t {
-    UNINITIALIZED = 0,
-    CREATE_SUCCESS,
-    CREATE_FAIL,
-    MAX_DEVICE_STATUS,
-};
 
 typedef struct QueueFamilyIndices {
     uint32_t graphicsFamily = UINT32_MAX;
@@ -73,18 +62,17 @@ class MemoryHandler;
 class RsVulkanInterface {
 public:
     struct CallbackSemaphoreInfo {
-        RsVulkanInterface& mVkContext;
+        std::shared_ptr<RsVulkanInterface> mVkInterface;
         VkSemaphore mSemaphore;
         int mFenceFd;
-        
-        int mRSRefs = 1; // 1 : rs hold fence fd
-        int m2DEngineRefs = 1; // 1 : skia or ddgr hold fence fd
-        CallbackSemaphoreInfo(RsVulkanInterface& vkContext, VkSemaphore semaphore, int fenceFd)
-            : mVkContext(vkContext),
-            mSemaphore(semaphore),
-            mFenceFd(fenceFd)
-        {
-        }
+
+        int mRefs = 2;         // Skia和RS各持有一个fence fd
+        int mRSRefs = 1;       // RS持有的fence fd
+        int m2DEngineRefs = 1; // 2D引擎(Skia/DDGR)持有的fence fd
+
+        CallbackSemaphoreInfo(std::shared_ptr<RsVulkanInterface> vkInterface, VkSemaphore semaphore, int fenceFd)
+            : mVkInterface(vkInterface), mSemaphore(semaphore), mFenceFd(fenceFd)
+        {}
     };
     template <class T>
     class Func {
@@ -111,9 +99,9 @@ public:
         T func_;
     };
 
-    RsVulkanInterface() {};
+    explicit RsVulkanInterface(bool isProtected = false, bool isHtsEnable = false,
+        RenderEngineType type = RenderEngineType::BASIC_RENDER);
     ~RsVulkanInterface();
-    void Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected = false, bool isHtsEnable = false);
     bool CreateInstance();
     void AcquireProcAddresses();
     bool SelectPhysicalDevice(bool isProtected = false);
@@ -234,9 +222,9 @@ public:
     std::shared_ptr<Drawing::GPUContext> DoCreateDrawingContext(std::string cacheDir = "");
     std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
 
-    VulkanInterfaceType GetInterfaceType() const
+    RenderEngineType GetInterfaceType() const
     {
-        return interfaceType_;
+        return type_;
     }
 
     VkQueue GetGraphicsQueue() const
@@ -259,7 +247,10 @@ public:
     static std::atomic<uint64_t> callbackSemaphoreInfo2DEngineDefensiveDerefCnt_;
     static std::atomic<uint64_t> callbackSemaphoreInfoFlushCnt_;
     static std::atomic<uint64_t> callbackSemaphoreInfo2DEngineCallCnt_;
-
+    bool IsProtected()
+    {
+        return deviceIsProtected_;
+    }
 friend class RsVulkanContext;
 private:
     std::mutex vkMutex_;
@@ -287,7 +278,7 @@ private:
     GrVkExtensions skVkExtensions_;
     GrVkBackendContext backendContext_;
 #endif
-    VulkanInterfaceType interfaceType_ = VulkanInterfaceType::BASIC_RENDER;
+    RenderEngineType type_ = RenderEngineType::BASIC_RENDER;
     RsVulkanInterface(const RsVulkanInterface &) = delete;
     RsVulkanInterface &operator=(const RsVulkanInterface &) = delete;
 
@@ -344,26 +335,26 @@ public:
     private:
         std::function<void()> destructCallback_;
     };
-    static RsVulkanContext& GetSingleton(const std::string& cacheDir = "");
-    static void ReleaseRecyclableSingleton();
-    explicit RsVulkanContext(std::string cacheDir = "");
-    void InitVulkanContextForHybridRender(const std::string& cacheDir);
-    void InitVulkanContextForUniRender(const std::string& cacheDir);
+    static RsVulkanContext& Get(RenderEngineType type = RenderEngineType::BASIC_RENDER);
+    RsVulkanContext(bool isProtected, bool isHtsEnable, RenderEngineType type);
     ~RsVulkanContext();
 
     RsVulkanContext(const RsVulkanContext&) = delete;
     RsVulkanContext &operator=(const RsVulkanContext&) = delete;
-
     RsVulkanContext(const RsVulkanContext&&) = delete;
     RsVulkanContext &operator=(const RsVulkanContext&&) = delete;
 
-    void SetIsProtected(bool isProtected);
-
-    RsVulkanInterface& GetRsVulkanInterface();
-
-    bool IsValid()
+    std::shared_ptr<RsVulkanInterface>& GetRsVulkanInterface()
     {
-        return GetRsVulkanInterface().IsValid();
+        return vulkanInterface_;
+    }
+    RenderEngineType GetType() const
+    {
+        return type_;
+    }
+    bool IsValid() const
+    {
+        return vulkanInterface_ && vulkanInterface_->IsValid();
     }
 
 #ifdef USE_M133_SKIA
@@ -372,42 +363,42 @@ public:
     GrVkGetProc CreateSkiaGetProc()
 #endif
     {
-        return GetRsVulkanInterface().CreateSkiaGetProc();
+        return vulkanInterface_->CreateSkiaGetProc();
     }
 
     VkPhysicalDevice GetPhysicalDevice()
     {
-        return GetRsVulkanInterface().GetPhysicalDevice();
+        return vulkanInterface_->GetPhysicalDevice();
     }
 
     VkDevice GetDevice()
     {
-        return GetRsVulkanInterface().GetDevice();
+        return vulkanInterface_->GetDevice();
     }
 
     QueueFamilyIndices FindQueueFamilies(VkSurfaceKHR surface = VK_NULL_HANDLE)
     {
-        return GetRsVulkanInterface().FindQueueFamilies(surface);
+        return vulkanInterface_->FindQueueFamilies(surface);
     }
 
     void DestroySurfaceKHR(VkSurfaceKHR surface)
     {
-        return GetRsVulkanInterface().DestroySurfaceKHR(surface);
+        return vulkanInterface_->DestroySurfaceKHR(surface);
     }
 
     VkQueue GetGraphicsQueue()
     {
-        return GetRsVulkanInterface().GetGraphicsQueue();
+        return vulkanInterface_->GetGraphicsQueue();
     }
 
     VkQueue GetPresentQueue()
     {
-        return GetRsVulkanInterface().GetPresentQueue();
+        return vulkanInterface_->GetPresentQueue();
     }
 
     SwapChainSupportDetails QuerySwapChainSupport(VkSurfaceKHR surface)
     {
-        return GetRsVulkanInterface().QuerySwapChainSupport(surface);
+        return vulkanInterface_->QuerySwapChainSupport(surface);
     }
 
 #ifdef USE_M133_SKIA
@@ -416,56 +407,23 @@ public:
     inline const GrVkBackendContext& GetGrVkBackendContext() noexcept
 #endif
     {
-        return GetRsVulkanInterface().GetGrVkBackendContext();
+        return vulkanInterface_->GetGrVkBackendContext();
     }
 
     VulkanDeviceStatus GetVulkanDeviceStatus()
     {
-        return GetRsVulkanInterface().GetVulkanDeviceStatus();
+        return vulkanInterface_->GetVulkanDeviceStatus();
     }
-
-    std::shared_ptr<Drawing::GPUContext> CreateDrawingContext();
-    std::shared_ptr<Drawing::GPUContext> GetDrawingContext(const std::string& cacheDir = "");
-    std::shared_ptr<Drawing::GPUContext> GetRecyclableDrawingContext(const std::string& cacheDir = "");
-    static void ReleaseDrawingContextMap();
-    static void ReleaseRecyclableDrawingContext();
-    static void ReleaseDrawingContextForThread(int tid);
-
-    void ClearGrContext(bool isProtected = false);
 
     static VKAPI_ATTR VkResult HookedVkQueueSubmit(VkQueue queue, uint32_t submitCount,
         VkSubmitInfo* pSubmits, VkFence fence);
 
-    bool GetIsProtected() const;
-
-    static bool IsRecyclable();
-
-    static void SetRecyclable(bool isRecyclable);
-
-    static void SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext);
-
-    static bool GetIsInited();
-
-    static bool IsRecyclableSingletonValid();
+    std::shared_ptr<Drawing::GPUContext> CreateDrawingGPUContext(const std::string& cacheDir = "");
+    void ReleaseDrawingGPUContext(std::shared_ptr<Drawing::GPUContext>& gpuContext);
 
 private:
-    static RsVulkanContext& GetRecyclableSingleton(const std::string& cacheDir = "");
-    static std::unique_ptr<RsVulkanContext>& GetRecyclableSingletonPtr(const std::string& cacheDir = "");
-    static bool CheckDrawingContextRecyclable();
-    static thread_local bool isProtected_;
-    static thread_local VulkanInterfaceType vulkanInterfaceType_;
-    std::vector<std::shared_ptr<RsVulkanInterface>> vulkanInterfaceVec_;
-    // drawingContextMap_ : <tid, <drawingContext, isRecyclable>>
-    static std::map<int, std::pair<std::shared_ptr<Drawing::GPUContext>, bool>> drawingContextMap_;
-    static std::map<int, std::pair<std::shared_ptr<Drawing::GPUContext>, bool>> protectedDrawingContextMap_;
-    static std::mutex drawingContextMutex_;
-    // use for recyclable singleton
-    static std::recursive_mutex recyclableSingletonMutex_;
-    static bool isRecyclable_;
-    // isRecyclableSingletonValid_ : true -> has been initialized and is valid , false -> has been released
-    static std::atomic<bool> isRecyclableSingletonValid_;
-    // use to mark current process has created vulkan context at least once
-    static std::atomic<bool> isInited_;
+    std::shared_ptr<RsVulkanInterface> vulkanInterface_;
+    RenderEngineType type_ = RenderEngineType::BASIC_RENDER;
 };
 
 } // namespace Rosen

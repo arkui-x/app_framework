@@ -17,6 +17,7 @@
 #include "native_buffer_utils.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/sk_resource_manager.h"
+#include "rs_vulkan_context.h"
 #include <android/hardware_buffer.h>
 
 #ifdef RS_ENABLE_VK
@@ -38,7 +39,7 @@ void DeleteVkImage(void* context)
     }
 }
 
-bool GetNativeBufferFormatProperties(RsVulkanContext& vkContext, VkDevice device,
+bool GetNativeBufferFormatProperties(std::shared_ptr<RsVulkanInterface>& vkInterface,
                                      const struct AHardwareBuffer* nativeBuffer,
                                      VkAndroidHardwareBufferFormatPropertiesANDROID* nbFormatProps,
                                      VkAndroidHardwareBufferPropertiesANDROID* nbProps)
@@ -53,7 +54,7 @@ bool GetNativeBufferFormatProperties(RsVulkanContext& vkContext, VkDevice device
     nbProps->sType = VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_PROPERTIES_ANDROID;
     nbProps->pNext = nbFormatProps;
 
-    VkResult err = vkContext.GetRsVulkanInterface().vkGetAndroidHardwareBufferPropertiesANDROID(device,
+    VkResult err = vkInterface->vkGetAndroidHardwareBufferPropertiesANDROID(vkInterface->GetDevice(),
         nativeBuffer, nbProps);
     if (VK_SUCCESS != err) {
         ROSEN_LOGE("NativeBufferUtils: vkGetAndroidHardwareBufferPropertiesANDROID Failed ! %{public}d", err);
@@ -62,7 +63,7 @@ bool GetNativeBufferFormatProperties(RsVulkanContext& vkContext, VkDevice device
     return true;
 }
 
-bool CreateVkImage(RsVulkanContext& vkContext, VkImage* image,
+bool CreateVkImage(std::shared_ptr<RsVulkanInterface>& vkInterface, VkImage* image,
     const VkAndroidHardwareBufferFormatPropertiesANDROID& nbFormatProps, const VkExtent3D& imageSize,
     VkImageUsageFlags usageFlags = 0)
 {
@@ -101,7 +102,7 @@ bool CreateVkImage(RsVulkanContext& vkContext, VkImage* image,
         imageSize.depth > VKIMAGE_LIMIT_SIZE / imageSize.width / imageSize.height) {
         return false;
     }
-    VkResult err = vkContext.GetRsVulkanInterface().vkCreateImage(vkContext.GetDevice(),
+    VkResult err = vkInterface->vkCreateImage(vkInterface->GetDevice(),
         &imageCreateInfo, nullptr, image);
     if (err != VK_SUCCESS) {
         ROSEN_LOGE("NativeBufferUtils: vkCreateImage failed");
@@ -110,17 +111,16 @@ bool CreateVkImage(RsVulkanContext& vkContext, VkImage* image,
     return true;
 }
 
-bool AllocateDeviceMemory(RsVulkanContext& vkContext, VkDeviceMemory* memory, VkImage& image,
+bool AllocateDeviceMemory(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDeviceMemory* memory, VkImage& image,
     struct AHardwareBuffer* nativeBuffer, VkAndroidHardwareBufferPropertiesANDROID& nbProps)
 {
     VkPhysicalDeviceMemoryProperties2 physicalDeviceMemProps;
     physicalDeviceMemProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
     physicalDeviceMemProps.pNext = nullptr;
-    auto& vkInterface = vkContext.GetRsVulkanInterface();
     uint32_t foundTypeIndex = 0; // 0:foundTypeIndex
-    VkDevice device = vkInterface.GetDevice();
-    VkPhysicalDevice physicalDevice = vkInterface.GetPhysicalDevice();
-    vkInterface.vkGetPhysicalDeviceMemoryProperties2(physicalDevice, &physicalDeviceMemProps);
+    VkDevice device = vkInterface->GetDevice();
+    VkPhysicalDevice physicalDevice = vkInterface->GetPhysicalDevice();
+    vkInterface->vkGetPhysicalDeviceMemoryProperties2(physicalDevice, &physicalDeviceMemProps);
     uint32_t memTypeCnt = physicalDeviceMemProps.memoryProperties.memoryTypeCount;
     bool found = false;
     for (uint32_t i = 0; i < memTypeCnt; ++i) { // 0:memTypeCnt
@@ -136,7 +136,7 @@ bool AllocateDeviceMemory(RsVulkanContext& vkContext, VkDeviceMemory* memory, Vk
     }
     if (!found) {
         ROSEN_LOGE("NativeBufferUtils: no fit memory type, memoryTypeBits is %{public}u", nbProps.memoryTypeBits);
-        vkInterface.vkDestroyImage(device, image, nullptr);
+        vkInterface->vkDestroyImage(device, image, nullptr);
         return false;
     }
     VkImportAndroidHardwareBufferInfoANDROID nbImportInfo;
@@ -150,30 +150,29 @@ bool AllocateDeviceMemory(RsVulkanContext& vkContext, VkDeviceMemory* memory, Vk
     dedicatedAllocInfo.buffer = VK_NULL_HANDLE;
     VkMemoryAllocateInfo allocInfo = {
         VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, &dedicatedAllocInfo, nbProps.allocationSize, foundTypeIndex};
-    VkResult err = vkInterface.vkAllocateMemory(device, &allocInfo, nullptr, memory);
+    VkResult err = vkInterface->vkAllocateMemory(device, &allocInfo, nullptr, memory);
     if (err != VK_SUCCESS) {
-        vkInterface.vkDestroyImage(device, image, nullptr);
+        vkInterface->vkDestroyImage(device, image, nullptr);
         HILOG_COMM_ERROR("NativeBufferUtils: vkAllocateMemory Fail, err:%{public}d", err);
         return false;
     }
     return true;
 }
 
-bool BindImageMemory(VkDevice device, RsVulkanContext& vkContext, VkImage& image, VkDeviceMemory& memory)
+bool BindImageMemory(std::shared_ptr<RsVulkanInterface>& vkInterface, VkImage& image, VkDeviceMemory& memory)
 {
-    auto& vkInterface = vkContext.GetRsVulkanInterface();
     VkBindImageMemoryInfo bindImageInfo;
     bindImageInfo.sType = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO;
     bindImageInfo.pNext = nullptr;
     bindImageInfo.image = image;
     bindImageInfo.memory = memory;
     bindImageInfo.memoryOffset = 0; // 0:memoryOffset
-
-    VkResult err = vkInterface.vkBindImageMemory2(device, 1, &bindImageInfo); // 1:bindInfoCount
+    auto device = vkInterface->GetDevice();
+    VkResult err = vkInterface->vkBindImageMemory2(device, 1, &bindImageInfo); // 1:bindInfoCount
     if (err != VK_SUCCESS) {
         ROSEN_LOGE("NativeBufferUtils: vkBindImageMemory2 failed");
-        vkInterface.vkDestroyImage(device, image, nullptr);
-        vkInterface.vkFreeMemory(device, memory, nullptr);
+        vkInterface->vkDestroyImage(device, image, nullptr);
+        vkInterface->vkFreeMemory(device, memory, nullptr);
         return false;
     }
     return true;
@@ -203,19 +202,24 @@ void SetImageInfo(std::shared_ptr<Drawing::VKTextureInfo> imageInfo,
     }
 }
 
-std::shared_ptr<Drawing::VKTextureInfo> MakeVKTextureInfoFromHardwareBuffer(struct AHardwareBuffer* nativeBuffer,
+std::shared_ptr<Drawing::VKTextureInfo> MakeVKTextureInfoFromHardwareBuffer(
+    std::shared_ptr<RsVulkanInterface>& vkInterface,
+    struct AHardwareBuffer* nativeBuffer,
     uint32_t width, uint32_t height)
 {
     if (nativeBuffer == nullptr) {
         ROSEN_LOGE("MakeVKTextureInfoFromAHardwareBuffer: AHardwareBuffer is nullptr");
         return {};
     }
+    if (vkInterface == nullptr) {
+        ROSEN_LOGE("vkInterface is nullptr");
+        return {};
+    }
 
-    auto& vkContext = RsVulkanContext::GetSingleton();
-    VkDevice device = vkContext.GetDevice();
+    VkDevice device = vkInterface->GetDevice();
     VkAndroidHardwareBufferFormatPropertiesANDROID nbFormatProps;
     VkAndroidHardwareBufferPropertiesANDROID nbProps;
-    if (!GetNativeBufferFormatProperties(vkContext, device, nativeBuffer, &nbFormatProps, &nbProps)) {
+    if (!GetNativeBufferFormatProperties(vkInterface, nativeBuffer, &nbFormatProps, &nbProps)) {
         return {};
     }
     VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_SAMPLED_BIT;
@@ -224,14 +228,14 @@ std::shared_ptr<Drawing::VKTextureInfo> MakeVKTextureInfoFromHardwareBuffer(stru
     }
     VkImage image;
     const VkExtent3D imageSize = {width, height, 1}; // 1:depth
-    if (!CreateVkImage(vkContext, &image, nbFormatProps, imageSize, usageFlags)) {
+    if (!CreateVkImage(vkInterface, &image, nbFormatProps, imageSize, usageFlags)) {
         return {};
     }
     VkDeviceMemory memory;
-    if (!AllocateDeviceMemory(vkContext, &memory, image, nativeBuffer, nbProps)) {
+    if (!AllocateDeviceMemory(vkInterface, &memory, image, nativeBuffer, nbProps)) {
         return {};
     }
-    if (!BindImageMemory(device, vkContext, image, memory)) {
+    if (!BindImageMemory(vkInterface, image, memory)) {
         return {};
     }
 

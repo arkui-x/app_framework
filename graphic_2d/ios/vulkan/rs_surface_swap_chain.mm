@@ -260,7 +260,7 @@ VkSwapchainCreateInfoKHR RSSurfaceSwapChain::BuildSwapchainCreateInfo(int32_t wi
                             VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
                             VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
-    QueueFamilyIndices indices = RsVulkanContext::GetSingleton().FindQueueFamilies(surface_);
+    QueueFamilyIndices indices = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).FindQueueFamilies(surface_);
     uint32_t queueFamilyIndices[] = {indices.graphicsFamily, indices.presentFamily};
 
     if (indices.presentFamily != UINT32_MAX && indices.graphicsFamily != indices.presentFamily) {
@@ -287,20 +287,20 @@ VkSwapchainCreateInfoKHR RSSurfaceSwapChain::BuildSwapchainCreateInfo(int32_t wi
 
 bool RSSurfaceSwapChain::RetrieveSwapchainImages(uint32_t& imageCount)
 {
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     auto& vkInterface = vkContext.GetRsVulkanInterface();
     VkDevice device = vkContext.GetDevice();
-    if (vkInterface.vkGetSwapchainImagesKHR(device, swapchain_, &imageCount, nullptr) != VK_SUCCESS) {
+    if (vkInterface->vkGetSwapchainImagesKHR(device, swapchain_, &imageCount, nullptr) != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfaceSwapChain::Create failed to get swap chain images count");
-        vkInterface.vkDestroySwapchainKHR(device, swapchain_, nullptr);
+        vkInterface->vkDestroySwapchainKHR(device, swapchain_, nullptr);
         swapchain_ = VK_NULL_HANDLE;
         return false;
     }
     ROSEN_LOGD("RSSurfaceSwapChain::RetrieveSwapchainImages imageCount=%{public}u", imageCount);
     swapchainImages_.resize(imageCount);
-    if (vkInterface.vkGetSwapchainImagesKHR(device, swapchain_, &imageCount, swapchainImages_.data()) != VK_SUCCESS) {
+    if (vkInterface->vkGetSwapchainImagesKHR(device, swapchain_, &imageCount, swapchainImages_.data()) != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfaceSwapChain::Create Failed to get swap chain images");
-        vkInterface.vkDestroySwapchainKHR(device, swapchain_, nullptr);
+        vkInterface->vkDestroySwapchainKHR(device, swapchain_, nullptr);
         swapchain_ = VK_NULL_HANDLE;
         return false;
     }
@@ -327,15 +327,15 @@ bool RSSurfaceSwapChain::CreateImpl(int32_t width, int32_t height)
         return false;
     }
 
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     VkDevice device = vkContext.GetDevice();
 
-    if (surface_ == VK_NULL_HANDLE && !vkContext.GetRsVulkanInterface().CreateMetalSurface(metalLayer_, surface_)) {
+    if (surface_ == VK_NULL_HANDLE && !vkContext.GetRsVulkanInterface()->CreateMetalSurface(metalLayer_, surface_)) {
         ROSEN_LOGE("RSSurfaceSwapChain::Create Failed to create Vulkan surface via MoltenVK");
         return false;
     }
 
-    SwapChainSupportDetails swapChainSupport = vkContext.GetRsVulkanInterface().QuerySwapChainSupport(surface_);
+    SwapChainSupportDetails swapChainSupport = vkContext.GetRsVulkanInterface()->QuerySwapChainSupport(surface_);
     if (swapChainSupport.formats.empty() || swapChainSupport.presentModes.empty()) {
         ROSEN_LOGI("RSSurfaceSwapChain::Create Swap chain support details are incomplete");
         return false;
@@ -343,7 +343,7 @@ bool RSSurfaceSwapChain::CreateImpl(int32_t width, int32_t height)
     VkSwapchainCreateInfoKHR createInfo = BuildSwapchainCreateInfo(width, height, swapChainSupport);
 
     auto& vkInterface = vkContext.GetRsVulkanInterface();
-    VkResult result = vkInterface.vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapchain_);
+    VkResult result = vkInterface->vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapchain_);
     if (result != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfaceSwapChain::Create Failed to create swap chain, result: %d", result);
         return false;
@@ -356,7 +356,7 @@ bool RSSurfaceSwapChain::CreateImpl(int32_t width, int32_t height)
 
     if (!CreateSyncObjects()) {
         ROSEN_LOGE("RSSurfaceSwapChain::Create Failed to create sync objects");
-        vkInterface.vkDestroySwapchainKHR(device, swapchain_, nullptr);
+        vkInterface->vkDestroySwapchainKHR(device, swapchain_, nullptr);
         swapchain_ = VK_NULL_HANDLE;
         return false;
     }
@@ -381,10 +381,10 @@ bool RSSurfaceSwapChain::Recreate(int32_t width, int32_t height)
     isRecreatingSwapchain_.store(true, std::memory_order_release);
     needRecreateSwapchain_.store(false, std::memory_order_release);
 
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     VkDevice device = vkContext.GetDevice();
     auto& vkInterface = vkContext.GetRsVulkanInterface();
-    vkInterface.vkDeviceWaitIdle(device);
+    vkInterface->vkDeviceWaitIdle(device);
 
     swapchainGeneration_.fetch_add(1, std::memory_order_release);
 
@@ -403,7 +403,7 @@ bool RSSurfaceSwapChain::Recreate(int32_t width, int32_t height)
         return false;
     }
     if (oldSwapchain != VK_NULL_HANDLE) {
-        vkInterface.vkDestroySwapchainKHR(device, oldSwapchain, nullptr);
+        vkInterface->vkDestroySwapchainKHR(device, oldSwapchain, nullptr);
     }
 
     if (oldSurface != VK_NULL_HANDLE) {
@@ -412,7 +412,7 @@ bool RSSurfaceSwapChain::Recreate(int32_t width, int32_t height)
 
     CleanupSyncObjects();
 
-    if (!vkContext.GetRsVulkanInterface().CreateMetalSurface(metalLayer_, surface_)) {
+    if (!vkContext.GetRsVulkanInterface()->CreateMetalSurface(metalLayer_, surface_)) {
         ROSEN_LOGE("RSSurfaceSwapChain::Recreate: CreateMetalSurface failed");
         MarkRecreateFailed();
         return false;
@@ -489,17 +489,17 @@ void RSSurfaceSwapChain::SetLayerDrawableSizeOnMain(int32_t width, int32_t heigh
 
 void RSSurfaceSwapChain::Cleanup()
 {
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     VkDevice device = vkContext.GetDevice();
     auto& vkInterface = vkContext.GetRsVulkanInterface();
-    if (device != VK_NULL_HANDLE && vkInterface.vkDeviceWaitIdle) {
-        vkInterface.vkDeviceWaitIdle(device);
+    if (device != VK_NULL_HANDLE && vkInterface->vkDeviceWaitIdle) {
+        vkInterface->vkDeviceWaitIdle(device);
     }
     FlushMetalLayerDrawableOnMain();
     CleanupSyncObjects();
 
     if (swapchain_ != VK_NULL_HANDLE) {
-        vkInterface.vkDestroySwapchainKHR(device, swapchain_, nullptr);
+        vkInterface->vkDestroySwapchainKHR(device, swapchain_, nullptr);
         swapchain_ = VK_NULL_HANDLE;
     }
     if (surface_ != VK_NULL_HANDLE) {
@@ -518,10 +518,10 @@ VkResult RSSurfaceSwapChain::AcquireNextImage(uint64_t timeout, VkSemaphore sema
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     auto& vkInterface = vkContext.GetRsVulkanInterface();
 
-    return vkInterface.vkAcquireNextImageKHR(
+    return vkInterface->vkAcquireNextImageKHR(
         vkContext.GetDevice(), swapchain_, timeout, semaphore, VK_NULL_HANDLE, imageIndex);
 }
 
@@ -562,10 +562,10 @@ VkResult RSSurfaceSwapChain::PresentImpl(VkQueue queue, uint32_t imageIndex, VkS
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
 
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     auto& vkInterface = vkContext.GetRsVulkanInterface();
 
-    return vkInterface.vkQueuePresentKHR(queue, &presentInfo);
+    return vkInterface->vkQueuePresentKHR(queue, &presentInfo);
 }
 
 bool RSSurfaceSwapChain::CreateSyncObjects()
@@ -574,7 +574,7 @@ bool RSSurfaceSwapChain::CreateSyncObjects()
         CleanupSyncObjects();
     }
 
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     VkDevice device = vkContext.GetDevice();
     auto& vkInterface = vkContext.GetRsVulkanInterface();
 
@@ -585,13 +585,13 @@ bool RSSurfaceSwapChain::CreateSyncObjects()
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        if (vkInterface.vkCreateSemaphore(device, &semaphoreInfo, nullptr,
-            &imageAvailableSemaphores_[i]) != VK_SUCCESS || vkInterface.vkCreateSemaphore(device,
+        if (vkInterface->vkCreateSemaphore(device, &semaphoreInfo, nullptr,
+            &imageAvailableSemaphores_[i]) != VK_SUCCESS || vkInterface->vkCreateSemaphore(device,
             &semaphoreInfo, nullptr, &renderFinishedSemaphores_[i]) != VK_SUCCESS) {
             ROSEN_LOGI("RSSurfaceSwapChain::CreateSyncObjects Failed for frame %zu", i);
             for (size_t j = 0; j < i; j++) {
-                vkInterface.vkDestroySemaphore(device, imageAvailableSemaphores_[j], nullptr);
-                vkInterface.vkDestroySemaphore(device, renderFinishedSemaphores_[j], nullptr);
+                vkInterface->vkDestroySemaphore(device, imageAvailableSemaphores_[j], nullptr);
+                vkInterface->vkDestroySemaphore(device, renderFinishedSemaphores_[j], nullptr);
             }
             imageAvailableSemaphores_.clear();
             renderFinishedSemaphores_.clear();
@@ -609,15 +609,15 @@ void RSSurfaceSwapChain::CleanupSyncObjects()
         return;
     }
 
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     VkDevice device = vkContext.GetDevice();
     auto& vkInterface = vkContext.GetRsVulkanInterface();
 
     for (size_t i = 0; i < imageAvailableSemaphores_.size(); i++) {
-        vkInterface.vkDestroySemaphore(device, imageAvailableSemaphores_[i], nullptr);
+        vkInterface->vkDestroySemaphore(device, imageAvailableSemaphores_[i], nullptr);
     }
     for (size_t i = 0; i < renderFinishedSemaphores_.size(); i++) {
-        vkInterface.vkDestroySemaphore(device, renderFinishedSemaphores_[i], nullptr);
+        vkInterface->vkDestroySemaphore(device, renderFinishedSemaphores_[i], nullptr);
     }
 
     imageAvailableSemaphores_.clear();

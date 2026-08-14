@@ -64,9 +64,9 @@ RSSurfaceAndroidVulkan::~RSSurfaceAndroidVulkan()
     }
     skiaSurfaces_.clear();
     skiaSurfaces_.shrink_to_fit();
-    if (mSkContext) {
-        mSkContext->FlushAndSubmit(true);
-        mSkContext->PurgeUnlockAndSafeCacheGpuResources();
+    if (renderContext_ != nullptr && renderContext_->GetSharedDrGPUContext() != nullptr) {
+        renderContext_->GetSharedDrGPUContext()->FlushAndSubmit(true);
+        renderContext_->GetSharedDrGPUContext()->PurgeUnlockAndSafeCacheGpuResources();
     }
     swapChain_.Cleanup();
     auto rc = GetRenderContextVulkan();
@@ -134,7 +134,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceAndroidVulkan::CreateSkiaSurfaceFromS
     VkFormat imageFormat = swapChain_.GetFormat();
     auto colorSpace = ConvertColorGamutToColorSpace(colorSpace_);
 
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     QueueFamilyIndices indices = vkContext.FindQueueFamilies(swapChain_.GetSurface());
 
     Drawing::TextureInfo texture_info;
@@ -165,7 +165,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceAndroidVulkan::CreateSkiaSurfaceFromS
 
     // Create Skia surface from Vulkan render target (swapchain manages image lifecycle)
     auto skSurface = Drawing::Surface::MakeFromBackendRenderTarget(
-        mSkContext.get(),
+        renderContext_->GetSharedDrGPUContext().get(),
         texture_info,
         Drawing::TextureOrigin::TOP_LEFT,
         colorType,
@@ -228,12 +228,13 @@ bool RSSurfaceAndroidVulkan::RecreateSwapchainIfNeeded(int32_t width, int32_t he
     skiaSurfaces_.clear();
     skiaSurfaces_.shrink_to_fit();
 
-    if (mSkContext) {
-        mSkContext->FlushAndSubmit(true);
-        mSkContext->PurgeUnlockAndSafeCacheGpuResources();
-        Drawing::SkiaGPUContext* skiaGpuContext = mSkContext->GetImpl<Drawing::SkiaGPUContext>();
-        if (skiaGpuContext) {
-            sk_sp<GrDirectContext> grContext = skiaGpuContext->GetGrContext();
+    if (renderContext_->GetSharedDrGPUContext()) {
+        renderContext_->GetSharedDrGPUContext()->FlushAndSubmit(true);
+        renderContext_->GetSharedDrGPUContext()->PurgeUnlockAndSafeCacheGpuResources();
+        Drawing::SkiaGPUContext* skiaContext =
+            renderContext_->GetSharedDrGPUContext()->GetImpl<Drawing::SkiaGPUContext>();
+        if (skiaContext) {
+            sk_sp<GrDirectContext> grContext = skiaContext->GetGrContext();
             if (grContext) {
                 grContext->freeGpuResources();
             }
@@ -293,7 +294,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceAndroidVulkan::RequestFrame(
         return nullptr;
     }
 
-    if (!mSkContext) {
+    if (!renderContext_->GetSharedDrGPUContext()) {
         ROSEN_LOGE("RSSurfaceAndroidVulkan::RequestFrame, Skia context is nullptr");
         return nullptr;
     }
@@ -344,7 +345,7 @@ bool RSSurfaceAndroidVulkan::FlushSkiaSurface(
     std::shared_ptr<Drawing::Surface> surface, VkSemaphore renderFinishedSemaphore)
 {
     auto stageBegin = std::chrono::steady_clock::now();
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
 
     RS_TRACE_NAME("SkiaFlush");
     VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
@@ -387,14 +388,14 @@ void RSSurfaceAndroidVulkan::WaitAndSubmitSkiaContext(VkSemaphore waitSemaphore)
     GrBackendSemaphore backendWaitSemaphore;
     backendWaitSemaphore.initVulkan(waitSemaphore);
 #endif
-    Drawing::SkiaGPUContext* skiaGpuContext = mSkContext->GetImpl<Drawing::SkiaGPUContext>();
-    if (skiaGpuContext) {
-        sk_sp<GrDirectContext> grContext = skiaGpuContext->GetGrContext();
+    Drawing::SkiaGPUContext* skiaContext = renderContext_->GetSharedDrGPUContext()->GetImpl<Drawing::SkiaGPUContext>();
+    if (skiaContext) {
+        sk_sp<GrDirectContext> grContext = skiaContext->GetGrContext();
         if (grContext) {
             grContext->wait(1, &backendWaitSemaphore, false);
         }
     }
-    mSkContext->Submit();
+    renderContext_->GetSharedDrGPUContext()->Submit();
     auto stageEnd = std::chrono::steady_clock::now();
     int64_t submitCostMs = ElapsedMs(stageBegin, stageEnd);
     if (submitCostMs > SUBMIT_STAGE_WARN_MS) {
@@ -467,7 +468,7 @@ bool RSSurfaceAndroidVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, 
     }
 
     VkSemaphore waitSemaphore = swapChain_.GetImageAvailableSemaphore(currentFrame_);
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     auto queue = vkContext.GetPresentQueue();
     if (queue == VK_NULL_HANDLE) {
         // Unified family: presentQueue is always graphicsQueue. Calling
@@ -490,8 +491,8 @@ bool RSSurfaceAndroidVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, 
     WaitAndSubmitSkiaContext(waitSemaphore);
 
     bool result = PresentSwapchainImage(queue, imageIndex, renderFinishedSemaphore);
-    if (mSkContext) {
-        mSkContext->PurgeUnlockedResources(true);
+    if (renderContext_->GetSharedDrGPUContext()) {
+        renderContext_->GetSharedDrGPUContext()->PurgeUnlockedResources(true);
     }
     return result;
 }

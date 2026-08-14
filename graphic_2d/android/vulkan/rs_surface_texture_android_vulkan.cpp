@@ -105,8 +105,9 @@ bool AndroidSurfaceTextureVK::OnCreateTextureImage(RSPaintFilterCanvas& canvas)
     uintptr_t hardwareBufferId = reinterpret_cast<uintptr_t>(lastHardwareBuffer_->buffer);
 
     if (vkTextureInfoMap_.find(hardwareBufferId) == vkTextureInfoMap_.end()) {
-        auto vkTextureInfo = NativeBufferUtils::MakeVKTextureInfoFromHardwareBuffer(lastHardwareBuffer_->buffer,
-            textureWidth_, textureHeight_);
+        auto vkInterface = RsVulkanContext::Get(canvas.GetRenderEngineType()).GetRsVulkanInterface();
+        auto vkTextureInfo = NativeBufferUtils::MakeVKTextureInfoFromHardwareBuffer(vkInterface,
+            lastHardwareBuffer_->buffer, textureWidth_, textureHeight_);
         if (!vkTextureInfo) {
             ROSEN_LOGE("AndroidSurfaceTextureVK: MakeVKTextureInfoFromHardwareBuffer failed");
             return false;
@@ -181,12 +182,12 @@ void AndroidSurfaceTextureVK::OnPostDraw()
 void AndroidSurfaceTextureVK::ReleaseTextureInfoMap(
     std::unordered_map<uintptr_t, std::shared_ptr<Drawing::VKTextureInfo>>& infoMap)
 {
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     for (const auto& it : infoMap) {
         auto info = it.second;
         if (info) {
-            vkContext.GetRsVulkanInterface().vkDestroyImage(vkContext.GetDevice(), info->vkImage, nullptr);
-            vkContext.GetRsVulkanInterface().vkFreeMemory(vkContext.GetDevice(), info->vkAlloc.memory, nullptr);
+            vkContext.GetRsVulkanInterface()->vkDestroyImage(vkContext.GetDevice(), info->vkImage, nullptr);
+            vkContext.GetRsVulkanInterface()->vkFreeMemory(vkContext.GetDevice(), info->vkAlloc.memory, nullptr);
         }
     }
     infoMap.clear();
