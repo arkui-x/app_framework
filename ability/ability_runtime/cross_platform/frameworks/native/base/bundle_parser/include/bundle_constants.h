@@ -132,6 +132,7 @@ constexpr int32_t INVALID_UID = -1;
 constexpr int32_t INVALID_GID = -1;
 constexpr int32_t INVALID_BUNDLEID = -1;
 constexpr int32_t INVALID_ACCESS_TOKEN_ID = -1;
+constexpr int32_t DEFAULT_ACCESS_TOKEN_ID = 1;
 constexpr int32_t ROOT_UID = 0;
 constexpr int32_t BMS_UID = 1000;
 constexpr int32_t BACKU_HOME_GID = 1089;
