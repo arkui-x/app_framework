@@ -992,7 +992,8 @@ napi_value JsWindow::OnSetWindowFocusable(napi_env env, napi_callback_info info)
         [weakToken, isFocusable](napi_env env, NapiAsyncTask& task, int32_t status) {
         auto weakWindow = weakToken.lock();
         if (weakWindow == nullptr) {
-            task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
+            task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY,
+                "This window state is abnormal."));
             WLOGE("JsWindow::OnSetWindowFocusable : window is nullptr or get invalid param");
             return;
         }
@@ -1022,7 +1023,8 @@ napi_value JsWindow::OnIsFocused(napi_env env, napi_callback_info info)
     auto window = weakToken.lock();
     if (window == nullptr) {
         WLOGE("window is nullptr");
-        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY,
+            "This window state is abnormal."));
         return CreateUndefined(env);
     }
     return CreateJsValue(env, window->IsFocused());
@@ -1034,7 +1036,8 @@ napi_value JsWindow::OnGetPreferredOrientation(napi_env env, napi_callback_info 
     auto window = weakToken.lock();
     if (window == nullptr) {
         WLOGE("window is nullptr");
-        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY,
+            "This window state is abnormal."));
         return CreateUndefined(env);
     }
     Orientation requestedOrientation = window->GetRequestedOrientation();
