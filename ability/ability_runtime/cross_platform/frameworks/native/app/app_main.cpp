@@ -27,6 +27,7 @@
 #include "application_configuration_manager.h"
 #include "application_context.h"
 #include "application_data_manager.h"
+#include "ark_native_engine.h"
 #include "base/log/ace_trace.h"
 #include "base/utils/string_utils.h"
 #include "hilog.h"
@@ -211,8 +212,14 @@ bool AppMain::CreateRuntime(const std::string& bundleName, bool isBundle)
     options.appDataLibPath = StageAssetManager::GetInstance()->GetAppDataLibDir();
 #endif
     auto bundleinfo = bundleContainer_->GetBundleInfo();
+    std::string hookList;
     if (bundleinfo != nullptr) {
         for (const auto& hapModuleInfo : bundleinfo->hapModuleInfos) {
+            for (const auto& meta : hapModuleInfo.metadata) {
+                if (meta.name == "hookList" && !meta.value.empty()) {
+                    hookList = meta.value;
+                }
+            }
             auto moduleName = hapModuleInfo.moduleName;
             std::vector<uint8_t> buffer = StageAssetManager::GetInstance()->GetPkgJsonBuffer(moduleName);
             if (buffer.empty()) {
@@ -227,6 +234,12 @@ bool AppMain::CreateRuntime(const std::string& bundleName, bool isBundle)
     auto runtime = AbilityRuntime::Runtime::Create(options);
     if (runtime == nullptr) {
         return false;
+    }
+
+    if (!hookList.empty()) {
+        auto& jsRuntime = static_cast<JsRuntime&>(*runtime);
+        auto* engine = reinterpret_cast<ArkNativeEngine*>(jsRuntime.GetNapiEnv());
+        engine->SetHookList(hookList);
     }
 
     RegisterUncaughtExceptionHandler(runtime.get());
