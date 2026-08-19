@@ -689,35 +689,50 @@ inline void AppExecFwk::AbilityDelegator::CallClearFunc(const std::shared_ptr<AD
     }
 }
 
-Ace::Platform::UIContent* AbilityDelegator::GetUIContent(int32_t instanceId)
+Ace::Platform::UIContent* AbilityDelegator::GetUIContent(int32_t abilityId)
 {
     std::shared_lock<std::shared_mutex> lock(mutex_);
-    auto uicontent = contentMap_.find(instanceId);
+    auto uicontent = contentMap_.find(abilityId);
     if (uicontent != contentMap_.end()) {
-        LOGI("AbilityDelegator-GetUIContent instance is : %p", uicontent->second);
-        return uicontent->second;
+        LOGI("AbilityDelegator-GetUIContent instance is : %p", uicontent->second.first);
+        return uicontent->second.first;
     } else {
         LOGI("AbilityDelegator-GetUIContent instance is null");
         return nullptr;
     }
 }
 
-void AbilityDelegator::AddUIContent(int32_t instanceId, Ace::Platform::UIContent* content)
+void AbilityDelegator::AddUIContent(int32_t instanceId, int32_t abilityId,
+    Ace::Platform::UIContent* content)
 {
     std::unique_lock<std::shared_mutex> lock(mutex_);
-    const auto result = contentMap_.try_emplace(instanceId, content);
-    if (!result.second) {
+    const auto insResult = contentMap_.try_emplace(instanceId, std::make_pair(content, abilityId));
+    if (!insResult.second) {
         LOGW("AbilityDelegator::AddUIContent already have uicontent of this instance id: %{public}d", instanceId);
     } else {
         LOGI("AbilityDelegator::AddUIContent %{public}d   %p", instanceId, content);
+    }
+    if (abilityId != instanceId) {
+        const auto abilResult = contentMap_.try_emplace(abilityId, std::make_pair(content, instanceId));
+        if (!abilResult.second) {
+            LOGW("AbilityDelegator::AddUIContent already have uicontent of this ability id: %{public}d", abilityId);
+        } else {
+            LOGI("AbilityDelegator::AddUIContent %{public}d   %p", abilityId, content);
+        }
     }
 }
 
 void AbilityDelegator::RemoveUIContent(int32_t instanceId)
 {
     std::unique_lock<std::shared_mutex> lock(mutex_);
-    size_t num = contentMap_.erase(instanceId);
-    if (num == 0) {
+    auto it = contentMap_.find(instanceId);
+    if (it != contentMap_.end()) {
+        int32_t abilityId = it->second.second;
+        contentMap_.erase(it);
+        if (abilityId != instanceId) {
+            contentMap_.erase(abilityId);
+        }
+    } else {
         LOGW("AbilityDelegator-uicontent not found with instance id: %{public}d", instanceId);
     }
 }
