@@ -1840,25 +1840,6 @@ void WebDelegateCross::ShowWebView()
 void WebDelegateCross::HideWebView()
 {}
 
-void WebDelegateCross::RecordWebEvent(Recorder::EventType eventType, const std::string& param) const
-{
-    if (!Recorder::EventRecorder::Get().IsComponentRecordEnable()) {
-        return;
-    }
-    auto pattern = webPattern_.Upgrade();
-    CHECK_NULL_VOID(pattern);
-    auto host = pattern->GetHost();
-    CHECK_NULL_VOID(host);
-    Recorder::EventParamsBuilder builder;
-    builder.SetId(host->GetInspectorIdValue(""))
-        .SetType(host->GetHostTag())
-        .SetEventType(eventType)
-        .SetText(param)
-        .SetHost(host)
-        .SetDescription(host->GetAutoEventParamValue(""));
-    Recorder::EventRecorder::Get().OnEvent(std::move(builder));
-}
-
 void WebDelegateCross::OnPageStarted(const std::string& param)
 {
     ContainerScope scope(instanceId_);
@@ -1868,7 +1849,6 @@ void WebDelegateCross::OnPageStarted(const std::string& param)
         [weak = WeakClaim(this), param]() {
             auto delegate = weak.Upgrade();
             CHECK_NULL_VOID(delegate);
-            delegate->RecordWebEvent(Recorder::EventType::WEB_PAGE_BEGIN, param);
             if (Container::IsCurrentUseNewPipeline()) {
                 auto webPattern = delegate->webPattern_.Upgrade();
                 CHECK_NULL_VOID(webPattern);
@@ -1893,7 +1873,6 @@ void WebDelegateCross::OnPageFinished(const std::string& param)
         [weak = WeakClaim(this), param]() {
             auto delegate = weak.Upgrade();
             CHECK_NULL_VOID(delegate);
-            delegate->RecordWebEvent(Recorder::EventType::WEB_PAGE_END, param);
             if (Container::IsCurrentUseNewPipeline()) {
                 auto webPattern = delegate->webPattern_.Upgrade();
                 CHECK_NULL_VOID(webPattern);
