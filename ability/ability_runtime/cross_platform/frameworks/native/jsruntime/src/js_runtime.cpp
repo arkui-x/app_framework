@@ -219,23 +219,6 @@ private:
         return 0;
     }
 
-    void RegisterSourceMapOperator()
-    {
-        auto sourceMapOperator = std::make_shared<JsEnv::SourceMapOperator>(std::string {});
-        sourceMapOperator_ = sourceMapOperator;
-        auto* arkEngine = reinterpret_cast<ArkNativeEngine*>(env_);
-        if (arkEngine != nullptr) {
-            auto stackOperator = sourceMapOperator;
-            arkEngine->RegisterTranslateBySourceMap([stackOperator](const std::string& rawStack) -> std::string {
-                return stackOperator->TranslateStack(rawStack);
-            });
-            arkEngine->RegisterSourceMapTranslateCallback(
-                [stackOperator](std::string& url, int& line, int& column, std::string& packageName) -> bool {
-                    return stackOperator->TranslatePosition(url, line, column, packageName);
-                });
-        }
-    }
-
     bool Initialize(const Runtime::Options& options) override
     {
         Ace::AceScopedTrace trace("ArkJsRuntimeInit");
@@ -303,8 +286,6 @@ private:
         isBundle_ = options.isBundle;
         panda::JSNApi::SetBundle(vm_, options.isBundle);
         panda::JSNApi::SetBundleName(vm_, options.bundleName);
-
-        RegisterSourceMapOperator();
 
         panda::JSNApi::SetHostResolveBufferTracker(vm_, JsModuleReader(options.bundleName, sourceMapOperator_));
         std::map<std::string, std::vector<std::vector<std::string>>> pkgContextInfoMap;
@@ -648,33 +629,12 @@ bool JsRuntime::IsNeedUpdate(const std::string& moduleName, const std::string& m
 
 void JsRuntime::LoadSourceMapForModule(const std::string& moduleName, bool isDynamicUpdate)
 {
-    if (sourceMapOperator_ == nullptr) {
-        return;
-    }
-
-    if (isDynamicUpdate) {
-        std::string moduleContent;
-        if (Platform::StageAssetManager::GetInstance()->GetSourceMapBufferByModuleName(moduleName, moduleContent) &&
-            !moduleContent.empty()) {
-            if (sourceMapOperator_->UpdateModuleSourceMap(moduleName, moduleContent)) {
-                HILOG_INFO("[JsRuntime] LoadSourceMapForModule success: module=%{public}s, size=%{public}zu",
-                    moduleName.c_str(), moduleContent.size());
-            }
-        }
-        return;
-    }
-
-    if (sourceMapOperator_->IsModuleSourceMapLoaded(moduleName)) {
-        return;
-    }
-
     std::string moduleContent;
+    panda::DFXJSNApi::SourceMapSetInitStatus(false);
     if (Platform::StageAssetManager::GetInstance()->GetSourceMapBufferByModuleName(moduleName, moduleContent) &&
         !moduleContent.empty()) {
-        if (sourceMapOperator_->AddModuleSourceMap(moduleName, moduleContent)) {
-            HILOG_INFO("[JsRuntime] LoadSourceMapForModule success: module=%{public}s, size=%{public}zu",
-                moduleName.c_str(), moduleContent.size());
-            }
+        panda::DFXJSNApi::SourceMapSplitSourceMap(moduleContent);
+        panda::DFXJSNApi::SourceMapSetInitStatus(true);
     }
 }
 
