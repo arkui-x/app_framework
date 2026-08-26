@@ -728,9 +728,14 @@ void AbilityDelegator::RemoveUIContent(int32_t instanceId)
     auto it = contentMap_.find(instanceId);
     if (it != contentMap_.end()) {
         int32_t abilityId = it->second.second;
+        auto content = it->second.first;
         contentMap_.erase(it);
         if (abilityId != instanceId) {
-            contentMap_.erase(abilityId);
+            auto abilityIt = contentMap_.find(abilityId);
+            if (abilityIt != contentMap_.end() && abilityIt->second.first == content &&
+                abilityIt->second.second == instanceId) {
+                contentMap_.erase(abilityIt);
+            }
         }
     } else {
         LOGW("AbilityDelegator-uicontent not found with instance id: %{public}d", instanceId);
