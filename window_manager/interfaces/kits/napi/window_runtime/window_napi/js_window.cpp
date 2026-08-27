@@ -463,7 +463,8 @@ napi_value JsWindow::OnGetWindowDensityInfo(napi_env env, napi_callback_info inf
     auto window = weakToken.lock();
     if (window == nullptr) {
         WLOGE("JsWindow::OnGetWindowDensityInfo : window is nullptr");
-        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY,
+            "This window state is abnormal."));
         return CreateUndefined(env);
     }
     WindowDensityInfo densityInfo;
@@ -476,7 +477,8 @@ napi_value JsWindow::OnGetWindowDensityInfo(napi_env env, napi_callback_info inf
     auto objValue = ConvertWindowDensityInfoToJsValue(env, densityInfo);
     if (objValue == nullptr) {
         WLOGE("JsWindow::OnGetWindowDensityInfo : create js object failed");
-        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY));
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_STATE_ABNORMALLY,
+            "This window state is abnormal."));
         return CreateUndefined(env);
     }
     WLOGI("JsWindow::OnGetWindowDensityInfo : Window [%{public}u, %{public}s] get density end",
