@@ -47,6 +47,9 @@ static void CreateSubWindowTask(std::shared_ptr<Platform::Context> context,
         return;
     }
     windowOption->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
+    if (windowOption->GetWindowType() == WindowType::WINDOW_TYPE_DIALOG) {
+        windowOption->SetWindowModal(true);
+    }
     if (windowOption->GetParentId() == INVALID_WINDOW_ID) {
         auto parentWindow = GetParentWindow(context);
         if (parentWindow == nullptr) {
