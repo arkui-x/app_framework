@@ -20,6 +20,7 @@
 #include "hilog.h"
 #include "source_map_operator.h"
 #include "stage_asset_manager.h"
+#include "ecmascript/napi/include/dfx_jsnapi.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -71,18 +72,12 @@ bool JsModuleReader::operator()(const std::string& inputPath, uint8_t** buff, si
 
 void JsModuleReader::LoadModuleSourceMap(const std::string& moduleName)
 {
-    if (sourceMapOperator_ == nullptr) {
-        return;
-    }
-
-    if (sourceMapOperator_->IsModuleSourceMapLoaded(moduleName)) {
-        return;
-    }
-
     std::string moduleContent;
+    panda::DFXJSNApi::SourceMapSetInitStatus(false);
     if (Platform::StageAssetManager::GetInstance()->GetSourceMapBufferByModuleName(moduleName, moduleContent) &&
         !moduleContent.empty()) {
-        sourceMapOperator_->AddModuleSourceMap(moduleName, moduleContent);
+        panda::DFXJSNApi::SourceMapSplitSourceMap(moduleContent);
+        panda::DFXJSNApi::SourceMapSetInitStatus(true);
     }
 }
 
