@@ -138,6 +138,7 @@ constexpr char NTC_PARAM_LEFT[] = "left";
 constexpr char NTC_PARAM_TOP[] = "top";
 constexpr char NTC_ERROR[] = "create error";
 constexpr char NTC_PARAM_SRC[] = "src";
+constexpr char NTC_PARAM_FILE_ACCESS[] = "fileAccess";
 constexpr char NTC_PARAM_ERROR_CODE[] = "errorCode";
 constexpr char NTC_PARAM_URL[] = "url";
 constexpr char NTC_PARAM_PAGE_URL[] = "pageUrl";
@@ -1359,7 +1360,8 @@ void WebDelegateCross::CreatePluginResource(
                     << WEB_PARAM_EQUALS << size.Height() * context->GetViewScale() << WEB_PARAM_AND << NTC_PARAM_LEFT
                     << WEB_PARAM_EQUALS << position.GetX() * context->GetViewScale() << WEB_PARAM_AND << NTC_PARAM_TOP
                     << WEB_PARAM_EQUALS << position.GetY() * context->GetViewScale() << WEB_PARAM_AND << NTC_PARAM_SRC
-                    << WEB_PARAM_EQUALS << webPattern->GetWebSrc().value_or("") << WEB_PARAM_AND << NTC_PARAM_PAGE_URL
+                    << WEB_PARAM_EQUALS << webPattern->GetWebSrc().value_or("") << WEB_PARAM_AND << NTC_PARAM_FILE_ACCESS
+                    << WEB_PARAM_EQUALS << webPattern->GetFileAccessEnabledValue(false) << WEB_PARAM_AND << NTC_PARAM_PAGE_URL
                     << WEB_PARAM_EQUALS << pageUrl << WEB_PARAM_AND << NTC_PARAM_RICH_TEXT_INIT
                     << WEB_PARAM_EQUALS << webPattern->GetRichTextInit() << WEB_PARAM_AND << NTC_INCOGNITO_MODE
                     << WEB_PARAM_EQUALS << webPattern->GetIncognitoMode();
