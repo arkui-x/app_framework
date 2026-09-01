@@ -47,7 +47,7 @@
 #include "core/components_ng/pattern/swiper/swiper_pattern.h"
 #include "core/components_ng/pattern/web/web_delegate_interface.h"
 #include "core/components_ng/pattern/navigation/navdestination_pattern_base.h"
-#include "core/components_ng/pattern/overlay/sheet_presentation_pattern.h"
+#include "core/components_ng/pattern/sheet/sheet_presentation_pattern.h"
 
 namespace OHOS::Ace {
 struct TextDetectConfig;
@@ -982,8 +982,7 @@ private:
 
     RefPtr<SheetPresentationPattern> SearchSheetParent(RefPtr<NestableScrollContainer> pattern,
         Axis scrollAxis = Axis::NONE);
-    RefPtr<OHOS::Ace::NG::SwiperPattern> SearchSwiperParent(RefPtr<NestableScrollContainer> pattern,
-        Axis scrollAxis = Axis::NONE);
+    RefPtr<FrameNode> SearchSwiperParent(RefPtr<NestableScrollContainer> pattern, Axis scrollAxis = Axis::NONE);
     bool ParentHostTagIsRefresh(RefPtr<NestableScrollContainer> container);
 
     bool IsAtBorder();
