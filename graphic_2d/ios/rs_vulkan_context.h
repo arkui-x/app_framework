@@ -39,7 +39,7 @@
 #endif
 
 #include "platform/ohos/backend/rs_engine_header_ext.h"
-#include "platform/ohos/backend/rs_vulkan_header_ext.h"
+#include "vulkan_context/rs_vulkan_header_ext.h"
 namespace OHOS {
 namespace Rosen {
 

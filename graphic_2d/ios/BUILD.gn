@@ -65,6 +65,7 @@ ohos_source_set("ios") {
     "//foundation/graphic/graphic_surface/interfaces/inner_api",
     "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
   ]
 
   defines += [
@@ -119,8 +120,8 @@ ohos_source_set("ios") {
       "rs_vulkan_context.cpp",
       "vulkan/render_context_vk.mm",
       "vulkan/rs_surface_frame_ios_vulkan.cpp",
-      "vulkan/rs_surface_swap_chain.mm",
       "vulkan/rs_surface_ios_vulkan.mm",
+      "vulkan/rs_surface_swap_chain.mm",
     ]
     frameworks += [
       "Metal.framework",
