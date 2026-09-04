@@ -19,8 +19,12 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <QuartzCore/CAMetalLayer.h>
+#include <UIKit/UIScreen.h>
 #include <dispatch/dispatch.h>
 #include <atomic>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
 #include <functional>
 #include <memory>
 #include <pthread.h>
@@ -33,12 +37,8 @@ namespace {
 constexpr int64_t MAIN_DISPATCH_TIMEOUT_NS = 50 * 1000000LL;
 // Extended timeout for swapchain creation/recreation (can block during startup).
 constexpr int64_t SWAPCHAIN_CREATE_TIMEOUT_NS = 500 * 1000000LL;
-
-// Generation counter for discarding stale main queue tasks after timeout.
-// When a timeout occurs, we increment this counter so that already-queued but not-yet-executed
-// blocks will skip their work, avoiding races like "render thread gave up, but main thread still
-// creates swapchain".
-static std::atomic<uint64_t> g_mainDispatchGeneration{0};
+// Flood-control counter for slow-but-successful main-queue waits (see DispatchOnMainWithTimeout).
+std::atomic<uint32_t> gSlowWaitLogged { 0 };
 
 // iOS 18+ requires pumping the main run loop so Core Animation can recycle IOSurface drawables.
 void PumpMainRunLoopForIOS18()
@@ -57,8 +57,25 @@ void PumpMainRunLoopOnce()
     }
 }
 
+// Dispatches work onto the main queue and waits with a bounded timeout, so a busy main thread
+// (window creation, page navigation) can never deadlock the render thread.
+// `generation` is PER swapchain and PER task class (shared_ptr: queued blocks must outlive the
+// swapchain object). Blocks skip their work when the counter no longer matches the value captured
+// at dispatch time.
+//  - cancelQueuedOnTimeout = true (layer mutation / swapchain create, mainDispatchGeneration_):
+//    on timeout the counter is bumped so already-queued blocks of THIS swapchain are discarded —
+//    the render thread gave up, and a late CreateImpl would race with the retry (e.g. overwrite
+//    swapchain_).
+//  - cancelQueuedOnTimeout = false (present, presentDispatchGeneration_): the queued present
+//    remains valid — it is self-guarded by the swapchain generation check inside, and cancelling
+//    it would leak the acquired image. Its generation is bumped ONLY by Cleanup.
+// onQueuedBlockDone runs on BOTH the executed and the stale-skip path, i.e. possibly after this
+// swapchain object is destroyed — it must only touch shared state (shared_ptr captures), never
+// members of a possibly-dead object.
 template<typename T>
-bool DispatchOnMainWithTimeout(std::function<T()> work, T& outResult, const char* label, int64_t timeoutNs = MAIN_DISPATCH_TIMEOUT_NS)
+bool DispatchOnMainWithTimeout(const std::shared_ptr<std::atomic<uint64_t>>& generation,
+    std::function<T()> work, T& outResult, const char* label, int64_t timeoutNs,
+    bool cancelQueuedOnTimeout, const std::function<void()>& onQueuedBlockDone = {})
 {
     if (pthread_main_np() != 0) {
         outResult = work();
@@ -66,7 +83,7 @@ bool DispatchOnMainWithTimeout(std::function<T()> work, T& outResult, const char
         return true;
     }
 
-    const uint64_t currentGeneration = g_mainDispatchGeneration.load(std::memory_order_relaxed);
+    const uint64_t currentGeneration = generation->load(std::memory_order_relaxed);
     struct Payload {
         std::function<T()> fn;
         T result {};
@@ -79,10 +96,14 @@ bool DispatchOnMainWithTimeout(std::function<T()> work, T& outResult, const char
     dispatch_retain(sem);  // Extra reference for the block to hold.
 
     // Capture the retained semaphore; block will release it when done.
-    dispatch_async(dispatch_get_main_queue(), [sem, payload, currentGeneration, label]() {
-        // Check generation before execution - skip if stale (timeout already occurred).
-        if (g_mainDispatchGeneration.load(std::memory_order_relaxed) != currentGeneration) {
+    dispatch_async(dispatch_get_main_queue(), [sem, payload, generation, currentGeneration, label,
+        onQueuedBlockDone]() {
+        // Check generation before execution - skip if stale (timeout or teardown already occurred).
+        if (generation->load(std::memory_order_relaxed) != currentGeneration) {
             ROSEN_LOGI("%{public}s: skipping stale task (generation mismatch)", label);
+            if (onQueuedBlockDone) {
+                onQueuedBlockDone();
+            }
             dispatch_semaphore_signal(sem);
             dispatch_release(sem);  // Release block's reference.
             return;
@@ -91,18 +112,40 @@ bool DispatchOnMainWithTimeout(std::function<T()> work, T& outResult, const char
         payload->result = payload->fn();
         payload->executed.store(true, std::memory_order_release);
         PumpMainRunLoopOnce();
+        if (onQueuedBlockDone) {
+            onQueuedBlockDone();
+        }
         dispatch_semaphore_signal(sem);
         dispatch_release(sem);  // Release block's reference.
     });
 
+    const auto waitStart = std::chrono::steady_clock::now();
     const bool completed = dispatch_semaphore_wait(
         sem, dispatch_time(DISPATCH_TIME_NOW, timeoutNs)) == 0;
+    // A successful but slow wait (< timeout) is invisible in every other log, yet it is
+    // the per-frame cost this dispatch design imposes on the render thread whenever the
+    // main thread is busy (page/window transitions, drag gesture storms). Surface it with
+    // flood control: first 20 occurrences, then every 200th. Timeouts are excluded — they
+    // already log below. Counter is shared by all template instantiations (per call site
+    // would multiply the "first 20" budget).
+    const auto waitMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - waitStart).count();
+    if (completed && waitMs >= 8) {
+        const uint32_t logged = gSlowWaitLogged.fetch_add(1, std::memory_order_relaxed);
+        if (logged < 20 || logged % 200 == 0) {
+            ROSEN_LOGW("%{public}s: main queue busy, render thread waited %{public}lldms (of %{public}lldms bound)",
+                label, static_cast<long long>(waitMs), static_cast<long long>(timeoutNs / 1000000LL));
+        }
+    }
     dispatch_release(sem);  // Release our reference (always, whether success or timeout).
 
     if (!completed) {
-        // Timeout: increment generation to discard any pending tasks.
-        g_mainDispatchGeneration.fetch_add(1, std::memory_order_relaxed);
-        ROSEN_LOGE("%{public}s: timed out waiting for main queue (avoid deadlock), generation incremented", label);
+        if (cancelQueuedOnTimeout) {
+            // Timeout: bump generation to discard this swapchain's pending tasks.
+            generation->fetch_add(1, std::memory_order_relaxed);
+        }
+        ROSEN_LOGE("%{public}s: timed out waiting for main queue (avoid deadlock), queued task %{public}s",
+            label, cancelQueuedOnTimeout ? "cancelled" : "kept");
         return false;
     }
 
@@ -119,22 +162,28 @@ bool DispatchOnMainWithTimeout(std::function<T()> work, T& outResult, const char
 
 // MoltenVK configures CAMetalLayer during vkCreateSwapchainKHR; layer mutations must run on main thread.
 // Uses extended timeout for swapchain creation/recreation which can be slow during startup.
-bool RunMetalLayerMutationOnMain(std::function<bool()> work, bool useExtendedTimeout = true)
+bool RunMetalLayerMutationOnMain(const std::shared_ptr<std::atomic<uint64_t>>& generation,
+    std::function<bool()> work, bool useExtendedTimeout = true)
 {
     bool ok = false;
     int64_t timeout = useExtendedTimeout ? SWAPCHAIN_CREATE_TIMEOUT_NS : MAIN_DISPATCH_TIMEOUT_NS;
-    if (!DispatchOnMainWithTimeout(std::move(work), ok, "RunMetalLayerMutationOnMain", timeout)) {
+    if (!DispatchOnMainWithTimeout(generation, std::move(work), ok, "RunMetalLayerMutationOnMain",
+        timeout, true)) {
         return false;
     }
     return ok;
 }
 
 // vkQueuePresentKHR must run on the main thread; pump run loop so CA can recycle IOSurface drawables.
-VkResult RunPresentOnMain(std::function<VkResult()> work)
+// A dispatch timeout means the main queue is busy — it is NOT a device-lost condition, so report
+// VK_TIMEOUT (not VK_ERROR_DEVICE_LOST) and let the caller skip the frame without recreating.
+VkResult RunPresentOnMain(const std::shared_ptr<std::atomic<uint64_t>>& generation,
+    std::function<VkResult()> work, const std::function<void()>& onQueuedBlockDone = {})
 {
     VkResult result = VK_ERROR_UNKNOWN;
-    if (!DispatchOnMainWithTimeout(std::move(work), result, "RunPresentOnMain")) {
-        return VK_ERROR_DEVICE_LOST;
+    if (!DispatchOnMainWithTimeout(generation, std::move(work), result, "RunPresentOnMain",
+        MAIN_DISPATCH_TIMEOUT_NS, false, onQueuedBlockDone)) {
+        return VK_TIMEOUT;
     }
     return result;
 }
@@ -161,6 +210,7 @@ static VkCompositeAlphaFlagBitsKHR ChooseSwapChainCompositeAlpha(VkCompositeAlph
 }
 
 RSSurfaceSwapChain::RSSurfaceSwapChain()
+    : mainDispatchGeneration_(std::make_shared<std::atomic<uint64_t>>(0))
 {
 }
 
@@ -312,7 +362,8 @@ bool RSSurfaceSwapChain::Create(int32_t width, int32_t height)
     // Note: We do NOT check isRecreatingSwapchain_ here because Recreate() calls this method
     // legitimately after setting isRecreatingSwapchain_ = true. The check should only be done
     // by external callers (like RequestFrame) via IsRecreating().
-    return RunMetalLayerMutationOnMain([this, width, height]() { return CreateImpl(width, height); });
+    return RunMetalLayerMutationOnMain(mainDispatchGeneration_,
+        [this, width, height]() { return CreateImpl(width, height); });
 }
 
 bool RSSurfaceSwapChain::CreateImpl(int32_t width, int32_t height)
@@ -431,7 +482,7 @@ bool RSSurfaceSwapChain::Recreate(int32_t width, int32_t height)
     return true;
 }
 
-void RSSurfaceSwapChain::FlushMetalLayerDrawableOnMain()
+void RSSurfaceSwapChain::FlushMetalLayerDrawableOnMain(bool isTeardown)
 {
     if (metalLayer_ == nullptr) {
         return;
@@ -440,15 +491,30 @@ void RSSurfaceSwapChain::FlushMetalLayerDrawableOnMain()
     if (@available(iOS 18, *)) {
         // iOS 18+: layer mutations and run loop pump must happen on the main thread.
         // Use extended timeout since this is called during swapchain recreation.
-        bool success = RunMetalLayerMutationOnMain([layer]() {
+        bool success = RunMetalLayerMutationOnMain(mainDispatchGeneration_, [layer, isTeardown]() {
             layer.drawableSize = CGSizeMake(1, 1);
-            for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-                CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
+            if (isTeardown) {
+                // Final teardown: nothing will ever render to this layer again, so the
+                // resize-triggered completion of stuck presentations (the iOS 18 Metal
+                // regression holds the last drawable of a closing window) is only processed
+                // if CA is given a REAL time budget to commit. Zero-timeout pumps suffice
+                // mid-stream (later frames spin the run loop anyway) but process nothing
+                // here — one IOSurface stays pinned per drag window teardown.
+                // The 3x50ms runloop budget is intentional (up to 150ms on main); device
+                // logs pair every WindowView dealloc with a layer dealloc only with it.
+                for (int i = 0; i < 3; ++i) {
+                    CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.05, false);
+                }
+            } else {
+                for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+                    CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
+                }
             }
             return true;
         }, true);  // useExtendedTimeout = true
         if (!success) {
-            ROSEN_LOGW("FlushMetalLayerDrawableOnMain: failed to flush on main thread");
+            ROSEN_LOGW("FlushMetalLayerDrawableOnMain: failed to flush on main thread (teardown=%{public}d)",
+                isTeardown ? 1 : 0);
         }
         return;
     }
@@ -461,12 +527,35 @@ void RSSurfaceSwapChain::SetLayerDrawableSizeOnMain(int32_t width, int32_t heigh
     if (@available(iOS 18, *)) {
         // iOS 18+: layer mutations must happen on the main thread.
         // Use extended timeout since this may be called during startup.
-        bool success = RunMetalLayerMutationOnMain([this, width, height]() {
+        bool success = RunMetalLayerMutationOnMain(mainDispatchGeneration_, [this, width, height]() {
             if (metalLayer_ == nullptr) {
                 return true;
             }
             auto* layer = static_cast<CAMetalLayer*>(metalLayer_);
             layer.drawableSize = CGSizeMake(width, height);
+            // MoltenVK expects drawableSize to equal bounds * contentsScale (naturalDrawableSizeMVK).
+            // If the layer never ran layout (e.g. the drag-preview subwindow), contentsScale stays
+            // at the default 1.0 and every acquire returns VK_SUBOPTIMAL_KHR forever. Keep the
+            // scale consistent with the requested drawable size.
+            // ARKUI_DISABLE_SCALE_FIXES=1 disables the sync for A/B reproduction tests.
+            static const bool disableScaleFix = getenv("ARKUI_DISABLE_SCALE_FIXES") != nullptr;
+            if (!disableScaleFix) {
+                CGSize boundsSize = layer.bounds.size;
+                if (boundsSize.width > 0.0 && boundsSize.height > 0.0) {
+                    CGFloat scaleX = static_cast<CGFloat>(width) / boundsSize.width;
+                    CGFloat scaleY = static_cast<CGFloat>(height) / boundsSize.height;
+                    CGFloat derivedScale = (scaleX + scaleY) * 0.5;
+                    if (std::abs(scaleX - scaleY) < 0.01 &&
+                        std::abs(derivedScale - layer.contentsScale) > 0.01) {
+                        ROSEN_LOGI("SetLayerDrawableSizeOnMain: fix contentsScale %{public}.2f -> %{public}.2f",
+                            layer.contentsScale, derivedScale);
+                        layer.contentsScale = derivedScale;
+                    }
+                } else if (layer.contentsScale <= 1.0) {
+                    // Bounds not laid out yet; assume the main screen scale rather than the 1.0 default.
+                    layer.contentsScale = [UIScreen mainScreen].scale;
+                }
+            }
             return true;
         }, true);  // useExtendedTimeout = true
         if (!success) {
@@ -489,13 +578,27 @@ void RSSurfaceSwapChain::SetLayerDrawableSizeOnMain(int32_t width, int32_t heigh
 
 void RSSurfaceSwapChain::Cleanup()
 {
+    // Cancel any of our tasks still queued on the main queue BEFORE touching Vulkan state:
+    // after this object is destroyed, a late CreateImpl/layer mutation would be use-after-free.
+    // Blocks read the generations through the shared counters, so they skip safely; the present
+    // done-callback likewise only holds shared state. Both counters must be bumped: presents
+    // deliberately use their own so a layer-mutation timeout cannot discard them, but Cleanup
+    // invalidates everything.
+    mainDispatchGeneration_->fetch_add(1, std::memory_order_relaxed);
+    presentDispatchGeneration_->fetch_add(1, std::memory_order_relaxed);
+
     auto& vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     VkDevice device = vkContext.GetDevice();
     auto& vkInterface = vkContext.GetRsVulkanInterface();
     if (device != VK_NULL_HANDLE && vkInterface->vkDeviceWaitIdle) {
         vkInterface->vkDeviceWaitIdle(device);
     }
-    FlushMetalLayerDrawableOnMain();
+    // Teardown flush: force completion of presentations stuck on the iOS 18 Metal regression
+    // while the layer is still attached, with a real runloop budget (see implementation).
+    ROSEN_LOGI("RSSurfaceSwapChain::Cleanup: teardown flush, pendingPresents=%{public}d, swapchain=%{public}s",
+        pendingPresentsOnMain_->load(std::memory_order_acquire),
+        swapchain_ != VK_NULL_HANDLE ? "live" : "null");
+    FlushMetalLayerDrawableOnMain(true);
     CleanupSyncObjects();
 
     if (swapchain_ != VK_NULL_HANDLE) {
@@ -533,14 +636,62 @@ VkResult RSSurfaceSwapChain::Present(VkQueue queue, uint32_t imageIndex, VkSemap
     if (swapchain_ == VK_NULL_HANDLE) {
         return VK_ERROR_INITIALIZATION_FAILED;
     }
-    return RunPresentOnMain([this, currentGeneration, queue, imageIndex, waitSemaphore]() {
+    // Track queued presents: while one has not run on main yet, its drawable is still held and
+    // the caller must not acquire more images (pool starvation) or recreate (destroys a healthy
+    // swapchain while main is busy). Only counted when actually dispatched: on the main thread
+    // the work runs inline, so no queued block will ever fire the done-callback.
+    const bool calledFromMainThread = pthread_main_np() != 0;
+    // A/B switch (ARKUI_PRESENT_OFF_MAIN=1): present on this (render) thread instead of
+    // hopping to the main queue. [MTLDrawable present] is thread-safe; the main hop only
+    // exists to pump the run loop so CA recycles drawables while main is busy — at the
+    // cost of stalling this thread up to MAIN_DISPATCH_TIMEOUT_NS on every frame main is
+    // busy. Off-main, a busy main delays drawable recycling instead of the present
+    // itself, and the 3-image pool absorbs the lag.
+    static const bool presentOffMain = [] {
+        const bool on = getenv("ARKUI_PRESENT_OFF_MAIN") != nullptr;
+        if (on) {
+            ROSEN_LOGI("RSSurfaceSwapChain: ARKUI_PRESENT_OFF_MAIN=1 — presenting on the render thread");
+        }
+        return on;
+    }();
+    if (presentOffMain && !calledFromMainThread) {
+        // Runs synchronously here — no queued block, so pendingPresentsOnMain_ stays
+        // untouched (it only tracks presents still waiting for the main queue).
+        const VkResult presentResult = PresentImpl(queue, imageIndex, waitSemaphore);
+        // Commit the implicit CA transaction this thread just created: presenting a
+        // CAMetalLayer drawable from a non-main thread rides a thread-local
+        // transaction that only a flush ON THIS THREAD ever commits. Main-side
+        // teardown (contents=nil + flush, drawableSize={1,1} + runloop pumps) cannot
+        // reach it, so the layer — and its drawable pool — stays referenced forever.
+        // Device 9-02: without this flush every drag layer leaked (view dealloc'd but
+        // 0 ArkUIDiagMetalLayer deallocs, pinned IOSurfaces); on-main present commits
+        // each runloop turn and shows 8/8 matched deallocs. Flushing an empty
+        // transaction is a cheap no-op.
+        [CATransaction flush];
+        return presentResult;
+    }
+    if (!calledFromMainThread) {
+        pendingPresentsOnMain_->fetch_add(1, std::memory_order_relaxed);
+    }
+    // The done-callback below runs whenever the queued block finally executes — including the
+    // generation-mismatch skip after Cleanup bumped the counters, i.e. potentially AFTER this
+    // object was destroyed (the teardown flush can itself time out on a busy main thread). It
+    // must therefore capture only shared state; capturing `this` here was a use-after-free.
+    const std::shared_ptr<std::atomic<int32_t>> pendingPresents = pendingPresentsOnMain_;
+    return RunPresentOnMain(presentDispatchGeneration_,
+        [this, currentGeneration, queue, imageIndex, waitSemaphore]() {
         // Check if swapchain was recreated while we were waiting for main queue.
         if (swapchainGeneration_.load(std::memory_order_acquire) != currentGeneration) {
             ROSEN_LOGI("PresentImpl: swapchain was recreated, skipping present");
             return VK_ERROR_OUT_OF_DATE_KHR;
         }
         return PresentImpl(queue, imageIndex, waitSemaphore);
-    });
+    },
+        [pendingPresents, calledFromMainThread]() {
+            if (!calledFromMainThread) {
+                pendingPresents->fetch_sub(1, std::memory_order_relaxed);
+            }
+        });
 }
 
 VkResult RSSurfaceSwapChain::PresentImpl(VkQueue queue, uint32_t imageIndex, VkSemaphore waitSemaphore)
