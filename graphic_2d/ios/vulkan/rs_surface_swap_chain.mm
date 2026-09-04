@@ -641,20 +641,23 @@ VkResult RSSurfaceSwapChain::Present(VkQueue queue, uint32_t imageIndex, VkSemap
     // swapchain while main is busy). Only counted when actually dispatched: on the main thread
     // the work runs inline, so no queued block will ever fire the done-callback.
     const bool calledFromMainThread = pthread_main_np() != 0;
-    // A/B switch (ARKUI_PRESENT_OFF_MAIN=1): present on this (render) thread instead of
-    // hopping to the main queue. [MTLDrawable present] is thread-safe; the main hop only
-    // exists to pump the run loop so CA recycles drawables while main is busy — at the
-    // cost of stalling this thread up to MAIN_DISPATCH_TIMEOUT_NS on every frame main is
-    // busy. Off-main, a busy main delays drawable recycling instead of the present
-    // itself, and the 3-image pool absorbs the lag.
-    static const bool presentOffMain = [] {
-        const bool on = getenv("ARKUI_PRESENT_OFF_MAIN") != nullptr;
+    // Default (promoted 9-04): present on this (render) thread instead of hopping to the
+    // main queue — 5 clean device rounds incl. two heavy-load sessions, and on-main logs
+    // showed 2-5 present waits/timeouts (page/window transitions, GC) per session that
+    // are structurally zero here. [MTLDrawable present] is thread-safe; a busy main
+    // thread then only delays drawable recycling (the 3-image pool absorbs the lag)
+    // instead of stalling this thread up to MAIN_DISPATCH_TIMEOUT_NS every frame.
+    // Escape hatch (ARKUI_PRESENT_ON_MAIN=1): dispatch to the main queue and
+    // bounded-wait, pumping the run loop so CA recycles drawables eagerly — the
+    // pre-promotion behaviour.
+    static const bool presentOnMain = [] {
+        const bool on = getenv("ARKUI_PRESENT_ON_MAIN") != nullptr;
         if (on) {
-            ROSEN_LOGI("RSSurfaceSwapChain: ARKUI_PRESENT_OFF_MAIN=1 — presenting on the render thread");
+            ROSEN_LOGI("RSSurfaceSwapChain: ARKUI_PRESENT_ON_MAIN=1 — presenting via the main queue");
         }
         return on;
     }();
-    if (presentOffMain && !calledFromMainThread) {
+    if (!presentOnMain && !calledFromMainThread) {
         // Runs synchronously here — no queued block, so pendingPresentsOnMain_ stays
         // untouched (it only tracks presents still waiting for the main queue).
         const VkResult presentResult = PresentImpl(queue, imageIndex, waitSemaphore);
