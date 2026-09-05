@@ -144,22 +144,26 @@ void AppMain::ScheduleLaunchApplication(bool isCopyNativeLibs, bool shouldLoadUI
 }
 
 void AppMain::PrepareAbilityDelegator(const std::string& bundleName, const std::string& moduleName,
-    const std::string& testRunerName, const std::string& timeout, const std::string& socket)
+    const std::string& testRunerName, const std::string& testCaseName,
+    const std::string& timeout, const std::string& socket)
 {
-    auto task = [bundleName, moduleName, testRunerName, timeout, socket]() {
-        AppMain::GetInstance()->CreateAbilityDelegator(bundleName, moduleName, testRunerName, timeout, socket);
+    auto task = [bundleName, moduleName, testRunerName, testCaseName, timeout, socket]() {
+        AppMain::GetInstance()->CreateAbilityDelegator(
+            bundleName, moduleName, testRunerName, testCaseName, timeout, socket);
     };
     eventHandler_->PostTask(task);
 }
 
 void AppMain::CreateAbilityDelegator(const std::string& bundleName, const std::string& moduleName,
-    const std::string& testRunerName, const std::string& timeout, const std::string& socket)
+    const std::string& testRunerName, const std::string& testCaseName,
+    const std::string& timeout, const std::string& socket)
 {
     HILOG_INFO("PrepareAbilityDelegator for Stage model.");
     Want want;
     want.SetBundleName(bundleName);
     want.SetModuleName(moduleName);
     want.SetAbilityName(testRunerName);
+    want.SetParam("class", testCaseName);
     want.SetParam("timeout", timeout);
     if (socket != INVALID_SOCKET) {
         want.SetParam("socket", socket);

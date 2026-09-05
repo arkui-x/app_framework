@@ -54,7 +54,8 @@ public:
     void InitConfiguration(const std::string& jsonConfiguration);
     bool IsSingleton(const std::string& moduleName, const std::string& abilityName);
     void PrepareAbilityDelegator(const std::string& bundleName, const std::string& moduleName,
-        const std::string& testRunerName, const std::string& timeout, const std::string& socket);
+        const std::string& testRunerName, const std::string& testCaseName,
+        const std::string& timeout, const std::string& socket);
     void DispatchOnAbilityResult(const std::string& instanceName, int32_t requestCode, int32_t resultCode,
         const std::string& wantParams);
     void ParseHspModuleJson(const std::string& moduleName);
@@ -85,7 +86,8 @@ private:
     void HandleInitConfiguration(const std::string& jsonConfiguration);
     Want TransformToWant(const std::string& instanceName, const std::string& params = "");
     void CreateAbilityDelegator(const std::string& bundleName, const std::string& moduleName,
-        const std::string& testRunerName, const std::string& timeout, const std::string& socket);
+        const std::string& testRunerName, const std::string& testCaseName,
+        const std::string& timeout, const std::string& socket);
     void LoadUiTestModuleBySocket(const std::string& socket);
     void HandleDispatchOnAbilityResult(
         const std::string& instanceName, int32_t requestCode, int32_t resultCode, const std::string& resultWant);
