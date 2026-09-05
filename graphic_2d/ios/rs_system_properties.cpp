@@ -518,6 +518,11 @@ bool RSSystemProperties::GetClipRRectOptimizationEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetBgNodeReleaseEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetTransactionDataTraceEnabled()
 {
     return false;
