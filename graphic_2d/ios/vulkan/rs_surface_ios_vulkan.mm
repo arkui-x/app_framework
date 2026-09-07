@@ -217,8 +217,7 @@ bool RSSurfaceIOSVulkan::RecreateSwapchainIfNeeded(int32_t width, int32_t height
         return true;
     }
 
-    static const bool disablePresentGate = getenv("ARKUI_DISABLE_PRESENT_GATE") != nullptr;
-    if (!disablePresentGate && swapChain_.HasPendingPresentsOnMain()) {
+    if (swapChain_.HasPendingPresentsOnMain()) {
         // Recreate starts with an unbounded vkDeviceWaitIdle and destroys the old swapchain while
         // a queued present may still reference it. Defer until the main queue drained it.
         static std::atomic<uint32_t> deferRecreateLogCount { 0 };
@@ -280,21 +279,13 @@ uint32_t RSSurfaceIOSVulkan::AcquireSwapchainImage()
         // differs from drawableSize — recreating cannot fix a scale mismatch (the new swapchain
         // comes back suboptimal too), and attempting it per frame floods the main queue with
         // layer-mutation dispatches. Present the acquired image as-is.
-        // ARKUI_DISABLE_SCALE_FIXES=1 restores the pre-fix recreate behaviour for A/B tests.
-        static const bool disableScaleFix = getenv("ARKUI_DISABLE_SCALE_FIXES") != nullptr;
-        if (disableScaleFix) {
-            ROSEN_LOGW("RequestFrame Swapchain suboptimal, will recreate next frame (fix disabled)");
-            swapChain_.SetNeedRecreate(true);
-            return UINT32_MAX;
-        }
         static std::atomic<uint32_t> suboptimalLogCount { 0 };
         if (suboptimalLogCount.fetch_add(1, std::memory_order_relaxed) < 5) {
             ROSEN_LOGW("RequestFrame Swapchain suboptimal (contentsScale mismatch?), present as-is");
         }
     }
     if (result == VK_TIMEOUT) {
-        static const bool disablePresentGate = getenv("ARKUI_DISABLE_PRESENT_GATE") != nullptr;
-        if (!disablePresentGate && swapChain_.HasPendingPresentsOnMain()) {
+        if (swapChain_.HasPendingPresentsOnMain()) {
             // Drawable pool starved by our own presents stuck on the busy main queue — not a
             // broken swapchain. Recreating would destroy a healthy swapchain and wedge the
             // unbounded vkDeviceWaitIdle in Recreate. Just drop this frame.
@@ -357,10 +348,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceIOSVulkan::RequestFrame(
     // No background gate here: backgrounding is rare, the rare rejected frame is absorbed
     // by the MoltenVK-side recovery (Resumed VkDevice + skipped present signalAndUntrack),
     // and a per-frame applicationState poll in the hot path costs more than it saves.
-    // ARKUI_DISABLE_PRESENT_GATE=1 restores the pre-fix behaviour (acquire despite pending
-    // presents, acquire-timeout triggers recreate, recreate not deferred) for A/B tests.
-    static const bool disablePresentGate = getenv("ARKUI_DISABLE_PRESENT_GATE") != nullptr;
-    if (!disablePresentGate && swapChain_.HasPendingPresentsOnMain()) {
+    if (swapChain_.HasPendingPresentsOnMain()) {
         // A previous present is still queued on the busy main queue, so its drawable has not
         // returned to the pool. Acquiring now only starves the pool, and the resulting acquire
         // timeout would be misread as a broken swapchain and trigger a destructive recreate
