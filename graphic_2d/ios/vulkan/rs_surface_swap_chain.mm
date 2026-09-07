@@ -537,9 +537,7 @@ void RSSurfaceSwapChain::SetLayerDrawableSizeOnMain(int32_t width, int32_t heigh
             // If the layer never ran layout (e.g. the drag-preview subwindow), contentsScale stays
             // at the default 1.0 and every acquire returns VK_SUBOPTIMAL_KHR forever. Keep the
             // scale consistent with the requested drawable size.
-            // ARKUI_DISABLE_SCALE_FIXES=1 disables the sync for A/B reproduction tests.
-            static const bool disableScaleFix = getenv("ARKUI_DISABLE_SCALE_FIXES") != nullptr;
-            if (!disableScaleFix) {
+            {
                 CGSize boundsSize = layer.bounds.size;
                 if (boundsSize.width > 0.0 && boundsSize.height > 0.0) {
                     CGFloat scaleX = static_cast<CGFloat>(width) / boundsSize.width;
@@ -641,23 +639,13 @@ VkResult RSSurfaceSwapChain::Present(VkQueue queue, uint32_t imageIndex, VkSemap
     // swapchain while main is busy). Only counted when actually dispatched: on the main thread
     // the work runs inline, so no queued block will ever fire the done-callback.
     const bool calledFromMainThread = pthread_main_np() != 0;
-    // Default (promoted 9-04): present on this (render) thread instead of hopping to the
-    // main queue — 5 clean device rounds incl. two heavy-load sessions, and on-main logs
-    // showed 2-5 present waits/timeouts (page/window transitions, GC) per session that
-    // are structurally zero here. [MTLDrawable present] is thread-safe; a busy main
-    // thread then only delays drawable recycling (the 3-image pool absorbs the lag)
-    // instead of stalling this thread up to MAIN_DISPATCH_TIMEOUT_NS every frame.
-    // Escape hatch (ARKUI_PRESENT_ON_MAIN=1): dispatch to the main queue and
-    // bounded-wait, pumping the run loop so CA recycles drawables eagerly — the
-    // pre-promotion behaviour.
-    static const bool presentOnMain = [] {
-        const bool on = getenv("ARKUI_PRESENT_ON_MAIN") != nullptr;
-        if (on) {
-            ROSEN_LOGI("RSSurfaceSwapChain: ARKUI_PRESENT_ON_MAIN=1 — presenting via the main queue");
-        }
-        return on;
-    }();
-    if (!presentOnMain && !calledFromMainThread) {
+    // Present on this (render) thread instead of hopping to the main queue (promoted 9-04
+    // after 5 clean device rounds incl. two heavy-load sessions; on-main showed 2-5 present
+    // waits/timeouts per session that are structurally zero here). [MTLDrawable present] is
+    // thread-safe; a busy main thread then only delays drawable recycling (the 3-image pool
+    // absorbs the lag) instead of stalling this thread up to MAIN_DISPATCH_TIMEOUT_NS every
+    // frame.
+    if (!calledFromMainThread) {
         // Runs synchronously here — no queued block, so pendingPresentsOnMain_ stays
         // untouched (it only tracks presents still waiting for the main queue).
         const VkResult presentResult = PresentImpl(queue, imageIndex, waitSemaphore);
