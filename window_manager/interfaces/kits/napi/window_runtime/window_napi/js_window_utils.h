@@ -146,6 +146,18 @@ const std::map<ApiWindowMode, WindowMode> JS_TO_NATIVE_WINDOW_MODE_MAP {
     {ApiWindowMode::FLOATING,   WindowMode::WINDOW_MODE_FLOATING        },
 };
 
+enum class RectChangeReason : uint32_t {
+    UNDEFINED = 0,
+    MAXIMIZE,
+    RECOVER,
+    MOVE,
+    DRAG,
+    DRAG_START,
+    DRAG_END,
+};
+
+extern const std::map<WindowSizeChangeReason, RectChangeReason> JS_SIZE_CHANGE_REASON;
+
 enum class ApiOrientation : uint32_t {
     UNSPECIFIED = 0,
     PORTRAIT = 1,
@@ -200,6 +212,7 @@ bool GetSystemBarPropertiesFromJs(napi_env env, napi_value jsObject,
     std::unordered_map<WindowType, SystemBarProperty>& properties,
     std::unordered_map<WindowType, SystemBarPropertyFlag>& propertyFlags);
 napi_value ConvertAvoidAreaToJsValue(napi_env env, const AvoidArea& avoidArea, AvoidAreaType type);    
+napi_value GetRectAndConvertToJsValue(napi_env env, const Rect& rect);
 napi_value WindowTypeInit(napi_env env);
 napi_value WindowModeInit(napi_env env);
 napi_value OrientationInit(napi_env env);
@@ -209,6 +222,7 @@ napi_value ModalityTypeInit(napi_env env);
 napi_value WindowErrorCodeInit(napi_env env);
 napi_value WindowErrorInit(napi_env env);
 napi_value WindowStatusTypeInit(napi_env env);
+napi_value RectChangeReasonInit(napi_env env);
 napi_value WindowColorSpaceInit(napi_env env);
 bool SetWindowObjectProperties(napi_env env,
     napi_value object, const char *moduleName, const napi_property_descriptor *props, size_t size);

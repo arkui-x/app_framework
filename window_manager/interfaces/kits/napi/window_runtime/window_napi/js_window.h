@@ -59,6 +59,7 @@ public:
     static napi_value IsFocused(napi_env env, napi_callback_info info);
     static napi_value SetWindowSystemBarProperties(napi_env env, napi_callback_info info);
     static napi_value GetPreferredOrientation(napi_env env, napi_callback_info info);
+    static napi_value GetWindowStatus(napi_env env, napi_callback_info info);
 
 private:
     napi_value OnShowWindow(napi_env env, napi_callback_info info);
@@ -87,6 +88,7 @@ private:
     napi_value OnIsFocused(napi_env env, napi_callback_info info);
     napi_value OnGetPreferredOrientation(napi_env env, napi_callback_info info);
     napi_value OnSetWindowSystemBarProperties(napi_env env, napi_callback_info info);
+    napi_value OnGetWindowStatus(napi_env env, napi_callback_info info);
 
     std::string GetWindowName();
     std::shared_ptr<Rosen::Window> windowToken_;

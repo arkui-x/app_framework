@@ -76,6 +76,22 @@ public:
 };
 
 /**
+ * @class IWindowRectChangeListener
+ *
+ * @brief IWindowRectChangeListener is used to observe the window rect and its changing reason when window changed.
+ */
+class IWindowRectChangeListener : virtual public RefBase {
+public:
+    /**
+     * @brief Notify caller when window rect changed.
+     *
+     * @param Rect Rect of the current window.
+     * @param reason Reason for window size change.
+     */
+    virtual void OnRectChange(Rect rect, WindowSizeChangeReason reason) {}
+};
+
+/**
  * @brief Enumerates occupied area type.
  */
 enum class OccupiedAreaType : uint32_t {
@@ -141,6 +157,22 @@ class IWindowStatusChangeListener : virtual public RefBase {
          */
         virtual void OnWindowStatusChange(WindowStatus status) {}
     };
+
+/**
+ * @class IWindowStatusDidChangeListener
+ *
+ * @brief IWindowStatusDidChangeListener is used to observe the window status when window status changed
+ *        and layout finished.
+ */
+class IWindowStatusDidChangeListener : virtual public RefBase {
+public:
+    /**
+     * @brief Notify caller when window status changed.
+     *
+     * @param status Mode of the current window.
+     */
+    virtual void OnWindowStatusDidChange(WindowStatus status) {}
+};
 
 class IAvoidAreaChangedListener : virtual public RefBase {
     public:
