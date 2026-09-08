@@ -26,13 +26,20 @@
 namespace OHOS {
 namespace Rosen {
 using namespace AbilityRuntime;
+constexpr size_t WINDOW_ARGC_ONE_PARAM = 1;
+constexpr size_t WINDOW_ARGC_TWO_PARAMS = 2;
 
 JsWindowManager::JsWindowManager() {}
 
 JsWindowManager::~JsWindowManager() {}
 
-static void CreateSubWindowTask(
-    void* contextPtr, std::shared_ptr<WindowOption> windowOption, napi_env env, NapiAsyncTask& task)
+static std::shared_ptr<Window> GetParentWindow(const std::shared_ptr<Platform::Context>& context)
+{
+    return Window::GetTopWindow(context);
+}
+
+static void CreateSubWindowTask(std::shared_ptr<Platform::Context> context,
+    std::shared_ptr<WindowOption> windowOption, napi_env env, NapiAsyncTask& task)
 {
     if (windowOption == nullptr) {
         task.Reject(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_SYSTEM_ABNORMALLY, "New window option failed"));
@@ -40,12 +47,30 @@ static void CreateSubWindowTask(
         return;
     }
     windowOption->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
+    if (windowOption->GetWindowType() == WindowType::WINDOW_TYPE_DIALOG) {
+        windowOption->SetWindowModal(true);
+    }
     if (windowOption->GetParentId() == INVALID_WINDOW_ID) {
-        WLOGE("CreateSubWindowTask : subwindow option parentid error");
+        auto parentWindow = GetParentWindow(context);
+        if (parentWindow == nullptr) {
+            task.Reject(
+                env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARENT, "Parent window is invalid"));
+            WLOGE("CreateSubWindowTask : parent window is invalid");
+            return;
+        }
+        windowOption->SetParentId(parentWindow->GetWindowId());
+        if (context == nullptr) {
+            context = parentWindow->GetContext();
+        }
+    }
+    if (context == nullptr) {
+        task.Reject(env,
+            CreateWindowsJsError(env, WmErrorCode::WM_ERROR_CONTEXT_ABNORMALLY, "Window context is abnormal"));
+        WLOGE("CreateSubWindowTask : context is nullptr");
         return;
     }
-    auto context = static_cast<std::weak_ptr<OHOS::AbilityRuntime::Platform::AbilityContext>*>(contextPtr);
-    std::shared_ptr<Window> window = Window::CreateSubWindow(context->lock(), windowOption);
+
+    std::shared_ptr<Window> window = Window::CreateSubWindow(context, windowOption);
     if (window != nullptr) {
         task.Resolve(env, CreateJsWindowObject(env, window));
     } else {
@@ -87,37 +112,46 @@ napi_value JsWindowManager::OnCreateWindow(napi_env env, napi_callback_info info
     size_t argc = WINDOW_ARGC_MAX_COUNT;
     napi_value argv[WINDOW_ARGC_MAX_COUNT] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < 1) {
+    if (status != napi_ok || argc < WINDOW_ARGC_ONE_PARAM || argc > WINDOW_ARGC_TWO_PARAMS) {
         WLOGE("JsWindowStage::OnCreateWindow : argc error![%{public}zu]", argc);
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
+        return nullptr;
+    }
+    if (argc > 1 && !IsFunction(env, argv[1])) {
+        WLOGE("JsWindowStage::OnCreateWindow : callback is not function");
         napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
         return nullptr;
     }
 
     WindowOption option;
-    void* contextPtr = nullptr;
-    if (!ParseConfigOption(env, argv[0], option, contextPtr)) {
+    std::shared_ptr<Platform::Context> context = nullptr;
+    WmErrorCode errCode = WmErrorCode::WM_OK;
+    if (!ParseConfigOption(env, argv[0], option, context, errCode)) {
         WLOGE("JsWindowManager::OnCreateWindow : Failed to parse config");
-        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_PARAM));
-        return nullptr;
-    }
-    if (option.GetWindowType() != WindowType::WINDOW_TYPE_APP_SUB_WINDOW) {
-        WLOGE("JsWindowManager::OnCreateWindow : Invalid Window Type!");
-        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_NOT_SYSTEM_APP));
+        napi_throw(env, CreateWindowsJsError(env, errCode));
         return nullptr;
     }
 
-    NapiAsyncTask::CompleteCallback complete = [=](napi_env env, NapiAsyncTask& task, int32_t status) {
-        std::shared_ptr<WindowOption> windowOption = std::make_shared<WindowOption>(option);
-        return CreateSubWindowTask(contextPtr, windowOption, env, task);
-    };
-    napi_value callback = nullptr;
-    if (argc > 1 && IsFunction(env, argv[1])) {
-        callback = argv[1];
+    if (option.GetWindowType() == WindowType::WINDOW_TYPE_APP_SUB_WINDOW ||
+        option.GetWindowType() == WindowType::WINDOW_TYPE_DIALOG) {
+        NapiAsyncTask::CompleteCallback complete = [context, option](
+                                                       napi_env env, NapiAsyncTask& task, int32_t status) {
+            std::shared_ptr<WindowOption> windowOption = std::make_shared<WindowOption>(option);
+            return CreateSubWindowTask(context, windowOption, env, task);
+        };
+        napi_value callback = nullptr;
+        if (argc > 1 && IsFunction(env, argv[1])) {
+            callback = argv[1];
+        }
+        napi_value result = nullptr;
+        NapiAsyncTask::Schedule("JsWindowManager::OnCreateWindow", env,
+            CreateAsyncTaskWithLastParam(env, callback, nullptr, std::move(complete), &result));
+        return result;
+    } else {
+        WLOGE("JsWindowManager::OnCreateWindow : Invalid Window Type!");
+        napi_throw(env, CreateWindowsJsError(env, WmErrorCode::WM_ERROR_INVALID_CALLING));
+        return nullptr;
     }
-    napi_value result = nullptr;
-    NapiAsyncTask::Schedule("JsWindowManager::OnCreateWindow", env,
-        CreateAsyncTaskWithLastParam(env, callback, nullptr, std::move(complete), &result));
-    return result;
 }
 
 template <class T>
@@ -134,13 +168,52 @@ static bool ParseJsValue(napi_env env, napi_value jsObject, const std::string &n
     return true;
 }
 
-bool JsWindowManager::ParseConfigOption(napi_env env, napi_value jsObject, WindowOption& option, void*& contextPtr)
+static bool HasJsProperty(napi_env env, napi_value jsObject, const std::string& name)
+{
+    bool hasProperty = false;
+    napi_status status = napi_has_named_property(env, jsObject, name.c_str(), &hasProperty);
+    return status == napi_ok && hasProperty;
+}
+
+static bool ParseContext(napi_env env, napi_value jsObject, std::shared_ptr<Platform::Context>& context,
+    WmErrorCode& errCode)
+{
+    napi_value value = nullptr;
+    napi_status status = napi_get_named_property(env, jsObject, "ctx", &value);
+    void* contextPtr = nullptr;
+    if (status != napi_ok || napi_unwrap(env, value, &contextPtr) != napi_ok || contextPtr == nullptr) {
+        errCode = WmErrorCode::WM_ERROR_CONTEXT_ABNORMALLY;
+        return false;
+    }
+    auto weakContext = static_cast<std::weak_ptr<Platform::AbilityContext>*>(contextPtr);
+    context = weakContext->lock();
+    if (context == nullptr) {
+        errCode = WmErrorCode::WM_ERROR_CONTEXT_ABNORMALLY;
+        return false;
+    }
+    return true;
+}
+
+static bool ParseParentId(napi_env env, napi_value jsObject, WindowOption& option, WmErrorCode& errCode)
+{
+    int64_t parentId = -1;
+    if (!ParseJsValue(env, jsObject, "parentId", parentId) || parentId < 0) {
+        errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
+        return false;
+    }
+    option.SetParentId(static_cast<uint32_t>(parentId));
+    return true;
+}
+
+bool JsWindowManager::ParseConfigOption(napi_env env, napi_value jsObject, WindowOption& option,
+    std::shared_ptr<Platform::Context>& context, WmErrorCode& errCode)
 {
     std::string windowName;
-    if (ParseJsValue(env, jsObject, "name", windowName)) {
+    if (ParseJsValue(env, jsObject, "name", windowName) && !windowName.empty()) {
         option.SetWindowName(windowName);
     } else {
         WLOGE("JsWindowManager::ParseConfigOption : Failed to convert parameter to windowName");
+        errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         return false;
     }
 
@@ -153,26 +226,21 @@ bool JsWindowManager::ParseConfigOption(napi_env env, napi_value jsObject, Windo
             option.SetWindowType(static_cast<WindowType>(winType));
         }
     } else {
-        WLOGE("JsWindowManager::ParseConfigOption : Failed to convert parameter to winType");
+        WLOGE("JsWindowManager::ParseConfigOption : Failed to convert parameter to windowType");
+        errCode = WmErrorCode::WM_ERROR_INVALID_PARAM;
         return false;
     }
 
-    napi_value value = nullptr;
-    napi_status status = napi_get_named_property(env, jsObject, "ctx", &value);
-    if (status != napi_ok) {
-        return false;
-    }
-    status = napi_unwrap(env, value, &contextPtr);
-    if (status != napi_ok) {
+    if (!ParseContext(env, jsObject, context, errCode)) {
+        WLOGE("JsWindowManager::ParseConfigOption : Failed to convert parameter to windowCtx");
         return false;
     }
 
-    int64_t parentId = -1;
-    if (ParseJsValue(env, jsObject, "parentId", parentId)) {
-        option.SetParentId(parentId);
-    } else {
+    if (HasJsProperty(env, jsObject, "parentId") && !ParseParentId(env, jsObject, option, errCode)) {
         return false;
     }
+
+    errCode = WmErrorCode::WM_OK;
     return true;
 }
 

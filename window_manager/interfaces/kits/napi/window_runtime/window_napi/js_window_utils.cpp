@@ -232,6 +232,8 @@ napi_value WindowStageEventTypeInit(napi_env env)
         DECLARE_NAPI_PROPERTY("ACTIVE", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::ACTIVE))),
         DECLARE_NAPI_PROPERTY("INACTIVE", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::INACTIVE))),
         DECLARE_NAPI_PROPERTY("HIDDEN", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::BACKGROUND))),
+        DECLARE_NAPI_PROPERTY("RESUMED", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::RESUMED))),
+        DECLARE_NAPI_PROPERTY("PAUSED", CreateJsValue(env, static_cast<int32_t>(LifeCycleEventType::PAUSED))),
     };
     return CreateObject(env, nullptr, props, sizeof(props) / sizeof(props[0]));
 }

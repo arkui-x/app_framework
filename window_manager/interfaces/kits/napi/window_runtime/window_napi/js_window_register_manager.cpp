@@ -168,7 +168,7 @@ bool JsWindowRegisterManager::IsCallbackRegistered(napi_env env, std::string typ
 WmErrorCode JsWindowRegisterManager::RegisterListener(napi_env env, std::shared_ptr<Window> window, std::string type,
     CaseType caseType, napi_value value)
 {
-    WLOGE("JsWindowRegisterManager RegisterListener%p", this);
+    WLOGI("JsWindowRegisterManager RegisterListener%p", this);
     std::lock_guard<std::mutex> lock(mtx_);
     if (IsCallbackRegistered(env, type, value)) {
         return WmErrorCode::WM_OK;
@@ -190,7 +190,7 @@ WmErrorCode JsWindowRegisterManager::RegisterListener(napi_env env, std::shared_
         return WmErrorCode::WM_ERROR_STATE_ABNORMALLY;
     }
     WmErrorCode ret = (this->*listenerProcess_[caseType][type])(windowManagerListener, window, true);
-    WLOGE("JsWindowRegisterManager::RegisterListener : listenerProcess_[caseType] success");
+    WLOGI("JsWindowRegisterManager::RegisterListener : listenerProcess_[caseType] success");
     if (ret != WmErrorCode::WM_OK) {
         WLOGE("JsWindowRegisterManager::RegisterListener : Register type %{public}s failed", type.c_str());
         return ret;
