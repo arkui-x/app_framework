@@ -43,6 +43,7 @@ AbilityDelegatorArgs::AbilityDelegatorArgs(const AAFwk::Want &want)
     params_["abilityName"] = abilityName_;
     params_["-s timeout"] = want.GetStringParam("timeout");
     params_["socket"] = want.GetStringParam("socket");
+    params_[KEY_TEST_CASE] = want.GetStringParam("class");
 }
 
 AbilityDelegatorArgs::~AbilityDelegatorArgs()
@@ -70,7 +71,7 @@ std::string AbilityDelegatorArgs::GetTestRunnerClassName() const
 
 std::string AbilityDelegatorArgs::GetTestCaseName() const
 {
-    return "";
+    return GetParamValue(KEY_TEST_CASE);
 }
 
 std::string AbilityDelegatorArgs::GetSocketConfig() const
