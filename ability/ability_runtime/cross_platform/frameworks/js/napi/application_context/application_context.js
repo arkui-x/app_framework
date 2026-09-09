@@ -138,6 +138,10 @@ class ApplicationContext {
       return this.__contextImpl__.resourceDir;
     }
 
+    get processName() {
+      return this.__contextImpl__.processName;
+    }
+
     get eventHub() {
       return this.__contextImpl__.eventHub;
     }

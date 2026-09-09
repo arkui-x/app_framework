@@ -56,6 +56,11 @@ std::string AbilityStageContext::GetCacheDir()
     return applicationContext_ ? applicationContext_->GetCacheDir() : "";
 }
 
+std::string AbilityStageContext::GetProcessName()
+{
+    return applicationContext_ ? applicationContext_->GetProcessName() : "";
+}
+
 std::string AbilityStageContext::GetTempDir()
 {
     return applicationContext_ ? applicationContext_->GetTempDir() : "";

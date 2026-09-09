@@ -70,6 +70,11 @@ std::string AbilityContextImpl::GetResourceDir(const std::string &moduleName)
     return stageContext_ ? stageContext_->GetResourceDir(moduleName) : "";
 }
 
+std::string AbilityContextImpl::GetProcessName()
+{
+    return stageContext_ ? stageContext_->GetProcessName() : "";
+}
+
 ErrCode AbilityContextImpl::StartAbility(const AAFwk::Want& want, int requestCode)
 {
     HILOG_INFO("Start ability");
