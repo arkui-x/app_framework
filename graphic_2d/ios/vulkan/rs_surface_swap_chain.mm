@@ -444,6 +444,8 @@ bool RSSurfaceSwapChain::Recreate(int32_t width, int32_t height)
     swapchain_ = VK_NULL_HANDLE;
     surface_ = VK_NULL_HANDLE;
 
+    // Light flush only here — the layer outlives this swapchain; the full teardown
+    // treatment (contents=nil + real-budget pumps) is reserved for Cleanup.
     FlushMetalLayerDrawableOnMain();
 
     if (metalLayer_ == nullptr) {
@@ -488,37 +490,40 @@ void RSSurfaceSwapChain::FlushMetalLayerDrawableOnMain(bool isTeardown)
         return;
     }
     auto* layer = static_cast<CAMetalLayer*>(metalLayer_);
-    if (@available(iOS 18, *)) {
-        // iOS 18+: layer mutations and run loop pump must happen on the main thread.
-        // Use extended timeout since this is called during swapchain recreation.
-        bool success = RunMetalLayerMutationOnMain(mainDispatchGeneration_, [layer, isTeardown]() {
+    if (isTeardown) {
+        // Final teardown (Cleanup only — the layer will never render again): on the main
+        // thread, resize to {1,1}, clear the contents reference, and give CA real runloop
+        // turns to commit and process the change, releasing the layer's drawable pool.
+        bool success = RunMetalLayerMutationOnMain(mainDispatchGeneration_, [layer]() {
             layer.drawableSize = CGSizeMake(1, 1);
-            if (isTeardown) {
-                // Final teardown: nothing will ever render to this layer again, so the
-                // resize-triggered completion of stuck presentations (the iOS 18 Metal
-                // regression holds the last drawable of a closing window) is only processed
-                // if CA is given a REAL time budget to commit. Zero-timeout pumps suffice
-                // mid-stream (later frames spin the run loop anyway) but process nothing
-                // here — one IOSurface stays pinned per drag window teardown.
-                // The 3x50ms runloop budget is intentional (up to 150ms on main); device
-                // logs pair every WindowView dealloc with a layer dealloc only with it.
-                for (int i = 0; i < 3; ++i) {
-                    CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.05, false);
-                }
-            } else {
-                for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-                    CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
-                }
+            layer.contents = nil;
+            for (int i = 0; i < 3; ++i) {
+                CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.05, false);
             }
             return true;
-        }, true);  // useExtendedTimeout = true
+        }, true);
         if (!success) {
-            ROSEN_LOGW("FlushMetalLayerDrawableOnMain: failed to flush on main thread (teardown=%{public}d)",
-                isTeardown ? 1 : 0);
+            ROSEN_LOGW("FlushMetalLayerDrawableOnMain: failed to flush on main thread (teardown)");
         }
         return;
     }
-    // iOS 17 and below: avoid dispatch_sync to main during render-thread teardown (deadlock with UI).
+    // Mid-stream flush (swapchain recreate — the layer stays alive): light flush only.
+    // Never clear contents on a layer that keeps rendering. iOS 18: {1,1} on main with
+    // zero-budget drains; iOS 17 and below: render-thread {1,1} that is overwritten by
+    // the real size before CA ever sees it (it must stay uncommitted).
+    if (@available(iOS 18, *)) {
+        bool success = RunMetalLayerMutationOnMain(mainDispatchGeneration_, [layer]() {
+            layer.drawableSize = CGSizeMake(1, 1);
+            for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+                CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
+            }
+            return true;
+        }, true);
+        if (!success) {
+            ROSEN_LOGW("FlushMetalLayerDrawableOnMain: failed to flush on main thread (recreate)");
+        }
+        return;
+    }
     layer.drawableSize = CGSizeMake(1, 1);
 }
 
@@ -639,25 +644,16 @@ VkResult RSSurfaceSwapChain::Present(VkQueue queue, uint32_t imageIndex, VkSemap
     // swapchain while main is busy). Only counted when actually dispatched: on the main thread
     // the work runs inline, so no queued block will ever fire the done-callback.
     const bool calledFromMainThread = pthread_main_np() != 0;
-    // Present on this (render) thread instead of hopping to the main queue (promoted 9-04
-    // after 5 clean device rounds incl. two heavy-load sessions; on-main showed 2-5 present
-    // waits/timeouts per session that are structurally zero here). [MTLDrawable present] is
-    // thread-safe; a busy main thread then only delays drawable recycling (the 3-image pool
-    // absorbs the lag) instead of stalling this thread up to MAIN_DISPATCH_TIMEOUT_NS every
-    // frame.
+    // Present runs directly on this (render) thread: [MTLDrawable present] is
+    // thread-safe, so the render thread never waits on the main queue to present;
+    // a busy main thread only delays drawable recycling, which the 3-image pool
+    // absorbs.
     if (!calledFromMainThread) {
         // Runs synchronously here — no queued block, so pendingPresentsOnMain_ stays
         // untouched (it only tracks presents still waiting for the main queue).
         const VkResult presentResult = PresentImpl(queue, imageIndex, waitSemaphore);
-        // Commit the implicit CA transaction this thread just created: presenting a
-        // CAMetalLayer drawable from a non-main thread rides a thread-local
-        // transaction that only a flush ON THIS THREAD ever commits. Main-side
-        // teardown (contents=nil + flush, drawableSize={1,1} + runloop pumps) cannot
-        // reach it, so the layer — and its drawable pool — stays referenced forever.
-        // Device 9-02: without this flush every drag layer leaked (view dealloc'd but
-        // 0 ArkUIDiagMetalLayer deallocs, pinned IOSurfaces); on-main present commits
-        // each runloop turn and shows 8/8 matched deallocs. Flushing an empty
-        // transaction is a cheap no-op.
+        // Flush this thread's implicit CA transaction: an off-main present rides a
+        // thread-local transaction that only a flush on this very thread commits.
         [CATransaction flush];
         return presentResult;
     }
