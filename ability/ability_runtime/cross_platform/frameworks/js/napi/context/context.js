@@ -118,6 +118,10 @@ class Context {
       return this.__contextImpl__.area;
     }
 
+    get processName() {
+      return this.__contextImpl__.processName;
+    }
+
     getApplicationContext() {
         return this.__contextImpl__.getApplicationContext();
     }

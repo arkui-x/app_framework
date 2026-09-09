@@ -133,6 +133,13 @@ public:
     virtual std::string GetResourceDir(const std::string &moduleName = "") = 0;
 
     /**
+     * @brief Obtains the process name of the current application.
+     *
+     * @return Returns the process name of the current application.
+     */
+    virtual std::string GetProcessName() = 0;
+
+    /**
      * @brief Obtains the local system database path.
      * If the local system database path does not exist, the system creates one and returns the created path.
      *

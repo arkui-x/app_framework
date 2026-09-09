@@ -50,6 +50,7 @@ public:
     void InitResourceManeger();
     void GetResourcePaths(std::string& appResourcePath, std::string& sysResourcePath) override;
     void GetResourcePaths(std::vector<std::string>& appResourcePaths, std::string& sysResourcePath) override;
+    std::string GetProcessName() override;
 
 private:
     std::shared_ptr<Context> applicationContext_ = nullptr;
