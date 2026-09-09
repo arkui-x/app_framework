@@ -182,6 +182,22 @@ void JsWindowListener::AfterUnfocused()
     LifeCycleCallBack(LifeCycleEventType::INACTIVE);
 }
 
+void JsWindowListener::AfterActive()
+{
+    if (caseType_ != WINDOW_STAGE_EVENT_CB) {
+        return;
+    }
+    LifeCycleCallBack(LifeCycleEventType::RESUMED);
+}
+
+void JsWindowListener::AfterInactive()
+{
+    if (caseType_ != WINDOW_STAGE_EVENT_CB) {
+        return;
+    }
+    LifeCycleCallBack(LifeCycleEventType::PAUSED);
+}
+
 void JsWindowListener::OnWindowStatusChange(WindowStatus windowstatus)
 {
     WLOGD("[NAPI] OnWindowStatusChange");
