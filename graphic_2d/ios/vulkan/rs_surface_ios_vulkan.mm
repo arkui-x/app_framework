@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <cinttypes>
+#include <cstdlib>
 #include <atomic>
 #include <memory>
 #include <mutex>
@@ -47,6 +48,12 @@ namespace Rosen {
 static constexpr uint16_t MAX_FRAMES_IN_FLIGHT = 3;
 // ~3 frames at 60Hz; avoids indefinite block when swapchain images are not returned.
 static constexpr uint64_t ACQUIRE_SWAPCHAIN_IMAGE_TIMEOUT_NS = 50 * 1000000ULL;
+
+// True while the host iOS app is backgrounded. GPU work submitted in this state is
+// aborted by the system (kIOGPUCommandBufferCallbackErrorBackgroundExecutionNotPermitted);
+// the rejection is handled non-fatally on the MoltenVK side (no markLost + unstick +
+// signalAndUntrack on the skipped present), so no per-frame gate is needed here.
+
 
 RSSurfaceIOSVulkan::RSSurfaceIOSVulkan(void* metalLayer)
 {
@@ -210,6 +217,18 @@ bool RSSurfaceIOSVulkan::RecreateSwapchainIfNeeded(int32_t width, int32_t height
         return true;
     }
 
+    if (swapChain_.HasPendingPresentsOnMain()) {
+        // Recreate starts with an unbounded vkDeviceWaitIdle and destroys the old swapchain while
+        // a queued present may still reference it. Defer until the main queue drained it.
+        static std::atomic<uint32_t> deferRecreateLogCount { 0 };
+        uint32_t deferCount = deferRecreateLogCount.fetch_add(1, std::memory_order_relaxed);
+        if (deferCount < 5 || deferCount % 100 == 0) {
+            ROSEN_LOGW("RecreateSwapchainIfNeeded: deferring recreate, presents still queued on main"
+                " (%{public}u deferred)", deferCount + 1);
+        }
+        return false;
+    }
+
     if (swapChain_.IsRecreating()) {
         ROSEN_LOGI("RequestFrame: Swapchain is being recreated, waiting...");
         return false;
@@ -249,12 +268,30 @@ uint32_t RSSurfaceIOSVulkan::AcquireSwapchainImage()
     VkSemaphore imageAvailableSemaphore = swapChain_.GetImageAvailableSemaphore(currentFrame_);
     VkResult result = swapChain_.AcquireNextImage(
         ACQUIRE_SWAPCHAIN_IMAGE_TIMEOUT_NS, imageAvailableSemaphore, &imageIndex);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-        ROSEN_LOGW("RequestFrame Swapchain out of date or suboptimal, will recreate next frame");
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        ROSEN_LOGW("RequestFrame Swapchain out of date, will recreate next frame");
         swapChain_.SetNeedRecreate(true);
         return UINT32_MAX;
     }
+    if (result == VK_SUBOPTIMAL_KHR) {
+        // Per Vulkan spec the image WAS acquired; only presentation is suboptimal. On iOS this
+        // fires permanently when the CAMetalLayer's natural extent (bounds * contentsScale)
+        // differs from drawableSize — recreating cannot fix a scale mismatch (the new swapchain
+        // comes back suboptimal too), and attempting it per frame floods the main queue with
+        // layer-mutation dispatches. Present the acquired image as-is.
+        static std::atomic<uint32_t> suboptimalLogCount { 0 };
+        if (suboptimalLogCount.fetch_add(1, std::memory_order_relaxed) < 5) {
+            ROSEN_LOGW("RequestFrame Swapchain suboptimal (contentsScale mismatch?), present as-is");
+        }
+    }
     if (result == VK_TIMEOUT) {
+        if (swapChain_.HasPendingPresentsOnMain()) {
+            // Drawable pool starved by our own presents stuck on the busy main queue — not a
+            // broken swapchain. Recreating would destroy a healthy swapchain and wedge the
+            // unbounded vkDeviceWaitIdle in Recreate. Just drop this frame.
+            ROSEN_LOGW("RequestFrame AcquireNextImage timed out while presents are queued on main, defer recreate");
+            return UINT32_MAX;
+        }
         ROSEN_LOGW("RequestFrame AcquireNextImage timed out, will recreate next frame");
         swapChain_.SetNeedRecreate(true);
         return UINT32_MAX;
@@ -306,6 +343,24 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceIOSVulkan::RequestFrame(
     int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
     if (!CheckLayerAndContext()) {
+        return nullptr;
+    }
+    // No background gate here: backgrounding is rare, the rare rejected frame is absorbed
+    // by the MoltenVK-side recovery (Resumed VkDevice + skipped present signalAndUntrack),
+    // and a per-frame applicationState poll in the hot path costs more than it saves.
+    if (swapChain_.HasPendingPresentsOnMain()) {
+        // A previous present is still queued on the busy main queue, so its drawable has not
+        // returned to the pool. Acquiring now only starves the pool, and the resulting acquire
+        // timeout would be misread as a broken swapchain and trigger a destructive recreate
+        // whose unbounded vkDeviceWaitIdle wedges the render thread against the stalled main
+        // thread (GPU command-buffer timeout -> VK_ERROR_DEVICE_LOST). Drop the frame instead;
+        // rendering resumes as soon as the main queue drains the queued present.
+        static std::atomic<uint32_t> presentPendingSkipCount { 0 };
+        uint32_t skipCount = presentPendingSkipCount.fetch_add(1, std::memory_order_relaxed);
+        if (skipCount < 5 || skipCount % 100 == 0) {
+            ROSEN_LOGW("RequestFrame: previous present still queued on main, drop frame (%{public}u skipped)",
+                skipCount + 1);
+        }
         return nullptr;
     }
     if (width != currentWidth_ || height != currentHeight_) {
@@ -403,8 +458,21 @@ bool RSSurfaceIOSVulkan::PresentSwapchainImage(
     if (result == VK_SUBOPTIMAL_KHR) {
         ROSEN_LOGE("FlushFrame Swapchain suboptimal");
     }
+    if (result == VK_TIMEOUT) {
+        // Main queue is busy (window creation / page navigation); the queued present is still pending
+        // and will run when the main thread frees up. Skip this frame WITHOUT recreating: a recreate
+        // during a busy main thread only produces a failed-recreate storm (its main dispatch times out
+        // too) and tears down a healthy swapchain.
+        static std::atomic<uint32_t> presentTimeoutLogCount { 0 };
+        uint32_t timeoutCount = presentTimeoutLogCount.fetch_add(1, std::memory_order_relaxed);
+        if (timeoutCount < 5 || timeoutCount % 100 == 0) {
+            ROSEN_LOGW("FlushFrame Present main dispatch timed out, skip frame without recreate"
+                " (%{public}u skipped)", timeoutCount + 1);
+        }
+        return false;
+    }
     if (result == VK_ERROR_DEVICE_LOST) {
-        ROSEN_LOGE("FlushFrame Present failed: main dispatch timeout or device lost, will recreate");
+        ROSEN_LOGE("FlushFrame Present failed: device lost, will recreate");
         swapChain_.SetNeedRecreate(true);
         return false;
     }
