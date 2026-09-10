@@ -448,6 +448,11 @@ bool RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetLayerPartRenderEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetLayerEnabled()
 {
     return false;
