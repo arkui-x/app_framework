@@ -17,6 +17,7 @@
 
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <vector>
 
 #include "bundle_parser.h"
 #include "hilog.h"
@@ -34,19 +35,36 @@ void BundleContainer::LoadBundleInfos(const std::list<std::vector<uint8_t>>& buf
 {
     BundleParser parser;
     HILOG_INFO("BundleContainer LoadBundleInfos bufList size %{public}d", static_cast<int>(bufList.size()));
+    std::vector<InnerBundleInfo> parsedInfos;
+    int32_t entryIndex = -1;
     for (auto it = bufList.begin(); it != bufList.end(); it++) {
         InnerBundleInfo bInfo;
         if (parser.Parse(*it, bInfo) != ERR_OK) {
             continue;
         }
-        if (bundleInfo_ == nullptr) {
-            bundleInfo_ = std::make_shared<InnerBundleInfo>();
-            *bundleInfo_ = bInfo;
-        } else {
-            bool added = bundleInfo_->AddModuleInfo(bInfo);
-            if (!added) {
-                bundleInfo_->UpdateModuleInfo(bInfo);
-            }
+        if (entryIndex < 0 && bInfo.IsEntryModule(bInfo.GetCurrentModulePackage())) {
+            entryIndex = static_cast<int32_t>(parsedInfos.size());
+        }
+        parsedInfos.push_back(std::move(bInfo));
+    }
+    if (parsedInfos.empty()) {
+        return;
+    }
+    int32_t baseIndex = (entryIndex >= 0) ? entryIndex : 0;
+    if (entryIndex >= 0) {
+        HILOG_INFO("use entry module as base application info");
+    } else {
+        HILOG_WARN("no entry module found, fallback to first module as base application info");
+    }
+    bundleInfo_ = std::make_shared<InnerBundleInfo>();
+    *bundleInfo_ = parsedInfos[baseIndex];
+    for (size_t i = 0; i < parsedInfos.size(); i++) {
+        if (static_cast<int32_t>(i) == baseIndex) {
+            continue;
+        }
+        bool added = bundleInfo_->AddModuleInfo(parsedInfos[i]);
+        if (!added) {
+            bundleInfo_->UpdateModuleInfo(parsedInfos[i]);
         }
     }
 }
