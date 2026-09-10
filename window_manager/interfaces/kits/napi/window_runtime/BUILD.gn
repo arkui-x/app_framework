@@ -78,6 +78,7 @@ template("window_manager_napi") {
 
     deps = [ "//foundation/arkui/napi:ace_napi" ]
     deps += [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client_static" ]
+    deps += [ "${window_manager_napi_path}/kits/napi/environmental:windowenv_napi_modules" ]
   }
 }
 

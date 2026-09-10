@@ -1,0 +1,20 @@
+{
+  "files": [
+    "./src/common.d.ts",
+    "./src/WindowSizeEnv.ts",
+    "./src/WindowAvoidAreaEnv.ts"
+  ],
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ES2016",
+    "outDir": "./engine",
+    "rootDir": "./src",
+    "declaration": false,
+    "noEmitOnError": true,
+    "useUnknownInCatchVariables": false,
+    "experimentalDecorators": true,
+    "lib": [
+      "ES2016"
+    ]
+  }
+}
