@@ -154,6 +154,23 @@ napi_value JsBaseContext::OnGetResourceDir(napi_env env, NapiCallbackInfo& info)
     return CreateJsValue(env, path);
 }
 
+napi_value JsBaseContext::GetProcessName(napi_env env, napi_callback_info info)
+{
+    HILOG_DEBUG("JsBaseContext::GetProcessName is called");
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsBaseContext, OnGetProcessName, BASE_CONTEXT_NAME);
+}
+
+napi_value JsBaseContext::OnGetProcessName(napi_env env, NapiCallbackInfo& info)
+{
+    auto context = context_.lock();
+    if (!context) {
+        HILOG_WARN("context is already released");
+        return CreateJsUndefined(env);
+    }
+    std::string name = context->GetProcessName();
+    return CreateJsValue(env, name);
+}
+
 napi_value AttachBaseContext(napi_env env, void* value, void* hint)
 {
     HILOG_DEBUG("AttachBaseContext");
@@ -377,6 +394,7 @@ napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, b
     BindNativeProperty(env, object, "preferencesDir", JsBaseContext::GetPreferencesDir);
     BindNativeProperty(env, object, "bundleCodeDir", JsBaseContext::GetBundleCodeDir);
     BindNativeProperty(env, object, "resourceDir", JsBaseContext::GetResourceDir);
+    BindNativeProperty(env, object, "processName", JsBaseContext::GetProcessName);
     BindNativeFunction(env, object, "getApplicationContext", moduleName, JsBaseContext::GetApplicationContext);
     BindNativeFunction(env, object, "createModuleContext", moduleName, JsBaseContext::CreateModuleContext);
     return object;

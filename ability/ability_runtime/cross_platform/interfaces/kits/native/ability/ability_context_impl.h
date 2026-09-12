@@ -34,6 +34,7 @@ public:
     std::string GetDatabaseDir() override;
     std::string GetPreferencesDir() override;
     std::string GetResourceDir(const std::string &moduleName = "") override;
+    std::string GetProcessName() override;
     std::string GetBundleName() const override;
     int GetSystemDatabaseDir(const std::string &groupId, bool checkExist, std::string &databaseDir) override;
     int GetSystemPreferencesDir(const std::string &groupId, bool checkExist, std::string &preferencesDir) override;

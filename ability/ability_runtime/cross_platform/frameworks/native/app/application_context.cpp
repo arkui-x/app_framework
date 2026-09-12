@@ -399,6 +399,14 @@ int32_t ApplicationContext::GetProcessRunningInformation(std::vector<RunningProc
     return 0;
 }
 
+std::string ApplicationContext::GetProcessName()
+{
+    if (processName_.empty()) {
+        processName_ = ApplicationContextAdapter::GetInstance()->GetProcessName();
+    }
+    return processName_;
+}
+
 void ApplicationContext::SetColorMode(int32_t colorMode)
 {
     HILOG_DEBUG("colorMode:%{public}d", colorMode);
