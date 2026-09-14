@@ -212,6 +212,7 @@ const std::map<Orientation, ApiOrientation> NATIVE_TO_JS_ORIENTATION_MAP {
 };
 
 napi_value CreateJsWindowPropertiesObject(napi_env env, std::shared_ptr<Window>& window);
+napi_value ConvertWindowDensityInfoToJsValue(napi_env env, const WindowDensityInfo& windowDensityInfo);
 bool GetSystemBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProperties,
     napi_env env, size_t argc, const napi_value arg, std::shared_ptr<Window>& window);
 bool GetSpecificBarStatus(std::map<WindowType, SystemBarProperty>& systemBarProperties,

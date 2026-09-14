@@ -36,6 +36,7 @@ public:
     static napi_value MoveWindowTo(napi_env env, napi_callback_info info);
     static napi_value Resize(napi_env env, napi_callback_info info);
     static napi_value GetWindowPropertiesSync(napi_env env, napi_callback_info info);
+    static napi_value GetWindowDensityInfo(napi_env env, napi_callback_info info);
     static napi_value SetWindowSystemBarEnable(napi_env env, napi_callback_info info);
     static napi_value SetPreferredOrientation(napi_env env, napi_callback_info info);
     static napi_value LoadContent(napi_env env, napi_callback_info info);
@@ -66,6 +67,7 @@ private:
     napi_value OnMoveWindowTo(napi_env env, napi_callback_info info);
     napi_value OnResize(napi_env env, napi_callback_info info);
     napi_value OnGetWindowPropertiesSync(napi_env env, napi_callback_info info);
+    napi_value OnGetWindowDensityInfo(napi_env env, napi_callback_info info);
     napi_value OnSetWindowSystemBarEnable(napi_env env, napi_callback_info info);
     napi_value OnSetPreferredOrientation(napi_env env, napi_callback_info info);
     napi_value OnLoadContent(napi_env env, napi_callback_info info, bool isLoadedByName);
