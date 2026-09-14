@@ -85,6 +85,7 @@ public:
     bool SetFontSizeScale(double fontSizeScale);
     std::string GetAppRunningUniqueId() const;
     void SetAppRunningUniqueId(const std::string& appRunningUniqueId);
+    std::string GetProcessName() override;
 
 private:
     std::shared_ptr<AppExecFwk::ApplicationInfo> applicationInfo_ = nullptr;
@@ -99,6 +100,7 @@ private:
     static std::vector<std::shared_ptr<EnvironmentCallback>> envCallbacks_;
     std::mutex envCallbacksLock_;
     std::string appRunningUniqueId_;
+    std::string processName_;
 };
 } // namespace Platform
 } // namespace AbilityRuntime
