@@ -32,12 +32,16 @@ namespace Rosen {
 const std::string WINDOW_STAGE_EVENT_CB = "windowStageEvent";
 const std::string WINDOW_EVENT_CB = "windowEvent";
 const std::string WINDOW_STATUS_CHANGE_CB = "windowStatusChange";
+const std::string WINDOW_STATUS_DID_CHANGE_CB = "windowStatusDidChange";
+const std::string WINDOW_RECT_CHANGE_CB = "windowRectChange";
 const std::string AVOID_AREA_CHANGE_CB = "avoidAreaChange";
 const std::string KEYBOARD_HEIGHT_CHANGE_CB = "keyboardHeightChange";
 
 class JsWindowListener : public IWindowChangeListener,
                          public IWindowLifeCycle,
                          public IWindowStatusChangeListener,
+                         public IWindowStatusDidChangeListener,
+                         public IWindowRectChangeListener,
                          public IOccupiedAreaChangeListener,
                          public IAvoidAreaChangedListener {
 public:
@@ -54,10 +58,14 @@ public:
     void AfterActive() override;
     void AfterInactive() override;
     void OnWindowStatusChange(WindowStatus status) override;
+    void OnWindowStatusDidChange(WindowStatus status) override;
+    void OnRectChange(Rect rect, WindowSizeChangeReason reason) override;
     void CallJsMethod(napi_env env, const char* methodName, napi_value const* argv = nullptr, size_t argc = 0);
 private:
     uint32_t currentWidth_ = 0;
     uint32_t currentHeight_ = 0;
+    Rect currentRect_ { 0, 0, 0, 0 };
+    RectChangeReason currentReason_ = RectChangeReason::UNDEFINED;
     WindowState state_ {WindowState::STATE_INITIAL};
     void LifeCycleCallBack(LifeCycleEventType eventType);
     std::string caseType_;

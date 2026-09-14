@@ -49,6 +49,10 @@ private:
         std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);
     WmErrorCode ProcessWindowStatusChangeRegister(sptr<JsWindowListener> listener,
         std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);
+    WmErrorCode ProcessWindowRectChangeRegister(sptr<JsWindowListener> listener,
+        std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);
+    WmErrorCode ProcessWindowStatusDidChangeRegister(sptr<JsWindowListener> listener,
+        std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);
     using Func_t = WmErrorCode(JsWindowRegisterManager::*)(sptr<JsWindowListener>, std::shared_ptr<OHOS::Rosen::Window> window, bool);
     std::map<std::string, std::map<napi_ref, sptr<JsWindowListener>>> jsCbMap_;
     std::mutex mtx_;

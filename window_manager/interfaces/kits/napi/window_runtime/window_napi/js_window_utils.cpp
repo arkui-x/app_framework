@@ -28,6 +28,40 @@ constexpr int32_t RGBA_LENGTH = 8;
 constexpr int32_t SUB_WINDOW_Z_LEVEL_MIN = -10000;
 constexpr int32_t SUB_WINDOW_Z_LEVEL_MAX = 10000;
 
+const std::map<WindowSizeChangeReason, RectChangeReason> JS_SIZE_CHANGE_REASON {
+    { WindowSizeChangeReason::UNDEFINED,                       RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::MAXIMIZE,                        RectChangeReason::MAXIMIZE   },
+    { WindowSizeChangeReason::RECOVER,                         RectChangeReason::RECOVER    },
+    { WindowSizeChangeReason::ROTATION,                        RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::DRAG,                            RectChangeReason::DRAG       },
+    { WindowSizeChangeReason::DRAG_START,                      RectChangeReason::DRAG_START },
+    { WindowSizeChangeReason::DRAG_MOVE,                       RectChangeReason::MOVE       },
+    { WindowSizeChangeReason::DRAG_END,                        RectChangeReason::DRAG_END   },
+    { WindowSizeChangeReason::RESIZE,                          RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::MOVE,                            RectChangeReason::MOVE       },
+    { WindowSizeChangeReason::HIDE,                            RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::TRANSFORM,                       RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::CUSTOM_ANIMATION_SHOW,           RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::FULL_TO_SPLIT,                   RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::SPLIT_TO_FULL,                   RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::FULL_TO_FLOATING,                RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::FLOATING_TO_FULL,                RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::MAXIMIZE_TO_SPLIT,               RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::SPLIT_TO_MAXIMIZE,               RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::PAGE_ROTATION,                   RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::SPLIT_DRAG_START,                RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::SPLIT_DRAG,                      RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::SPLIT_DRAG_END,                  RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::RESIZE_BY_LIMIT,                 RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::MAXIMIZE_IN_IMPLICT,             RectChangeReason::MAXIMIZE   },
+    { WindowSizeChangeReason::RECOVER_IN_IMPLICIT,             RectChangeReason::RECOVER    },
+    { WindowSizeChangeReason::SCREEN_RELATIVE_POSITION_CHANGE, RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::SNAPSHOT_ROTATION,               RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::LS_STATE_CHANGE,                 RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::SPLIT_ENABLE_CHANGE,             RectChangeReason::UNDEFINED  },
+    { WindowSizeChangeReason::END,                             RectChangeReason::UNDEFINED  },
+};
+
 namespace {
 template<typename T>
 bool ParseNamedJsValue(napi_env env, napi_value jsObject, const char* name, T& out)
@@ -315,6 +349,28 @@ napi_value WindowStatusTypeInit(napi_env env)
             "FLOATING", CreateJsValue(env, static_cast<int32_t>(WindowStatus::WINDOW_STATUS_FLOATING))),
         DECLARE_NAPI_PROPERTY(
             "SPLIT_SCREEN", CreateJsValue(env, static_cast<int32_t>(WindowStatus::WINDOW_STATUS_SPLITSCREEN))),
+    };
+    return CreateObject(env, nullptr, props, sizeof(props) / sizeof(props[0]));
+}
+
+napi_value RectChangeReasonInit(napi_env env)
+{
+    WLOGD("RectChangeReasonInit called");
+    const napi_property_descriptor props[] = {
+        DECLARE_NAPI_PROPERTY(
+            "UNDEFINED", CreateJsValue(env, static_cast<uint32_t>(RectChangeReason::UNDEFINED))),
+        DECLARE_NAPI_PROPERTY(
+            "MAXIMIZE", CreateJsValue(env, static_cast<uint32_t>(RectChangeReason::MAXIMIZE))),
+        DECLARE_NAPI_PROPERTY(
+            "RECOVER", CreateJsValue(env, static_cast<uint32_t>(RectChangeReason::RECOVER))),
+        DECLARE_NAPI_PROPERTY(
+            "MOVE", CreateJsValue(env, static_cast<uint32_t>(RectChangeReason::MOVE))),
+        DECLARE_NAPI_PROPERTY(
+            "DRAG", CreateJsValue(env, static_cast<uint32_t>(RectChangeReason::DRAG))),
+        DECLARE_NAPI_PROPERTY(
+            "DRAG_START", CreateJsValue(env, static_cast<uint32_t>(RectChangeReason::DRAG_START))),
+        DECLARE_NAPI_PROPERTY(
+            "DRAG_END", CreateJsValue(env, static_cast<uint32_t>(RectChangeReason::DRAG_END))),
     };
     return CreateObject(env, nullptr, props, sizeof(props) / sizeof(props[0]));
 }
