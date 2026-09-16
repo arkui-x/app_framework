@@ -362,6 +362,8 @@ napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, b
     }
     SetNamedNativePointer(env, object, BASE_CONTEXT_NAME, jsContext.release(), JsBaseContext::Finalizer);
 
+    napi_set_named_property(env, object, "stageMode", CreateJsValue(env, true));
+
     auto appInfo = context->GetApplicationInfo();
     if (appInfo != nullptr) {
         napi_set_named_property(env, object, "applicationInfo", CreateJsApplicationInfo(env, *appInfo));
