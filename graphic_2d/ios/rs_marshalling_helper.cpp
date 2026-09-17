@@ -572,6 +572,11 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
     return {};
 }
 
+pid_t RSMarshallingHelper::GetCallingPid()
+{
+    return 0;
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)
 {
     return true;
