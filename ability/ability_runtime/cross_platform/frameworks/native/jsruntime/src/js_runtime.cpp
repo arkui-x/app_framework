@@ -630,11 +630,11 @@ bool JsRuntime::IsNeedUpdate(const std::string& moduleName, const std::string& m
 void JsRuntime::LoadSourceMapForModule(const std::string& moduleName, bool isDynamicUpdate)
 {
     std::string moduleContent;
-    panda::DFXJSNApi::SourceMapSetInitStatus(false);
+    panda::DFXJSNApi::SourceMapSetInitStatus(panda::ecmascript::InitStatus::IN_EXECUTED);
     if (Platform::StageAssetManager::GetInstance()->GetSourceMapBufferByModuleName(moduleName, moduleContent) &&
         !moduleContent.empty()) {
         panda::DFXJSNApi::SourceMapSplitSourceMap(moduleContent);
-        panda::DFXJSNApi::SourceMapSetInitStatus(true);
+        panda::DFXJSNApi::SourceMapSetInitStatus(panda::ecmascript::InitStatus::EXECUTED_SUCCESSFULLY);
     }
 }
 
