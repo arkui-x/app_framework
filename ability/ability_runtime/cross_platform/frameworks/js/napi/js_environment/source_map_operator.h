@@ -57,7 +57,7 @@ private:
     bool ExtractStackFrameInfo(
         const std::string& frame, std::string& funcName, std::string& url, int& line, int& column);
     bool ParseUrlLineColumn(const std::string& str, std::string& url, int& line, int& column);
-    std::string TranslateStackFrame(const std::string& line);
+    std::string TranslateStackFrame(const std::string& frameLine);
 
     const std::string bundleName_;
     InitStatus initStatus_ = NOT_EXECUTED;
