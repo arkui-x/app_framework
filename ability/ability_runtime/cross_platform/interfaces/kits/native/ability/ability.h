@@ -142,6 +142,7 @@ protected:
     std::shared_ptr<OHOS::AppExecFwk::AbilityInfo> abilityInfo_ = nullptr;
 
 private:
+    void UpdateExtraResConfig(const Configuration& configuration, Global::Resource::ResConfig* resConfig);
     std::shared_ptr<AbilityContext> abilityContext_ = nullptr;
     std::shared_ptr<OHOS::AppExecFwk::AbilityLifecycleExecutor> abilityLifecycleExecutor_ = nullptr;
     std::shared_ptr<AAFwk::Want> want_ = nullptr;

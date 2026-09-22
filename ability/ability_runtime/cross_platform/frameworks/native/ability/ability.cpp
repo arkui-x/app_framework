@@ -15,6 +15,8 @@
 
 #include "ability.h"
 
+#include <charconv>
+
 #include "hilog.h"
 #include "js_ability.h"
 #include "runtime.h"
@@ -201,7 +203,33 @@ void Ability::OnConfigurationUpdate(const Configuration& configuration)
         }
         resConfig->SetColorMode(mode);
     }
+    UpdateExtraResConfig(configuration, resConfig.get());
     resourceManager->UpdateResConfig(*resConfig);
+}
+
+void Ability::UpdateExtraResConfig(const Configuration& configuration, Global::Resource::ResConfig* resConfig)
+{
+    auto direction = configuration.GetItem(ConfigurationInner::APPLICATION_DIRECTION);
+    if (direction == ConfigurationInner::DIRECTION_VERTICAL) {
+        resConfig->SetDirection(Global::Resource::Direction::DIRECTION_VERTICAL);
+    } else if (direction == ConfigurationInner::DIRECTION_HORIZONTAL) {
+        resConfig->SetDirection(Global::Resource::Direction::DIRECTION_HORIZONTAL);
+    }
+    auto densityDpi = configuration.GetItem(ConfigurationInner::APPLICATION_DENSITYDPI);
+    if (!densityDpi.empty()) {
+        int dpi = 0;
+        auto parseResult = std::from_chars(densityDpi.data(), densityDpi.data() + densityDpi.size(), dpi);
+        if (parseResult.ec == std::errc() && parseResult.ptr == densityDpi.data() + densityDpi.size()) {
+            double density = dpi / 160.0f;
+            resConfig->SetScreenDensity(density);
+        }
+    }
+    auto deviceType = configuration.GetItem(ConfigurationInner::DEVICE_TYPE);
+    if (deviceType == ConfigurationInner::DEVICE_TYPE_TABLET) {
+        resConfig->SetDeviceType(Global::Resource::DeviceType::DEVICE_TABLET);
+    } else if (deviceType == ConfigurationInner::DEVICE_TYPE_PHONE) {
+        resConfig->SetDeviceType(Global::Resource::DeviceType::DEVICE_PHONE);
+    }
 }
 
 void Ability::OnMemoryLevel(int32_t level)
