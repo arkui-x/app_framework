@@ -40,7 +40,10 @@ public:
 private:
     bool IsEqualRegister(napi_env env, napi_value lhs, napi_ref rref);
     bool IsCallbackRegistered(napi_env env, std::string type, napi_value jsListenerObject);
-    WmErrorCode ProcessLifeCycleEventRegister(sptr<JsWindowListener> listener, std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);
+    WmErrorCode ProcessLifeCycleEventRegister(
+        sptr<JsWindowListener> listener, std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);
+    WmErrorCode ProcessLifeCycleEventRegisterImpl(
+        sptr<JsWindowListener> listener, std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister, bool isReplay);
     WmErrorCode ProcessSizeChangeRegister(sptr<JsWindowListener> listener,
     std::shared_ptr<Window> window, bool isRegister);
     WmErrorCode ProcessAvoidAreaChangeRegister(sptr<JsWindowListener> listener,
@@ -48,6 +51,8 @@ private:
     WmErrorCode ProcessOccupiedAreaChangeRegister(sptr<JsWindowListener> listener,
         std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);
     WmErrorCode ProcessWindowStatusChangeRegister(sptr<JsWindowListener> listener,
+        std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);
+    WmErrorCode ProcessWindowStageStatusChangeRegister(sptr<JsWindowListener> listener,
         std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);
     WmErrorCode ProcessWindowRectChangeRegister(sptr<JsWindowListener> listener,
         std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister);

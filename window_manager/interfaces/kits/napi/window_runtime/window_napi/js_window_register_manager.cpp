@@ -37,7 +37,7 @@ JsWindowRegisterManager::JsWindowRegisterManager()
     };
     // white register list for window stage
     listenerProcess_[CaseType::CASE_STAGE] = {
-        {"windowStageEvent",         &JsWindowRegisterManager::ProcessLifeCycleEventRegister    },
+        {"windowStageEvent",         &JsWindowRegisterManager::ProcessWindowStageStatusChangeRegister    },
     };
 }
 
@@ -152,8 +152,8 @@ WmErrorCode JsWindowRegisterManager::ProcessWindowStatusDidChangeRegister(sptr<J
     return ret;
 }
 
-WmErrorCode JsWindowRegisterManager::ProcessLifeCycleEventRegister(sptr<JsWindowListener> listener,
-    std::shared_ptr<Window> window, bool isRegister)
+WmErrorCode JsWindowRegisterManager::ProcessLifeCycleEventRegisterImpl(sptr<JsWindowListener> listener,
+    std::shared_ptr<Window> window, bool isRegister, bool isReplay)
 {
     WLOGI("JsWindowRegisterManager::ProcessLifeCycleEventRegister : Start...");
     if (window == nullptr) {
@@ -165,12 +165,28 @@ WmErrorCode JsWindowRegisterManager::ProcessLifeCycleEventRegister(sptr<JsWindow
     if (isRegister) {
         WLOGI("JsWindowRegisterManager::ProcessLifeCycleEventRegister : RegisterLifeCycleListener");
         ret = WM_JS_TO_ERROR_CODE_MAP.at(window->RegisterLifeCycleListener(thisListener));
+        if (isReplay && ret == WmErrorCode::WM_OK) {
+            window->RegisterLifeCycleListenerWithReplay(thisListener);
+        }
     } else {
         WLOGI("JsWindowRegisterManager::ProcessLifeCycleEventRegister : UnregisterLifeCycleListener");
         ret = WM_JS_TO_ERROR_CODE_MAP.at(window->UnregisterLifeCycleListener(thisListener));
     }
-    WLOGI("JsWindowRegisterManager::ProcessLifeCycleEventRegister : End!!! result=[%{public}d]", static_cast<int32_t>(ret));
+    WLOGI("JsWindowRegisterManager::ProcessLifeCycleEventRegister : End!!! result=[%{public}d]",
+        static_cast<int32_t>(ret));
     return ret;
+}
+
+WmErrorCode JsWindowRegisterManager::ProcessLifeCycleEventRegister(sptr<JsWindowListener> listener,
+    std::shared_ptr<Window> window, bool isRegister)
+{
+    return ProcessLifeCycleEventRegisterImpl(listener, window, isRegister, false);
+}
+
+WmErrorCode JsWindowRegisterManager::ProcessWindowStageStatusChangeRegister(sptr<JsWindowListener> listener,
+    std::shared_ptr<OHOS::Rosen::Window> window, bool isRegister)
+{
+    return ProcessLifeCycleEventRegisterImpl(listener, window, isRegister, true);
 }
 
 bool JsWindowRegisterManager::IsEqualRegister(napi_env env, napi_value lhs, napi_ref rref)
