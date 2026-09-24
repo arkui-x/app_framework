@@ -2288,6 +2288,11 @@ void WebPattern::OnCssDisplayChangeEnabledUpdate(bool value)
     // cross platform is not support now;
 }
 
+void WebPattern::OnTransformRotateAndSkewEnabledUpdate(bool value)
+{
+    // cross platform is not support now;
+}
+
 void WebPattern::OnNativeEmbedRuleTagUpdate(const std::string& tag)
 {
     // cross platform is not support now;
