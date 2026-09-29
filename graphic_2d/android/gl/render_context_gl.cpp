@@ -92,6 +92,9 @@ RenderContextGL::~RenderContextGL()
         return;
     }
 
+    drGPUContext_ = nullptr;
+    surface_ = nullptr;
+
     eglDestroyContext(eglDisplay_, eglContext_);
     if (pbufferSurface_ != EGL_NO_SURFACE) {
         eglDestroySurface(eglDisplay_, pbufferSurface_);
@@ -104,8 +107,6 @@ RenderContextGL::~RenderContextGL()
     eglContext_ = EGL_NO_CONTEXT;
     eglSurface_ = EGL_NO_SURFACE;
     pbufferSurface_ = EGL_NO_SURFACE;
-    drGPUContext_ = nullptr;
-    surface_ = nullptr;
     mHandler_ = nullptr;
 }
 
@@ -293,18 +294,7 @@ void RenderContextGL::DestroySharedSource()
     if (drGPUContext_) {
         ROSEN_LOGE("DestroySharedSource: Cleaning GPUContext resources");
         drGPUContext_->PurgeUnlockedResources(false);
-        drGPUContext_->FreeGpuResources();
         drGPUContext_->PerformDeferredCleanup(std::chrono::milliseconds(0));
-        drGPUContext_ = nullptr;
-    }
-
-    if (eglContext_ != EGL_NO_CONTEXT) {
-        ROSEN_LOGE("DestroySharedSource: eglContext_ is not null");
-        if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, eglContext_)) {
-            ROSEN_LOGE("DestroySharedSource: eglMakeCurrent failed");
-        }
-        glFinish();
-        eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     }
 
     surface_ = nullptr;
