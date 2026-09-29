@@ -27,35 +27,53 @@ constexpr CFTimeInterval TIME_INTERVAL = 1.0e10;
 
 void IOSMessageLoop::KQCallback(CFFileDescriptorRef kqRef, CFOptionFlags flags, void *info)
 {
-    HILOG_INFO("KQCallback Start");
     struct kevent evr;
     struct timespec timeout = { 0, 0 };
     int32_t kq = CFFileDescriptorGetNativeDescriptor(kqRef);
 
-    if(kevent(kq, NULL, 0, &evr, 1, &timeout) > 0) {
-        if (evr.udata == nullptr) {
-            HILOG_ERROR("ev.udata is nullptr");
-            return;
-        }
+    if (kevent(kq, NULL, 0, &evr, 1, &timeout) <= 0 || !DispatchKqueueEvent(kqRef, evr)) {
+        CFFileDescriptorEnableCallBacks(kqRef, kCFFileDescriptorReadCallBack);
+    }
+}
 
-        int32_t eventTemp = 0;
-        if (evr.filter == EVFILT_READ) {
-            eventTemp = OHOS::AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT;
-        }
-        if (evr.filter == EVFILT_WRITE) {
-            eventTemp = OHOS::AppExecFwk::FILE_DESCRIPTOR_OUTPUT_EVENT;
-        }
-
-        auto loop = reinterpret_cast<IOSMessageLoop*>(evr.udata);
-        if (loop != nullptr) {
-            auto observer = loop->observer_.lock();
-            if (observer) {
-                observer->OnFileDescriptorEvent(static_cast<int32_t>(evr.ident), eventTemp);
-            }
-        }
+bool IOSMessageLoop::DispatchKqueueEvent(CFFileDescriptorRef kqRef, struct kevent& evr)
+{
+    if (evr.udata == nullptr) {
+        HILOG_ERROR("ev.udata is nullptr");
+        return false;
     }
 
-    CFFileDescriptorEnableCallBacks(kqRef, kCFFileDescriptorReadCallBack);
+    auto loop = reinterpret_cast<IOSMessageLoop*>(evr.udata);
+    if (loop == nullptr) {
+        return false;
+    }
+
+    auto observer = loop->observer_.lock();
+    if (!observer) {
+        return false;
+    }
+
+    int32_t eventTemp = 0;
+    if (evr.filter == EVFILT_READ) {
+        eventTemp = OHOS::AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT;
+    }
+    if (evr.filter == EVFILT_WRITE) {
+        eventTemp = OHOS::AppExecFwk::FILE_DESCRIPTOR_OUTPUT_EVENT;
+    }
+
+    observer->OnFileDescriptorEvent(static_cast<int32_t>(evr.ident), eventTemp);
+    loop->pendingRearms_.push_back(kqRef);
+    return true;
+}
+
+void IOSMessageLoop::RearmSource()
+{
+    for (auto ref : pendingRearms_) {
+        if (CFFileDescriptorIsValid(ref)) {
+            CFFileDescriptorEnableCallBacks(ref, kCFFileDescriptorReadCallBack);
+        }
+    }
+    pendingRearms_.clear();
 }
 
 void IOSMessageLoop::OnTimerFire(CFRunLoopTimerRef timer, IOSMessageLoop* loop)
@@ -153,7 +171,8 @@ void IOSMessageLoop::WakeUp(int64_t time_point)
     // Rearm the timer. The time bases used by CoreFoundation and FXL are
     // different and must be accounted for.
     double targetSeconds = time_point / NANOSECONDS_PER_ONE_SECOND;
-    CFRunLoopTimerSetNextFireDate(delayed_wake_timer_, CFAbsoluteTimeGetCurrent() + targetSeconds);
+    double fireAt = CFAbsoluteTimeGetCurrent() + targetSeconds;
+    CFRunLoopTimerSetNextFireDate(delayed_wake_timer_, fireAt);
 }
 
 void IOSMessageLoop::Terminate()

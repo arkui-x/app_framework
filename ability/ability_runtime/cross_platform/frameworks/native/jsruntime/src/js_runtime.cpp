@@ -18,8 +18,11 @@
 #include <atomic>
 #include <cerrno>
 #include <climits>
+#include <cstdint>
 #include <cstdlib>
+#include <map>
 #include <regex>
+#include <string>
 #ifndef IOS_PLATFORM
 #include <sys/epoll.h>
 #else
@@ -287,8 +290,8 @@ public:
 private:
     void OnTriggered()
     {
-        auto fd = uv_backend_fd(uvLoop_);
 #ifndef IOS_PLATFORM
+        auto fd = uv_backend_fd(uvLoop_);
         struct epoll_event ev;
         do {
             uv_run(uvLoop_, UV_RUN_NOWAIT);

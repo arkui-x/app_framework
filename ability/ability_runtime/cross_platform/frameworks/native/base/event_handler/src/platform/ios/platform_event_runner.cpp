@@ -98,6 +98,13 @@ public:
         messageLoop_->WakeUp(nanoseconds);
     }
 
+    void RearmKqSource()
+    {
+        if (messageLoop_ != nullptr) {
+            messageLoop_->RearmSource();
+        }
+    }
+
     bool WaitFor(std::unique_lock<std::mutex>& lock, int64_t nanoseconds) final
     {
         HILOG_INFO("WaitFor");
@@ -171,7 +178,6 @@ public:
 private:
     void OnFileDescriptorEvent(int32_t fd, int32_t event) override
     {
-        HILOG_DEBUG("PlatformIoWaiter::OnFileDescriptorEvent fd %{public}d ", fd);
         if (callback_) {
             callback_(fd, event);
         }
@@ -214,15 +220,30 @@ PlatformEventRunner::~PlatformEventRunner()
 
 void PlatformEventRunner::Run()
 {
-    InnerEvent::TimePoint wakeUpTime = InnerEvent::TimePoint::max();
-    for (auto event = queue_->GetExpiredEvent(wakeUpTime); event; event = queue_->GetExpiredEvent(wakeUpTime)) {
-        std::shared_ptr<EventHandler> handler = event->GetOwner();
-        // Make sure owner of the event exists.
-        if (handler) {
-            handler->DistributeEvent(event);
+    struct RearmGuard {
+        PlatformIoWaiter* waiter;
+        ~RearmGuard()
+        {
+            if (waiter) waiter->RearmKqSource();
         }
-    }
-    ioWaiter_->SetTimer(TimePointToTimeOut(wakeUpTime));
+    } guard { ioWaiter_.get() };
+
+    InnerEvent::TimePoint wakeUpTime = InnerEvent::TimePoint::max();
+    auto event = queue_->GetExpiredEvent(wakeUpTime);
+    bool needRescan = false;
+    do {
+        for (; event; event = queue_->GetExpiredEvent(wakeUpTime)) {
+            std::shared_ptr<EventHandler> handler = event->GetOwner();
+            // Make sure owner of the event exists.
+            if (handler) {
+                handler->DistributeEvent(event);
+            }
+        }
+        InnerEvent::TimePoint committed = wakeUpTime;
+        ioWaiter_->SetTimer(TimePointToTimeOut(committed));
+        event = queue_->GetExpiredEvent(wakeUpTime);
+        needRescan = event || wakeUpTime < committed;
+    } while (needRescan);
 }
 
 void PlatformEventRunner::Stop() {}
