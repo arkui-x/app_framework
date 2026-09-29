@@ -20,9 +20,13 @@
 #import <sys/event.h>
 
 #include <CoreFoundation/CoreFoundation.h>
+// Xcode 26 SDKs no longer include CFFileDescriptor.h from the CoreFoundation
+// umbrella header on iOS; include it explicitly for CFFileDescriptorRef.
+#include <CoreFoundation/CFFileDescriptor.h>
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 class IEventObserver {
 public:
@@ -42,12 +46,16 @@ public:
 
     void Invalidate(int fd);
     void WakeUp(int64_t time_point);
+    // Arm the kqueue callback again. Called after the event reported by the
+    // last callback has been consumed, never from inside the callback itself.
+    void RearmSource();
     void Terminate();
 
     static bool IsMainThread();
 
 private:
     static void KQCallback(CFFileDescriptorRef kqRef, CFOptionFlags flags, void* info);
+    static bool DispatchKqueueEvent(CFFileDescriptorRef kqRef, struct kevent& evr);
     static void OnTimerFire(CFRunLoopTimerRef timer, IOSMessageLoop* loop);
 
 private:
@@ -57,5 +65,6 @@ private:
     CFRunLoopRef loop_;
     std::atomic_bool running_;
     std::weak_ptr<IEventObserver> observer_;
+    std::vector<CFFileDescriptorRef> pendingRearms_;
 };
 #endif // BASE_EVENTHANDLER_FRAMEWORKS_EVENTHANDLER_INCLUDE_IOS_MESSAGE_LOOP_H
