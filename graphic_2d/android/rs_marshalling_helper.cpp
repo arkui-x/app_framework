@@ -21,6 +21,7 @@
 #include "securec.h"
 #include "animation/rs_particle_ripple_field.h"
 #include "animation/rs_particle_velocity_field.h"
+#include "animation/rs_render_atlas_info_animation.h"
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interpolating_spring_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
@@ -28,6 +29,7 @@
 #include "animation/rs_render_path_animation.h"
 #include "animation/rs_render_spring_animation.h"
 #include "animation/rs_render_transition.h"
+#include "common/rs_atlas_info.h"
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
@@ -389,6 +391,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     return {};
 }
 
+// AtlasInfo
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const AtlasInfo& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, AtlasInfo& val)
+{
+    return {};
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const DepthCameraPara& val)
 {
     return {};
@@ -438,6 +451,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderInterpolatingSpringAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderKeyframeAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderSpringAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderPathAnimation)
+MARSHALLING_AND_UNMARSHALLING(RSRenderAtlasInfoAnimation)
 #undef MARSHALLING_AND_UNMARSHALLING
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ModifierNG::RSRenderModifier>& val)
@@ -520,7 +534,8 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)                                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)              \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Drawing::Matrix)
+    EXPLICIT_INSTANTIATION(TEMPLATE, Drawing::Matrix)                                    \
+    EXPLICIT_INSTANTIATION(TEMPLATE, AtlasInfo)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
 
@@ -542,7 +557,8 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<float>)                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)
+    EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, AtlasInfo)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderAnimatableProperty)
 
