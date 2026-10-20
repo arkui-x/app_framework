@@ -19,11 +19,15 @@
 #include <android/looper.h>
 #include <chrono>
 #include <sys/prctl.h>
+#include <time.h>
 
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int64_t SEC_TO_NANOSEC = 1000000000;
+} // namespace
 std::unique_ptr<RSVsyncClient> RSVsyncClient::Create()
 {
     return std::make_unique<RSVsyncClientAndroid>();
@@ -51,7 +55,10 @@ void RSVsyncClientAndroid::OnVsync(long frameTimeNanos, void* data)
     auto client = static_cast<RSVsyncClientAndroid*>(data);
     if (client && client->running_) {
         client->having_ = false;
-        int64_t now = static_cast<int64_t>(frameTimeNanos);
+        (void)frameTimeNanos;
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        int64_t now = static_cast<int64_t>(ts.tv_sec) * SEC_TO_NANOSEC + ts.tv_nsec;
         std::unique_lock lock(client->mutex_);
         client->vsyncCallback_(now, 0);
     }
