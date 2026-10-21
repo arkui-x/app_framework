@@ -55,10 +55,14 @@ void RSVsyncClientAndroid::OnVsync(long frameTimeNanos, void* data)
     auto client = static_cast<RSVsyncClientAndroid*>(data);
     if (client && client->running_) {
         client->having_ = false;
-        (void)frameTimeNanos;
-        struct timespec ts;
-        clock_gettime(CLOCK_MONOTONIC, &ts);
-        int64_t now = static_cast<int64_t>(ts.tv_sec) * SEC_TO_NANOSEC + ts.tv_nsec;
+#if (defined(__aarch64__) || defined(__x86_64__))
+    int64_t now = static_cast<int64_t>(frameTimeNanos);
+#else
+    (void)frameTimeNanos;
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    int64_t now = static_cast<int64_t>(ts.tv_sec) * SEC_TO_NANOSEC + ts.tv_nsec;
+#endif
         std::unique_lock lock(client->mutex_);
         client->vsyncCallback_(now, 0);
     }
