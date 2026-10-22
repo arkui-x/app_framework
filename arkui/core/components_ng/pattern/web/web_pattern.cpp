@@ -924,6 +924,11 @@ void WebPattern::OnScrollBarColorUpdate(const std::string& value)
     }
 }
 
+void WebPattern::OnCaretColorUpdate(const Color& value)
+{
+    // cross platform is not support now;
+}
+
 void WebPattern::RegistVirtualKeyBoardListener()
 {
     if (!needUpdateWeb_) {
@@ -2466,6 +2471,11 @@ void WebPattern::OnRotateRenderEffectUpdate(WebRotateEffect effect)
 void WebPattern::OnForceEnableZoomUpdate(bool isEnabled)
 {
     // cross platform is not support now;
+}
+
+void WebPattern::OnFlingSpeedLimitUpdate(float speedLimit)
+{
+    /// cross platform is not support now;
 }
 
 void WebPattern::OnBackToTopUpdate(bool isBackToTop)
