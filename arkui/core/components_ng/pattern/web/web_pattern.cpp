@@ -2364,6 +2364,12 @@ void WebPattern::UpdateSelectedDataDetectorConfig(const TextDetectConfig &config
     // cross platform is not support now;
 }
 
+std::string WebPattern::GetAccessibilityJsonString(int32_t webId)
+{
+    // cross platform is not support now;
+    return "";
+}
+
 void WebPattern::OnEnabledHapticFeedbackUpdate(bool enable)
 {
     isEnabledHapticFeedback_ = enable;
