@@ -2268,6 +2268,11 @@ void WebPattern::OnBlankScreenDetectionConfigUpdate(const BlankScreenDetectionCo
     // cross platform is not support now;
 }
 
+void WebPattern::OnWebBlankScreenMonitorEnabledUpdate(bool enable)
+{
+    // cross platform is not support now;
+}
+
 void WebPattern::OnNativeVideoPlayerConfigUpdate(const std::tuple<bool, bool>& config)
 {
     // cross platform is not support now;
