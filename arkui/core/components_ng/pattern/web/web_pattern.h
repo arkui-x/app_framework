@@ -552,6 +552,7 @@ public:
         const NG::OnMenuItemClickCallback&& onMenuItemClick, const NG::OnPrepareMenuCallback&& onPrepareMenuCallback);
     void UpdateDataDetectorConfig(const TextDetectConfig& config);
     void UpdateSelectedDataDetectorConfig(const TextDetectConfig& config);
+    std::string GetAccessibilityJsonString(int32_t webId);
     WebInfoType GetWebInfoType();
     void SetUpdateInstanceIdCallback(std::function<void(int32_t)> &&callabck);
 
@@ -670,6 +671,11 @@ public:
     Axis GetAxis() const override
     {
         return axis_;
+    }
+
+    int32_t GetTreeId()
+    {
+        return treeId_;
     }
     void OnScroll(float currentX, float currentY, float cWidth, float cHeight, float fWidth, float fHeight);
     void OnScrollWillStart(float x, float y);
@@ -928,6 +934,7 @@ private:
     bool isParentReverseReachEdge_ = false;
     bool isTouchpadSliding_ = false;
     bool isStartTouch_ = true;
+    int32_t treeId_ = 0;
     WeakPtr<NestableScrollContainer> dragEndRecursiveParent_;
     Axis expectedScrollAxis_ = Axis::FREE;
     std::unordered_map<Axis, WeakPtr<NestableScrollContainer>> parentsMap_;
