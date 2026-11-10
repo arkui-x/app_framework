@@ -736,6 +736,10 @@ void AppMain::ParseHspModuleJson(const std::string& moduleName)
     }
     std::list<std::vector<uint8_t>> moduleList { dynamicModuleJson };
     bundleContainer_->LoadBundleInfos(moduleList);
+    auto bundleName = bundleContainer_->GetBundleName();
+    if (!bundleName.empty()) {
+        StageAssetManager::GetInstance()->SetNativeLibPaths(bundleName, { moduleName });
+    }
     ModuleLoadCallbackManager::GetInstance().NotifyAll();
 }
 
