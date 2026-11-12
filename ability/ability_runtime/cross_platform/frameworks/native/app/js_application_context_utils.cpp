@@ -41,6 +41,7 @@ constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
 constexpr double FONT_SIZE = 0.0;
+constexpr int32_t DEFAULT_AREA = 0;
 } // namespace
 
 void JsApplicationContextUtils::Finalizer(napi_env env, void* data, void* hint)
@@ -698,6 +699,11 @@ void JsApplicationContextUtils::BindNativeApplicationContext(napi_env env, napi_
     BindNativeFunction(env, object, "setFont", MD_NAME, JsApplicationContextUtils::SetFont);
     BindNativeFunction(env, object, "setFontSizeScale", MD_NAME, JsApplicationContextUtils::SetFontSizeScale);
     BindNativeFunction(env, object, "setLanguage", MD_NAME, JsApplicationContextUtils::SetLanguage);
+    napi_value areaValue = nullptr;
+    napi_create_int32(env, DEFAULT_AREA, &areaValue);
+    if (areaValue != nullptr) {
+        napi_set_named_property(env, object, "area", areaValue);
+    }
 }
 } // namespace Platform
 } // namespace AbilityRuntime
