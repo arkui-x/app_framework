@@ -845,10 +845,12 @@ void AppMain::ParseHspModuleJson(const std::string& moduleName)
     }
     std::list<std::vector<uint8_t>> moduleList { dynamicModuleJson };
     bundleContainer_->LoadBundleInfos(moduleList);
+#ifdef ANDROID_PLATFORM
     auto bundleName = bundleContainer_->GetBundleName();
     if (!bundleName.empty()) {
         StageAssetManager::GetInstance()->SetNativeLibPaths(bundleName, { moduleName });
     }
+#endif
     ModuleLoadCallbackManager::GetInstance().NotifyAll();
 }
 
