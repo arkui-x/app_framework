@@ -149,6 +149,10 @@ class ApplicationContext {
     get stageMode() {
         return true;
     }
+  
+    get area() {
+      return this.__contextImpl__.area;
+    }
 
     getRunningProcessInformation(callback) {
         return this.__contextImpl__.getRunningProcessInformation(callback);
