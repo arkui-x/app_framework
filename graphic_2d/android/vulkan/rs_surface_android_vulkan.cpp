@@ -39,6 +39,8 @@ namespace OHOS {
 namespace Rosen {
 
 static constexpr uint16_t MAX_FRAMES_IN_FLIGHT = 3;
+// Bounded retry window (~0.5s at 60Hz) so a transiently unavailable swapchain cannot spin the vsync loop.
+static constexpr uint32_t MAX_SWAPCHAIN_RETRY_COUNT = 30;
 static constexpr int64_t FLUSH_STAGE_WARN_MS = 50;
 static constexpr int64_t SUBMIT_STAGE_WARN_MS = 50;
 static constexpr int64_t PRESENT_STAGE_WARN_MS = 50;
@@ -246,6 +248,24 @@ bool RSSurfaceAndroidVulkan::RecreateSwapchainIfNeeded(int32_t width, int32_t he
     return true;
 }
 
+void RSSurfaceAndroidVulkan::RequestSwapchainRetry()
+{
+    /*
+     * The swapchain can be transiently unavailable right after a surface recreation: the previous surface
+     * on the same native window may still hold its VkSurfaceKHR (its release task is queued behind the
+     * current one), which makes vkCreateAndroidSurfaceKHR fail with VK_ERROR_NATIVE_WINDOW_IN_USE_KHR
+     * (native_window_api_connect: "already connected"). Request the next vsync so the render loop retries
+     * once the stale surface has been released, instead of stopping with no buffer and leaving the window
+     * blank until the process is restarted. Retries are bounded to avoid spinning when the window is gone.
+     */
+    swapChain_.SetNeedRecreate(true);
+    if (swapchainRetryCount_ >= MAX_SWAPCHAIN_RETRY_COUNT) {
+        return;
+    }
+    swapchainRetryCount_++;
+    RSRenderThread::Instance().RequestNextVSync();
+}
+
 uint32_t RSSurfaceAndroidVulkan::AcquireSwapchainImage()
 {
     uint32_t imageIndex;
@@ -305,8 +325,10 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceAndroidVulkan::RequestFrame(
 
     if (swapChain_.GetSwapchain() == VK_NULL_HANDLE) {
         ROSEN_LOGE("RequestFrame: Swapchain is not available after recreation attempt");
+        RequestSwapchainRetry();
         return nullptr;
     }
+    swapchainRetryCount_ = 0;
 
     uint32_t imageIndex = AcquireSwapchainImage();
     if (imageIndex == UINT32_MAX) {
