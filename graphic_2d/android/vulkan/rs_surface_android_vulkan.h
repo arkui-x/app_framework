@@ -49,6 +49,7 @@ private:
     bool SetupGrContext() override;
     void SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC, bool isProtected = false);
     bool RecreateSwapchainIfNeeded(int32_t width, int32_t height);
+    void RequestSwapchainRetry();
     uint32_t AcquireSwapchainImage();
     std::shared_ptr<Drawing::Surface> GetOrCreateSkiaSurface(
         uint32_t imageIndex, int32_t swapchainWidth, int32_t swapchainHeight, bool isProtected);
@@ -60,6 +61,7 @@ private:
     std::vector<std::shared_ptr<Drawing::Surface>> skiaSurfaces_;
     uint32_t lastPresentedImageIndex_ = UINT32_MAX;
     size_t currentFrame_ = 0;
+    uint32_t swapchainRetryCount_ = 0;
     int32_t currentWidth_ = -1;
     int32_t currentHeight_ = 0;
 };
