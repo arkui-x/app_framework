@@ -663,6 +663,11 @@ void WebPattern::OnDomStorageAccessEnabledUpdate(bool value)
     }
 }
 
+void WebPattern::OnVisitedLinkPersistEnabledUpdate(bool value)
+{
+    // cross platform is not support now;
+}
+
 void WebPattern::OnImageAccessEnabledUpdate(bool value)
 {
     if (delegate_) {

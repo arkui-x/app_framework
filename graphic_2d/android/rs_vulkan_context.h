@@ -44,6 +44,7 @@
 namespace OHOS {
 namespace Rosen {
 
+class EffectImageChain;
 typedef struct QueueFamilyIndices {
     uint32_t graphicsFamily = UINT32_MAX;
     uint32_t presentFamily = UINT32_MAX;
@@ -430,6 +431,10 @@ public:
 private:
     std::shared_ptr<RsVulkanInterface> vulkanInterface_;
     RenderEngineType type_ = RenderEngineType::BASIC_RENDER;
+    // only for effect kit
+    friend class EffectImageChain;
+    static std::unique_ptr<RsVulkanContext> GetForEffectKit();
+    static void ReleaseContextForEffectKit(std::unique_ptr<RsVulkanContext>& vkContext);
 };
 
 } // namespace Rosen
