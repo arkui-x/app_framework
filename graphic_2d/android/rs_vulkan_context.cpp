@@ -813,6 +813,27 @@ RsVulkanContext& RsVulkanContext::Get(RenderEngineType type)
     }
 }
 
+std::unique_ptr<RsVulkanContext> RsVulkanContext::GetForEffectKit()
+{
+    return std::make_unique<RsVulkanContext>(false, true, RenderEngineType::EFFECT_KIT);
+}
+
+void RsVulkanContext::ReleaseContextForEffectKit(std::unique_ptr<RsVulkanContext>& vkContext)
+{
+    if (vkContext == nullptr) {
+        ROSEN_LOGE("RsVulkanContext::ReleaseContextForEffectKit vkContext is null");
+        return;
+    }
+    if (vkContext->type_ != RenderEngineType::EFFECT_KIT) {
+        ROSEN_LOGE("RsVulkanContext::ReleaseContextForEffectKit vkContext is not EFFECT_KIT");
+        return;
+    }
+    if (vkContext->vulkanInterface_) {
+        vkContext->vulkanInterface_.reset();
+    }
+    (void)vkContext.release();
+}
+
 VKAPI_ATTR VkResult RsVulkanInterface::HookedVkQueueSubmitForBasicRender(VkQueue queue, uint32_t submitCount,
     VkSubmitInfo* pSubmits, VkFence fence)
 {

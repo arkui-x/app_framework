@@ -157,7 +157,7 @@ bool RSRenderPipelineClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 }
 
 std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
-    bool unobscured)
+    bool unobscured, bool isSceneBoard)
 {
 #if defined(RS_ENABLE_VK)
     if (RSSystemProperties::IsUseVulkan()) {

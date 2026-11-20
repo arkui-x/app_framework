@@ -371,6 +371,7 @@ public:
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, FileAccessEnabled, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, OnLineImageAccessEnabled, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, DomStorageAccessEnabled, bool);
+    ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, VisitedLinkPersistEnabled, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, ImageAccessEnabled, bool);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, MixedMode, MixedModeContent);
     ACE_DEFINE_PROPERTY_FUNC_WITH_GROUP(WebProperty, ZoomAccessEnabled, bool);
@@ -723,6 +724,7 @@ private:
     void OnFileAccessEnabledUpdate(bool value);
     void OnOnLineImageAccessEnabledUpdate(bool value);
     void OnDomStorageAccessEnabledUpdate(bool value);
+    void OnVisitedLinkPersistEnabledUpdate(bool value);
     void OnImageAccessEnabledUpdate(bool value);
     void OnMixedModeUpdate(MixedModeContent value);
     void OnZoomAccessEnabledUpdate(bool value);
