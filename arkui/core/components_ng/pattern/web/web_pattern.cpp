@@ -102,8 +102,13 @@ void WebPattern::OnAttachToFrameNode()
         CHECK_NULL_VOID(host);
         auto renderContext = host->GetRenderContext();
         CHECK_NULL_VOID(renderContext);
+#if defined(ANDROID_PLATFORM) || defined(IOS_PLATFORM)
+        renderContext->SetContentRectToFrame(
+            RectF(offset.GetX(), offset.GetY(), webPattern->drawSize_.Width(), webPattern->drawSize_.Height()));
+#else
         renderContext->SetContentRectToFrame(RectF(offset.GetX(), offset.GetY(),
             webPattern->drawSize_.Width() - SIZE_GAP, webPattern->drawSize_.Height() - SIZE_GAP));
+#endif
     };
     host->GetRenderContext()->SetSurfaceChangedCallBack(OnAreaChangedCallBack);
 }
