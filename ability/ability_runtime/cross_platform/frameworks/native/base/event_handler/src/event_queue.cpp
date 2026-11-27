@@ -16,6 +16,8 @@
 #include "event_queue.h"
 
 #include <algorithm>
+#include <mutex>
+#include <unordered_map>
 
 #include "epoll_io_waiter.h"
 #include "event_handler.h"
@@ -26,16 +28,21 @@
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
+// Constants for FdKeyHash combining: golden-ratio multiplier and bit shifts.
+constexpr size_t HASH_GOLDEN_RATIO = 0x9e3779b9;
+constexpr int HASH_SHIFT_LEFT = 6;
+constexpr int HASH_SHIFT_RIGHT = 2;
+
 // Help to insert events into the event queue sorted by handle time.
-inline void InsertEventsLocked(std::list<InnerEvent::Pointer>& events, InnerEvent::Pointer& event)
+void InsertEventsLocked(std::list<InnerEvent::Pointer>& events, InnerEvent::Pointer& event)
 {
     auto f = [](const InnerEvent::Pointer& first, const InnerEvent::Pointer& second) {
-        if (!first || !second) {
-            return false;
-        }
-        return first->GetHandleTime() < second->GetHandleTime();
+        return (first && second) ? (first->GetHandleTime() < second->GetHandleTime()) : false;
     };
-    auto it = std::upper_bound(events.begin(), events.end(), event, f);
+    auto it = events.end();
+    while (it != events.begin() && f(event, *std::prev(it))) {
+        --it;
+    }
     events.insert(it, std::move(event));
 }
 
@@ -58,7 +65,7 @@ void RemoveFileDescriptorListenerLocked(std::map<int32_t, std::shared_ptr<FileDe
 }
 
 // Help to check whether there is a valid event in list and update wake up time.
-inline bool CheckEventInListLocked(const std::list<InnerEvent::Pointer>& events, const InnerEvent::TimePoint& now,
+bool CheckEventInListLocked(const std::list<InnerEvent::Pointer>& events, const InnerEvent::TimePoint& now,
     InnerEvent::TimePoint& nextWakeUpTime)
 {
     if (!events.empty()) {
@@ -72,11 +79,143 @@ inline bool CheckEventInListLocked(const std::list<InnerEvent::Pointer>& events,
     return false;
 }
 
+#ifdef IOS_PLATFORM
+struct FdKey {
+    const void* queue;
+    int32_t fd;
+    const void* listener;
+    bool operator==(const FdKey& other) const
+    {
+        return queue == other.queue && fd == other.fd && listener == other.listener;
+    }
+};
+
+struct FdKeyHash {
+    size_t operator()(const FdKey& key) const
+    {
+        size_t value = std::hash<const void*> {}(key.queue);
+        value ^= std::hash<int32_t> {}(key.fd) + HASH_GOLDEN_RATIO + (value << HASH_SHIFT_LEFT)
+            + (value >> HASH_SHIFT_RIGHT);
+        value ^= std::hash<const void*> {}(key.listener) + HASH_GOLDEN_RATIO + (value << HASH_SHIFT_LEFT)
+            + (value >> HASH_SHIFT_RIGHT);
+        return value;
+    }
+};
+
+struct FdSlot {
+    uint32_t bits { 0 };
+    bool queued { false };
+    bool running { false };
+};
+
+std::mutex& FdMutex()
+{
+    static std::mutex mutex;
+    return mutex;
+}
+
+std::unordered_map<FdKey, FdSlot, FdKeyHash>& FdSlots()
+{
+    static std::unordered_map<FdKey, FdSlot, FdKeyHash> slots;
+    return slots;
+}
+
+struct FdLease {
+    FdKey key;
+    bool armed { true };
+    explicit FdLease(FdKey id) : key(id) {}
+    FdLease(const FdLease&) = delete;
+    FdLease& operator=(const FdLease&) = delete;
+    ~FdLease()
+    {
+        if (!armed) {
+            return;
+        }
+        std::lock_guard<std::mutex> lock(FdMutex());
+        auto it = FdSlots().find(key);
+        if (it == FdSlots().end()) {
+            return;
+        }
+        it->second.queued = false;
+        it->second.bits = 0;
+        if (!it->second.running) {
+            FdSlots().erase(it);
+        }
+    }
+};
+#endif
+
 inline InnerEvent::Pointer PopFrontEventFromListLocked(std::list<InnerEvent::Pointer>& events)
 {
     InnerEvent::Pointer event = std::move(events.front());
     events.pop_front();
     return event;
+}
+
+void DispatchFdCallbacks(const std::shared_ptr<FileDescriptorListener>& listener,
+    int32_t fileDescriptor, uint32_t events)
+{
+    if ((events & FILE_DESCRIPTOR_INPUT_EVENT) != 0) {
+        listener->OnReadable(fileDescriptor);
+    }
+    if ((events & FILE_DESCRIPTOR_OUTPUT_EVENT) != 0) {
+        listener->OnWritable(fileDescriptor);
+    }
+    if ((events & FILE_DESCRIPTOR_SHUTDOWN_EVENT) != 0) {
+        listener->OnShutdown(fileDescriptor);
+    }
+    if ((events & FILE_DESCRIPTOR_EXCEPTION_EVENT) != 0) {
+        listener->OnException(fileDescriptor);
+    }
+}
+
+#ifdef IOS_PLATFORM
+void ExecuteIosFdTask(std::shared_ptr<FdLease> lease, int32_t fileDescriptor,
+    std::weak_ptr<FileDescriptorListener> wp)
+{
+    uint32_t bits = 0;
+    {
+        std::lock_guard<std::mutex> lock(FdMutex());
+        auto it = FdSlots().find(lease->key);
+        if (it != FdSlots().end()) {
+            bits = it->second.bits;
+            it->second.bits = 0;
+            it->second.queued = false;
+            it->second.running = true;
+        }
+    }
+    auto held = wp.lock();
+    if (!held) {
+        HILOG_ERROR("HandleFileDescriptorEvent-Lambda: Listener is released");
+    } else if (held->GetOwner()) {
+        DispatchFdCallbacks(held, fileDescriptor, bits);
+    }
+    {
+        std::lock_guard<std::mutex> lock(FdMutex());
+        auto it = FdSlots().find(lease->key);
+        if (it != FdSlots().end()) {
+            it->second.running = false;
+            if (!it->second.queued) {
+                FdSlots().erase(it);
+            }
+        }
+    }
+    lease->armed = false;
+}
+#endif
+
+void ExecuteFdTask(int32_t fileDescriptor, uint32_t events,
+    std::weak_ptr<FileDescriptorListener> wp)
+{
+    auto held = wp.lock();
+    if (!held) {
+        HILOG_ERROR("HandleFileDescriptorEvent-Lambda: Listener is released");
+        return;
+    }
+    if (!held->GetOwner()) {
+        return;
+    }
+    DispatchFdCallbacks(held, fileDescriptor, events);
 }
 } // unnamed namespace
 
@@ -116,6 +255,11 @@ void EventQueue::Insert(InnerEvent::Pointer& event, Priority priority)
         case Priority::HIGH:
         case Priority::LOW: {
             needNotify = (event->GetHandleTime() < wakeUpTime_);
+#ifdef IOS_PLATFORM
+            if (!needNotify && isIdle_) {
+                needNotify = (wakeUpTime_ <= InnerEvent::Clock::now());
+            }
+#endif
             InsertEventsLocked(subEventQueues_[static_cast<uint32_t>(priority)].queue, event);
             break;
         }
@@ -452,63 +596,84 @@ void EventQueue::WaitUntilLocked(const InnerEvent::TimePoint& when, std::unique_
     }
 }
 
+std::shared_ptr<FileDescriptorListener> EventQueue::FindFileDescriptorListener(int32_t fileDescriptor)
+{
+    std::lock_guard<std::mutex> lock(queueLock_);
+    if (!usable_.load()) {
+        HILOG_ERROR("!usable_.load");
+        return nullptr;
+    }
+    auto it = listeners_.find(fileDescriptor);
+    if (it == listeners_.end()) {
+        HILOG_ERROR("HandleFileDescriptorEvent: Can not found listener, maybe it is removed");
+        return nullptr;
+    }
+    // Hold instance of listener.
+    auto listener = it->second;
+    if (!listener) {
+        HILOG_ERROR("listener is nullptr");
+        return nullptr;
+    }
+    return listener;
+}
+
 void EventQueue::HandleFileDescriptorEvent(int32_t fileDescriptor, uint32_t events)
 {
-    std::shared_ptr<FileDescriptorListener> listener;
-
-    {
-        std::lock_guard<std::mutex> lock(queueLock_);
-        if (!usable_.load()) {
-            HILOG_ERROR("!usable_.load");
-            return;
-        }
-        auto it = listeners_.find(fileDescriptor);
-        if (it == listeners_.end()) {
-            HILOG_ERROR("HandleFileDescriptorEvent: Can not found listener, maybe it is removed");
-            return;
-        }
-
-        // Hold instance of listener.
-        listener = it->second;
-        if (!listener) {
-            HILOG_ERROR("listener is nullptr");
-            return;
-        }
+    auto listener = FindFileDescriptorListener(fileDescriptor);
+    if (!listener) {
+#ifdef IOS_PLATFORM
+        ioWaiter_->NotifyOne();
+#endif
+        return;
     }
 
     auto handler = listener->GetOwner();
     if (!handler) {
         HILOG_ERROR("HandleFileDescriptorEvent: Owner of listener is released");
+#ifdef IOS_PLATFORM
+        ioWaiter_->NotifyOne();
+#endif
         return;
     }
 
     std::weak_ptr<FileDescriptorListener> wp = listener;
-    auto f = [fileDescriptor, events, wp]() {
-        auto listener = wp.lock();
-        if (!listener) {
-            HILOG_ERROR("HandleFileDescriptorEvent-Lambda: Listener is released");
-            return;
+#ifdef IOS_PLATFORM
+    // Level-triggered sources repeat while the condition holds. Coalesce by
+    // queue + fd + listener. A process-wide fd set or busy flag sticks when a
+    // task is cancelled, and it also drops events for another queue or a
+    // reused descriptor with a new listener.
+    FdKey key { this, fileDescriptor, listener.get() };
+    bool needPost = false;
+    {
+        std::lock_guard<std::mutex> lock(FdMutex());
+        FdSlot& slot = FdSlots()[key];
+        slot.bits |= events;
+        if (!slot.queued) {
+            slot.queued = true;
+            needPost = true;
         }
-
-        if ((events & FILE_DESCRIPTOR_INPUT_EVENT) != 0) {
-            listener->OnReadable(fileDescriptor);
-        }
-
-        if ((events & FILE_DESCRIPTOR_OUTPUT_EVENT) != 0) {
-            listener->OnWritable(fileDescriptor);
-        }
-
-        if ((events & FILE_DESCRIPTOR_SHUTDOWN_EVENT) != 0) {
-            listener->OnShutdown(fileDescriptor);
-        }
-
-        if ((events & FILE_DESCRIPTOR_EXCEPTION_EVENT) != 0) {
-            listener->OnException(fileDescriptor);
-        }
+    }
+    if (!needPost) {
+        return;
+    }
+    auto lease = std::make_shared<FdLease>(key);
+    auto task = [lease, fileDescriptor, wp]() {
+        ExecuteIosFdTask(lease, fileDescriptor, wp);
     };
-
+#else
+    auto task = [fileDescriptor, events, wp]() {
+        ExecuteFdTask(fileDescriptor, events, wp);
+    };
+#endif
     // Post a high priority task to handle file descriptor events.
-    handler->PostHighPriorityTask(f);
+    // On failure the event (and the iOS lease) is destroyed here, which drops
+    // the reservation. Do not take queueLock_ in that destructor.
+    if (!handler->PostHighPriorityTask(task)) {
+        HILOG_ERROR("HandleFileDescriptorEvent: PostHighPriorityTask failed, fd=%{public}d", fileDescriptor);
+#ifdef IOS_PLATFORM
+        ioWaiter_->NotifyOne();
+#endif
+    }
 }
 
 bool EventQueue::EnsureIoWaiterSupportListerningFileDescriptorLocked()

@@ -237,6 +237,7 @@ private:
     InnerEvent::Pointer PickEventLocked(const InnerEvent::TimePoint& now, InnerEvent::TimePoint& nextWakeUpTime);
     InnerEvent::Pointer GetExpiredEventLocked(InnerEvent::TimePoint& nextExpiredTime);
     void WaitUntilLocked(const InnerEvent::TimePoint& when, std::unique_lock<std::mutex>& lock);
+    std::shared_ptr<FileDescriptorListener> FindFileDescriptorListener(int32_t fileDescriptor);
     void HandleFileDescriptorEvent(int32_t fileDescriptor, uint32_t events);
     bool EnsureIoWaiterSupportListerningFileDescriptorLocked();
 
