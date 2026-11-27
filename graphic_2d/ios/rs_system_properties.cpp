@@ -543,6 +543,11 @@ uint32_t RSSystemProperties::GetUnmarshalParallelMinDataSize()
     return 0;
 }
 
+bool RSSystemProperties::GetCommandLengthPrefixEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetRebuildSceneEnabled()
 {
     return true;
